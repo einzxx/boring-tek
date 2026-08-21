@@ -14,10 +14,12 @@ phosphor bloom, grain, a slow vignette. Modern rendering, old hardware feel.
 - **One file.** HTML, CSS (one `<style>`) and JS (one `<script>`) in the same `.html`.
   No external files.
 - **Zero dependencies.** No npm, no build step, no framework, no CSS library, no icon
-  library, no CDN, no webfonts.
-- **No network at runtime.** No fetch, no external assets, no analytics, no trackers.
-  Inline `data:` URIs are fine — they ship in the file.
-- **System font stack only.** Never load a font.
+  library, no CDN scripts.
+- **Exactly one external request: Michroma from Google Fonts.** Nothing else leaves the
+  page — no fetch, no other assets, no analytics, no trackers. Inline `data:` URIs are
+  fine, they ship in the file. See Type → Display face for the exact tags.
+- **No second webfont.** Michroma is the only face we load, ever. Body and UI text use
+  the system monospace stack.
 - **JS is optional.** If the page works without it, ship it without it. Everything JS
   adds here is decoration layered on top of a page that already reads.
 - **Inline SVG** for graphics, `currentColor` for strokes and fills. No image files
@@ -75,11 +77,42 @@ Rules:
 
 ## Type
 
-### Stack
+Two faces, and only two. **Michroma** for the headline, system monospace for
+everything else. Never mix them within one element, and never add a third.
 
-Variable-capable faces first, static fallbacks after. Nothing is downloaded — if the
-user doesn't have a variable mono, they get a clean static weight and lose only the
-weight animation.
+### Display face — Michroma
+
+Michroma is the official headline face. Squared, industrial, wide — it matches the
+logo. It is the **only** external request the page is allowed to make.
+
+```html
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
+```
+
+```css
+--display: "Michroma", var(--mono);
+```
+
+- Headline / wordmark only. Never for body text, labels, sublines, buttons, nav or
+  status tags — those stay `--mono`.
+- **Michroma ships one weight: 400.** There is no bold, no italic, no variable axis.
+  Never request extra weights in the URL, never fake bold with `font-weight: 700`
+  (which triggers synthetic bold and smears the squared edges), never fake it with
+  `-webkit-text-stroke`. The face reads heavy on its own — let it.
+- `display=swap` is mandatory. The page must be complete and readable in the mono
+  fallback before Michroma arrives.
+- Michroma is **proportional**, which matters for decode — see Decode → Proportional
+  faces. It also has no box-drawing glyphs, so the block cursor `▊` must be given
+  `font-family: var(--mono)` explicitly or it falls back unpredictably.
+- Letter-spacing `0`. Michroma is already wide; tightening it fights the design.
+- Two network requests result from the one `<link>` — the CSS, then the WOFF2 from
+  `fonts.gstatic.com`. That pair is the whole external budget. Nothing else.
+
+### Mono stack
+
+Everything that isn't the headline. Variable-capable faces first, static fallbacks
+after; nothing is downloaded.
 
 ```css
 --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "Roboto Mono",
@@ -92,21 +125,46 @@ All type uses `clamp()`. No breakpoint-swapped font sizes anywhere.
 
 ```css
 --t-micro: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);   /* 11 → 12 */
---t-body:  clamp(0.875rem, 0.83rem + 0.22vw, 1rem);       /* 14 → 16 */
+--t-body:  clamp(0.8125rem, 0.77rem + 0.22vw, 0.9375rem); /* 13 → 15 */
 --t-lead:  clamp(1rem, 0.92rem + 0.42vw, 1.25rem);        /* 16 → 20 */
 --t-sub:   clamp(1.25rem, 1rem + 1.25vw, 2rem);           /* 20 → 32 */
---t-hero:  clamp(2.75rem, 1.1rem + 11vw, 13rem);          /* 44 → 208 */
 ```
 
-- Hero is meant to be enormous on desktop — 200px+, filling the viewport width. Don't
-  time it down "for balance".
-- Line height: `1.65` body, `1.35` sub, `0.92` hero.
-- Letter-spacing: `0` body, `-0.03em` hero (big monospace needs tightening),
-  `0.16em` on uppercase labels.
+- **Hero caps at `7rem` (112px).** Bigger than that stops reading as confident and
+  starts reading as comic. Never raise the cap.
+- Line height: `1.65` body, `1.35` sub, `1.04` hero (Michroma has tall metrics).
+- Letter-spacing: `0` body, `0` hero, `0.16em` on uppercase labels.
 - Max line length `68ch`. Long paragraphs are wrong here — write short lines.
-- Copy is lowercase by default. Uppercase is for labels and status tags only.
+- Copy is lowercase by default. Uppercase is for labels, status tags, and the
+  Michroma headline.
+
+### Fit-to-width sizing
+
+Single-line text that must never wrap or overflow — the headline, a subline — is sized
+from the space available and the number of character units it needs, not from a guessed
+`vw` slope. Divide, then cap:
+
+```css
+/* headline: --units is set by JS from measured glyph metrics */
+.hero{ font-size: min(7rem, calc((100vw - 44px) / var(--units))); }
+
+/* subline: 39 chars of mono ≈ 26 units, incl. letter-spacing and safety margin */
+.tag{ white-space: nowrap; font-size: min(.875rem, calc((100vw - 44px) / 26)); }
+```
+
+- `44px` covers the `16px` side padding plus scrollbar slack. Don't shave it.
+- Any element carrying `white-space: nowrap` **must** be sized this way. Nowrap without
+  fit-sizing doesn't prevent wrapping, it converts wrapping into horizontal overflow,
+  which `overflow-x: hidden` then silently clips.
+- Estimate mono units as `chars × 0.63` (advance plus letter-spacing, worst-case face).
+  Round up. A subline that fits with 2px to spare on one machine wraps on another.
+- Register `--units` with `@property { syntax: '<number>' }` so the division resolves.
 
 ### Variable weight animation
+
+**Not available on the headline.** Michroma is single-weight, so the headline's settle
+beat and hover response ride on `--glow` alone. This section applies only to mono
+elements — a status tag, a nav item, a mono wordmark.
 
 Weight moves. It moves on **discrete events** — entrance, hover, decode settle — never
 as an ambient loop.
@@ -274,53 +332,84 @@ toward the end — never a fixed-interval tick.
 
 Rules:
 
-- Driven by `requestAnimationFrame` on a normalized `0..1` progress, eased with
-  `easeOutExpo`. **Never `setInterval`**, never a constant ms-per-character.
+- Driven by `requestAnimationFrame`. **Never `setInterval`**, never a constant
+  ms-per-character.
+- **The easing lives on the reveal schedule, not on progress.** Compare linear elapsed
+  time against per-character thresholds spread by a power curve. Easing progress
+  instead (e.g. `easeOutExpo` against evenly-spread thresholds) front-loads so hard
+  that every glyph lands in the first third and the rest of the window is dead air
+  before the settle beat.
 - Characters resolve in a scrambled order, not left to right.
 - Per-character jitter so several land together and then a gap — that's the rhythm.
   Perfectly even resolution reads mechanical.
 - Scramble glyphs come from a fixed set: `ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&$*+<>/\|`
-  — no punctuation that changes advance width, no emoji, no box-drawing.
-- Monospace means width never changes mid-decode. Never decode a proportional font.
+  — no emoji, no box-drawing.
 - Total duration `900`–`1400ms`. Longer is self-indulgent.
-- Ends on a **settle beat**: on completion, `--glow` spikes to `1.6` and `--wght` to
-  `640`, then both ease back over ~400ms. That single pulse is what sells it.
-- The final text must be in the DOM before JS runs. Decode replaces `textContent`
-  temporarily and restores the original — never builds the copy from a JS string.
+- Ends on a **settle beat**: on completion `--glow` spikes and eases back over ~400ms.
+  That single pulse is what sells it. (On mono elements `--wght` can spike with it;
+  the Michroma headline has no weight axis, so glow carries it alone.)
+- The final text must be in the DOM before JS runs, so the page reads with JS disabled.
+  Decode overwrites it and restores it — never builds the copy from a JS string.
 
 ```js
 const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&$*+<>/\\|';
-const easeOutExpo = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
-function decode(el, ms = 1150){
-  const final = el.textContent;
-  const n = final.length;
-  // scrambled resolve order + per-char jitter → rhythm, not a tick
-  const order = [...Array(n).keys()].sort(() => Math.random() - .5);
+// eased reveal schedule: dense at the start, gaps widening toward the end so the
+// last glyph lands with the settle beat.
+function schedule(target){
+  const n = target.length, last = n > 1 ? n - 1 : 1;
+  const order = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--){                 // Fisher-Yates, not sort(random)
+    const j = (Math.random() * (i + 1)) | 0;
+    [order[i], order[j]] = [order[j], order[i]];
+  }
   const at = new Array(n);
-  order.forEach((ci, i) => { at[ci] = (i / n) * .82 + Math.random() * .18; });
+  order.forEach((ci, i) => { at[ci] = Math.pow(i / last, 1.75) * .88 + Math.random() * .12; });
+  return at;
+}
 
-  let t0;
-  const frame = now => {
-    t0 ??= now;
-    const p = easeOutExpo(Math.min((now - t0) / ms, 1));
-    let out = '';
-    for (let i = 0; i < n; i++){
-      const c = final[i];
-      out += (c === ' ' || p >= at[i]) ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0];
-    }
-    el.textContent = out;
-    if (p < 1) requestAnimationFrame(frame);
-    else { el.textContent = final; settle(el); }
-  };
-  requestAnimationFrame(frame);
+// inside the shared rAF loop:
+const p = Math.min((now - t0) / DUR, 1);           // linear time, eased thresholds
+let out = '';
+for (let i = 0; i < target.length; i++){
+  const c = target[i];
+  out += (c === ' ' || p >= at[i]) ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0];
 }
 ```
 
-Where `settle` fires the glow/weight pulse and then clears `will-change`.
+Expected landing pattern for a 14-glyph string over 1150ms — clusters and pauses, not
+a metronome:
 
-If the element uses the three-layer glow stack, decode all three duplicates in lockstep
-from one rAF loop — never three independent loops.
+```
+0ms:1  84:2  100:3  117:4  134:5  334:6  401:7  618:8  701:9  902:10 …
+```
+
+### Proportional faces — the fixed-cell grid
+
+Michroma is proportional, so scrambling raw text changes the string's width every
+frame and the centered headline wobbles horizontally. Monospace hid this problem;
+Michroma does not. Fix it with a fixed cell per glyph:
+
+- Measure once, after `document.fonts.load('400 1em Michroma')` resolves, using a
+  canvas `measureText` pass over every glyph that can appear (scramble set + all
+  words). Take the **widest**, express it in `em`, set it as `--cw`.
+- Wrap each character in `<span class="c">` with
+  `display:inline-block; width:var(--cw); text-align:center`. Every glyph now occupies
+  an identical advance, so the string width depends only on character *count*.
+- Build the cells in JS and only then add the `.grid` class. The plain-text fallback in
+  the DOM stays correct with JS off.
+- Repaint only cells whose glyph actually changed — track the previous string in JS and
+  diff. Never read `textContent` back to compare.
+- Words of different lengths still change the count, so the hidden sizer element must
+  hold the **longest** word's cell count to pin the track width. Shorter words then
+  centre inside a track that never resizes.
+- Derive `--units` for the fit-to-width formula from the same measurement:
+  `cells × cw + caretWidth + slack`.
+
+If the element uses the three-layer glow stack, decode all layers in lockstep from one
+rAF loop — never three independent loops. The widest bloom layer can hold the target
+string statically through the decode; at `blur(.2em)` it's an amorphous mass, and
+keeping it off the per-frame repaint path saves the most expensive re-raster.
 
 ## Micro-interactions
 
@@ -459,8 +548,8 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 ## Layout
 
-- Max width `900px`, centered, `20px` side padding (`16px` under 480px). Hero may break
-  out to full viewport width.
+- Max width `900px`, centered, `20px` side padding (`16px` under 480px). The hero sizes
+  itself to fit the viewport (see Fit-to-width sizing) and caps at `7rem`.
 - Spacing scale, nothing between: `4 8 12 16 24 32 48 64 96 128`.
 - Left-aligned. Centered text only for a hero.
 - Borders `1px solid var(--line)`. **Zero border radius everywhere.** No rounded
@@ -508,6 +597,10 @@ Use sparingly — one or two per page, not all of them.
 
 ## Page skeleton
 
+`index.html` in the repo root is the reference implementation of every rule in this
+file — the Michroma cell grid, the decode loop, the glow stack, the depth layers. Read
+it before building a new page; copy from it rather than from memory.
+
 Start from this. Fill in, don't restructure.
 
 ```html
@@ -519,7 +612,14 @@ Start from this. Fill in, don't restructure.
 <title>THE BORING TEK</title>
 <meta name="description" content="custom ai agents, backend infrastructure, workflow automation.">
 <meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
 <style>
+  @property --prox{syntax:'<number>';inherits:true;initial-value:0}
+  @property --beat{syntax:'<number>';inherits:true;initial-value:0}
+  @property --mx{syntax:'<number>';inherits:true;initial-value:0}
+  @property --my{syntax:'<number>';inherits:true;initial-value:0}
+  @property --units{syntax:'<number>';inherits:true;initial-value:15.5}
   :root{
     --bg:#06070a; --bg-lift:#0b0d12; --line:#1a1e26; --dim:#2b323d;
     --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5;
@@ -527,10 +627,10 @@ Start from this. Fill in, don't restructure.
     --a-300:#ffd79a; --a-500:#ffb340; --a-700:#a86a12;
     --red:#ff5c5c;
     --mono: ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --display: "Michroma", var(--mono);
     --t-micro: clamp(.6875rem,.66rem + .14vw,.75rem);
-    --t-body:  clamp(.875rem,.83rem + .22vw,1rem);
+    --t-body:  clamp(.8125rem,.77rem + .22vw,.9375rem);
     --t-lead:  clamp(1rem,.92rem + .42vw,1.25rem);
-    --t-hero:  clamp(2.75rem,1.1rem + 11vw,13rem);
     --ease: cubic-bezier(.16,1,.3,1);
   }
   *{box-sizing:border-box}
@@ -570,31 +670,33 @@ Start from this. Fill in, don't restructure.
   .wrap{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:clamp(32px,9vh,96px) 16px}
   @media (min-width:720px){.wrap{padding-inline:20px}}
 
-  /* layered glow */
-  .glow{display:grid;position:relative;isolation:isolate;margin:0;
-    font-size:var(--t-hero);line-height:.92;letter-spacing:-.03em;
-    --glow:calc(1 + var(--prox,0) * .85);
-    transform:translate3d(calc(var(--mx,0)*var(--prox,0)*6px),calc(var(--my,0)*var(--prox,0)*4px),0);
+  /* headline — fit-to-width, capped at 7rem; --units set by JS from metrics */
+  .hero{display:grid;justify-content:center;margin:0;max-width:100%;
+    font-size:min(7rem, calc((100vw - 44px) / var(--units)));
+    line-height:1.04;letter-spacing:0;contain:layout style;
+    --glow:calc(1 + var(--prox) * .85 + var(--beat) * .7);
+    transform:translate3d(calc(var(--mx)*var(--prox)*6px),calc(var(--my)*var(--prox)*4px),0);
   }
-  .glow>span{grid-area:1/1;display:block}
-  .glow__core{z-index:3;color:var(--white);
-    text-shadow:0 0 1px rgba(53,255,106,.55),0 0 6px rgba(53,255,106,.34),
-                0 0 18px rgba(53,255,106,.20),0 0 44px rgba(23,163,79,.14)}
-  .glow__blur {z-index:2;color:var(--p-500);filter:blur(10px);opacity:calc(.42*var(--glow))}
-  .glow__bloom{z-index:1;color:var(--p-700);filter:blur(38px);opacity:calc(.30*var(--glow))}
-  .vf .glow__core{font-variation-settings:"wght" var(--wght,420);
-    transition:font-variation-settings 420ms var(--ease)}
+  .hero>span{grid-area:1/1;display:block;white-space:pre}
+  .sizer{visibility:hidden}
+  .layer{font-family:var(--display);font-weight:400}
+  .grid .c{display:inline-block;width:var(--cw);text-align:center}
+  .l-core{z-index:3;color:var(--white);
+    text-shadow:0 0 .012em rgba(53,255,106,.58),0 0 .045em rgba(53,255,106,.34),
+                0 0 .11em rgba(53,255,106,.20),0 0 .28em rgba(23,163,79,.14)}
+  .l-mid {z-index:2;color:var(--p-500);filter:blur(.055em);opacity:calc(.42*var(--glow))}
+  .l-wide{z-index:1;color:var(--p-700);filter:blur(.2em);opacity:calc(.30*var(--glow))}
 
   a{color:var(--p-500);text-decoration:underline;text-decoration-color:var(--p-700)}
   a:hover{text-decoration-color:var(--p-500)}
   :focus-visible{outline:1px solid var(--p-500);outline-offset:3px}
   .label{color:var(--muted);text-transform:uppercase;letter-spacing:.16em;font-size:var(--t-micro)}
-  .caret{color:var(--p-500);animation:blink 1.05s step-end infinite}
+  .caret{font-family:var(--mono);color:var(--p-500);animation:blink 1.05s step-end infinite}
   @keyframes blink{50%{opacity:0}}
 
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
-    .glow{transform:none!important}
+    .hero{transform:none!important}
   }
 </style>
 </head>
@@ -603,20 +705,21 @@ Start from this. Fill in, don't restructure.
   <div class="grain" aria-hidden="true"></div>
 
   <main class="wrap">
-    <h1 class="glow" data-glow>
-      <span class="glow__blur"  aria-hidden="true">the boring tek</span>
-      <span class="glow__bloom" aria-hidden="true">the boring tek</span>
-      <span class="glow__core">the boring tek</span>
+    <h1 class="hero">
+      <span class="sr">the boring tek — coming soon</span>
+      <span class="sizer" aria-hidden="true"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
+      <span class="layer l-wide" aria-hidden="true"><span class="t">THE BORING TEK</span>&#9610;</span>
+      <span class="layer l-mid"  aria-hidden="true"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
+      <span class="layer l-core" aria-hidden="true"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
     </h1>
     <!-- content -->
   </main>
 
 <script>
+  // Guard everything with REDUCED. Measure metrics after document.fonts.load
+  // resolves, build the cell grid, then run ONE shared rAF loop for decode +
+  // proximity. See index.html for the full implementation.
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.documentElement.classList.toggle('vf',
-    CSS.supports('font-variation-settings','"wght" 500'));
-  // decode() + single shared rAF loop (proximity, canvas) go here.
-  // guard everything with REDUCED.
 </script>
 </body>
 </html>
@@ -654,17 +757,41 @@ Added:
 - **Ambient variable-weight loops** — weight moves on events, not on a timer.
 - **Weight animation on body text** or any element that reflows its neighbours.
 - **Decode on a `setInterval`** or at a constant ms-per-character.
+- **Easing the decode's progress instead of its reveal schedule.** It front-loads every
+  glyph into the first third and leaves dead air before the settle beat.
 - **Glow as the only state indicator.** Contrast has to carry it too.
+
+Added with Michroma:
+
+- **Any second webfont**, any extra Michroma weight or style in the Google Fonts URL,
+  any other external host. One `<link>`, one family, weight 400.
+- **Self-hosting or inlining Michroma** as a base64 `data:` URI. It bloats the single
+  file past any sane budget — use the Google Fonts link.
+- **Synthetic bold on Michroma** — `font-weight: 700`, `-webkit-text-stroke`, or a
+  duplicated offset layer faking heft. It has one weight; that's the design.
+- **Michroma on body text, sublines, buttons, nav or status tags.** Headline only.
+- **Decoding proportional text without the fixed-cell grid.** The headline width
+  changes every frame and the whole line wobbles.
+- **A headline above `7rem`.** It stops reading as confident and starts reading as
+  comic.
+- **`white-space: nowrap` without fit-to-width sizing.** That converts wrapping into
+  clipped overflow, which is worse.
+- **Blocking first paint on the font.** `display=swap` always; the page must be
+  complete in the mono fallback.
 
 ## Before shipping
 
 Visual:
 
 - Renders correctly at 320px, 768px, 1440px and 2560px wide.
-- Hero actually gets huge on a wide screen — check at 1920px, not just a laptop.
+- Headline fits on one line at 320px and caps at 7rem on wide screens — check both ends.
+- Every `nowrap` line still fits at 320px. Check the narrowest case, not the widest.
+- Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
 - Grain is invisible until you look for it. Vignette is invisible until you screenshot
   with and without.
 - Nothing looks like a default CSS color.
+- Throttle to Slow 3G and reload: the mono fallback headline is laid out sensibly and
+  the swap to Michroma doesn't break the layout.
 
 Performance:
 
@@ -677,7 +804,10 @@ Performance:
 
 Correctness:
 
-- Zero external requests in the network tab.
+- Exactly two external requests in the network tab: the Google Fonts CSS and the
+  Michroma WOFF2. Anything else is a bug.
+- Block `fonts.googleapis.com` and reload: page still renders, still readable, still
+  laid out — just in mono.
 - Reduced-motion pass: static grain, static vignette, no decode, no proximity, no
   canvas, page still complete.
 - JS disabled: headline reads correctly, page is fully usable.
