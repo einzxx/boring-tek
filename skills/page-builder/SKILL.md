@@ -102,9 +102,10 @@ logo. It is the **only** external request the page is allowed to make.
   labels, buttons, nav or status tags. Those stay `--mono`.
 - The subline is the one small-text exception, and it is deliberate: it belongs to the
   lockup, so it carries the lockup's face. It earns the exception by being **one short
-  line, tracked wide** — see Letter-spacing below. Michroma at small sizes with default
-  tracking is a smudge; the tracking is what makes it legible, so the two changes ship
-  together or not at all. Do not read this as licence to put Michroma on the next
+  line, uppercase, tracked wide** — see Letter-spacing below. Michroma at small sizes,
+  lowercase and default-tracked, is a smudge. Caps have simpler shapes and the tracking
+  gives them air, and that combination is what makes it legible at `1rem`. All three
+  ship together or none of them do. This is not licence to put Michroma on the next
   paragraph.
 - **Michroma ships one weight: 400.** There is no bold, no italic, no variable axis.
   Never request extra weights in the URL, never fake bold with `font-weight: 700`
@@ -113,13 +114,15 @@ logo. It is the **only** external request the page is allowed to make.
 - `display=swap` is mandatory. The page must be complete and readable in the mono
   fallback before Michroma arrives.
 - Michroma is **proportional**, which matters for decode — see Decode → Proportional
-  faces. It also has no box-drawing glyphs, so **any cursor** — the block `▊` or the
-  subline's `_` — must be given `font-family: var(--mono)` explicitly, plus
-  `letter-spacing: 0` where it sits inside tracked text, or it falls back
-  unpredictably and inherits tracking it shouldn't.
+  faces. It also has no box-drawing glyphs, so the block cursor `▊` must be given
+  `font-family: var(--mono)` explicitly or it falls back unpredictably. That cursor
+  lives on the headline and is the only one on the page.
 - Letter-spacing: `0` on the headline, `0.18em` on the subline. Never negative.
   Michroma is already wide, and tightening it fights the design; opening it up at
   small sizes is the only direction that helps.
+- **`text-transform` on Michroma changes its measured width by roughly 15%.** Caps are
+  wider than lowercase. Anything that measures the face on a canvas has to measure the
+  *rendered* string, not the DOM string — see Fit-to-width sizing.
 - Two network requests result from the one `<link>` — the CSS, then the WOFF2 from
   `fonts.gstatic.com`. That pair is the whole external budget. Nothing else.
 
@@ -152,8 +155,12 @@ All type uses `clamp()`. No breakpoint-swapped font sizes anywhere.
 - Line height: `1.65` body, `1.35` sub, `1.04` hero (Michroma has tall metrics).
 - Letter-spacing: `0` body, `0` hero, `0.18em` subline, `0.16em` on uppercase labels.
 - Max line length `68ch`. Long paragraphs are wrong here — write short lines.
-- Copy is lowercase by default. Uppercase is for labels, status tags, and the
-  Michroma headline.
+- Copy is lowercase by default. Uppercase is for labels, status tags, the Michroma
+  headline and the lockup subline.
+- **Uppercase is set with `text-transform`, never typed into the markup.** The DOM keeps
+  the real lowercase sentence, so screen readers don't spell it out letter by letter and
+  a copy-paste gives back readable text. `.status` and `.label` already work this way;
+  the subline follows them.
 
 ### Fit-to-width sizing
 
@@ -165,16 +172,16 @@ from the space available and the number of character units it needs, not from a 
 /* headline: --units is set by JS from measured glyph metrics */
 .hero{ font-size: min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units))); }
 
-/* subline: --tu is set by JS from the measured Michroma line + tracking + cursor */
+/* subline: --tu is set by JS from the measured Michroma line plus tracking */
 .tag{ white-space: nowrap; font-size: min(1rem, calc((100vw - 44px) / var(--tu))); }
 ```
 
 ```js
 // measured once, after document.fonts.load resolves
 cx.font = '400 200px Michroma, ui-monospace, monospace';
-tu = cx.measureText(TAG).width / 200   // the line, in em
-   + TAG.length * 0.18                 // tracking, one gap per character
-   + 1.2;                              // underscore cursor + its gap
+tu = cx.measureText(TAG.toUpperCase()).width / 200  // the line as it RENDERS, in em
+   + TAG.length * 0.18                              // tracking, one gap per character
+   + 0.2;                                           // same slack the headline carries
 ```
 
 - `44px` covers the `16px` side padding plus scrollbar slack. Don't shave it.
@@ -189,19 +196,25 @@ tu = cx.measureText(TAG).width / 200   // the line, in em
   a worst-case mono face). Michroma is proportional and the tracking is large, so the
   same guess is off by enough to either clip the line or shrink it for no reason.
   Measure it on a canvas at 200px and divide, exactly like the headline.
+- **Measure the string as it renders, not as it's written.** `text-transform:
+  uppercase` on Michroma adds roughly 15% to the width, and canvas `measureText` knows
+  nothing about CSS. Uppercase the string yourself before measuring, or the line
+  overflows on every narrow screen by exactly the amount you forgot.
 - **Tracking is one gap per character, including the last one.** `letter-spacing` adds
   its value after every glyph, so the trailing gap is real width — count `chars × em`,
-  not `(chars - 1) × em`. That trailing gap is also what spaces the cursor off the
-  text, so no margin is needed on the cursor.
+  not `(chars - 1) × em`. It also means the rendered line carries `0.18em` of dead space
+  on its right end, which is why the centred block sits a hair left of true centre.
+  Leave it; correcting it costs a negative margin and buys nothing visible.
 - Estimate mono units as `chars × 0.63` for anything still in mono. Round up. A line
   that fits with 2px to spare on one machine wraps on another.
 - Register `--units` and `--tu` with `@property { syntax: '<number>' }` so the division
   resolves.
-- **Give `--tu` an `initial-value` that is deliberately too large** (`42` against a real
-  ~36). The reduced-motion path never measures, so the initial value *is* the value
-  there. Erring large means the line is a little small on a narrow reduced-motion
-  screen; erring small means it overflows and gets clipped. Only one of those is
-  recoverable by the reader.
+- **Give `--tu` an `initial-value` that is deliberately too large** (`46` against a real
+  ~40 for the uppercase line). The reduced-motion path never measures, so the initial
+  value *is* the value there. Erring large means the line is a little small on a narrow
+  reduced-motion screen; erring small means it overflows and gets clipped. Only one of
+  those is recoverable by the reader. Re-check the number whenever the copy, the
+  tracking or the casing changes — all three move it.
 - `--units` budgets a caret width even where the caret is absolutely positioned and
   therefore outside the track. That is deliberate: it reserves room for the overhang so
   the cursor can't push past the viewport edge.
@@ -278,29 +291,33 @@ matching the logo lockup. Above it, one line.
 The subline types itself out **once**, after the headline's first decode resolves, then
 stays static forever.
 
+- **Nothing follows the text.** No cursor, no period, no bracket, no rule. The line
+  ends on its last letter and the `0.18em` of trailing tracking, and that is the whole
+  ending. An earlier build parked a blinking underscore there; it pulled the eye to the
+  end of the line and away from the wordmark, which is the wrong place for the only
+  moving thing below the headline.
 - **The subline carries no full stop**, even though house style ends lines with one.
-  A trailing period immediately before a blinking cursor reads as a stray character,
-  not as punctuation. The cursor is the terminator. This is the only line on the site
-  that drops its full stop, and it drops it because of the cursor — if the cursor ever
-  goes, the full stop comes back.
+  Set in caps and tracked wide it is a lockup element, not a sentence — the same reason
+  `[ COMING SOON ]` and the nav labels take no punctuation. Adding one back makes it
+  read as a stray glyph floating a third of a space off the last letter.
 - One-shot only. Never on a loop, never re-triggered on the headline's later cycles.
 - Driven from the same shared rAF loop as the decode. Per-character thresholds with
   jitter, ~1150ms total — jitter is what stops it reading as a metronome.
-- **The cursor stays.** A small underscore trails the text while typing and is still
-  there when the typing lands, blinking slowly forever. It is the one thing on the page
-  that says the terminal is still open.
-- It can only stay because it is **clearly a different cursor** from the headline's:
-  underscore against block, `--mono` at `1em` against the headline's cell width,
-  `1.2s` against `1.05s`, and 60-odd pixels apart. Two identical carets blinking in
-  sync at two sizes reads as a bug. Two different ones read as one terminal with a
-  wordmark above the prompt. If you ever match their glyph or their period, drop one.
-- The blink is `step-end`, not a fade. Terminal cursors snap. `1.2s` is the calm rate —
-  slower than the headline's, so the page has no single pulse to lock onto.
-- Green cursor, neutral text. The cursor is the **only** phosphor in the subline, which
-  is what makes it read as live rather than as decoration.
+- **No caret at any point** — not during the typing, not after it. The text simply
+  grows. Losing the caret costs the typing very little, because the reveal is already
+  legible as typing from its own rhythm, and it keeps the page down to **one blinking
+  thing**: the headline's block cursor. That cursor is the terminal signal for the
+  whole page and it doesn't want competition eight lines down at a third the size.
+- The subline is therefore the only element on the site that animates without a caret.
+  If a future line needs one, it takes the headline's `▊`, not a second style.
 - Typing must not move anything. Pin the width with a hidden full-text sizer, then let
-  the live text grow left-to-right inside that fixed box, with the caret absolutely
-  positioned at `left: 100%` so it never contributes width.
+  the live text grow left-to-right inside that fixed box. Keep the sizer even with no
+  caret: without it the centred line slides rightward one character at a time as it
+  types, which is far more distracting than the typing itself.
+- The sizer holds the same lowercase string as the live text and inherits the same
+  `text-transform`, so the two can never disagree about width. Three copies of the
+  string live in the markup — sizer, blur layer, live text — and **all three must match
+  exactly**, or the typing drifts against its own box.
 - The full text lives in the DOM for the no-JS and reduced-motion cases. JS blanks it
   as its first act and restores it when typing starts — so it must run before first
   paint, or the full string flashes.
@@ -485,7 +502,7 @@ all. Never just shrink the headline's numbers and call it done.
 The subline's reduced tier, for reference:
 
 ```css
-.tag{ color: var(--sub) }
+.tag{ color: var(--sub); text-transform: uppercase; letter-spacing: .18em }
 .tag-blur{ color: var(--white); filter: blur(.14em); opacity: .18 }
 .tag-txt{
   text-shadow:
@@ -493,15 +510,15 @@ The subline's reduced tier, for reference:
     0 0 .32em rgba(244,247,245,.15),
     0 0 .95em rgba(244,247,245,.07);
 }
-.tag-caret{ color: var(--p-500); text-shadow: 0 0 .5em rgba(53,255,106,.40) }
 ```
 
 - **The subline is `--sub`, a dim neutral white, and its glow is white too.** It is a
   quiet line under a loud one. The headline is the lit object; the subline sits in its
   light rather than competing to be a second source.
-- **No green anywhere in the type** — not in the fill, not in the shadow stack, not in
-  the blur duplicate. The only phosphor below the headline is the cursor, and that is
-  the whole point of the cursor.
+- **No green anywhere in it** — not in the fill, not in the shadow stack, not in the
+  blur duplicate, and there is nothing else down there to put green on. Below the
+  headline the page has no phosphor at all, which is what keeps the green reading as
+  the headline's own light.
 - This reverses the earlier rule that the subline was `--p-100` pale white-green.
   The green fill made two glowing green lines stacked, which read as one undifferentiated
   block of glow. Dropping the green gave the headline back its hierarchy. Don't restore it.
@@ -981,7 +998,7 @@ Start from this. Fill in, don't restructure.
   @property --ex{syntax:'<number>';inherits:true;initial-value:0}
   @property --ey{syntax:'<number>';inherits:true;initial-value:0}
   @property --blink{syntax:'<number>';inherits:true;initial-value:1}
-  @property --tu{syntax:'<number>';inherits:true;initial-value:42}
+  @property --tu{syntax:'<number>';inherits:true;initial-value:46}
   :root{
     --bg:#06070a; --bg-lift:#0b0d12; --line:#1a1e26; --dim:#2b323d;
     --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5; --sub:#c8c8c8;
@@ -1064,23 +1081,19 @@ Start from this. Fill in, don't restructure.
   .caret{font-family:var(--mono);color:var(--p-500);animation:blink 1.05s step-end infinite}
   @keyframes blink{50%{opacity:0}}
 
-  /* subline — headline face, tracked wide, dim neutral white. --tu set by JS */
+  /* subline — headline face, uppercase, tracked wide, dim neutral white.
+     nothing follows the text. --tu set by JS from the rendered string. */
   .tag{display:grid;justify-content:center;margin:0;
     font-family:var(--display);font-weight:400;
-    color:var(--sub);letter-spacing:.18em;
+    color:var(--sub);letter-spacing:.18em;text-transform:uppercase;
     font-size:min(1rem, calc((100vw - 44px) / var(--tu)))}
   .tag>span{grid-area:1/1;white-space:pre}
   .tag-size{visibility:hidden}
-  .tag-live{position:relative;justify-self:start;display:grid;justify-content:start}
+  .tag-live{justify-self:start;display:grid;justify-content:start}
   .tag-blur,.tag-txt{grid-area:1/1}
   .tag-blur{color:var(--white);filter:blur(.14em);opacity:.18}
   .tag-txt{text-shadow:0 0 .05em rgba(244,247,245,.30),0 0 .32em rgba(244,247,245,.15),
                        0 0 .95em rgba(244,247,245,.07)}
-  /* the cursor stays after the typing lands — mono, untracked, slower blink */
-  .tag-caret{position:absolute;left:100%;top:0;
-    font-family:var(--mono);letter-spacing:0;
-    color:var(--p-500);text-shadow:0 0 .5em rgba(53,255,106,.40);
-    animation:blink 1.2s step-end infinite}
 
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
@@ -1106,9 +1119,10 @@ Start from this. Fill in, don't restructure.
            Copy the exact markup from index.html. -->
     </h1>
     <p class="tag">
-      <!-- no full stop; the cursor terminates the line. all three copies match. -->
+      <!-- lowercase in the DOM, uppercased by CSS. no full stop, nothing after
+           the text, and all three copies of the string match exactly. -->
       <span class="tag-size" aria-hidden="true">building the boring part of the future</span>
-      <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future</span><span class="tag-txt">building the boring part of the future</span><span class="tag-caret" aria-hidden="true">_</span></span>
+      <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future</span><span class="tag-txt">building the boring part of the future</span></span>
     </p>
    </div>
   </main>
@@ -1169,8 +1183,10 @@ Added with Michroma:
   duplicated offset layer faking heft. It has one weight; that's the design.
 - **Michroma on body text, buttons, nav or status tags.** The headline and the lockup
   subline are the whole list.
-- **Michroma at small sizes without the `0.18em` tracking.** Default-tracked Michroma
-  under 1rem is a smudge. The two ship together.
+- **Michroma at small sizes without caps and the `0.18em` tracking.** Lowercase,
+  default-tracked Michroma under 1rem is a smudge. All three ship together.
+- **Measuring Michroma without applying the same `text-transform` the CSS will.** Caps
+  are ~15% wider; the line overflows by exactly what you skipped.
 - **Decoding proportional text without the fixed-cell grid.** The headline width
   changes every frame and the whole line wobbles.
 - **A headline above `2.75rem`.** It stops reading as confident and starts reading as
@@ -1214,9 +1230,11 @@ Added with the mascot and the lockup:
 - **A `--muted` subline.** The subline is `--sub`, a bright dim white with a glow.
   `#6d7680` under a lit headline reads as an unstyled leftover. `--muted` is for labels
   and timestamps.
-- **Green in the subline's type** — fill, shadow stack or blur duplicate. The cursor is
-  the only phosphor down there.
-- **A full stop on the subline.** The cursor terminates the line.
+- **Green anywhere in the subline** — fill, shadow stack or blur duplicate. There is no
+  phosphor below the headline.
+- **A full stop on the subline**, or anything else after the text.
+- **Typing the subline's caps into the markup.** `text-transform` does it; the DOM keeps
+  the readable lowercase sentence.
 - **Any pointer reaction on text** — leaning, translating or brightening the headline
   or subline on mouse move. The mascot's eyes are the only thing that reacts.
 - **Shrinking the headline's glow radii verbatim for smaller text.** Layer count comes
@@ -1237,13 +1255,12 @@ Added with the mascot and the lockup:
 - **Decoding the stacked lines independently.** One schedule across the whole lockup.
 - **Looping or re-triggering the subline typing.** Once, after the first headline
   resolve, then static forever.
-- **Removing the subline's cursor** when the typing finishes. It stays, blinking, for
-  good.
-- **Matching the two cursors' glyph or blink period.** Block `▊` at `1.05s` on the
-  headline, underscore `_` at `1.2s` on the subline. Identical carets at two sizes read
-  as a rendering bug.
-- **Letting a cursor inherit Michroma or the subline's tracking.** `font-family:
-  var(--mono)` and `letter-spacing: 0` on every caret, always.
+- **A caret on the subline**, during the typing or after it. One blinking thing on the
+  page, and it belongs to the headline.
+- **Dropping the hidden sizer now that there's no caret to keep out of flow.** It is
+  what stops the centred line sliding right as it types.
+- **Letting a cursor inherit Michroma.** `font-family: var(--mono)` on every caret,
+  always.
 
 ## Before shipping
 
@@ -1261,15 +1278,23 @@ Visual:
   at a glance, and never flashes on the headline's settle beat. Screenshot it and pick a
   letter with a colour picker if you're unsure — R, G and B should be within a point or
   two of each other.
-- Subline sits in the same face as the headline and reads as tracked, not as loose or
-  as crammed. At 1440px it should be visibly wider than the words it contains.
+- Subline sits in the same face as the headline, all caps, and reads as tracked rather
+  than loose or crammed. At 1440px it runs close to the headline's own width — that
+  near-match is the point of the caps and the tracking, so if one is much longer than
+  the other, check `--tu` before changing the copy.
+- Nothing follows the last letter. No caret, no period, no stray glyph at any point
+  during or after the typing.
+- The headline's block cursor is the only blinking thing on the page.
 - No ghost trailing the subline while it types — the blur layer is written in the same
   frame as the core.
-- The subline's cursor is still blinking a minute after the typing finished, in green,
-  one character clear of the last letter, and it does not blink in time with the
-  headline's block cursor.
-- Every `nowrap` line still fits at 320px — the tracked subline is now the tightest
-  case on the page, not the headline. Check it first.
+- Subline still types once and lands on the full line with no visible sideways drift —
+  the sizer is doing its job.
+- Copy the subline out of the rendered page: it should paste back as a lowercase
+  sentence, not as caps. If it pastes as caps, someone typed the transform into the
+  markup.
+- Every `nowrap` line still fits at 320px — the uppercase tracked subline is now the
+  tightest case on the page, not the headline. Check it first, and check it again after
+  any copy change.
 - Mascot reads as a character at the top of the lockup, with clear space beneath him and
   a soft halo around him — not a small icon bolted above the text.
 - Sweep the pointer a full circle around the mascot, out to all four screen corners: the
@@ -1280,8 +1305,8 @@ Visual:
 - Touch and reduced motion: eyes dead centre, still blinking, nothing else moving.
 - Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
   mode: `COMING SOON` is two lines, the wordmark is three.
-- Exactly one *block* cursor visible at a time, on the headline's last line with
-  content. The subline's underscore is separate and always on — two cursors total.
+- Exactly one cursor on the page, ever: the headline's block cursor, on its last line
+  with content.
 - In stacked mode, drop a vertical guide down the centre of the viewport: it should
   bisect `THE`, `BORING` and `TEK` equally. If the text sits left of centre, the caret
   is still in flow.

@@ -31,9 +31,10 @@ names in here either.
     cursor, blinking on its own, soft phosphor halo behind it.
   - Michroma wordmark decoding between THE BORING TEK and COMING SOON, three-line
     lockup under 640px.
-  - Subline types itself once, `1rem` cap, **Michroma tracked `.18em`**, `--sub` dim
-    neutral white with a white glow. No full stop — a green underscore cursor sits
-    after it and blinks at `1.2s` forever.
+  - Subline types itself once, `1rem` cap, **Michroma, uppercase, tracked `.18em`**,
+    `--sub` dim neutral white with a white glow. No full stop and nothing after the
+    text — no cursor, no punctuation. The caps come from `text-transform`; the DOM
+    keeps the lowercase sentence.
   - **All text is static.** No lean, no translate, no brightening on mouse move. The
     mascot's eyes are the only thing on the page that reacts to the pointer.
   - CRT grain, radial vignette, phosphor glow throughout.
@@ -88,22 +89,28 @@ names in here either.
   fully static — no lean, no translate, no brightening on mouse move. An earlier build
   had the whole lockup leaning and brightening; that was removed on purpose. One thing
   reacting reads as a character noticing you; everything reacting reads as a gimmick.
-- 2026-08-21 — **Subline restyled and this supersedes the two entries below it.** It is
-  now Michroma — the headline face — at a `1rem` cap, tracked `.18em`, filled `--sub`
-  (`#c8c8c8`, a dim neutral white) with a white glow instead of a green one. The
-  trailing full stop is gone and a green `_` cursor sits after the text, blinking
-  `1.2s` and never removed. Reasons, in order: two glowing green lines stacked read as
-  one block of glow and cost the headline its hierarchy; the shared face makes the
-  lockup one object instead of a wordmark with a caption; the cursor keeps the page
-  feeling like an open terminal rather than a finished poster.
+- 2026-08-21 — **Subline restyled and this supersedes every subline entry below it.**
+  It is now Michroma — the headline face — **uppercase**, at a `1rem` cap, tracked
+  `.18em`, filled `--sub` (`#c8c8c8`, a dim neutral white) with a white glow instead of
+  a green one. No trailing full stop and **nothing after the text at all**. Reasons, in
+  order: two glowing green lines stacked read as one block of glow and cost the
+  headline its hierarchy; the shared face makes the lockup one object instead of a
+  wordmark with a caption; caps plus tracking are what make Michroma legible at `1rem`
+  and run the line out to roughly the headline's own width.
+- 2026-08-21 — Caps are set with `text-transform`, not typed into the markup, matching
+  `.status` and `.label`. Keeps the DOM string readable for screen readers and
+  copy-paste. **The catch:** canvas `measureText` ignores CSS, so the width measurement
+  has to uppercase the string itself or it comes out ~15% short.
 - 2026-08-21 — `--tu` replaces the hand-guessed `26` divisor that sized the subline.
   Michroma is proportional and `.18em` tracking is heavy, so the line is measured on a
   canvas at load, exactly like the headline's `--units`. Its `@property`
-  `initial-value` is 42 against a real ~36, on purpose — the reduced-motion path never
-  measures, and too-small is recoverable where overflow is not.
-- 2026-08-21 — Two cursors on the page is now correct, previously banned. They only
-  coexist because they're clearly different: block `▊` at `1.05s` on the headline,
-  underscore `_` at `1.2s` on the subline. Match their glyph or period and one has to go.
+  `initial-value` is 46 against a real ~40, on purpose — the reduced-motion path never
+  measures, and too-small is recoverable where overflow is not. Recheck that number if
+  the copy, the tracking or the casing ever changes.
+- 2026-08-21 — **One cursor on the page, the headline's.** A green underscore briefly
+  lived after the subline; it was removed because the only moving thing below the
+  headline shouldn't sit at the far end of the smallest line. The subline now types
+  with no caret at all, which is fine — the reveal reads as typing on its own rhythm.
 - 2026-08-21 — Subline was `--p-100` pale white-green at a `1rem` cap, the same tone
   family as the headline letters, glow kept subtle. It was briefly a dim gray-green
   (`--p-mute`); that token is retired. **Superseded — see the restyle entry above.**
