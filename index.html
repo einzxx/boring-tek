@@ -23,10 +23,11 @@
 @property --ex{syntax:'<number>';inherits:true;initial-value:0}
 @property --ey{syntax:'<number>';inherits:true;initial-value:0}
 @property --blink{syntax:'<number>';inherits:true;initial-value:1}
+@property --tu{syntax:'<number>';inherits:true;initial-value:42}
 
 :root{
   --bg:#06070a; --line:#1a1e26; --dim:#2b323d;
-  --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5;
+  --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5; --sub:#c8c8c8;
   --p-100:#d6ffe6; --p-300:#7cf5a8; --p-500:#35ff6a; --p-700:#17a34f;
   --a-500:#ffb340;
   --mono:ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
@@ -158,28 +159,35 @@ body{
 .caret{font-family:var(--mono);color:var(--p-500);animation:blink 1.05s step-end infinite}
 @keyframes blink{50%{opacity:0}}
 
+/* subline: headline face, tracked wide, dim neutral white. no green in the
+   type down here — the cursor is the only phosphor. --tu is the measured
+   width of the line in em, set by JS; the initial value is the conservative
+   fallback for the reduced-motion path, which never measures. */
 .tag{
   display:grid; justify-content:center; margin:0;
-  color:var(--p-100); letter-spacing:.01em;
-  font-size:min(1rem, calc((100vw - 44px) / 26));
+  font-family:var(--display); font-weight:400;
+  color:var(--sub); letter-spacing:.18em;
+  font-size:min(1rem, calc((100vw - 44px) / var(--tu)));
 }
 .tag > span{grid-area:1/1;white-space:pre}
 .tag-size{visibility:hidden}
 .tag-live{position:relative;justify-self:start;display:grid;justify-content:start}
 .tag-blur,.tag-txt{grid-area:1/1}
-.tag-blur{color:var(--p-500);filter:blur(.16em);opacity:.32}
+.tag-blur{color:var(--white);filter:blur(.14em);opacity:.18}
 .tag-txt{
   text-shadow:
-    0 0 .06em rgba(53,255,106,.28),
-    0 0 .35em rgba(53,255,106,.20),
-    0 0 .9em  rgba(23,163,79,.16),
-    0 0 1.7em rgba(23,163,79,.10);
+    0 0 .05em rgba(244,247,245,.30),
+    0 0 .32em rgba(244,247,245,.15),
+    0 0 .95em rgba(244,247,245,.07);
 }
+/* the cursor stays after the typing lands. mono, so it reads as a terminal
+   underscore and not a Michroma glyph, and untracked so it sits close. */
 .tag-caret{
-  display:none; position:absolute; left:100%; top:0;
-  color:var(--p-500); animation:blink 1.05s step-end infinite;
+  position:absolute; left:100%; top:0;
+  font-family:var(--mono); letter-spacing:0;
+  color:var(--p-500); text-shadow:0 0 .5em rgba(53,255,106,.40);
+  animation:blink 1.2s step-end infinite;
 }
-.tag.typing .tag-caret{display:inline}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
@@ -214,8 +222,8 @@ body{
   </h1>
 
   <p class="tag">
-    <span class="tag-size" aria-hidden="true">building the boring part of the future.</span>
-    <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future.</span><span class="tag-txt">building the boring part of the future.</span><span class="tag-caret" aria-hidden="true">&#9610;</span></span>
+    <span class="tag-size" aria-hidden="true">building the boring part of the future</span>
+    <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future</span><span class="tag-txt">building the boring part of the future</span><span class="tag-caret" aria-hidden="true">_</span></span>
   </p>
  </div>
 </main>
@@ -277,6 +285,18 @@ body{
     cx.font = '400 200px ui-monospace, Consolas, monospace';
     k = cx.measureText('▊').width;
     return [w ? w / 200 : 1, k ? k / 200 : .62];
+  }
+
+  // the subline is Michroma too, tracked wide. measure the real line once so it
+  // scales down on narrow screens instead of overflowing. the +1.2 budgets the
+  // underscore cursor, which hangs outside the track. 0 means "couldn't measure"
+  // and leaves the conservative --tu initial value in place.
+  function tagUnits(){
+    var cx;
+    try { cx = document.createElement('canvas').getContext('2d'); } catch (e) { return 0; }
+    if (!cx) return 0;
+    cx.font = '400 200px Michroma, ui-monospace, monospace';
+    return cx.measureText(TAG).width / 200 + TN * .18 + 1.2;
   }
 
   function build(el){
@@ -421,7 +441,7 @@ body{
       var tp = Math.min((now - ty0) / TYPE, 1), k = 0;
       while (k < TN && tp >= tat[k]) k++;
       if (k !== tk){ tk = k; tagTxt.textContent = tagBlur.textContent = TAG.slice(0, k); }
-      if (tp >= 1){ tagTxt.textContent = tagBlur.textContent = TAG; tag.className = 'tag'; typing = false; }
+      if (tp >= 1){ tagTxt.textContent = tagBlur.textContent = TAG; typing = false; }
     }
 
     if (mode === 'decode'){
@@ -443,7 +463,6 @@ body{
           typed = true; typing = true; ty0 = 0; tk = -1;
           tagTxt.textContent = tagBlur.textContent = '';
           tagLive.style.visibility = '';
-          tag.className = 'tag typing';
         }
       }
     } else if (now >= next){
@@ -467,6 +486,8 @@ body{
     unitsW = CELLS * m[0] + m[1] + .2;
     unitsS = MAXS * m[0] + m[1] + .2;
     hero.style.setProperty('--cw', m[0].toFixed(4) + 'em');
+    var tu = tagUnits();
+    if (tu) tag.style.setProperty('--tu', tu.toFixed(3));
     core = layerOf('.l-core');
     mid  = layerOf('.l-mid');
     wide = layerOf('.l-wide');

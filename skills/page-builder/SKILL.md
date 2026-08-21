@@ -42,9 +42,10 @@ sRGB corner so it reads as emitted light rather than a CSS keyword.
 /* text */
 --text      #d5dbd8   body
 --muted     #6d7680   secondary text, labels, timestamps
+--sub       #c8c8c8   subline copy. dim neutral white — R=G=B, no green in it
 
 /* phosphor green (P1) — core brand */
---p-100     #d6ffe6   pale white-green. hot core, highlight, subline copy.
+--p-100     #d6ffe6   pale white-green. hot core, highlight.
 --p-300     #7cf5a8   hover, emphasis
 --p-500     #35ff6a   THE green. links, prompts, caret.
 --p-700     #17a34f   borders, underlines, dimmed state
@@ -74,6 +75,9 @@ Rules:
 - Contrast floor 4.5:1 for body text. `--muted` on `--bg` passes. `--dim` is
   decorative only, never for text that must be read.
 - Glow is built from the phosphor ramp, never from `white` or from opacity on `--text`.
+  **One exception, the subline:** its fill is `--sub` and its glow is built from
+  `--white`. Green glow on a neutral fill reads as a colour cast, not as light. See
+  Glow tiers.
 
 ## Type
 
@@ -94,8 +98,14 @@ logo. It is the **only** external request the page is allowed to make.
 --display: "Michroma", var(--mono);
 ```
 
-- Headline / wordmark only. Never for body text, labels, sublines, buttons, nav or
-  status tags — those stay `--mono`.
+- **Headline / wordmark and the lockup subline.** Nothing else — never body text,
+  labels, buttons, nav or status tags. Those stay `--mono`.
+- The subline is the one small-text exception, and it is deliberate: it belongs to the
+  lockup, so it carries the lockup's face. It earns the exception by being **one short
+  line, tracked wide** — see Letter-spacing below. Michroma at small sizes with default
+  tracking is a smudge; the tracking is what makes it legible, so the two changes ship
+  together or not at all. Do not read this as licence to put Michroma on the next
+  paragraph.
 - **Michroma ships one weight: 400.** There is no bold, no italic, no variable axis.
   Never request extra weights in the URL, never fake bold with `font-weight: 700`
   (which triggers synthetic bold and smears the squared edges), never fake it with
@@ -103,9 +113,13 @@ logo. It is the **only** external request the page is allowed to make.
 - `display=swap` is mandatory. The page must be complete and readable in the mono
   fallback before Michroma arrives.
 - Michroma is **proportional**, which matters for decode — see Decode → Proportional
-  faces. It also has no box-drawing glyphs, so the block cursor `▊` must be given
-  `font-family: var(--mono)` explicitly or it falls back unpredictably.
-- Letter-spacing `0`. Michroma is already wide; tightening it fights the design.
+  faces. It also has no box-drawing glyphs, so **any cursor** — the block `▊` or the
+  subline's `_` — must be given `font-family: var(--mono)` explicitly, plus
+  `letter-spacing: 0` where it sits inside tracked text, or it falls back
+  unpredictably and inherits tracking it shouldn't.
+- Letter-spacing: `0` on the headline, `0.18em` on the subline. Never negative.
+  Michroma is already wide, and tightening it fights the design; opening it up at
+  small sizes is the only direction that helps.
 - Two network requests result from the one `<link>` — the CSS, then the WOFF2 from
   `fonts.gstatic.com`. That pair is the whole external budget. Nothing else.
 
@@ -136,7 +150,7 @@ All type uses `clamp()`. No breakpoint-swapped font sizes anywhere.
 - The cap is **uniform**: `2.75rem` on desktop and in the stacked mobile lockup alike.
   No separate mobile cap. Below ~400px the fit-to-width divide takes over anyway.
 - Line height: `1.65` body, `1.35` sub, `1.04` hero (Michroma has tall metrics).
-- Letter-spacing: `0` body, `0` hero, `0.16em` on uppercase labels.
+- Letter-spacing: `0` body, `0` hero, `0.18em` subline, `0.16em` on uppercase labels.
 - Max line length `68ch`. Long paragraphs are wrong here — write short lines.
 - Copy is lowercase by default. Uppercase is for labels, status tags, and the
   Michroma headline.
@@ -151,8 +165,16 @@ from the space available and the number of character units it needs, not from a 
 /* headline: --units is set by JS from measured glyph metrics */
 .hero{ font-size: min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units))); }
 
-/* subline: 39 chars of mono ≈ 26 units, incl. letter-spacing and safety margin */
-.tag{ white-space: nowrap; font-size: min(1rem, calc((100vw - 44px) / 26)); }
+/* subline: --tu is set by JS from the measured Michroma line + tracking + cursor */
+.tag{ white-space: nowrap; font-size: min(1rem, calc((100vw - 44px) / var(--tu))); }
+```
+
+```js
+// measured once, after document.fonts.load resolves
+cx.font = '400 200px Michroma, ui-monospace, monospace';
+tu = cx.measureText(TAG).width / 200   // the line, in em
+   + TAG.length * 0.18                 // tracking, one gap per character
+   + 1.2;                              // underscore cursor + its gap
 ```
 
 - `44px` covers the `16px` side padding plus scrollbar slack. Don't shave it.
@@ -162,9 +184,24 @@ from the space available and the number of character units it needs, not from a 
 - Any element carrying `white-space: nowrap` **must** be sized this way. Nowrap without
   fit-sizing doesn't prevent wrapping, it converts wrapping into horizontal overflow,
   which `overflow-x: hidden` then silently clips.
-- Estimate mono units as `chars × 0.63` (advance plus letter-spacing, worst-case face).
-  Round up. A subline that fits with 2px to spare on one machine wraps on another.
-- Register `--units` with `@property { syntax: '<number>' }` so the division resolves.
+- **Measure, don't estimate, anything set in Michroma.** A hand-guessed divisor was
+  fine while the subline was mono (`chars × 0.63` covers advance plus letter-spacing on
+  a worst-case mono face). Michroma is proportional and the tracking is large, so the
+  same guess is off by enough to either clip the line or shrink it for no reason.
+  Measure it on a canvas at 200px and divide, exactly like the headline.
+- **Tracking is one gap per character, including the last one.** `letter-spacing` adds
+  its value after every glyph, so the trailing gap is real width — count `chars × em`,
+  not `(chars - 1) × em`. That trailing gap is also what spaces the cursor off the
+  text, so no margin is needed on the cursor.
+- Estimate mono units as `chars × 0.63` for anything still in mono. Round up. A line
+  that fits with 2px to spare on one machine wraps on another.
+- Register `--units` and `--tu` with `@property { syntax: '<number>' }` so the division
+  resolves.
+- **Give `--tu` an `initial-value` that is deliberately too large** (`42` against a real
+  ~36). The reduced-motion path never measures, so the initial value *is* the value
+  there. Erring large means the line is a little small on a narrow reduced-motion
+  screen; erring small means it overflows and gets clipped. Only one of those is
+  recoverable by the reader.
 - `--units` budgets a caret width even where the caret is absolutely positioned and
   therefore outside the track. That is deliberate: it reserves room for the overhang so
   the cursor can't push past the viewport edge.
@@ -241,11 +278,26 @@ matching the logo lockup. Above it, one line.
 The subline types itself out **once**, after the headline's first decode resolves, then
 stays static forever.
 
+- **The subline carries no full stop**, even though house style ends lines with one.
+  A trailing period immediately before a blinking cursor reads as a stray character,
+  not as punctuation. The cursor is the terminator. This is the only line on the site
+  that drops its full stop, and it drops it because of the cursor — if the cursor ever
+  goes, the full stop comes back.
 - One-shot only. Never on a loop, never re-triggered on the headline's later cycles.
 - Driven from the same shared rAF loop as the decode. Per-character thresholds with
   jitter, ~1150ms total — jitter is what stops it reading as a metronome.
-- A small caret trails the text while typing and is **removed** when it finishes. Two
-  permanently blinking carets on one page is noise.
+- **The cursor stays.** A small underscore trails the text while typing and is still
+  there when the typing lands, blinking slowly forever. It is the one thing on the page
+  that says the terminal is still open.
+- It can only stay because it is **clearly a different cursor** from the headline's:
+  underscore against block, `--mono` at `1em` against the headline's cell width,
+  `1.2s` against `1.05s`, and 60-odd pixels apart. Two identical carets blinking in
+  sync at two sizes reads as a bug. Two different ones read as one terminal with a
+  wordmark above the prompt. If you ever match their glyph or their period, drop one.
+- The blink is `step-end`, not a fade. Terminal cursors snap. `1.2s` is the calm rate —
+  slower than the headline's, so the page has no single pulse to lock onto.
+- Green cursor, neutral text. The cursor is the **only** phosphor in the subline, which
+  is what makes it read as live rather than as decoration.
 - Typing must not move anything. Pin the width with a hidden full-text sizer, then let
   the live text grow left-to-right inside that fixed box, with the caret absolutely
   positioned at `left: 100%` so it never contributes width.
@@ -427,33 +479,37 @@ all. Never just shrink the headline's numbers and call it done.
 | Tier | Used on | Layers |
 |---|---|---|
 | Full | headline | core shadow stack + `blur(.055em)` duplicate + `blur(.2em)` bloom |
-| Reduced | subline | core shadow stack + one `blur(.16em)` duplicate |
+| Reduced | subline | white core shadow stack + one `blur(.14em)` duplicate |
 | Flat | labels, status tags, links | core shadow stack only |
 
 The subline's reduced tier, for reference:
 
 ```css
-.tag{ color: var(--p-100) }
-.tag-blur{ color: var(--p-500); filter: blur(.16em); opacity: .32 }
+.tag{ color: var(--sub) }
+.tag-blur{ color: var(--white); filter: blur(.14em); opacity: .18 }
 .tag-txt{
   text-shadow:
-    0 0 .06em rgba(53,255,106,.28),
-    0 0 .35em rgba(53,255,106,.20),
-    0 0 .9em  rgba(23,163,79,.16),
-    0 0 1.7em rgba(23,163,79,.10);
+    0 0 .05em rgba(244,247,245,.30),
+    0 0 .32em rgba(244,247,245,.15),
+    0 0 .95em rgba(244,247,245,.07);
 }
+.tag-caret{ color: var(--p-500); text-shadow: 0 0 .5em rgba(53,255,106,.40) }
 ```
 
-- **The subline is `--p-100`, the pale white-green** — the same tone family as the
-  glowing headline letters, at subline scale. The headline gets there with a `--white`
-  fill plus heavy bloom; at 16px the bloom alone can't tint the glyphs, so the pale
-  green sits in the fill instead. The result reads as the same material.
-- Never `--muted` or a neutral gray here. Gray under a glowing headline reads as an
-  unstyled leftover, not as quiet.
-- Its glow stays **subtle** — roughly half the headline's alpha, and no third bloom
-  layer. Because the fill is bright, the shadow alphas have to run slightly *higher*
-  than they would under a dim fill just to stay visible; that is not a licence to make
-  it loud.
+- **The subline is `--sub`, a dim neutral white, and its glow is white too.** It is a
+  quiet line under a loud one. The headline is the lit object; the subline sits in its
+  light rather than competing to be a second source.
+- **No green anywhere in the type** — not in the fill, not in the shadow stack, not in
+  the blur duplicate. The only phosphor below the headline is the cursor, and that is
+  the whole point of the cursor.
+- This reverses the earlier rule that the subline was `--p-100` pale white-green.
+  The green fill made two glowing green lines stacked, which read as one undifferentiated
+  block of glow. Dropping the green gave the headline back its hierarchy. Don't restore it.
+- Neutral is not the same as `--muted`. `--sub` at `#c8c8c8` is a bright, confident
+  dim white that still carries a glow; `--muted` at `#6d7680` is a dead gray that
+  reads as an unstyled leftover. The old warning was against gray, and it still stands.
+- Its glow stays **subtle** — the fill is bright, so the shadow only has to lift the
+  edges. Three layers, none above `.30` alpha, and no third bloom.
 - Nothing in the lockup brightens on pointer move; these opacities are constants, not
   `--glow` expressions. See Micro-interactions.
 - Note the radii: `1.7em` on the subline against `.28em` on the headline. At 16px that
@@ -461,7 +517,8 @@ The subline's reduced tier, for reference:
 - The widest bloom layer is dropped at subline size. A `blur(.2em)` duplicate there is
   a formless smudge that adds cost and no glow.
 - If the text animates (typing, decode), **every** layer has to be written in the same
-  frame. A blur duplicate lagging one frame behind its core shows up as a green ghost.
+  frame. A blur duplicate lagging one frame behind its core shows up as a ghost — white
+  on the subline, green on the headline. Either way it's a bug.
 
 ## Decode animation
 
@@ -924,9 +981,10 @@ Start from this. Fill in, don't restructure.
   @property --ex{syntax:'<number>';inherits:true;initial-value:0}
   @property --ey{syntax:'<number>';inherits:true;initial-value:0}
   @property --blink{syntax:'<number>';inherits:true;initial-value:1}
+  @property --tu{syntax:'<number>';inherits:true;initial-value:42}
   :root{
     --bg:#06070a; --bg-lift:#0b0d12; --line:#1a1e26; --dim:#2b323d;
-    --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5;
+    --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5; --sub:#c8c8c8;
     --p-100:#d6ffe6; --p-300:#7cf5a8; --p-500:#35ff6a; --p-700:#17a34f; --p-900:#0a3d21;
     --a-300:#ffd79a; --a-500:#ffb340; --a-700:#a86a12;
     --red:#ff5c5c;
@@ -1006,6 +1064,24 @@ Start from this. Fill in, don't restructure.
   .caret{font-family:var(--mono);color:var(--p-500);animation:blink 1.05s step-end infinite}
   @keyframes blink{50%{opacity:0}}
 
+  /* subline — headline face, tracked wide, dim neutral white. --tu set by JS */
+  .tag{display:grid;justify-content:center;margin:0;
+    font-family:var(--display);font-weight:400;
+    color:var(--sub);letter-spacing:.18em;
+    font-size:min(1rem, calc((100vw - 44px) / var(--tu)))}
+  .tag>span{grid-area:1/1;white-space:pre}
+  .tag-size{visibility:hidden}
+  .tag-live{position:relative;justify-self:start;display:grid;justify-content:start}
+  .tag-blur,.tag-txt{grid-area:1/1}
+  .tag-blur{color:var(--white);filter:blur(.14em);opacity:.18}
+  .tag-txt{text-shadow:0 0 .05em rgba(244,247,245,.30),0 0 .32em rgba(244,247,245,.15),
+                       0 0 .95em rgba(244,247,245,.07)}
+  /* the cursor stays after the typing lands — mono, untracked, slower blink */
+  .tag-caret{position:absolute;left:100%;top:0;
+    font-family:var(--mono);letter-spacing:0;
+    color:var(--p-500);text-shadow:0 0 .5em rgba(53,255,106,.40);
+    animation:blink 1.2s step-end infinite}
+
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
     .hero{transform:none!important}
@@ -1030,8 +1106,9 @@ Start from this. Fill in, don't restructure.
            Copy the exact markup from index.html. -->
     </h1>
     <p class="tag">
-      <span class="tag-size" aria-hidden="true">building the boring part of the future.</span>
-      <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future.</span><span class="tag-txt">building the boring part of the future.</span><span class="tag-caret" aria-hidden="true">&#9610;</span></span>
+      <!-- no full stop; the cursor terminates the line. all three copies match. -->
+      <span class="tag-size" aria-hidden="true">building the boring part of the future</span>
+      <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future</span><span class="tag-txt">building the boring part of the future</span><span class="tag-caret" aria-hidden="true">_</span></span>
     </p>
    </div>
   </main>
@@ -1090,7 +1167,10 @@ Added with Michroma:
   file past any sane budget — use the Google Fonts link.
 - **Synthetic bold on Michroma** — `font-weight: 700`, `-webkit-text-stroke`, or a
   duplicated offset layer faking heft. It has one weight; that's the design.
-- **Michroma on body text, sublines, buttons, nav or status tags.** Headline only.
+- **Michroma on body text, buttons, nav or status tags.** The headline and the lockup
+  subline are the whole list.
+- **Michroma at small sizes without the `0.18em` tracking.** Default-tracked Michroma
+  under 1rem is a smudge. The two ship together.
 - **Decoding proportional text without the fixed-cell grid.** The headline width
   changes every frame and the whole line wobbles.
 - **A headline above `2.75rem`.** It stops reading as confident and starts reading as
@@ -1131,8 +1211,12 @@ Added with the mascot and the lockup:
 - **A separate cap for the stacked mobile lockup.** `2.75rem` is uniform everywhere.
 - **A `gap` on `.wrap`**, or headline and subline as loose siblings. One `.lockup`
   child, centred as a group.
-- **A gray subline.** Lockup copy is green and glows. `--muted` is for labels and
-  timestamps.
+- **A `--muted` subline.** The subline is `--sub`, a bright dim white with a glow.
+  `#6d7680` under a lit headline reads as an unstyled leftover. `--muted` is for labels
+  and timestamps.
+- **Green in the subline's type** — fill, shadow stack or blur duplicate. The cursor is
+  the only phosphor down there.
+- **A full stop on the subline.** The cursor terminates the line.
 - **Any pointer reaction on text** — leaning, translating or brightening the headline
   or subline on mouse move. The mascot's eyes are the only thing that reacts.
 - **Shrinking the headline's glow radii verbatim for smaller text.** Layer count comes
@@ -1153,7 +1237,13 @@ Added with the mascot and the lockup:
 - **Decoding the stacked lines independently.** One schedule across the whole lockup.
 - **Looping or re-triggering the subline typing.** Once, after the first headline
   resolve, then static forever.
-- **Leaving the subline's typing caret on screen** after it finishes.
+- **Removing the subline's cursor** when the typing finishes. It stays, blinking, for
+  good.
+- **Matching the two cursors' glyph or blink period.** Block `▊` at `1.05s` on the
+  headline, underscore `_` at `1.2s` on the subline. Identical carets at two sizes read
+  as a rendering bug.
+- **Letting a cursor inherit Michroma or the subline's tracking.** `font-family:
+  var(--mono)` and `letter-spacing: 0` on every caret, always.
 
 ## Before shipping
 
@@ -1167,10 +1257,19 @@ Visual:
   gap is wrong or they aren't in the same `.lockup`.
 - Sweep the pointer across the lockup: the headline and subline do not move, shift or
   brighten by a single pixel. Only the eyes react.
-- Subline reads as the same pale white-green material as the headline, easily legible
-  at a glance, and never flashes on the headline's settle beat.
-- No green ghost trailing the subline while it types — the blur layer is written in the
-  same frame as the core.
+- Subline reads as quiet neutral white with no green cast in the letters, easily legible
+  at a glance, and never flashes on the headline's settle beat. Screenshot it and pick a
+  letter with a colour picker if you're unsure — R, G and B should be within a point or
+  two of each other.
+- Subline sits in the same face as the headline and reads as tracked, not as loose or
+  as crammed. At 1440px it should be visibly wider than the words it contains.
+- No ghost trailing the subline while it types — the blur layer is written in the same
+  frame as the core.
+- The subline's cursor is still blinking a minute after the typing finished, in green,
+  one character clear of the last letter, and it does not blink in time with the
+  headline's block cursor.
+- Every `nowrap` line still fits at 320px — the tracked subline is now the tightest
+  case on the page, not the headline. Check it first.
 - Mascot reads as a character at the top of the lockup, with clear space beneath him and
   a soft halo around him — not a small icon bolted above the text.
 - Sweep the pointer a full circle around the mascot, out to all four screen corners: the
@@ -1181,14 +1280,14 @@ Visual:
 - Touch and reduced motion: eyes dead centre, still blinking, nothing else moving.
 - Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
   mode: `COMING SOON` is two lines, the wordmark is three.
-- Exactly one block cursor visible at a time, on the last line with content.
+- Exactly one *block* cursor visible at a time, on the headline's last line with
+  content. The subline's underscore is separate and always on — two cursors total.
 - In stacked mode, drop a vertical guide down the centre of the viewport: it should
   bisect `THE`, `BORING` and `TEK` equally. If the text sits left of centre, the caret
   is still in flow.
 - Stacked rows have visible air between them, and the block doesn't change height when
   the words swap.
 - Desktop single line is untouched — caret still inline, still centred with the text.
-- Every `nowrap` line still fits at 320px. Check the narrowest case, not the widest.
 - Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
 - Subline types once and never again — sit through three headline cycles to confirm.
 - Favicon renders as a white circle with two dark dash eyes in the tab, at 16px — the

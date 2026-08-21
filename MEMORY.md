@@ -13,8 +13,10 @@ names in here either.
   out. The full agency site comes after that, not before.
 - Site is a single static file served by GitHub Pages from `main` root. Push to `main`
   is the deploy — there is no staging, so check the diff before every push.
-- Everything through 2026-08-21 is committed and pushed. **Uncommitted as of the SEO
-  session:** `index.html` head block, plus new `robots.txt` and `sitemap.xml` in root.
+- Everything through 2026-08-21 is committed and pushed. **Uncommitted right now:** the
+  SEO head block, new `robots.txt` and `sitemap.xml` in root, and the subline restyle
+  (`index.html` + `skills/page-builder/SKILL.md`). **None of it has been opened in a
+  browser** — the subline restyle in particular is unverified visually.
 
 ## Current state
 
@@ -29,8 +31,9 @@ names in here either.
     cursor, blinking on its own, soft phosphor halo behind it.
   - Michroma wordmark decoding between THE BORING TEK and COMING SOON, three-line
     lockup under 640px.
-  - Subline types itself once, `1rem` cap, `--p-100` pale white-green with a subtle
-    glow — same tone family as the headline letters.
+  - Subline types itself once, `1rem` cap, **Michroma tracked `.18em`**, `--sub` dim
+    neutral white with a white glow. No full stop — a green underscore cursor sits
+    after it and blinks at `1.2s` forever.
   - **All text is static.** No lean, no translate, no brightening on mouse move. The
     mascot's eyes are the only thing on the page that reacts to the pointer.
   - CRT grain, radial vignette, phosphor glow throughout.
@@ -85,9 +88,25 @@ names in here either.
   fully static — no lean, no translate, no brightening on mouse move. An earlier build
   had the whole lockup leaning and brightening; that was removed on purpose. One thing
   reacting reads as a character noticing you; everything reacting reads as a gimmick.
-- 2026-08-21 — Subline is `--p-100` pale white-green at a `1rem` cap, the same tone
+- 2026-08-21 — **Subline restyled and this supersedes the two entries below it.** It is
+  now Michroma — the headline face — at a `1rem` cap, tracked `.18em`, filled `--sub`
+  (`#c8c8c8`, a dim neutral white) with a white glow instead of a green one. The
+  trailing full stop is gone and a green `_` cursor sits after the text, blinking
+  `1.2s` and never removed. Reasons, in order: two glowing green lines stacked read as
+  one block of glow and cost the headline its hierarchy; the shared face makes the
+  lockup one object instead of a wordmark with a caption; the cursor keeps the page
+  feeling like an open terminal rather than a finished poster.
+- 2026-08-21 — `--tu` replaces the hand-guessed `26` divisor that sized the subline.
+  Michroma is proportional and `.18em` tracking is heavy, so the line is measured on a
+  canvas at load, exactly like the headline's `--units`. Its `@property`
+  `initial-value` is 42 against a real ~36, on purpose — the reduced-motion path never
+  measures, and too-small is recoverable where overflow is not.
+- 2026-08-21 — Two cursors on the page is now correct, previously banned. They only
+  coexist because they're clearly different: block `▊` at `1.05s` on the headline,
+  underscore `_` at `1.2s` on the subline. Match their glyph or period and one has to go.
+- 2026-08-21 — Subline was `--p-100` pale white-green at a `1rem` cap, the same tone
   family as the headline letters, glow kept subtle. It was briefly a dim gray-green
-  (`--p-mute`); that token is retired.
+  (`--p-mute`); that token is retired. **Superseded — see the restyle entry above.**
 - 2026-08-21 — **Bio line locked:** `the future is cool. building it is boring.`
   Verbatim everywhere. It is the whole positioning in one line — don't reword it.
 - 2026-08-21 — Socials carry the mascot as avatar and THE BORING TEK as the name on
