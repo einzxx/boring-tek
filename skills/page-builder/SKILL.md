@@ -130,7 +130,7 @@ All type uses `clamp()`. No breakpoint-swapped font sizes anywhere.
 --t-sub:   clamp(1.25rem, 1rem + 1.25vw, 2rem);           /* 20 → 32 */
 ```
 
-- **Hero caps at `7rem` (112px).** Bigger than that stops reading as confident and
+- **Hero caps at `4.5rem` (72px).** Bigger than that stops reading as confident and
   starts reading as comic. Never raise the cap.
 - Line height: `1.65` body, `1.35` sub, `1.04` hero (Michroma has tall metrics).
 - Letter-spacing: `0` body, `0` hero, `0.16em` on uppercase labels.
@@ -146,10 +146,10 @@ from the space available and the number of character units it needs, not from a 
 
 ```css
 /* headline: --units is set by JS from measured glyph metrics */
-.hero{ font-size: min(7rem, calc((100vw - 44px) / var(--units))); }
+.hero{ font-size: min(4.5rem, calc((100vw - 44px) / var(--units))); }
 
 /* subline: 39 chars of mono ≈ 26 units, incl. letter-spacing and safety margin */
-.tag{ white-space: nowrap; font-size: min(.875rem, calc((100vw - 44px) / 26)); }
+.tag{ white-space: nowrap; font-size: min(.75rem, calc((100vw - 44px) / 26)); }
 ```
 
 - `44px` covers the `16px` side padding plus scrollbar slack. Don't shave it.
@@ -159,6 +159,45 @@ from the space available and the number of character units it needs, not from a 
 - Estimate mono units as `chars × 0.63` (advance plus letter-spacing, worst-case face).
   Round up. A subline that fits with 2px to spare on one machine wraps on another.
 - Register `--units` with `@property { syntax: '<number>' }` so the division resolves.
+
+### The stacked lockup (under 640px)
+
+Below `640px` the wordmark breaks into three centered lines — **THE / BORING / TEK** —
+matching the logo lockup. Above it, one line.
+
+- The break is a **layout mode**, not a font-size tweak. Same markup, same cells, same
+  decode; only the line split and `--units` change.
+- `--units` is recomputed from the longest *line* (6, for `BORING`), not the longest
+  string — that's what lets the stacked lockup run much larger than the single line.
+- `COMING SOON` splits to **COMING / SOON**, deliberately: `COMING` is also 6
+  characters, so both words share one cell grid and one `--units`.
+- **Always render three line boxes**, even when a word only fills two. Give `.ln` a
+  `min-height` of one line so an empty third line still holds its space — otherwise the
+  block changes height every time the words swap and everything below it jumps.
+- The block cursor sits on the **last line that has content** — line 3 for the
+  wordmark, line 2 for `COMING SOON`. One caret visible at a time, never three.
+- The hidden sizer needs the same three-line shape, each line padded to the longest
+  line's cell count, so the track width is identical in both words.
+- Decode spans the whole lockup from one schedule — flatten all three lines into a
+  single character list, shuffle that, then split the output back per line. Three
+  independent per-line decodes read as three separate events.
+
+### Subline typing
+
+The subline types itself out **once**, after the headline's first decode resolves, then
+stays static forever.
+
+- One-shot only. Never on a loop, never re-triggered on the headline's later cycles.
+- Driven from the same shared rAF loop as the decode. Per-character thresholds with
+  jitter, ~1150ms total — jitter is what stops it reading as a metronome.
+- A small caret trails the text while typing and is **removed** when it finishes. Two
+  permanently blinking carets on one page is noise.
+- Typing must not move anything. Pin the width with a hidden full-text sizer, then let
+  the live text grow left-to-right inside that fixed box, with the caret absolutely
+  positioned at `left: 100%` so it never contributes width.
+- The full text lives in the DOM for the no-JS and reduced-motion cases. JS blanks it
+  as its first act and restores it when typing starts — so it must run before first
+  paint, or the full string flashes.
 
 ### Variable weight animation
 
@@ -549,7 +588,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 ## Layout
 
 - Max width `900px`, centered, `20px` side padding (`16px` under 480px). The hero sizes
-  itself to fit the viewport (see Fit-to-width sizing) and caps at `7rem`.
+  itself to fit the viewport (see Fit-to-width sizing) and caps at `4.5rem`.
 - Spacing scale, nothing between: `4 8 12 16 24 32 48 64 96 128`.
 - Left-aligned. Centered text only for a hero.
 - Borders `1px solid var(--line)`. **Zero border radius everywhere.** No rounded
@@ -559,6 +598,81 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 - Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints. One
   `@media (min-width: 720px)` for structural layout changes only. Two breakpoints
   maximum.
+
+## Mascot
+
+A minimal pixel bot. **Square head outline, two glowing green pixel eyes, nothing
+else.** No mouth, no body, no antenna, no arms, no shading. It is a presence indicator,
+not a character.
+
+Drawn as inline SVG on a **12×12 pixel grid**, `shape-rendering="crispEdges"`,
+`aria-hidden="true"` and `focusable="false"` — it is decorative and must never be
+announced or focusable.
+
+```html
+<svg class="mascot" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="eyeglow" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur stdDeviation=".7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path class="frame" d="M1 0h10v1H1zM1 11h10v1H1zM0 1h1v10H0zM11 1h1v10h-1z"/>
+  <g class="eyes" filter="url(#eyeglow)">
+    <rect x="3" y="5" width="2" height="2"/>
+    <rect x="7" y="5" width="2" height="2"/>
+  </g>
+</svg>
+```
+
+```css
+.mascot{display:block;width:clamp(24px,5.5vw,34px);height:auto}
+.mascot .frame{fill:var(--dim)}
+.mascot .eyes{fill:var(--p-500);animation:eyeblink 5.2s step-end infinite}
+@keyframes eyeblink{0%{opacity:1}96.4%{opacity:.05}97.8%{opacity:1}}
+```
+
+Geometry — do not redraw it by eye, these numbers are the mascot:
+
+- **Head:** four 1-unit bars forming a square ring, with all four **corner pixels
+  omitted**. That bevel is what makes it read as pixel art instead of a CSS border.
+  Never close the corners, never round them, never thicken the outline past 1 unit.
+- **Eyes:** two 2×2 squares at `(3,5)` and `(7,5)`. Two units of margin either side,
+  two units between them, exactly centred in the head both ways. Never one eye, never
+  three, never different sizes.
+- **Glow:** an SVG `feGaussianBlur` merged twice under the source — the same
+  layered-glow principle as the headline, in user units so it scales with the icon.
+  Never a CSS `drop-shadow()` on an SVG child; length units there resolve differently
+  across browsers and the glow comes out wildly wrong.
+
+Blink:
+
+- Both eyes together, going dark for **one perceptual frame** (~70–90ms) every ~5s.
+  `step-end` — the eyes snap off and snap back. Never fade, never wink one eye, never
+  animate a lid.
+- Dark, not gone: `opacity: .05`, so they read as unlit pixels rather than a hole.
+- No idle bobbing, no rotation, no scanning-eye movement, no colour cycling. The blink
+  is the *only* thing the mascot ever does.
+
+Placement:
+
+- Small and centred, above the headline. `24px`–`34px`. It should read as a status
+  light over the wordmark, never as a logo competing with it.
+- One mascot per page.
+
+Favicon:
+
+- Generated from the same mascot, as an inline `data:` URI in `<link rel="icon">` —
+  never a separate file.
+- **Eyes only** on a `--bg` square. The head outline turns to mush at 16px, so it is
+  dropped; the eyes are the recognisable part.
+- Eyes scale up to 3×3 on the 12×12 grid at `(2,4)` and `(7,4)` so they stay legible in
+  a tab strip.
+- Encode `#` as `%23` in the URI or the whole thing silently fails.
+
+```html
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%2306070a'/%3E%3Crect x='2' y='4' width='3' height='3' fill='%2335ff6a'/%3E%3Crect x='7' y='4' width='3' height='3' fill='%2335ff6a'/%3E%3C/svg%3E">
+```
 
 ## Terminal texture
 
@@ -670,9 +784,9 @@ Start from this. Fill in, don't restructure.
   .wrap{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:clamp(32px,9vh,96px) 16px}
   @media (min-width:720px){.wrap{padding-inline:20px}}
 
-  /* headline — fit-to-width, capped at 7rem; --units set by JS from metrics */
+  /* headline — fit-to-width, capped at 4.5rem; --units set by JS from metrics */
   .hero{display:grid;justify-content:center;margin:0;max-width:100%;
-    font-size:min(7rem, calc((100vw - 44px) / var(--units)));
+    font-size:min(4.5rem, calc((100vw - 44px) / var(--units)));
     line-height:1.04;letter-spacing:0;contain:layout style;
     --glow:calc(1 + var(--prox) * .85 + var(--beat) * .7);
     transform:translate3d(calc(var(--mx)*var(--prox)*6px),calc(var(--my)*var(--prox)*4px),0);
@@ -772,21 +886,47 @@ Added with Michroma:
 - **Michroma on body text, sublines, buttons, nav or status tags.** Headline only.
 - **Decoding proportional text without the fixed-cell grid.** The headline width
   changes every frame and the whole line wobbles.
-- **A headline above `7rem`.** It stops reading as confident and starts reading as
+- **A headline above `4.5rem`.** It stops reading as confident and starts reading as
   comic.
 - **`white-space: nowrap` without fit-to-width sizing.** That converts wrapping into
   clipped overflow, which is worse.
 - **Blocking first paint on the font.** `display=swap` always; the page must be
   complete in the mono fallback.
 
+Added with the mascot and the lockup:
+
+- **Giving the mascot a mouth, body, antenna, arms, feet, or shading.** Head outline
+  and two eyes. That is the whole mascot.
+- **Closed or rounded mascot corners**, an outline thicker than 1 unit, or redrawing it
+  off-grid. The geometry in the Mascot section is the spec.
+- **Any mascot motion other than the blink** — bobbing, floating, rotating, scanning
+  eyes, colour cycling, eyes tracking the cursor.
+- **Fading the blink or winking one eye.** It snaps, both eyes, `step-end`.
+- **CSS `drop-shadow()` on an SVG child** for the eye glow — resolves inconsistently
+  across browsers. Use the SVG filter.
+- **A separate favicon file.** Inline `data:` URI, generated from the mascot.
+- **Letting the stacked lockup collapse to two line boxes** when a word is two lines.
+  Three boxes always, or the layout jumps on every swap.
+- **Decoding the stacked lines independently.** One schedule across the whole lockup.
+- **Looping or re-triggering the subline typing.** Once, after the first headline
+  resolve, then static forever.
+- **Leaving the subline's typing caret on screen** after it finishes.
+
 ## Before shipping
 
 Visual:
 
 - Renders correctly at 320px, 768px, 1440px and 2560px wide.
-- Headline fits on one line at 320px and caps at 7rem on wide screens — check both ends.
+- Headline caps at 4.5rem on wide screens and stacks to three lines under 640px — check
+  both, and drag across the 640px boundary to confirm the swap is clean.
+- Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
+  mode: `COMING SOON` is two lines, the wordmark is three.
+- Exactly one block cursor visible at a time, on the last line with content.
 - Every `nowrap` line still fits at 320px. Check the narrowest case, not the widest.
 - Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
+- Subline types once and never again — sit through three headline cycles to confirm.
+- Mascot eyes blink both together, snap off and back, roughly every 5s.
+- Favicon renders as two green pixels on dark in the tab, at 16px.
 - Grain is invisible until you look for it. Vignette is invisible until you screenshot
   with and without.
 - Nothing looks like a default CSS color.
