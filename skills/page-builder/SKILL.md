@@ -44,12 +44,11 @@ sRGB corner so it reads as emitted light rather than a CSS keyword.
 --muted     #6d7680   secondary text, labels, timestamps
 
 /* phosphor green (P1) — core brand */
---p-100     #d6ffe6   hot core / highlight
+--p-100     #d6ffe6   pale white-green. hot core, highlight, subline copy.
 --p-300     #7cf5a8   hover, emphasis
 --p-500     #35ff6a   THE green. links, prompts, caret.
 --p-700     #17a34f   borders, underlines, dimmed state
 --p-900     #0a3d21   glow floor, tinted backgrounds
---p-mute    #7c8f84   dim gray-green. quiet secondary copy — the subline.
 
 /* phosphor amber (P3) — status, warnings, secondary accent */
 --a-300     #ffd79a
@@ -153,7 +152,7 @@ from the space available and the number of character units it needs, not from a 
 .hero{ font-size: min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units))); }
 
 /* subline: 39 chars of mono ≈ 26 units, incl. letter-spacing and safety margin */
-.tag{ white-space: nowrap; font-size: min(.75rem, calc((100vw - 44px) / 26)); }
+.tag{ white-space: nowrap; font-size: min(1rem, calc((100vw - 44px) / 26)); }
 ```
 
 - `44px` covers the `16px` side padding plus scrollbar slack. Don't shave it.
@@ -434,30 +433,33 @@ all. Never just shrink the headline's numbers and call it done.
 The subline's reduced tier, for reference:
 
 ```css
-.tag{ color: var(--p-mute) }
-.tag-blur{ color: var(--p-700); filter: blur(.16em); opacity: .38 }
+.tag{ color: var(--p-100) }
+.tag-blur{ color: var(--p-500); filter: blur(.16em); opacity: .32 }
 .tag-txt{
   text-shadow:
-    0 0 .06em rgba(53,255,106,.20),
-    0 0 .35em rgba(53,255,106,.14),
-    0 0 .9em  rgba(23,163,79,.12),
-    0 0 1.7em rgba(23,163,79,.08);
+    0 0 .06em rgba(53,255,106,.28),
+    0 0 .35em rgba(53,255,106,.20),
+    0 0 .9em  rgba(23,163,79,.16),
+    0 0 1.7em rgba(23,163,79,.10);
 }
 ```
 
-- **The subline is `--p-mute`, a dim gray-green** — quiet and desaturated, not the
-  saturated phosphor. It sits under a white headline and must not compete with it.
-  `--muted` (neutral gray) is for labels and timestamps; `--p-500` and `--p-700` are
-  far too loud for a whole line of copy at this size.
-- Its glow is deliberately weaker than the headline's — roughly 40% of the alpha, and
-  the blur duplicate is `--p-700` rather than `--p-500`. Present, not announced.
-- Nothing in the lockup brightens on pointer move any more; these opacities are
-  constants, not `--glow` expressions. See Micro-interactions.
-- Note the radii: `1.7em` on the subline against `.28em` on the headline. At 12px that
-  wide stop is ~20px of soft halo — the "deep soft" part. The same `.28em` would be
-  3px and invisible.
-- The widest bloom layer is dropped at subline size. At 12px a `blur(.2em)` duplicate
-  is a formless smudge that adds cost and no glow.
+- **The subline is `--p-100`, the pale white-green** — the same tone family as the
+  glowing headline letters, at subline scale. The headline gets there with a `--white`
+  fill plus heavy bloom; at 16px the bloom alone can't tint the glyphs, so the pale
+  green sits in the fill instead. The result reads as the same material.
+- Never `--muted` or a neutral gray here. Gray under a glowing headline reads as an
+  unstyled leftover, not as quiet.
+- Its glow stays **subtle** — roughly half the headline's alpha, and no third bloom
+  layer. Because the fill is bright, the shadow alphas have to run slightly *higher*
+  than they would under a dim fill just to stay visible; that is not a licence to make
+  it loud.
+- Nothing in the lockup brightens on pointer move; these opacities are constants, not
+  `--glow` expressions. See Micro-interactions.
+- Note the radii: `1.7em` on the subline against `.28em` on the headline. At 16px that
+  wide stop is ~27px of soft halo. The same `.28em` would be 4px and invisible.
+- The widest bloom layer is dropped at subline size. A `blur(.2em)` duplicate there is
+  a formless smudge that adds cost and no glow.
 - If the text animates (typing, decode), **every** layer has to be written in the same
   frame. A blur duplicate lagging one frame behind its core shows up as a green ghost.
 
@@ -743,7 +745,7 @@ above the headline. One per page.
 
 ```css
 /* halo lives on a wrapper, not as a filter on the svg — see below */
-.m-wrap{position:relative;display:block;margin-bottom:clamp(14px,2.6vh,26px)}
+.m-wrap{position:relative;display:block;margin-bottom:clamp(32px,5.6vh,56px)}
 .m-wrap::before{
   content:"";position:absolute;left:50%;top:50%;
   width:210%;height:210%;transform:translate(-50%,-50%);
@@ -754,7 +756,7 @@ above the headline. One per page.
     rgba(23,163,79,.055) 52%,
     rgba(23,163,79,0) 72%);
 }
-.mascot{position:relative;display:block;width:clamp(72px,16vw,110px);height:auto}
+.mascot{position:relative;display:block;width:clamp(78px,17vw,130px);height:auto}
 .m-face{fill:var(--white)}
 .m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
 .m-eye{
@@ -765,8 +767,8 @@ above the headline. One per page.
 }
 ```
 
-- **Size `clamp(72px, 16vw, 110px)`.** He is a character, not a bullet point — big
-  enough to carry the top of the page on his own. Cap at `110px`.
+- **Size `clamp(78px, 17vw, 130px)`.** He is a character, not a bullet point — big
+  enough to carry the top of the page on his own. Cap at `130px`.
 - Extra `margin-bottom` under the wrapper on top of the lockup gap, so he sits high
   with clear space before the wordmark starts.
 - **The halo is a static radial-gradient layer on a wrapper `::before`, not a
@@ -1165,8 +1167,8 @@ Visual:
   gap is wrong or they aren't in the same `.lockup`.
 - Sweep the pointer across the lockup: the headline and subline do not move, shift or
   brighten by a single pixel. Only the eyes react.
-- Subline is a quiet gray-green, clearly dimmer than the headline, and never flashes on
-  the headline's settle beat.
+- Subline reads as the same pale white-green material as the headline, easily legible
+  at a glance, and never flashes on the headline's settle beat.
 - No green ghost trailing the subline while it types — the blur layer is written in the
   same frame as the core.
 - Mascot reads as a character at the top of the lockup, with clear space beneath him and
