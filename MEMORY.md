@@ -13,7 +13,8 @@ names in here either.
   out. The full agency site comes after that, not before.
 - Site is a single static file served by GitHub Pages from `main` root. Push to `main`
   is the deploy — there is no staging, so check the diff before every push.
-- Everything through 2026-08-21 is committed and pushed. Working tree clean.
+- Everything through 2026-08-21 is committed and pushed. **Uncommitted as of the SEO
+  session:** `index.html` head block, plus new `robots.txt` and `sitemap.xml` in root.
 
 ## Current state
 
@@ -35,6 +36,15 @@ names in here either.
   - CRT grain, radial vignette, phosphor glow throughout.
   - Single file, ~19KB, one external request (Michroma from Google Fonts).
 - **Favicon:** the mascot, transparent background, no plate, inline data URI.
+- **SEO:** basic and done. `<title>` THE BORING TEK, meta description, canonical to
+  `https://theboringtek.com/`, og:title / og:description / og:url / og:type=website,
+  twitter:card=summary. Description and og:description both carry the locked bio line
+  plus "honest content about ai and tech." No og:image yet — the mascot only exists as
+  an inline SVG / data URI, and a card image needs a real hosted file, so that's a
+  separate decision.
+- **`robots.txt`** (root) — allows everything, points at the sitemap.
+- **`sitemap.xml`** (root) — one url, `https://theboringtek.com/`. No `lastmod`; add
+  one only if it's going to be kept honest.
 - **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked and pushed.
 
 ### Socials
@@ -84,6 +94,14 @@ names in here either.
   every platform. No per-platform variation, no alternate marks.
 - 2026-08-21 — **Coming soon phase closed.** Next milestone is social content rhythm;
   the full agency site waits until after that.
+- 2026-08-21 — Basic SEO added: head meta (canonical, og, twitter summary card),
+  `robots.txt` and `sitemap.xml` in root. Two new top-level files, both required to
+  sit in root by convention — the "no loose files" rule holds for everything else.
+- 2026-08-21 — The public-facing description line is the locked bio plus "honest
+  content about ai and tech." Same string in `description` and `og:description`. If the
+  bio line changes, both change together.
+- 2026-08-21 — `twitter:card` is `summary`, not `summary_large_image`. There is no
+  card image, and claiming a large one without an `og:image` just renders worse.
 
 ## Mascot — variant 5, tired eyes, FINAL
 
@@ -156,6 +174,10 @@ Coming soon phase is closed. Nothing on the site or the brand marks is outstandi
 - Whether the full site stays single-file or gets multiple pages. Default: stays
   single-file until it genuinely can't.
 - Whether the site should link out to the socials now that they're live.
+- Whether to ship an `og:image`. Needs a real hosted PNG (the mascot on the black
+  field, 1200×630). That means a binary in the repo — decide before adding one.
+- Whether to register the site in Google Search Console and submit the sitemap. The
+  sitemap exists; nothing has been submitted anywhere.
 
 ## Not committed / lives elsewhere
 
