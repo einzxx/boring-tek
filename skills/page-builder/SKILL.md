@@ -165,6 +165,9 @@ from the space available and the number of character units it needs, not from a 
 - Estimate mono units as `chars × 0.63` (advance plus letter-spacing, worst-case face).
   Round up. A subline that fits with 2px to spare on one machine wraps on another.
 - Register `--units` with `@property { syntax: '<number>' }` so the division resolves.
+- `--units` budgets a caret width even where the caret is absolutely positioned and
+  therefore outside the track. That is deliberate: it reserves room for the overhang so
+  the cursor can't push past the viewport edge.
 
 ### The lockup
 
@@ -206,10 +209,27 @@ matching the logo lockup. Above it, one line.
 - **Always render three line boxes**, even when a word only fills two. Give `.ln` a
   `min-height` of one line so an empty third line still holds its space — otherwise the
   block changes height every time the words swap and everything below it jumps.
+- **Rows breathe: `0.35em` between lines.** Set it as a `gap` on the flex column, not
+  as margins, and apply it to every layer *and* the sizer so all four stacks stay in
+  register. Without it the three rows read as one crushed block, not a lockup.
 - The block cursor sits on the **last line that has content** — line 3 for the
   wordmark, line 2 for `COMING SOON`. One caret visible at a time, never three.
+- **Every line is centred on its own text, ignoring the cursor.** `THE`, `BORING` and
+  `TEK` each centre independently, and the caret must not drag that centring off. Take
+  the caret out of flow — `position: absolute; left: 100%` — so the line centres as if
+  it weren't there. The caret then hangs to the right of its own line's text.
+- That needs a wrapper: `.ln > .lw > (.t + .caret)`, with `.lw` block-level,
+  `width: max-content`, `margin: 0 auto`, `position: relative`. The caret cannot live
+  inside `.t` because the cell builder clears `.t` wholesale, and it cannot be
+  positioned against `.ln` because that would pin it to the track edge instead of the
+  end of the text.
+- Scope all of this to `.stack`. The desktop single line keeps its caret inline and
+  centres text-plus-caret as one run — leave it alone.
 - The hidden sizer needs the same three-line shape, each line padded to the longest
-  line's cell count, so the track width is identical in both words.
+  line's cell count, so the track width is identical in both words. In stacked mode the
+  caret is out of flow, so the track is the **text width only** — the caret overhangs
+  it on the right. `--units` still budgets a caret width, which is what keeps that
+  overhang inside the viewport.
 - Decode spans the whole lockup from one schedule — flatten all three lines into a
   single character list, shuffle that, then split the output back per line. Three
   independent per-line decodes read as three separate events.
@@ -882,6 +902,12 @@ Start from this. Fill in, don't restructure.
     transform:translate3d(calc(var(--mx)*var(--prox)*6px),calc(var(--my)*var(--prox)*4px),0);
   }
   .hero>span{grid-area:1/1;display:block;white-space:pre}
+  .ln{display:block;min-height:1.04em}
+  .hero:not(.stack) .ln:nth-child(n+2){display:none}
+  /* stacked: rows breathe, each line centres on its own text */
+  .stack .layer,.stack .sizer{display:flex;flex-direction:column;gap:.35em}
+  .stack .lw{display:block;position:relative;width:max-content;margin:0 auto}
+  .stack .caret{position:absolute;left:100%;top:0}
   .sizer{visibility:hidden}
   .layer{font-family:var(--display);font-weight:400}
   .grid .c{display:inline-block;width:var(--cw);text-align:center}
@@ -912,10 +938,12 @@ Start from this. Fill in, don't restructure.
    <div class="lockup">
     <h1 class="hero">
       <span class="sr">the boring tek — coming soon</span>
-      <!-- sizer, then l-wide / l-mid / l-core. EACH carries three .ln lines:
-           <span class="ln"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
-           <span class="ln"><span class="t"></span><span class="caret">&#9610;</span></span>
-           <span class="ln"><span class="t"></span><span class="caret">&#9610;</span></span>
+      <!-- sizer, then l-wide / l-mid / l-core. EACH carries three .ln lines,
+           and every line wraps its text + caret in .lw so the stacked lockup can
+           centre on the text alone:
+           <span class="ln"><span class="lw"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span></span>
+           <span class="ln"><span class="lw"><span class="t"></span><span class="caret">&#9610;</span></span></span>
+           <span class="ln"><span class="lw"><span class="t"></span><span class="caret">&#9610;</span></span></span>
            Line 1 holds the whole string; lines 2-3 fill only in the stacked lockup.
            Copy the exact markup from index.html. -->
     </h1>
@@ -1019,6 +1047,15 @@ Added with the mascot and the lockup:
   copy lagging behind shows as a green ghost.
 - **Letting the stacked lockup collapse to two line boxes** when a word is two lines.
   Three boxes always, or the layout jumps on every swap.
+- **An inline caret in the stacked lockup.** It shifts every line off centre by half a
+  cursor. Out of flow, `left: 100%`, always.
+- **Positioning the stacked caret against `.ln`** instead of the `.lw` text wrapper.
+  That pins it to the track edge, so short lines get a cursor floating away from their
+  text.
+- **Applying the stacked caret or row-gap rules to the desktop single line.** Scope
+  everything to `.stack`.
+- **Row gap as margins on `.ln`.** Use the flex `gap`, and put it on the sizer too or
+  the four stacked layers drift out of register.
 - **Decoding the stacked lines independently.** One schedule across the whole lockup.
 - **Looping or re-triggering the subline typing.** Once, after the first headline
   resolve, then static forever.
@@ -1043,6 +1080,12 @@ Visual:
 - Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
   mode: `COMING SOON` is two lines, the wordmark is three.
 - Exactly one block cursor visible at a time, on the last line with content.
+- In stacked mode, drop a vertical guide down the centre of the viewport: it should
+  bisect `THE`, `BORING` and `TEK` equally. If the text sits left of centre, the caret
+  is still in flow.
+- Stacked rows have visible air between them, and the block doesn't change height when
+  the words swap.
+- Desktop single line is untouched — caret still inline, still centred with the text.
 - Every `nowrap` line still fits at 320px. Check the narrowest case, not the widest.
 - Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
 - Subline types once and never again — sit through three headline cycles to confirm.
