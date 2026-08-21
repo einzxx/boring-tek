@@ -1,0 +1,20 @@
+# secrets — never commit. public repo.
+.env
+.env.*
+
+# dependencies
+node_modules/
+
+# os junk
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+
+# logs
+*.log
+
+# local notes, drafts, scratch — never pushed
+private/
