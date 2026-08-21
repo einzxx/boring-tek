@@ -6,8 +6,10 @@ names in here either.
 
 ## Status
 
-- Phase: coming soon. Placeholder page is live, real coming soon page is next.
-- Site is a single static file served by GitHub Pages from `main` root.
+- Phase: **coming soon page is built and live** at theboringtek.com. Full agency site
+  is the next milestone, not started.
+- Site is a single static file served by GitHub Pages from `main` root. Push to `main`
+  is the deploy — there is no staging, so check the diff before every push.
 
 ## Current state
 
@@ -15,8 +17,11 @@ names in here either.
 - **DNS:** done at Hostinger, pointed at GitHub Pages. `CNAME` in repo root holds the
   apex domain.
 - **Repo:** github.com/einzxx/boring-tek, public.
-- **Live page:** placeholder only — `index.html` reads "BORING TEK is booting".
-- **Project files:** CLAUDE.md, MEMORY.md, skills/ added 2026-08-21.
+- **Live page:** the coming soon page. Michroma wordmark decoding between
+  THE BORING TEK and COMING SOON, subline that types itself once, phosphor glow on
+  both, CRT grain + vignette, cursor proximity on desktop. Stacks to three lines under
+  640px. Single file, ~17KB, one external request (Michroma).
+- **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked.
 
 ## Decisions
 
@@ -41,41 +46,41 @@ names in here either.
   around it, not wall to wall.
 - 2026-08-21 — Headline and subline are one `.lockup` block, tight gap, centred as a
   group. Never loose siblings sharing a wrapper gap.
-- 2026-08-21 — Mascot adopted (see below), then scoped to **favicon only** — it is not
-  rendered in the page. Favicon is inline, no file.
+- 2026-08-21 — Mascot adopted, scoped to **favicon only**, then replaced with the
+  final white-face character and locked. See below. Favicon is inline, no file.
 
-## Mascot
+## Mascot — FINAL
 
-Minimal pixel bot: **square head outline, two glowing green pixel eyes, nothing else.**
-No mouth, no body, no antenna, no arms. It's a presence indicator, not a character —
-the visual equivalent of a machine that's on and not asking for attention.
+A **white soft circle face with two dark vertical dash eyes.** Nothing else — no mouth,
+no nose, no body, no outline, no shading. Calm, blank, unbothered. It's a presence, not
+a character with a personality.
+
+Locked 2026-08-21. Rebuilt as clean vector from the original art. Do not redesign.
 
 **Favicon only.** It lives in the browser tab and nowhere else — no hero mark, no
 header logo, no footer bug. The page carries the wordmark; the tab carries the mascot.
-Putting it back into a page is a decision, not a build detail.
+Putting it into a page is a decision, not a build detail.
 
-- Inline SVG on a 12×12 pixel grid, `crispEdges`, decorative (`aria-hidden`).
-- Head: four 1-unit bars forming a square ring with the four corner pixels omitted.
-  That bevel is what makes it read as pixel art rather than a CSS border.
-- Eyes: two 2×2 squares at (3,5) and (7,5), phosphor green, glow from an SVG
-  `feGaussianBlur` merged twice.
-- Blink (both eyes snap dark for ~75ms every ~5.2s, `step-end`, no fade, no wink) is
-  specced but dormant — a favicon doesn't animate. It only applies if the mascot is
-  ever rendered live.
-- Favicon is the mascot reduced to eyes-only on a dark square, embedded as an SVG data
-  URI in `<link rel="icon">`. The head outline turns to mush at 16px so it's dropped.
+- `assets/mascot.png` — original art, the reference.
+- `assets/mascot.svg` — the rebuilt vector on a 64×64 grid. Source of truth for every
+  other use; transparent background, no plate.
+- Favicon is the same SVG on a dark square, inline as a data URI in
+  `<link rel="icon">`. Identical geometry, no separate file.
+- White face `#f4f7f5` on dark, eyes `#06070a` (the page background, so the eyes read
+  as punched through). White-on-dark is the primary version.
+- **Static.** No blink, no bob, no cursor tracking. The dash eyes already read as
+  half-closed; animating them turns a calm mark into a cartoon. The earlier pixel-bot
+  mascot and its blink are superseded and gone.
 
-Full geometry and the do-not-do list live in `skills/page-builder/SKILL.md` → Mascot.
-That file is the source of truth; keep the mascot identical everywhere it appears.
+Exact geometry, the proportion table and the do-not-do list live in
+`skills/page-builder/SKILL.md` → Mascot. That file is the source of truth; keep the
+mascot identical everywhere it appears.
 
 ## Next steps
 
-1. Build the real coming soon page — replace the placeholder `index.html`.
-2. Decide what the coming soon page captures: nothing, or one contact route (email
+1. Decide what the coming soon page captures: nothing, or one contact route (email
    link, no form backend since there's no backend).
-3. Check the mascot against the logo art in `Boring TEK files/` — it was drawn to the
-   spec above, not traced from the source files.
-4. Later: full site — services, process, work, contact.
+2. Later: full site — services, process, work, contact.
 
 ## Open questions
 

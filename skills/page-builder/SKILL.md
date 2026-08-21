@@ -709,76 +709,76 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 ## Mascot — favicon only
 
-A minimal pixel bot. **Square head outline, two green pixel eyes, nothing else.** No
-mouth, no body, no antenna, no arms, no shading. It is a presence indicator, not a
-character.
+**FINAL.** A white soft circle face with two dark vertical dash eyes. Nothing else —
+no mouth, no nose, no body, no outline, no shading, no highlight. Calm, blank,
+unbothered. It is a presence, not a character with a personality.
 
 **It is not rendered in the page.** The mascot lives in the browser tab and nowhere
 else — no hero mark, no header logo, no footer bug, no loading state. The page carries
-the wordmark; the tab carries the mascot. Keep them separate.
+the wordmark; the tab carries the mascot. Keep them separate. Putting it into a page is
+a decision from Einz, not a build detail.
 
-The full 12×12 drawing below is the canonical mark. It is kept here because it is the
-source the favicon is cut from, and because anything that ever needs the mascot outside
-a browser tab — social avatar, printed mark — must match these numbers exactly. Adding
-it back into a page needs a decision from Einz first.
+Source of truth: `assets/mascot.png` is the original art; `assets/mascot.svg` is the
+rebuilt vector, and it is what everything else is cut from.
+
+### Geometry
+
+Drawn on a **64×64 grid**. Do not redraw it by eye — these numbers are the mascot, and
+they are measured off the source art.
 
 ```html
-<svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
-  <defs>
-    <filter id="eyeglow" x="-150%" y="-150%" width="400%" height="400%">
-      <feGaussianBlur stdDeviation=".7" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <path class="frame" d="M1 0h10v1H1zM1 11h10v1H1zM0 1h1v10H0zM11 1h1v10h-1z"/>
-  <g class="eyes" filter="url(#eyeglow)">
-    <rect x="3" y="5" width="2" height="2"/>
-    <rect x="7" y="5" width="2" height="2"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="The Boring Tek mascot">
+  <circle cx="32" cy="32" r="30" fill="#f4f7f5"/>
+  <rect x="19.6" y="23.9" width="4.3" height="11" rx="2.15" fill="#06070a"/>
+  <rect x="40.1" y="23.9" width="4.3" height="11" rx="2.15" fill="#06070a"/>
 </svg>
 ```
 
-```css
-.frame{fill:var(--dim)}
-.eyes{fill:var(--p-500);animation:eyeblink 5.2s step-end infinite}
-@keyframes eyeblink{0%{opacity:1}96.4%{opacity:.05}97.8%{opacity:1}}
-```
+The proportions, as ratios of the face diameter — hold these if it is ever redrawn at
+another size:
 
-Geometry — do not redraw it by eye, these numbers are the mascot:
+| Measure | Ratio |
+|---|---|
+| Face diameter to frame | 94% — it fills almost the whole frame |
+| Eye height to diameter | 18.3% |
+| Eye width to diameter | 7.2% |
+| Eye separation, centre to centre | 34.2% |
+| Eye centres above face centre | 4.3% |
 
-- **Head:** four 1-unit bars forming a square ring, with all four **corner pixels
-  omitted**. That bevel is what makes it read as pixel art instead of a CSS border.
-  Never close the corners, never round them, never thicken the outline past 1 unit.
-- **Eyes:** two 2×2 squares at `(3,5)` and `(7,5)`. Two units of margin either side,
-  two units between them, exactly centred in the head both ways. Never one eye, never
-  three, never different sizes.
-- **Glow:** an SVG `feGaussianBlur` merged twice under the source — the same
-  layered-glow principle as the headline, in user units so it scales with the icon.
-  Never a CSS `drop-shadow()` on an SVG child; length units there resolve differently
-  across browsers and the glow comes out wildly wrong.
+- **Face:** one circle, flat fill, no stroke, no gradient, no inner shadow. The soft
+  edge in the source art is antialiasing, not a border — never add one.
+- **Eyes:** vertical stadium capsules — `rx` is exactly half the width, so the ends are
+  fully round. Never rectangles with soft corners, never ellipses, never circles.
+- Eyes sit **slightly above centre**. That 4.3% is what stops it reading as a smiley.
+  Centring them vertically kills the character.
+- Perfectly symmetric about `cx`. Never one eye, never three, never mismatched sizes,
+  never tilted.
 
-Blink — **only applies if the mascot is ever rendered live.** A favicon does not
-animate, so on the site today this is dormant. If it does get used somewhere:
+### Colour
 
-- Both eyes together, going dark for **one perceptual frame** (~70–90ms) every ~5s.
-  `step-end` — the eyes snap off and snap back. Never fade, never wink one eye, never
-  animate a lid.
-- Dark, not gone: `opacity: .05`, so they read as unlit pixels rather than a hole.
-- No idle bobbing, no rotation, no scanning-eye movement, no colour cycling. The blink
-  is the *only* thing the mascot ever does.
+- **White face on dark is primary**: face `--white` `#f4f7f5`, eyes `--bg` `#06070a`.
+  This is the version that ships.
+- Any variant keeps the geometry byte-identical and only swaps the two fills. Never
+  recolour the face green, never tint the eyes, never add a third colour.
+- The eyes are the page background colour, so the face reads as a hole punched in the
+  dark rather than an illustration sitting on top of it.
 
-Favicon — the mascot's only home:
+### Motion
 
-- Generated from the same mascot, as an inline `data:` URI in `<link rel="icon">` —
-  never a separate file.
-- **Eyes only** on a `--bg` square. The head outline turns to mush at 16px, so it is
-  dropped; the eyes are the recognisable part.
-- Eyes scale up to 3×3 on the 12×12 grid at `(2,4)` and `(7,4)` so they stay legible in
-  a tab strip.
+**None.** The mascot does not blink, bob, rotate, track the cursor, or animate in any
+way. The dash eyes already read as half-closed; animating them turns a calm mark into a
+cartoon. If it is ever placed live in a page it stays static.
+
+### Favicon — the mascot's only home
+
+- The same SVG on a `--bg` square, as an inline `data:` URI in `<link rel="icon">`.
+  Never a separate `.ico` or `.png` file.
+- **Identical geometry to the standalone asset.** The dark square sits behind it, so
+  only the corners show dark. Do not shrink the face to make the plate visible.
 - Encode `#` as `%23` in the URI or the whole thing silently fails.
 
 ```html
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%2306070a'/%3E%3Crect x='2' y='4' width='3' height='3' fill='%2335ff6a'/%3E%3Crect x='7' y='4' width='3' height='3' fill='%2335ff6a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2306070a'/%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='19.6' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3Crect x='40.1' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3C/svg%3E">
 ```
 
 ## Terminal texture
@@ -1023,15 +1023,16 @@ Added with the mascot and the lockup:
 - **Rendering the mascot in the page.** It is the favicon and nothing else — no hero
   mark, no header logo, no footer bug, no loading state. Putting it back on a page is
   Einz's call, not a build decision.
-- **Giving the mascot a mouth, body, antenna, arms, feet, or shading.** Head outline
-  and two eyes. That is the whole mascot.
-- **Closed or rounded mascot corners**, an outline thicker than 1 unit, or redrawing it
-  off-grid. The geometry in the Mascot section is the spec.
-- **Any mascot motion other than the blink** — bobbing, floating, rotating, scanning
-  eyes, colour cycling, eyes tracking the cursor.
-- **Fading the blink or winking one eye.** It snaps, both eyes, `step-end`.
-- **CSS `drop-shadow()` on an SVG child** for the eye glow — resolves inconsistently
-  across browsers. Use the SVG filter.
+- **Giving the mascot a mouth, nose, body, outline, shading, or a highlight.** A white
+  circle and two dark dashes. That is the whole mascot.
+- **Redrawing the mascot by eye.** The geometry table in the Mascot section is the
+  spec; hold the ratios at any size.
+- **Round or elliptical eyes**, soft-cornered rectangles, tilted dashes, or eyes
+  centred vertically instead of 4.3% above centre. Any of those turn it into a smiley.
+- **Animating the mascot at all** — blinking, bobbing, floating, rotating, scanning,
+  colour cycling, eyes tracking the cursor. It is static.
+- **Recolouring the mascot** beyond swapping the two fills. No green face, no tinted
+  eyes, no third colour, no gradient.
 - **A separate favicon file.** Inline `data:` URI, generated from the mascot.
 - **A separate cap for the stacked mobile lockup.** `2.75rem` is uniform everywhere.
 - **A `gap` on `.wrap`**, or headline and subline as loose siblings. One `.lockup`
@@ -1089,7 +1090,8 @@ Visual:
 - Every `nowrap` line still fits at 320px. Check the narrowest case, not the widest.
 - Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
 - Subline types once and never again — sit through three headline cycles to confirm.
-- Favicon renders as two green pixels on dark in the tab, at 16px.
+- Favicon renders as a white circle with two dark dash eyes in the tab, at 16px — the
+  eyes still read as two separate marks and haven't merged into a blur.
 - Grain is invisible until you look for it. Vignette is invisible until you screenshot
   with and without.
 - Nothing looks like a default CSS color.
