@@ -175,20 +175,22 @@ near each other. They go in a single wrapper, and that wrapper is what gets cent
 .wrap{ min-height:100dvh; display:flex; justify-content:center; align-items:center }
 .lockup{
   display:flex; flex-direction:column; align-items:center;
-  gap:clamp(7px,1.3vh,13px);
+  gap:clamp(14px,2.6vh,26px);
   max-width:100%;
 }
 ```
 
 - **One child in `.wrap`.** Centring the group is the point; centring three siblings
   with a shared gap makes them read as separate floating pieces.
-- Gap between headline and subline is **tight** — `7`–`13px`. It should read as a
-  lockup, close enough that the eye takes both in at once.
+- Gap between headline and subline is `14`–`26px`. Close enough that the eye takes both
+  in as one block, open enough that the subline isn't crowding the wordmark. The hero's
+  `line-height: 1.04` leaves almost no leading beneath it, so the gap is doing all the
+  work — that's why it needs real value and not a token 8px.
 - Never put a `gap` on `.wrap` itself. It has one child.
 - Anything else that belongs to the headline — a status tag, a fallback line — goes
   inside `.lockup` too, so the reduced-motion and no-JS views stay composed.
-- The hero already has `line-height: 1.04`, so there is almost no leading under the
-  wordmark. Don't add more gap to compensate for leading that isn't there.
+- `.lockup` is also the **proximity host** — see Micro-interactions → Cursor proximity.
+  It carries `--prox` / `--mx` / `--my` for everything inside it.
 
 ### The stacked lockup (under 640px)
 
@@ -388,11 +390,49 @@ Rules:
 - Duplicates must be laid over the core exactly. Use the `display:grid` +
   `grid-area:1/1` stack above; absolute positioning drifts between font stacks.
 - `--glow` is the single knob everything else drives — proximity, entrance, focus.
-  Nothing else touches those opacities.
-- Glow intensity scales down as the element gets smaller. Body-size text gets the core
-  shadow stack only, no blur duplicates.
+  Nothing else touches those opacities. Each glowing element declares its own `--glow`
+  on itself; they are not shared between elements.
 - Drop `will-change` once the entrance finishes (`el.style.willChange = 'auto'`).
-  Persistent `will-change` on many elements costs more than it saves.
+  Persistent `will-change` on many elements costs more than it saves. Elements whose
+  opacity is driven continuously by proximity keep it.
+
+### Glow tiers
+
+Layer count comes down as the element gets smaller — but the **radii go up relative to
+the font size**, because small text needs a proportionally wider halo to read as lit at
+all. Never just shrink the headline's numbers and call it done.
+
+| Tier | Used on | Layers |
+|---|---|---|
+| Full | headline | core shadow stack + `blur(.055em)` duplicate + `blur(.2em)` bloom |
+| Reduced | subline | core shadow stack + one `blur(.16em)` duplicate |
+| Flat | labels, status tags, links | core shadow stack only |
+
+The subline's reduced tier, for reference:
+
+```css
+.tag{ color: var(--p-700); --glow: calc(1 + var(--prox) * .85) }
+.tag-blur{ color: var(--p-500); filter: blur(.16em);
+           opacity: calc(.55 * var(--glow)); will-change: opacity }
+.tag-txt{
+  text-shadow:
+    0 0 .06em rgba(53,255,106,.50),
+    0 0 .3em  rgba(53,255,106,.30),
+    0 0 .85em rgba(23,163,79,.22),
+    0 0 1.7em rgba(23,163,79,.13);
+}
+```
+
+- **Sublines are green, not gray.** `--p-700` for the fill, `--p-500` for the blur
+  duplicate and the caret. A gray subline under a glowing headline reads as an
+  unstyled leftover. `--muted` is for labels and timestamps, not for lockup copy.
+- Note the radii: `1.7em` on the subline against `.28em` on the headline. At 12px that
+  wide stop is ~20px of soft halo — the "deep soft" part. The same `.28em` would be
+  3px and invisible.
+- The widest bloom layer is dropped at subline size. At 12px a `blur(.2em)` duplicate
+  is a formless smudge that adds cost and no glow.
+- If the text animates (typing, decode), **every** layer has to be written in the same
+  frame. A blur duplicate lagging one frame behind its core shows up as a green ghost.
 
 ## Decode animation
 
@@ -497,8 +537,13 @@ is felt, not watched.
 - Effect is driven by one falloff value `--prox` (`0..1`), eased, and lerped toward its
   target so it glides instead of snapping:
 
+**One measurement, written to the host.** The falloff is computed from the *headline's*
+rect, and `--prox` / `--mx` / `--my` are set on `.lockup`, so every element inside
+inherits the same values. Do not give each element its own rect.
+
 ```js
-const el = document.querySelector('[data-glow]');
+const host = document.querySelector('.lockup');   // where the vars land
+const el   = document.querySelector('.hero');     // what gets measured
 let rect = el.getBoundingClientRect();
 let mx = 0, my = 0, prox = 0, target = 0;
 addEventListener('resize', () => { rect = el.getBoundingClientRect(); }, {passive:true});
@@ -506,37 +551,50 @@ addEventListener('resize', () => { rect = el.getBoundingClientRect(); }, {passiv
 addEventListener('pointermove', e => {
   const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
   const d = Math.hypot(e.clientX - cx, e.clientY - cy);
-  const r = Math.max(rect.width, 520);
+  const r = Math.max(rect.width, 560);
   target = Math.max(0, 1 - d / r);              // linear falloff
   target *= target;                              // eased — tightens near the element
   mx = (e.clientX - cx) / rect.width;
   my = (e.clientY - cy) / rect.height;
 }, {passive:true});
 
-(function loop(){
-  prox += (target - prox) * .09;                 // lerp, no snap
-  el.style.setProperty('--prox', prox.toFixed(3));
-  el.style.setProperty('--mx', mx.toFixed(3));
-  el.style.setProperty('--my', my.toFixed(3));
-  requestAnimationFrame(loop);
-})();
+// inside the ONE shared rAF loop:
+prox += (target - prox) * .09;                   // lerp, no snap
+host.style.setProperty('--prox', prox.toFixed(4));
+host.style.setProperty('--mx', mx.toFixed(3));
+host.style.setProperty('--my', my.toFixed(3));
 ```
 
+Each reactive element then declares its own `--glow` and applies the same transform:
+
 ```css
-.glow{
-  --glow: calc(1 + var(--prox, 0) * .85);        /* brighten */
+.hero{
+  --glow: calc(1 + var(--prox) * .85 + var(--beat) * .7);   /* + settle beat */
   transform: translate3d(
-    calc(var(--mx, 0) * var(--prox, 0) * 6px),
-    calc(var(--my, 0) * var(--prox, 0) * 4px), 0);
+    calc(var(--mx) * var(--prox) * 6px),
+    calc(var(--my) * var(--prox) * 4px), 0);
 }
-.glow__core{ /* optional: weight lift, layout-contained element only */
-  --wght: calc(380 + var(--prox, 0) * 180);
+.tag{
+  --glow: calc(1 + var(--prox) * .85);                       /* no beat */
+  transform: translate3d(
+    calc(var(--mx) * var(--prox) * 6px),
+    calc(var(--my) * var(--prox) * 4px), 0);
 }
 ```
 
 - Maximum displacement `8px`. This is a lean, not a parallax card.
-- Never skew, never rotate, never scale the headline on proximity.
-- One proximity-reactive element per page. Two competes for attention.
+- Never skew, never rotate, never scale on proximity.
+- **Two rects is the bug, not the feature.** Independent falloffs make the headline and
+  subline brighten at different moments, which breaks the lockup back into separate
+  floating pieces — the exact thing `.lockup` exists to prevent.
+- **`--mx` / `--my` must stay normalised by the same element.** They are offsets divided
+  by that element's own width and height, so a short element produces huge values: the
+  ~46px headline peaks near `7px` of travel, but a ~20px subline on its own rect would
+  peak near `17px` — a subline sliding three times further than the wordmark above it.
+  Sharing the headline's normalisation keeps the lockup leaning as one rigid unit.
+- Effects that belong to one element stay on that element. `--beat` is written to
+  `.hero`, not the host, so the settle pulse doesn't flash the subline.
+- One proximity **host** per page. Any number of elements may read from it.
 
 ### Everything else
 
@@ -813,7 +871,7 @@ Start from this. Fill in, don't restructure.
   .wrap{position:relative;z-index:2;min-height:100dvh;display:flex;
     justify-content:center;align-items:center;padding:48px 16px;text-align:center}
   .lockup{display:flex;flex-direction:column;align-items:center;
-    gap:clamp(7px,1.3vh,13px);max-width:100%}
+    gap:clamp(14px,2.6vh,26px);max-width:100%}
   @media (min-width:720px){.wrap{padding-inline:20px}}
 
   /* headline — fit-to-width, capped at 2.75rem; --units set by JS from metrics */
@@ -863,7 +921,7 @@ Start from this. Fill in, don't restructure.
     </h1>
     <p class="tag">
       <span class="tag-size" aria-hidden="true">building the boring part of the future.</span>
-      <span class="tag-live"><span class="tag-txt">building the boring part of the future.</span><span class="tag-caret" aria-hidden="true">&#9610;</span></span>
+      <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future.</span><span class="tag-txt">building the boring part of the future.</span><span class="tag-caret" aria-hidden="true">&#9610;</span></span>
     </p>
    </div>
   </main>
@@ -950,6 +1008,15 @@ Added with the mascot and the lockup:
 - **A separate cap for the stacked mobile lockup.** `2.75rem` is uniform everywhere.
 - **A `gap` on `.wrap`**, or headline and subline as loose siblings. One `.lockup`
   child, centred as a group.
+- **A gray subline.** Lockup copy is green and glows. `--muted` is for labels and
+  timestamps.
+- **A second proximity rect.** One measurement on the host; everything inside inherits.
+- **`--mx` / `--my` normalised per element.** Short elements produce huge values and
+  over-travel. One normalisation for the whole lockup.
+- **Shrinking the headline's glow radii verbatim for smaller text.** Layer count comes
+  down, relative radii go up. See Glow tiers.
+- **Writing a text layer without its glow duplicates in the same frame.** The blurred
+  copy lagging behind shows as a green ghost.
 - **Letting the stacked lockup collapse to two line boxes** when a word is two lines.
   Three boxes always, or the layout jumps on every swap.
 - **Decoding the stacked lines independently.** One schedule across the whole lockup.
@@ -966,7 +1033,12 @@ Visual:
   check both, and drag across the 640px boundary to confirm the swap is clean.
 - Headline has real air around it at 1440px — roughly 40% of the viewport, not 90%.
 - Headline and subline read as one block. If they look like two floating pieces, the
-  gap is too big or they aren't in the same `.lockup`.
+  gap is wrong or they aren't in the same `.lockup`.
+- Sweep the pointer across the lockup: headline and subline brighten and lean together,
+  in the same direction, at the same moment. Any lag or disagreement means two rects.
+- Subline glows green and never flashes on the headline's settle beat.
+- No green ghost trailing the subline while it types — the blur layer is written in the
+  same frame as the core.
 - No mascot anywhere in the rendered page.
 - Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
   mode: `COMING SOON` is two lines, the wordmark is three.
