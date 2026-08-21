@@ -130,8 +130,11 @@ All type uses `clamp()`. No breakpoint-swapped font sizes anywhere.
 --t-sub:   clamp(1.25rem, 1rem + 1.25vw, 2rem);           /* 20 → 32 */
 ```
 
-- **Hero caps at `4.5rem` (72px).** Bigger than that stops reading as confident and
-  starts reading as comic. Never raise the cap.
+- **Hero caps at `2.75rem` (44px).** One elegant centred line with air around it, not
+  wall to wall. Bigger stops reading as confident and starts reading as comic. Never
+  raise the cap — the restraint is the brand.
+- The cap is **uniform**: `2.75rem` on desktop and in the stacked mobile lockup alike.
+  No separate mobile cap. Below ~400px the fit-to-width divide takes over anyway.
 - Line height: `1.65` body, `1.35` sub, `1.04` hero (Michroma has tall metrics).
 - Letter-spacing: `0` body, `0` hero, `0.16em` on uppercase labels.
 - Max line length `68ch`. Long paragraphs are wrong here — write short lines.
@@ -146,19 +149,46 @@ from the space available and the number of character units it needs, not from a 
 
 ```css
 /* headline: --units is set by JS from measured glyph metrics */
-.hero{ font-size: min(4.5rem, calc((100vw - 44px) / var(--units))); }
+.hero{ font-size: min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units))); }
 
 /* subline: 39 chars of mono ≈ 26 units, incl. letter-spacing and safety margin */
 .tag{ white-space: nowrap; font-size: min(.75rem, calc((100vw - 44px) / 26)); }
 ```
 
 - `44px` covers the `16px` side padding plus scrollbar slack. Don't shave it.
+- The headline carries a second `90vw` term. The cap creates the air at desktop widths,
+  but between roughly `640px` and `720px` the cap hasn't taken over yet and the raw
+  divide would run the wordmark edge to edge. `90vw` holds a margin through that band.
 - Any element carrying `white-space: nowrap` **must** be sized this way. Nowrap without
   fit-sizing doesn't prevent wrapping, it converts wrapping into horizontal overflow,
   which `overflow-x: hidden` then silently clips.
 - Estimate mono units as `chars × 0.63` (advance plus letter-spacing, worst-case face).
   Round up. A subline that fits with 2px to spare on one machine wraps on another.
 - Register `--units` with `@property { syntax: '<number>' }` so the division resolves.
+
+### The lockup
+
+Headline and subline are **one composed block**, not two elements that happen to sit
+near each other. They go in a single wrapper, and that wrapper is what gets centred.
+
+```css
+.wrap{ min-height:100dvh; display:flex; justify-content:center; align-items:center }
+.lockup{
+  display:flex; flex-direction:column; align-items:center;
+  gap:clamp(7px,1.3vh,13px);
+  max-width:100%;
+}
+```
+
+- **One child in `.wrap`.** Centring the group is the point; centring three siblings
+  with a shared gap makes them read as separate floating pieces.
+- Gap between headline and subline is **tight** — `7`–`13px`. It should read as a
+  lockup, close enough that the eye takes both in at once.
+- Never put a `gap` on `.wrap` itself. It has one child.
+- Anything else that belongs to the headline — a status tag, a fallback line — goes
+  inside `.lockup` too, so the reduced-motion and no-JS views stay composed.
+- The hero already has `line-height: 1.04`, so there is almost no leading under the
+  wordmark. Don't add more gap to compensate for leading that isn't there.
 
 ### The stacked lockup (under 640px)
 
@@ -588,7 +618,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 ## Layout
 
 - Max width `900px`, centered, `20px` side padding (`16px` under 480px). The hero sizes
-  itself to fit the viewport (see Fit-to-width sizing) and caps at `4.5rem`.
+  itself to fit the viewport (see Fit-to-width sizing) and caps at `2.75rem`.
 - Spacing scale, nothing between: `4 8 12 16 24 32 48 64 96 128`.
 - Left-aligned. Centered text only for a hero.
 - Borders `1px solid var(--line)`. **Zero border radius everywhere.** No rounded
@@ -599,18 +629,23 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   `@media (min-width: 720px)` for structural layout changes only. Two breakpoints
   maximum.
 
-## Mascot
+## Mascot — favicon only
 
-A minimal pixel bot. **Square head outline, two glowing green pixel eyes, nothing
-else.** No mouth, no body, no antenna, no arms, no shading. It is a presence indicator,
-not a character.
+A minimal pixel bot. **Square head outline, two green pixel eyes, nothing else.** No
+mouth, no body, no antenna, no arms, no shading. It is a presence indicator, not a
+character.
 
-Drawn as inline SVG on a **12×12 pixel grid**, `shape-rendering="crispEdges"`,
-`aria-hidden="true"` and `focusable="false"` — it is decorative and must never be
-announced or focusable.
+**It is not rendered in the page.** The mascot lives in the browser tab and nowhere
+else — no hero mark, no header logo, no footer bug, no loading state. The page carries
+the wordmark; the tab carries the mascot. Keep them separate.
+
+The full 12×12 drawing below is the canonical mark. It is kept here because it is the
+source the favicon is cut from, and because anything that ever needs the mascot outside
+a browser tab — social avatar, printed mark — must match these numbers exactly. Adding
+it back into a page needs a decision from Einz first.
 
 ```html
-<svg class="mascot" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+<svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
   <defs>
     <filter id="eyeglow" x="-150%" y="-150%" width="400%" height="400%">
       <feGaussianBlur stdDeviation=".7" result="b"/>
@@ -626,9 +661,8 @@ announced or focusable.
 ```
 
 ```css
-.mascot{display:block;width:clamp(24px,5.5vw,34px);height:auto}
-.mascot .frame{fill:var(--dim)}
-.mascot .eyes{fill:var(--p-500);animation:eyeblink 5.2s step-end infinite}
+.frame{fill:var(--dim)}
+.eyes{fill:var(--p-500);animation:eyeblink 5.2s step-end infinite}
 @keyframes eyeblink{0%{opacity:1}96.4%{opacity:.05}97.8%{opacity:1}}
 ```
 
@@ -645,7 +679,8 @@ Geometry — do not redraw it by eye, these numbers are the mascot:
   Never a CSS `drop-shadow()` on an SVG child; length units there resolve differently
   across browsers and the glow comes out wildly wrong.
 
-Blink:
+Blink — **only applies if the mascot is ever rendered live.** A favicon does not
+animate, so on the site today this is dormant. If it does get used somewhere:
 
 - Both eyes together, going dark for **one perceptual frame** (~70–90ms) every ~5s.
   `step-end` — the eyes snap off and snap back. Never fade, never wink one eye, never
@@ -654,13 +689,7 @@ Blink:
 - No idle bobbing, no rotation, no scanning-eye movement, no colour cycling. The blink
   is the *only* thing the mascot ever does.
 
-Placement:
-
-- Small and centred, above the headline. `24px`–`34px`. It should read as a status
-  light over the wordmark, never as a logo competing with it.
-- One mascot per page.
-
-Favicon:
+Favicon — the mascot's only home:
 
 - Generated from the same mascot, as an inline `data:` URI in `<link rel="icon">` —
   never a separate file.
@@ -780,13 +809,16 @@ Start from this. Fill in, don't restructure.
     85%{transform:translate3d(1%,-3%,0)}
   }
 
-  /* content */
-  .wrap{position:relative;z-index:2;max-width:900px;margin:0 auto;padding:clamp(32px,9vh,96px) 16px}
+  /* content — one lockup, centred as a group */
+  .wrap{position:relative;z-index:2;min-height:100dvh;display:flex;
+    justify-content:center;align-items:center;padding:48px 16px;text-align:center}
+  .lockup{display:flex;flex-direction:column;align-items:center;
+    gap:clamp(7px,1.3vh,13px);max-width:100%}
   @media (min-width:720px){.wrap{padding-inline:20px}}
 
-  /* headline — fit-to-width, capped at 4.5rem; --units set by JS from metrics */
+  /* headline — fit-to-width, capped at 2.75rem; --units set by JS from metrics */
   .hero{display:grid;justify-content:center;margin:0;max-width:100%;
-    font-size:min(4.5rem, calc((100vw - 44px) / var(--units)));
+    font-size:min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units)));
     line-height:1.04;letter-spacing:0;contain:layout style;
     --glow:calc(1 + var(--prox) * .85 + var(--beat) * .7);
     transform:translate3d(calc(var(--mx)*var(--prox)*6px),calc(var(--my)*var(--prox)*4px),0);
@@ -819,14 +851,21 @@ Start from this. Fill in, don't restructure.
   <div class="grain" aria-hidden="true"></div>
 
   <main class="wrap">
+   <div class="lockup">
     <h1 class="hero">
       <span class="sr">the boring tek — coming soon</span>
-      <span class="sizer" aria-hidden="true"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
-      <span class="layer l-wide" aria-hidden="true"><span class="t">THE BORING TEK</span>&#9610;</span>
-      <span class="layer l-mid"  aria-hidden="true"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
-      <span class="layer l-core" aria-hidden="true"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
+      <!-- sizer, then l-wide / l-mid / l-core. EACH carries three .ln lines:
+           <span class="ln"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span>
+           <span class="ln"><span class="t"></span><span class="caret">&#9610;</span></span>
+           <span class="ln"><span class="t"></span><span class="caret">&#9610;</span></span>
+           Line 1 holds the whole string; lines 2-3 fill only in the stacked lockup.
+           Copy the exact markup from index.html. -->
     </h1>
-    <!-- content -->
+    <p class="tag">
+      <span class="tag-size" aria-hidden="true">building the boring part of the future.</span>
+      <span class="tag-live"><span class="tag-txt">building the boring part of the future.</span><span class="tag-caret" aria-hidden="true">&#9610;</span></span>
+    </p>
+   </div>
   </main>
 
 <script>
@@ -886,7 +925,7 @@ Added with Michroma:
 - **Michroma on body text, sublines, buttons, nav or status tags.** Headline only.
 - **Decoding proportional text without the fixed-cell grid.** The headline width
   changes every frame and the whole line wobbles.
-- **A headline above `4.5rem`.** It stops reading as confident and starts reading as
+- **A headline above `2.75rem`.** It stops reading as confident and starts reading as
   comic.
 - **`white-space: nowrap` without fit-to-width sizing.** That converts wrapping into
   clipped overflow, which is worse.
@@ -895,6 +934,9 @@ Added with Michroma:
 
 Added with the mascot and the lockup:
 
+- **Rendering the mascot in the page.** It is the favicon and nothing else — no hero
+  mark, no header logo, no footer bug, no loading state. Putting it back on a page is
+  Einz's call, not a build decision.
 - **Giving the mascot a mouth, body, antenna, arms, feet, or shading.** Head outline
   and two eyes. That is the whole mascot.
 - **Closed or rounded mascot corners**, an outline thicker than 1 unit, or redrawing it
@@ -905,6 +947,9 @@ Added with the mascot and the lockup:
 - **CSS `drop-shadow()` on an SVG child** for the eye glow — resolves inconsistently
   across browsers. Use the SVG filter.
 - **A separate favicon file.** Inline `data:` URI, generated from the mascot.
+- **A separate cap for the stacked mobile lockup.** `2.75rem` is uniform everywhere.
+- **A `gap` on `.wrap`**, or headline and subline as loose siblings. One `.lockup`
+  child, centred as a group.
 - **Letting the stacked lockup collapse to two line boxes** when a word is two lines.
   Three boxes always, or the layout jumps on every swap.
 - **Decoding the stacked lines independently.** One schedule across the whole lockup.
@@ -917,15 +962,18 @@ Added with the mascot and the lockup:
 Visual:
 
 - Renders correctly at 320px, 768px, 1440px and 2560px wide.
-- Headline caps at 4.5rem on wide screens and stacks to three lines under 640px — check
-  both, and drag across the 640px boundary to confirm the swap is clean.
+- Headline caps at 2.75rem on wide screens and stacks to three lines under 640px —
+  check both, and drag across the 640px boundary to confirm the swap is clean.
+- Headline has real air around it at 1440px — roughly 40% of the viewport, not 90%.
+- Headline and subline read as one block. If they look like two floating pieces, the
+  gap is too big or they aren't in the same `.lockup`.
+- No mascot anywhere in the rendered page.
 - Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
   mode: `COMING SOON` is two lines, the wordmark is three.
 - Exactly one block cursor visible at a time, on the last line with content.
 - Every `nowrap` line still fits at 320px. Check the narrowest case, not the widest.
 - Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
 - Subline types once and never again — sit through three headline cycles to confirm.
-- Mascot eyes blink both together, snap off and back, roughly every 5s.
 - Favicon renders as two green pixels on dark in the tab, at 16px.
 - Grain is invisible until you look for it. Vignette is invisible until you screenshot
   with and without.

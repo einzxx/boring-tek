@@ -68,17 +68,17 @@ body{
 .wrap{
   position:relative; z-index:2;
   min-height:100dvh;
-  display:flex; flex-direction:column; justify-content:center; align-items:center;
-  gap:clamp(16px,2.6vh,26px);
+  display:flex; justify-content:center; align-items:center;
   padding:48px 16px;
   text-align:center;
 }
 
-/* mascot */
-.mascot{display:block;width:clamp(24px,5.5vw,34px);height:auto}
-.mascot .frame{fill:var(--dim)}
-.mascot .eyes{fill:var(--p-500);animation:eyeblink 5.2s step-end infinite}
-@keyframes eyeblink{0%{opacity:1}96.4%{opacity:.05}97.8%{opacity:1}}
+/* headline + subline read as one block, centred as a group */
+.lockup{
+  display:flex; flex-direction:column; align-items:center;
+  gap:clamp(7px,1.3vh,13px);
+  max-width:100%;
+}
 
 .status{
   display:none; margin:0;
@@ -89,7 +89,7 @@ body{
 .hero{
   display:grid; justify-content:center;
   margin:0; max-width:100%;
-  font-size:min(4.5rem, calc((100vw - 44px) / var(--units)));
+  font-size:min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units)));
   line-height:1.04; letter-spacing:0;
   contain:layout style;
   --glow:calc(1 + var(--prox) * .85 + var(--beat) * .7);
@@ -145,20 +145,7 @@ body{
 <div class="grain" aria-hidden="true"></div>
 
 <main class="wrap">
-  <svg class="mascot" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
-    <defs>
-      <filter id="eyeglow" x="-150%" y="-150%" width="400%" height="400%">
-        <feGaussianBlur stdDeviation=".7" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <path class="frame" d="M1 0h10v1H1zM1 11h10v1H1zM0 1h1v10H0zM11 1h1v10h-1z"/>
-    <g class="eyes" filter="url(#eyeglow)">
-      <rect x="3" y="5" width="2" height="2"/>
-      <rect x="7" y="5" width="2" height="2"/>
-    </g>
-  </svg>
-
+ <div class="lockup">
   <p class="status">[ coming soon ]</p>
 
   <h1 class="hero">
@@ -173,6 +160,7 @@ body{
     <span class="tag-size" aria-hidden="true">building the boring part of the future.</span>
     <span class="tag-live"><span class="tag-txt">building the boring part of the future.</span><span class="tag-caret" aria-hidden="true">&#9610;</span></span>
   </p>
+ </div>
 </main>
 
 <script>

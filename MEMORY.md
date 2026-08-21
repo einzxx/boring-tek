@@ -36,9 +36,13 @@ names in here either.
 - 2026-08-21 — Headline face is Michroma (Google Fonts), the single external request
   the site is allowed. Single weight 400 — no bold exists, never fake one. Mono stays
   for everything else.
-- 2026-08-21 — Headline caps at 4.5rem on desktop, and stacks to three lines
-  (THE / BORING / TEK) under 640px, matching the logo lockup.
-- 2026-08-21 — Mascot adopted (see below). Favicon generated from it inline, no file.
+- 2026-08-21 — Headline caps at 2.75rem, uniform on desktop and in the stacked mobile
+  lockup. No separate mobile cap. It should sit as one elegant centred line with air
+  around it, not wall to wall.
+- 2026-08-21 — Headline and subline are one `.lockup` block, tight gap, centred as a
+  group. Never loose siblings sharing a wrapper gap.
+- 2026-08-21 — Mascot adopted (see below), then scoped to **favicon only** — it is not
+  rendered in the page. Favicon is inline, no file.
 
 ## Mascot
 
@@ -46,17 +50,20 @@ Minimal pixel bot: **square head outline, two glowing green pixel eyes, nothing 
 No mouth, no body, no antenna, no arms. It's a presence indicator, not a character —
 the visual equivalent of a machine that's on and not asking for attention.
 
+**Favicon only.** It lives in the browser tab and nowhere else — no hero mark, no
+header logo, no footer bug. The page carries the wordmark; the tab carries the mascot.
+Putting it back into a page is a decision, not a build detail.
+
 - Inline SVG on a 12×12 pixel grid, `crispEdges`, decorative (`aria-hidden`).
 - Head: four 1-unit bars forming a square ring with the four corner pixels omitted.
   That bevel is what makes it read as pixel art rather than a CSS border.
 - Eyes: two 2×2 squares at (3,5) and (7,5), phosphor green, glow from an SVG
   `feGaussianBlur` merged twice.
-- Blink is the only thing it ever does: both eyes snap dark for ~75ms every ~5.2s,
-  `step-end`, no fade, no wink.
-- Placed small (24–34px) and centered above the headline.
-- Favicon is the same mascot reduced to eyes-only on a dark square, embedded as an SVG
-  data URI in `<link rel="icon">`. The head outline turns to mush at 16px so it's
-  dropped.
+- Blink (both eyes snap dark for ~75ms every ~5.2s, `step-end`, no fade, no wink) is
+  specced but dormant — a favicon doesn't animate. It only applies if the mascot is
+  ever rendered live.
+- Favicon is the mascot reduced to eyes-only on a dark square, embedded as an SVG data
+  URI in `<link rel="icon">`. The head outline turns to mush at 16px so it's dropped.
 
 Full geometry and the do-not-do list live in `skills/page-builder/SKILL.md` → Mascot.
 That file is the source of truth; keep the mascot identical everywhere it appears.
