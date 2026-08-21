@@ -7,7 +7,7 @@
 <meta name="description" content="custom ai agents, backend infrastructure, workflow automation. coming soon.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#06070a">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='19.6' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3Crect x='40.1' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
 <noscript><style>.status{display:block}</style></noscript>
@@ -17,6 +17,9 @@
 @property --mx{syntax:'<number>';inherits:true;initial-value:0}
 @property --my{syntax:'<number>';inherits:true;initial-value:0}
 @property --units{syntax:'<number>';inherits:true;initial-value:15.5}
+@property --ex{syntax:'<number>';inherits:true;initial-value:0}
+@property --ey{syntax:'<number>';inherits:true;initial-value:0}
+@property --blink{syntax:'<number>';inherits:true;initial-value:1}
 
 :root{
   --bg:#06070a; --line:#1a1e26; --dim:#2b323d;
@@ -78,6 +81,18 @@ body{
   display:flex; flex-direction:column; align-items:center;
   gap:clamp(14px,2.6vh,26px);
   max-width:100%;
+}
+
+/* mascot — eyes track the pointer, blink on their own. px inside an SVG
+   resolves to user units, so --ex/--ey are 64-grid units, not screen px. */
+.mascot{display:block;width:clamp(28px,6vw,40px);height:auto;overflow:visible}
+.m-face{fill:var(--white)}
+.m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
+.m-eye{
+  fill:var(--bg);
+  transform-box:fill-box; transform-origin:center;
+  transform:scaleY(var(--blink));
+  transition:transform 55ms ease-out;
 }
 
 .status{
@@ -162,6 +177,14 @@ body{
 
 <main class="wrap">
  <div class="lockup">
+  <svg class="mascot" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+    <circle class="m-face" cx="32" cy="32" r="30"/>
+    <g class="m-eyes">
+      <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
+      <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
+    </g>
+  </svg>
+
   <p class="status">[ coming soon ]</p>
 
   <h1 class="hero">
@@ -189,10 +212,13 @@ body{
   var tagLive  = document.querySelector('.tag-live');
   var tagTxt   = document.querySelector('.tag-txt');
   var tagBlur  = document.querySelector('.tag-blur');
+  var mascot   = document.querySelector('.mascot');
   var TAG      = tagTxt.textContent;
 
-  if (REDUCED) return;
-  tagLive.style.visibility = 'hidden';
+  // RUN gates decode, typing and proximity. The mascot blinks either way, so the
+  // loop still starts under reduced motion — it just has almost nothing to do.
+  var RUN = !REDUCED;
+  if (RUN) tagLive.style.visibility = 'hidden';
 
   var WORDS = [
     { one:'THE BORING TEK', many:['THE','BORING','TEK'] },
@@ -315,7 +341,17 @@ body{
   var fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   var rect = null, mx = 0, my = 0, prox = 0, aim = 0, lastP = -1;
 
-  function remeasure(){ rect = hero.getBoundingClientRect(); }
+  // mascot: eye travel is capped at EX/EY user units, well inside the face at
+  // every offset, so the eyes can never slide off it. REACH is how far the
+  // pointer has to be before they hit full deflection.
+  var mrect = null, EX = 3, EY = 2, REACH = 150;
+  var ex = 0, ey = 0, aimX = 0, aimY = 0, lastEx = -9, lastEy = -9;
+  var blinking = false, blinkAt = 0, blinkOff = 0;
+
+  function remeasure(){
+    rect = hero.getBoundingClientRect();
+    mrect = mascot.getBoundingClientRect();
+  }
 
   var mqS = matchMedia('(max-width: 639px)');
   function applyMode(){
@@ -335,6 +371,30 @@ body{
 
   function frame(now){
     if (!t0) t0 = now;
+
+    // blink runs in every mode, including reduced motion
+    if (!blinkAt) blinkAt = now + 900 + Math.random() * 1200;
+    if (!blinking && now >= blinkAt){
+      blinking = true;
+      blinkOff = now + 120;
+      mascot.style.setProperty('--blink', '.16');
+    } else if (blinking && now >= blinkOff){
+      blinking = false;
+      blinkAt = now + 4000 + Math.random() * 2000;
+      mascot.style.setProperty('--blink', '1');
+    }
+
+    if (fine && RUN){
+      ex += (aimX - ex) * .12;
+      ey += (aimY - ey) * .12;
+      if (Math.abs(ex - lastEx) > .02 || Math.abs(ey - lastEy) > .02){
+        lastEx = ex; lastEy = ey;
+        mascot.style.setProperty('--ex', ex.toFixed(2));
+        mascot.style.setProperty('--ey', ey.toFixed(2));
+      }
+    }
+
+    if (!RUN){ requestAnimationFrame(frame); return; }
 
     if (fine){
       prox += (aim - prox) * .09;
@@ -400,6 +460,7 @@ body{
   function start(){
     if (started) return;
     started = true;
+    if (!RUN){ requestAnimationFrame(frame); return; }
     var m = metrics();
     unitsW = CELLS * m[0] + m[1] + .2;
     unitsS = MAXS * m[0] + m[1] + .2;
@@ -413,7 +474,9 @@ body{
     if (fine){
       addEventListener('resize', remeasure, {passive:true});
       addEventListener('scroll', remeasure, {passive:true});
-      document.documentElement.addEventListener('pointerleave', function(){ aim = 0; }, {passive:true});
+      document.documentElement.addEventListener('pointerleave', function(){
+        aim = 0; aimX = 0; aimY = 0;
+      }, {passive:true});
       addEventListener('pointermove', function(e){
         if (!rect) return;
         var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
@@ -423,12 +486,21 @@ body{
         aim = f * f;
         mx = (e.clientX - cx) / rect.width;
         my = (e.clientY - cy) / rect.height;
+        // eye direction needs the mascot's own centre, not the headline's
+        if (!mrect) return;
+        var ecx = mrect.left + mrect.width / 2, ecy = mrect.top + mrect.height / 2;
+        var edx = e.clientX - ecx, edy = e.clientY - ecy;
+        var ed = Math.hypot(edx, edy) || 1;
+        var g = Math.min(1, ed / REACH);
+        aimX = (edx / ed) * g * EX;
+        aimY = (edy / ed) * g * EY;
       }, {passive:true});
     }
     requestAnimationFrame(frame);
   }
 
-  if (document.fonts && document.fonts.load) document.fonts.load('400 1em Michroma').then(start, start);
+  if (!RUN) start();
+  else if (document.fonts && document.fonts.load) document.fonts.load('400 1em Michroma').then(start, start);
   else start();
   setTimeout(start, 2500);
 })();

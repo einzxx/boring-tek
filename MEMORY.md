@@ -17,10 +17,11 @@ names in here either.
 - **DNS:** done at Hostinger, pointed at GitHub Pages. `CNAME` in repo root holds the
   apex domain.
 - **Repo:** github.com/einzxx/boring-tek, public.
-- **Live page:** the coming soon page. Michroma wordmark decoding between
-  THE BORING TEK and COMING SOON, subline that types itself once, phosphor glow on
-  both, CRT grain + vignette, cursor proximity on desktop. Stacks to three lines under
-  640px. Single file, ~17KB, one external request (Michroma).
+- **Live page:** the coming soon page. Mascot with cursor-following eyes, Michroma
+  wordmark decoding between THE BORING TEK and COMING SOON, subline that types itself
+  once, phosphor glow on both, CRT grain + vignette, cursor proximity on desktop.
+  Stacks to three lines under 640px. Single file, ~20KB, one external request
+  (Michroma).
 - **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked.
 
 ## Decisions
@@ -46,35 +47,48 @@ names in here either.
   around it, not wall to wall.
 - 2026-08-21 — Headline and subline are one `.lockup` block, tight gap, centred as a
   group. Never loose siblings sharing a wrapper gap.
-- 2026-08-21 — Mascot adopted, scoped to **favicon only**, then replaced with the
-  final white-face character and locked. See below. Favicon is inline, no file.
+- 2026-08-21 — Mascot: adopted, scoped to favicon-only, then replaced with the
+  white-face character; now **variant 5 (tired eyes) and final**, and back on the page
+  with cursor-following eyes and a blink. See below.
 
-## Mascot — FINAL
+## Mascot — variant 5, tired eyes, FINAL
 
-A **white soft circle face with two dark vertical dash eyes.** Nothing else — no mouth,
-no nose, no body, no outline, no shading. Calm, blank, unbothered. It's a presence, not
-a character with a personality.
+A **white soft circle face with two dark flat rounded-rectangle eyes sitting low on the
+face**, wider than tall. Heavy, bored, unbothered. Nothing else — no mouth, no nose, no
+body, no outline, no shading.
 
-Locked 2026-08-21. Rebuilt as clean vector from the original art. Do not redesign.
+Locked 2026-08-21. Variant 5 is the official face. Earlier variants (the pixel bot,
+then the tall vertical-dash face) are superseded and gone. Do not redesign.
 
-**Favicon only.** It lives in the browser tab and nowhere else — no hero mark, no
-header logo, no footer bug. The page carries the wordmark; the tab carries the mascot.
-Putting it into a page is a decision, not a build detail.
+### Files
 
 - `assets/mascot.png` — original art, the reference.
-- `assets/mascot.svg` — the rebuilt vector on a 64×64 grid. Source of truth for every
-  other use; transparent background, no plate.
-- Favicon is that same SVG inlined as a data URI in `<link rel="icon">` — identical
-  element for element, transparent background, no plate, no separate file.
-- White face `#f4f7f5` on dark, eyes `#06070a` (the page background, so the eyes read
-  as punched through). White-on-dark is the primary version.
-- **Static.** No blink, no bob, no cursor tracking. The dash eyes already read as
-  half-closed; animating them turns a calm mark into a cartoon. The earlier pixel-bot
-  mascot and its blink are superseded and gone.
+- `assets/mascot.svg` — the vector on a 64×64 grid. Source of truth; everything else is
+  cut from it. Transparent, neutral pose.
+- `assets/mascot-left.svg`, `-right.svg`, `-up-left.svg`, `-up-right.svg` — pose
+  variants, eyes slid toward that side. The up poses add a 4° tilt. Only the eye group
+  moves; the face never does. Saved for future use, not referenced by the site yet.
+- Favicon is `mascot.svg` inlined as a data URI in `<link rel="icon">` — identical
+  element for element, transparent, no plate, neutral pose, no separate file.
 
-Exact geometry, the proportion table and the do-not-do list live in
-`skills/page-builder/SKILL.md` → Mascot. That file is the source of truth; keep the
-mascot identical everywhere it appears.
+### On the site
+
+- The mascot **is on the page** now: small, centred, top of the lockup above the
+  headline. This reverses the earlier favicon-only decision.
+- **Eyes follow the cursor** on desktop — a few units toward the pointer, capped so
+  they can never slide off the face. Runs on the existing shared rAF loop and pointer
+  handler, no second loop.
+- **Blinks every 4–6s** with randomness, eyes squash flat for ~120ms. Both eyes, snap
+  not fade.
+- **Touch and reduced motion: eyes centred, blink only.** The blink is the one
+  deliberate reduced-motion exception on this site — small, local, non-vestibular, and
+  it's what keeps the mascot from reading as a dead sticker.
+- White face `#f4f7f5`, eyes `#06070a` (the page background, so the eyes read as
+  punched through). White-on-dark is the primary version.
+
+Exact geometry, the proportion table, the variant transforms and the do-not-do list
+live in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth; keep
+the mascot identical everywhere it appears.
 
 ## Next steps
 

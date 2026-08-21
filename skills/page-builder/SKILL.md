@@ -171,8 +171,9 @@ from the space available and the number of character units it needs, not from a 
 
 ### The lockup
 
-Headline and subline are **one composed block**, not two elements that happen to sit
-near each other. They go in a single wrapper, and that wrapper is what gets centred.
+Mascot, headline and subline are **one composed block**, not elements that happen to
+sit near each other. They go in a single wrapper, and that wrapper is what gets centred.
+Order: mascot, then headline, then subline.
 
 ```css
 .wrap{ min-height:100dvh; display:flex; justify-content:center; align-items:center }
@@ -615,6 +616,10 @@ Each reactive element then declares its own `--glow` and applies the same transf
 - Effects that belong to one element stay on that element. `--beat` is written to
   `.hero`, not the host, so the settle pulse doesn't flash the subline.
 - One proximity **host** per page. Any number of elements may read from it.
+- **Direction is the exception.** `--prox` is one shared brightness measurement, but
+  anything that needs to point *at* the pointer — the mascot's eyes — needs a vector
+  from its own centre, or it aims at the headline instead. Measure that rect in the
+  same `remeasure()`, in the same handler, on the same loop. See Mascot → Eye tracking.
 
 ### Everything else
 
@@ -683,9 +688,12 @@ Universal:
 
 - Kill grain and vignette animation (layers stay, static).
 - Skip decode — render final text immediately, no scramble.
-- Disable proximity entirely.
+- Disable proximity entirely, including mascot eye tracking.
 - Skip canvas init.
 - Keep hover/focus feedback, but instant.
+- **Keep the mascot blink.** It is the one deliberate exception — small, local,
+  non-vestibular. Which means the rAF loop still starts under reduced motion, gated so
+  it does nothing else. See Mascot → Touch and reduced motion.
 
 This is a real branch in the JS, not just a CSS override:
 
@@ -707,81 +715,171 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   `@media (min-width: 720px)` for structural layout changes only. Two breakpoints
   maximum.
 
-## Mascot — favicon only
+## Mascot
 
-**FINAL.** A white soft circle face with two dark vertical dash eyes. Nothing else —
-no mouth, no nose, no body, no outline, no shading, no highlight. Calm, blank,
-unbothered. It is a presence, not a character with a personality.
+**Variant 5, tired eyes — FINAL.** A white soft circle face with two dark, flat,
+rounded-rectangle eyes sitting low on the face, wider than tall. Heavy, bored,
+unbothered. Nothing else: no mouth, no nose, no body, no outline, no shading, no
+highlight.
 
-**It is not rendered in the page.** The mascot lives in the browser tab and nowhere
-else — no hero mark, no header logo, no footer bug, no loading state. The page carries
-the wordmark; the tab carries the mascot. Keep them separate. Putting it into a page is
-a decision from Einz, not a build detail.
+Earlier variants — including the pixel bot and the tall vertical-dash face — are
+superseded. Do not reintroduce them.
 
-Source of truth: `assets/mascot.png` is the original art; `assets/mascot.svg` is the
-rebuilt vector, and it is what everything else is cut from.
+Source of truth: `assets/mascot.png` is the original art. `assets/mascot.svg` is the
+vector, and the page mascot, the favicon and every pose variant are cut from it.
 
 ### Geometry
 
-Drawn on a **64×64 grid**. Do not redraw it by eye — these numbers are the mascot, and
-they are measured off the source art.
+Drawn on a **64×64 grid**. Do not redraw it by eye — these numbers are the mascot.
 
 ```html
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="The Boring Tek mascot">
   <circle cx="32" cy="32" r="30" fill="#f4f7f5"/>
-  <rect x="19.6" y="23.9" width="4.3" height="11" rx="2.15" fill="#06070a"/>
-  <rect x="40.1" y="23.9" width="4.3" height="11" rx="2.15" fill="#06070a"/>
+  <rect x="15" y="36.3" width="13" height="4.4" rx="2.2" fill="#06070a"/>
+  <rect x="36" y="36.3" width="13" height="4.4" rx="2.2" fill="#06070a"/>
 </svg>
 ```
 
-The proportions, as ratios of the face diameter — hold these if it is ever redrawn at
-another size:
+Ratios of the face diameter — hold these if it is ever redrawn at another size:
 
 | Measure | Ratio |
 |---|---|
 | Face diameter to frame | 94% — it fills almost the whole frame |
-| Eye height to diameter | 18.3% |
-| Eye width to diameter | 7.2% |
-| Eye separation, centre to centre | 34.2% |
-| Eye centres above face centre | 4.3% |
+| Eye width to diameter | 21.7% |
+| Eye height to diameter | 7.3% |
+| Eye width to height | 2.95 : 1 — always wider than tall |
+| Eye separation, centre to centre | 35% |
+| Eye centres **below** face centre | 10.8% |
 
 - **Face:** one circle, flat fill, no stroke, no gradient, no inner shadow. The soft
   edge in the source art is antialiasing, not a border — never add one.
-- **Eyes:** vertical stadium capsules — `rx` is exactly half the width, so the ends are
-  fully round. Never rectangles with soft corners, never ellipses, never circles.
-- Eyes sit **slightly above centre**. That 4.3% is what stops it reading as a smiley.
-  Centring them vertically kills the character.
-- Perfectly symmetric about `cx`. Never one eye, never three, never mismatched sizes,
-  never tilted.
+- **Eyes:** flat horizontal slabs. `rx` is exactly half the height, so the ends are
+  fully round. Never taller than wide, never circles, never ellipses, never tilted in
+  the neutral pose.
+- Eyes sit **low** — 10.8% of the diameter below centre. That drop is the whole
+  expression. Raise them and the face stops reading as tired.
+- Perfectly symmetric about `cx`. Never one eye, never three, never mismatched sizes.
+
+### Pose variants
+
+Same face, eyes moved as a group. Each is its own file, all four cut from the neutral
+SVG with a single transform:
+
+| File | Transform |
+|---|---|
+| `assets/mascot-left.svg` | `translate(-3 0)` |
+| `assets/mascot-right.svg` | `translate(3 0)` |
+| `assets/mascot-up-left.svg` | `translate(-2.6 -2.2) rotate(-4 32 38.5)` |
+| `assets/mascot-up-right.svg` | `translate(2.6 -2.2) rotate(4 32 38.5)` |
+
+- Only the eye group moves. The face circle never moves, never rotates, never scales.
+- The up poses carry a **4° tilt** about the eye-pair centre `(32, 38.5)` — the raised
+  side is the side being looked toward. Slight is the point; past ~5° it reads drunk.
+- Rotation belongs to the up poses only. Left and right are pure horizontal slides.
 
 ### Colour
 
 - **White face on dark is primary**: face `--white` `#f4f7f5`, eyes `--bg` `#06070a`.
-  This is the version that ships.
-- Any variant keeps the geometry byte-identical and only swaps the two fills. Never
-  recolour the face green, never tint the eyes, never add a third colour.
+  In the page they are token-driven, in the standalone files they are literal hex.
 - The eyes are the page background colour, so the face reads as a hole punched in the
   dark rather than an illustration sitting on top of it.
+- Any variant keeps the geometry byte-identical and only swaps the two fills. Never
+  recolour the face green, never tint the eyes, never add a third colour.
 
-### Motion
+### On the page
 
-**None.** The mascot does not blink, bob, rotate, track the cursor, or animate in any
-way. The dash eyes already read as half-closed; animating them turns a calm mark into a
-cartoon. If it is ever placed live in a page it stays static.
+The mascot **is** rendered in the page now: small, centred, at the top of `.lockup`,
+above the headline. One per page.
 
-### Favicon — the mascot's only home
+```css
+.mascot{display:block;width:clamp(28px,6vw,40px);height:auto;overflow:visible}
+.m-face{fill:var(--white)}
+.m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
+.m-eye{
+  fill:var(--bg);
+  transform-box:fill-box; transform-origin:center;
+  transform:scaleY(var(--blink));
+  transition:transform 55ms ease-out;
+}
+```
+
+- It sits **inside** `.lockup`, so it moves and centres with the wordmark rather than
+  floating above it as a separate piece.
+- `aria-hidden="true"` and `focusable="false"`. It is decorative; the `<h1>`'s
+  screen-reader text already carries the brand.
+- Two nested transforms, deliberately: the `<g>` carries eye travel, each `<rect>`
+  carries the blink squash. Putting both on one element would make the blink
+  transition lag the eye tracking.
+- `px` inside an SVG resolves to **user units**, so `--ex`/`--ey` are 64-grid units,
+  not screen pixels. At the rendered size one unit is roughly half a screen pixel.
+- Register `--ex`, `--ey` and `--blink` with `@property { syntax: '<number>' }`.
+
+### Eye tracking
+
+Eyes slide toward the pointer. Driven by the **existing shared rAF loop and pointer
+handler** — never a second loop, never its own listener.
+
+```js
+var EX = 3, EY = 2, REACH = 150;          // user units, user units, screen px
+// in the existing pointermove handler, after the proximity math:
+var ecx = mrect.left + mrect.width / 2, ecy = mrect.top + mrect.height / 2;
+var edx = e.clientX - ecx, edy = e.clientY - ecy;
+var ed  = Math.hypot(edx, edy) || 1;
+var g   = Math.min(1, ed / REACH);        // ramps in, so it doesn't jitter up close
+aimX = (edx / ed) * g * EX;
+aimY = (edy / ed) * g * EY;
+// in the existing frame():
+ex += (aimX - ex) * .12;                  // lerp, no snap
+ey += (aimY - ey) * .12;
+```
+
+- **Travel is capped at `±3` and `±2` units by construction** — a unit vector times a
+  factor that never exceeds 1. That is the clamp; the eyes cannot slide off the face.
+  Worst case they span `x 12–52` and `y 34.3–42.7`, inside a face that spans roughly
+  `x 2.7–61.3` at that height. Never raise the caps without redoing that arithmetic.
+- The mascot needs **its own rect** for direction. That is not a contradiction of the
+  one-measurement rule under Cursor proximity: `--prox` stays a single shared
+  brightness measurement, but a direction vector is meaningless from another element's
+  centre — the eyes would point at the headline instead of the pointer. Measure it in
+  the same `remeasure()`, never in the frame loop.
+- Recentre on `pointerleave`. Eyes left staring at the last known position look broken.
+- Write `--ex`/`--ey` only when they move more than `.02`.
+
+### Blink
+
+- Every **4–6 seconds**, randomised each time — never a fixed interval.
+- Eyes **squash flat** for ~`120ms`: `scaleY(.16)` about each eye's own centre, with a
+  `55ms` transition either side. Both eyes together. Never a wink, never a lid, never
+  a fade-out.
+- Scheduled from the same shared rAF loop, from the frame clock. No `setInterval`,
+  no `setTimeout` chain.
+- Write `--blink` only on the two state changes, not every frame.
+
+### Touch and reduced motion
+
+- **Eyes stay centred, blink continues.** No tracking on touch (`pointer: coarse`) and
+  none under `prefers-reduced-motion`.
+- The blink is the **one deliberate exception** to reduced motion on this site: it is
+  small, local, non-vestibular, and it is what keeps the mascot from reading as a dead
+  sticker. Everything else still shuts off.
+- That means the rAF loop **starts even under reduced motion** — gated so that decode,
+  typing and proximity never run, and the loop does nothing but blink. Still one loop.
+- The global `transition: none` under reduced motion turns the blink into a snap rather
+  than a squash. That is fine and arguably better.
+
+### Favicon
 
 - `assets/mascot.svg` inlined as a `data:` URI in `<link rel="icon">`. Never a separate
   `.ico` or `.png` file.
 - **Fully transparent background — no plate.** No dark square, no light square, no
-  rounded tile. Just the face: white circle, two dark dashes, transparent everywhere
-  else. The browser supplies whatever sits behind it.
+  rounded tile. Just the face; the browser supplies whatever sits behind it.
 - **Identical to the standalone asset**, element for element. If the two ever diverge,
   the asset is right and the favicon is wrong.
+- Neutral pose only — the favicon never uses a variant.
 - Encode `#` as `%23` in the URI or the whole thing silently fails.
 
 ```html
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='19.6' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3Crect x='40.1' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
 ```
 
 ## Terminal texture
@@ -1023,20 +1121,32 @@ Added with Michroma:
 
 Added with the mascot and the lockup:
 
-- **Rendering the mascot in the page.** It is the favicon and nothing else — no hero
-  mark, no header logo, no footer bug, no loading state. Putting it back on a page is
-  Einz's call, not a build decision.
+- **More than one mascot per page**, or placing it anywhere but the top of `.lockup`.
+  No header logo, no footer bug, no loading state.
 - **Giving the mascot a mouth, nose, body, outline, shading, or a highlight.** A white
-  circle and two dark dashes. That is the whole mascot.
+  circle and two flat dark slabs. That is the whole mascot.
 - **Redrawing the mascot by eye.** The geometry table in the Mascot section is the
   spec; hold the ratios at any size.
-- **Round or elliptical eyes**, soft-cornered rectangles, tilted dashes, or eyes
-  centred vertically instead of 4.3% above centre. Any of those turn it into a smiley.
-- **Animating the mascot at all** — blinking, bobbing, floating, rotating, scanning,
-  colour cycling, eyes tracking the cursor. It is static.
+- **Eyes taller than wide**, round or elliptical eyes, or eyes raised toward the middle
+  of the face. The low, flat, wider-than-tall slab is the tired expression — any of
+  those changes throw it away.
+- **Tilting the eyes in the neutral pose.** Rotation belongs to the up-left and
+  up-right variants only, at 4°.
+- **Moving, rotating or scaling the face circle.** Only the eye group ever moves.
+- **Mascot motion beyond eye tracking and the blink** — bobbing, floating, rotating,
+  scanning, colour cycling, idle drift.
+- **A winking, fading or lidded blink.** Both eyes, squash, snap back.
+- **A second rAF loop or a `setInterval`** for the eyes or the blink. Both ride the
+  shared loop and the existing pointer handler.
+- **Reading the mascot's rect inside the frame loop.** Measure it in `remeasure()`
+  alongside the headline's.
+- **Raising the eye-travel caps** without redoing the containment arithmetic. `±3` and
+  `±2` units is what keeps the eyes on the face.
+- **Eye tracking on touch or under reduced motion.** Centred eyes, blink only.
 - **Recolouring the mascot** beyond swapping the two fills. No green face, no tinted
   eyes, no third colour, no gradient.
-- **A separate favicon file.** Inline `data:` URI, generated from the mascot.
+- **A separate favicon file**, or a favicon using a pose variant. Inline `data:` URI,
+  neutral pose, transparent.
 - **A separate cap for the stacked mobile lockup.** `2.75rem` is uniform everywhere.
 - **A `gap` on `.wrap`**, or headline and subline as loose siblings. One `.lockup`
   child, centred as a group.
@@ -1080,7 +1190,12 @@ Visual:
 - Subline glows green and never flashes on the headline's settle beat.
 - No green ghost trailing the subline while it types — the blur layer is written in the
   same frame as the core.
-- No mascot anywhere in the rendered page.
+- Mascot sits at the top of the lockup and moves with it, not as a floating extra.
+- Sweep the pointer a full circle around the mascot: the eyes follow, stay inside the
+  face at every angle, and recentre when the pointer leaves the window.
+- Sit and watch for 30s: it blinks 5–7 times at irregular intervals, both eyes, squash
+  not fade.
+- Touch and reduced motion: eyes dead centre, still blinking, nothing else moving.
 - Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
   mode: `COMING SOON` is two lines, the wordmark is three.
 - Exactly one block cursor visible at a time, on the last line with content.
