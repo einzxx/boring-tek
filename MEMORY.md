@@ -64,8 +64,8 @@ Putting it into a page is a decision, not a build detail.
 - `assets/mascot.png` — original art, the reference.
 - `assets/mascot.svg` — the rebuilt vector on a 64×64 grid. Source of truth for every
   other use; transparent background, no plate.
-- Favicon is the same SVG on a dark square, inline as a data URI in
-  `<link rel="icon">`. Identical geometry, no separate file.
+- Favicon is that same SVG inlined as a data URI in `<link rel="icon">` — identical
+  element for element, transparent background, no plate, no separate file.
 - White face `#f4f7f5` on dark, eyes `#06070a` (the page background, so the eyes read
   as punched through). White-on-dark is the primary version.
 - **Static.** No blink, no bob, no cursor tracking. The dash eyes already read as

@@ -771,14 +771,17 @@ cartoon. If it is ever placed live in a page it stays static.
 
 ### Favicon — the mascot's only home
 
-- The same SVG on a `--bg` square, as an inline `data:` URI in `<link rel="icon">`.
-  Never a separate `.ico` or `.png` file.
-- **Identical geometry to the standalone asset.** The dark square sits behind it, so
-  only the corners show dark. Do not shrink the face to make the plate visible.
+- `assets/mascot.svg` inlined as a `data:` URI in `<link rel="icon">`. Never a separate
+  `.ico` or `.png` file.
+- **Fully transparent background — no plate.** No dark square, no light square, no
+  rounded tile. Just the face: white circle, two dark dashes, transparent everywhere
+  else. The browser supplies whatever sits behind it.
+- **Identical to the standalone asset**, element for element. If the two ever diverge,
+  the asset is right and the favicon is wrong.
 - Encode `#` as `%23` in the URI or the whole thing silently fails.
 
 ```html
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2306070a'/%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='19.6' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3Crect x='40.1' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='19.6' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3Crect x='40.1' y='23.9' width='4.3' height='11' rx='2.15' fill='%2306070a'/%3E%3C/svg%3E">
 ```
 
 ## Terminal texture
