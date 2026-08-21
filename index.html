@@ -12,10 +12,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
 <noscript><style>.status{display:block}</style></noscript>
 <style>
-@property --prox{syntax:'<number>';inherits:true;initial-value:0}
 @property --beat{syntax:'<number>';inherits:true;initial-value:0}
-@property --mx{syntax:'<number>';inherits:true;initial-value:0}
-@property --my{syntax:'<number>';inherits:true;initial-value:0}
 @property --units{syntax:'<number>';inherits:true;initial-value:15.5}
 @property --ex{syntax:'<number>';inherits:true;initial-value:0}
 @property --ey{syntax:'<number>';inherits:true;initial-value:0}
@@ -24,7 +21,7 @@
 :root{
   --bg:#06070a; --line:#1a1e26; --dim:#2b323d;
   --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5;
-  --p-300:#7cf5a8; --p-500:#35ff6a; --p-700:#17a34f;
+  --p-300:#7cf5a8; --p-500:#35ff6a; --p-700:#17a34f; --p-mute:#7c8f84;
   --a-500:#ffb340;
   --mono:ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
   --display:"Michroma",var(--mono);
@@ -84,8 +81,24 @@ body{
 }
 
 /* mascot — eyes track the pointer, blink on their own. px inside an SVG
-   resolves to user units, so --ex/--ey are 64-grid units, not screen px. */
-.mascot{display:block;width:clamp(28px,6vw,40px);height:auto;overflow:visible}
+   resolves to user units, so --ex/--ey are 64-grid units, not screen px.
+   the halo is a static radial layer on a wrapper, not a filter on the svg:
+   the eyes repaint constantly and a filter would re-raster with them. */
+.m-wrap{
+  position:relative; display:block;
+  margin-bottom:clamp(14px,2.6vh,26px);
+}
+.m-wrap::before{
+  content:""; position:absolute; left:50%; top:50%;
+  width:210%; height:210%; transform:translate(-50%,-50%);
+  border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle,
+    rgba(53,255,106,.20) 0%,
+    rgba(53,255,106,.11) 30%,
+    rgba(23,163,79,.055) 52%,
+    rgba(23,163,79,0) 72%);
+}
+.mascot{position:relative;display:block;width:clamp(72px,16vw,110px);height:auto}
 .m-face{fill:var(--white)}
 .m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
 .m-eye{
@@ -107,8 +120,8 @@ body{
   font-size:min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units)));
   line-height:1.04; letter-spacing:0;
   contain:layout style;
-  --glow:calc(1 + var(--prox) * .85 + var(--beat) * .7);
-  transform:translate3d(calc(var(--mx) * var(--prox) * 6px),calc(var(--my) * var(--prox) * 4px),0);
+  /* --beat only. the headline never reacts to the pointer. */
+  --glow:calc(1 + var(--beat) * .7);
 }
 .hero > span{grid-area:1/1;display:block;white-space:pre}
 .ln{display:block;min-height:1.04em}
@@ -141,22 +154,20 @@ body{
 
 .tag{
   display:grid; justify-content:center; margin:0;
-  color:var(--p-700); letter-spacing:.01em;
+  color:var(--p-mute); letter-spacing:.01em;
   font-size:min(.75rem, calc((100vw - 44px) / 26));
-  --glow:calc(1 + var(--prox) * .85);
-  transform:translate3d(calc(var(--mx) * var(--prox) * 6px),calc(var(--my) * var(--prox) * 4px),0);
 }
 .tag > span{grid-area:1/1;white-space:pre}
 .tag-size{visibility:hidden}
 .tag-live{position:relative;justify-self:start;display:grid;justify-content:start}
 .tag-blur,.tag-txt{grid-area:1/1}
-.tag-blur{color:var(--p-500);filter:blur(.16em);opacity:calc(.55 * var(--glow));will-change:opacity}
+.tag-blur{color:var(--p-700);filter:blur(.16em);opacity:.38}
 .tag-txt{
   text-shadow:
-    0 0 .06em rgba(53,255,106,.50),
-    0 0 .3em  rgba(53,255,106,.30),
-    0 0 .85em rgba(23,163,79,.22),
-    0 0 1.7em rgba(23,163,79,.13);
+    0 0 .06em rgba(53,255,106,.20),
+    0 0 .35em rgba(53,255,106,.14),
+    0 0 .9em  rgba(23,163,79,.12),
+    0 0 1.7em rgba(23,163,79,.08);
 }
 .tag-caret{
   display:none; position:absolute; left:100%; top:0;
@@ -166,7 +177,6 @@ body{
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
-  .hero{transform:none!important}
   .status{display:block}
 }
 </style>
@@ -177,13 +187,15 @@ body{
 
 <main class="wrap">
  <div class="lockup">
-  <svg class="mascot" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-    <circle class="m-face" cx="32" cy="32" r="30"/>
-    <g class="m-eyes">
-      <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
-      <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
-    </g>
-  </svg>
+  <div class="m-wrap" aria-hidden="true">
+    <svg class="mascot" viewBox="0 0 64 64" focusable="false">
+      <circle class="m-face" cx="32" cy="32" r="30"/>
+      <g class="m-eyes">
+        <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
+        <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
+      </g>
+    </svg>
+  </div>
 
   <p class="status">[ coming soon ]</p>
 
@@ -207,7 +219,6 @@ body{
   var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var hero     = document.querySelector('.hero');
-  var lockup   = document.querySelector('.lockup');
   var tag      = document.querySelector('.tag');
   var tagLive  = document.querySelector('.tag-live');
   var tagTxt   = document.querySelector('.tag-txt');
@@ -337,21 +348,18 @@ body{
     for (n = 0; n < TN; n++) tat[n] = Math.pow(n / last, 1.06) * .93 + Math.random() * .07;
   })();
 
-  // proximity — desktop pointers only
+  // the mascot is the only thing that reacts to the pointer. desktop only.
   var fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  var rect = null, mx = 0, my = 0, prox = 0, aim = 0, lastP = -1;
 
-  // mascot: eye travel is capped at EX/EY user units, well inside the face at
-  // every offset, so the eyes can never slide off it. REACH is how far the
-  // pointer has to be before they hit full deflection.
-  var mrect = null, EX = 3, EY = 2, REACH = 150;
+  // eye travel is capped at EX/EY user units. worst-case corner of an eye then
+  // sits 26.2 units from the face centre, inside the r=30 face — that is the
+  // clamp. REACH is small so the eyes hit full deflection just off the face and
+  // then track direction from anywhere on the screen.
+  var mrect = null, EX = 6, EY = 3.8, REACH = 90, EASE = .22;
   var ex = 0, ey = 0, aimX = 0, aimY = 0, lastEx = -9, lastEy = -9;
   var blinking = false, blinkAt = 0, blinkOff = 0;
 
-  function remeasure(){
-    rect = hero.getBoundingClientRect();
-    mrect = mascot.getBoundingClientRect();
-  }
+  function remeasure(){ mrect = mascot.getBoundingClientRect(); }
 
   var mqS = matchMedia('(max-width: 639px)');
   function applyMode(){
@@ -385,8 +393,8 @@ body{
     }
 
     if (fine && RUN){
-      ex += (aimX - ex) * .12;
-      ey += (aimY - ey) * .12;
+      ex += (aimX - ex) * EASE;
+      ey += (aimY - ey) * EASE;
       if (Math.abs(ex - lastEx) > .02 || Math.abs(ey - lastEy) > .02){
         lastEx = ex; lastEy = ey;
         mascot.style.setProperty('--ex', ex.toFixed(2));
@@ -395,18 +403,6 @@ body{
     }
 
     if (!RUN){ requestAnimationFrame(frame); return; }
-
-    if (fine){
-      prox += (aim - prox) * .09;
-      if (prox < .0015) prox = 0;
-      if (Math.abs(prox - lastP) > .0015){
-        lastP = prox;
-        // written on the lockup so headline and subline share one measurement
-        lockup.style.setProperty('--prox', prox.toFixed(4));
-        lockup.style.setProperty('--mx', mx.toFixed(3));
-        lockup.style.setProperty('--my', my.toFixed(3));
-      }
-    }
 
     if (beat > 0){
       beat *= .90;
@@ -475,18 +471,9 @@ body{
       addEventListener('resize', remeasure, {passive:true});
       addEventListener('scroll', remeasure, {passive:true});
       document.documentElement.addEventListener('pointerleave', function(){
-        aim = 0; aimX = 0; aimY = 0;
+        aimX = 0; aimY = 0;
       }, {passive:true});
       addEventListener('pointermove', function(e){
-        if (!rect) return;
-        var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-        var d = Math.hypot(e.clientX - cx, e.clientY - cy);
-        var r = Math.max(rect.width, 560);
-        var f = Math.max(0, 1 - d / r);
-        aim = f * f;
-        mx = (e.clientX - cx) / rect.width;
-        my = (e.clientY - cy) / rect.height;
-        // eye direction needs the mascot's own centre, not the headline's
         if (!mrect) return;
         var ecx = mrect.left + mrect.width / 2, ecy = mrect.top + mrect.height / 2;
         var edx = e.clientX - ecx, edy = e.clientY - ecy;

@@ -49,6 +49,7 @@ sRGB corner so it reads as emitted light rather than a CSS keyword.
 --p-500     #35ff6a   THE green. links, prompts, caret.
 --p-700     #17a34f   borders, underlines, dimmed state
 --p-900     #0a3d21   glow floor, tinted backgrounds
+--p-mute    #7c8f84   dim gray-green. quiet secondary copy — the subline.
 
 /* phosphor amber (P3) — status, warnings, secondary accent */
 --a-300     #ffd79a
@@ -193,8 +194,9 @@ Order: mascot, then headline, then subline.
 - Never put a `gap` on `.wrap` itself. It has one child.
 - Anything else that belongs to the headline — a status tag, a fallback line — goes
   inside `.lockup` too, so the reduced-motion and no-JS views stay composed.
-- `.lockup` is also the **proximity host** — see Micro-interactions → Cursor proximity.
-  It carries `--prox` / `--mx` / `--my` for everything inside it.
+- The mascot gets extra breathing room below it — a `margin-bottom` on top of the gap,
+  so the character isn't crowding the wordmark. It is a character, not a bullet point.
+- Nothing in the lockup reacts to the pointer. See Micro-interactions.
 
 ### The stacked lockup (under 640px)
 
@@ -410,12 +412,12 @@ Rules:
 - All three duplicates are `aria-hidden` — a screen reader must hear the string once.
 - Duplicates must be laid over the core exactly. Use the `display:grid` +
   `grid-area:1/1` stack above; absolute positioning drifts between font stacks.
-- `--glow` is the single knob everything else drives — proximity, entrance, focus.
+- `--glow` is the single knob everything else drives — the settle beat, focus.
   Nothing else touches those opacities. Each glowing element declares its own `--glow`
   on itself; they are not shared between elements.
 - Drop `will-change` once the entrance finishes (`el.style.willChange = 'auto'`).
   Persistent `will-change` on many elements costs more than it saves. Elements whose
-  opacity is driven continuously by proximity keep it.
+  opacity is driven continuously keep it.
 
 ### Glow tiers
 
@@ -432,21 +434,25 @@ all. Never just shrink the headline's numbers and call it done.
 The subline's reduced tier, for reference:
 
 ```css
-.tag{ color: var(--p-700); --glow: calc(1 + var(--prox) * .85) }
-.tag-blur{ color: var(--p-500); filter: blur(.16em);
-           opacity: calc(.55 * var(--glow)); will-change: opacity }
+.tag{ color: var(--p-mute) }
+.tag-blur{ color: var(--p-700); filter: blur(.16em); opacity: .38 }
 .tag-txt{
   text-shadow:
-    0 0 .06em rgba(53,255,106,.50),
-    0 0 .3em  rgba(53,255,106,.30),
-    0 0 .85em rgba(23,163,79,.22),
-    0 0 1.7em rgba(23,163,79,.13);
+    0 0 .06em rgba(53,255,106,.20),
+    0 0 .35em rgba(53,255,106,.14),
+    0 0 .9em  rgba(23,163,79,.12),
+    0 0 1.7em rgba(23,163,79,.08);
 }
 ```
 
-- **Sublines are green, not gray.** `--p-700` for the fill, `--p-500` for the blur
-  duplicate and the caret. A gray subline under a glowing headline reads as an
-  unstyled leftover. `--muted` is for labels and timestamps, not for lockup copy.
+- **The subline is `--p-mute`, a dim gray-green** — quiet and desaturated, not the
+  saturated phosphor. It sits under a white headline and must not compete with it.
+  `--muted` (neutral gray) is for labels and timestamps; `--p-500` and `--p-700` are
+  far too loud for a whole line of copy at this size.
+- Its glow is deliberately weaker than the headline's — roughly 40% of the alpha, and
+  the blur duplicate is `--p-700` rather than `--p-500`. Present, not announced.
+- Nothing in the lockup brightens on pointer move any more; these opacities are
+  constants, not `--glow` expressions. See Micro-interactions.
 - Note the radii: `1.7em` on the subline against `.28em` on the headline. At 12px that
   wide stop is ~20px of soft halo — the "deep soft" part. The same `.28em` would be
   3px and invisible.
@@ -543,83 +549,27 @@ keeping it off the per-frame repaint path saves the most expensive re-raster.
 
 ## Micro-interactions
 
-### Cursor proximity (desktop only)
+### Pointer reaction — the mascot only
 
-The headline reacts to the pointer approaching — brighter, very slightly displaced. It
-is felt, not watched.
+**Text never reacts to the pointer.** The headline and the subline do not lean, do not
+translate, do not brighten on mouse move. They are fully static. The mascot's eyes are
+the only thing on the page that follows the cursor.
 
-- **Pointer-gated:** only under `@media (hover:hover) and (pointer:fine)`. Never on
-  touch.
-- `pointermove` writes to variables only. All DOM/style writes happen in one shared
-  `requestAnimationFrame`. Never style inside the event handler.
-- Never read layout in the loop. Cache `getBoundingClientRect()` on load, `resize`
-  (debounced) and `scrollend`. Reading rects per-frame is the layout thrash this whole
-  section exists to prevent.
-- Effect is driven by one falloff value `--prox` (`0..1`), eased, and lerped toward its
-  target so it glides instead of snapping:
+This replaces an earlier build where the whole lockup leaned and brightened on
+proximity. Do not reintroduce it. One thing reacting reads as a character noticing you;
+everything reacting reads as a gimmick, and it fights the stillness the rest of the
+page is built on.
 
-**One measurement, written to the host.** The falloff is computed from the *headline's*
-rect, and `--prox` / `--mx` / `--my` are set on `.lockup`, so every element inside
-inherits the same values. Do not give each element its own rect.
+So there is no `--prox`, no `--mx`, no `--my`, and no proximity host. What survives:
 
-```js
-const host = document.querySelector('.lockup');   // where the vars land
-const el   = document.querySelector('.hero');     // what gets measured
-let rect = el.getBoundingClientRect();
-let mx = 0, my = 0, prox = 0, target = 0;
-addEventListener('resize', () => { rect = el.getBoundingClientRect(); }, {passive:true});
+- `--glow` on the headline is driven by the **decode settle beat alone**:
+  `calc(1 + var(--beat) * .7)`. That is an entrance pulse, not a pointer response.
+- The subline's glow layers are plain constants.
+- The mascot's eye offsets `--ex` / `--ey` are the only pointer-driven values on the
+  page. See Mascot → Eye tracking for the maths and the containment clamp.
 
-addEventListener('pointermove', e => {
-  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-  const d = Math.hypot(e.clientX - cx, e.clientY - cy);
-  const r = Math.max(rect.width, 560);
-  target = Math.max(0, 1 - d / r);              // linear falloff
-  target *= target;                              // eased — tightens near the element
-  mx = (e.clientX - cx) / rect.width;
-  my = (e.clientY - cy) / rect.height;
-}, {passive:true});
-
-// inside the ONE shared rAF loop:
-prox += (target - prox) * .09;                   // lerp, no snap
-host.style.setProperty('--prox', prox.toFixed(4));
-host.style.setProperty('--mx', mx.toFixed(3));
-host.style.setProperty('--my', my.toFixed(3));
-```
-
-Each reactive element then declares its own `--glow` and applies the same transform:
-
-```css
-.hero{
-  --glow: calc(1 + var(--prox) * .85 + var(--beat) * .7);   /* + settle beat */
-  transform: translate3d(
-    calc(var(--mx) * var(--prox) * 6px),
-    calc(var(--my) * var(--prox) * 4px), 0);
-}
-.tag{
-  --glow: calc(1 + var(--prox) * .85);                       /* no beat */
-  transform: translate3d(
-    calc(var(--mx) * var(--prox) * 6px),
-    calc(var(--my) * var(--prox) * 4px), 0);
-}
-```
-
-- Maximum displacement `8px`. This is a lean, not a parallax card.
-- Never skew, never rotate, never scale on proximity.
-- **Two rects is the bug, not the feature.** Independent falloffs make the headline and
-  subline brighten at different moments, which breaks the lockup back into separate
-  floating pieces — the exact thing `.lockup` exists to prevent.
-- **`--mx` / `--my` must stay normalised by the same element.** They are offsets divided
-  by that element's own width and height, so a short element produces huge values: the
-  ~46px headline peaks near `7px` of travel, but a ~20px subline on its own rect would
-  peak near `17px` — a subline sliding three times further than the wordmark above it.
-  Sharing the headline's normalisation keeps the lockup leaning as one rigid unit.
-- Effects that belong to one element stay on that element. `--beat` is written to
-  `.hero`, not the host, so the settle pulse doesn't flash the subline.
-- One proximity **host** per page. Any number of elements may read from it.
-- **Direction is the exception.** `--prox` is one shared brightness measurement, but
-  anything that needs to point *at* the pointer — the mascot's eyes — needs a vector
-  from its own centre, or it aims at the headline instead. Measure that rect in the
-  same `remeasure()`, in the same handler, on the same loop. See Mascot → Eye tracking.
+If a future element needs to react to the pointer, it reacts the way the mascot does —
+by looking at it — not by leaning or lighting up.
 
 ### Everything else
 
@@ -664,7 +614,7 @@ Three tiers. Each has its own rules; don't mix them.
 |---|---|---|---|
 | Ambient | vignette breathe, grain, canvas drift | 7–40s | eased `alternate`, or stepped for grain |
 | Entrance | decode, fade-ups, settle pulse | 900–1400ms | `cubic-bezier(.16,1,.3,1)` |
-| Interactive | hover, focus, proximity, press | 120–260ms | `ease-out` |
+| Interactive | hover, focus, eye tracking, press | 120–260ms | `ease-out` |
 
 Universal:
 
@@ -679,7 +629,7 @@ Universal:
   tick.
 - No scroll-jacking, no parallax, no scroll-triggered reveal chains. One entrance, then
   the page is still.
-- One `requestAnimationFrame` loop for the whole page. Decode, proximity and canvas
+- One `requestAnimationFrame` loop for the whole page. Decode, eye tracking and canvas
   share it. Multiple rAF loops fight for frame budget.
 
 ### Reduced motion
@@ -688,7 +638,7 @@ Universal:
 
 - Kill grain and vignette animation (layers stay, static).
 - Skip decode — render final text immediately, no scramble.
-- Disable proximity entirely, including mascot eye tracking.
+- Disable mascot eye tracking (text never tracks anything anyway).
 - Skip canvas init.
 - Keep hover/focus feedback, but instant.
 - **Keep the mascot blink.** It is the one deliberate exception — small, local,
@@ -792,7 +742,19 @@ The mascot **is** rendered in the page now: small, centred, at the top of `.lock
 above the headline. One per page.
 
 ```css
-.mascot{display:block;width:clamp(28px,6vw,40px);height:auto;overflow:visible}
+/* halo lives on a wrapper, not as a filter on the svg — see below */
+.m-wrap{position:relative;display:block;margin-bottom:clamp(14px,2.6vh,26px)}
+.m-wrap::before{
+  content:"";position:absolute;left:50%;top:50%;
+  width:210%;height:210%;transform:translate(-50%,-50%);
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,
+    rgba(53,255,106,.20) 0%,
+    rgba(53,255,106,.11) 30%,
+    rgba(23,163,79,.055) 52%,
+    rgba(23,163,79,0) 72%);
+}
+.mascot{position:relative;display:block;width:clamp(72px,16vw,110px);height:auto}
 .m-face{fill:var(--white)}
 .m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
 .m-eye{
@@ -803,10 +765,20 @@ above the headline. One per page.
 }
 ```
 
+- **Size `clamp(72px, 16vw, 110px)`.** He is a character, not a bullet point — big
+  enough to carry the top of the page on his own. Cap at `110px`.
+- Extra `margin-bottom` under the wrapper on top of the lockup gap, so he sits high
+  with clear space before the wordmark starts.
+- **The halo is a static radial-gradient layer on a wrapper `::before`, not a
+  `filter` on the SVG.** The eyes repaint constantly; a filter on the root would
+  re-rasterise the whole glow with them every frame. A gradient behind a circular mark
+  is radially identical anyway, and costs nothing. Pseudo-elements don't apply to
+  `<svg>`, which is the other reason the wrapper exists.
+- `.mascot` needs `position:relative` so it paints above the positioned halo.
 - It sits **inside** `.lockup`, so it moves and centres with the wordmark rather than
   floating above it as a separate piece.
-- `aria-hidden="true"` and `focusable="false"`. It is decorative; the `<h1>`'s
-  screen-reader text already carries the brand.
+- `aria-hidden="true"` on the wrapper and `focusable="false"` on the SVG. It is
+  decorative; the `<h1>`'s screen-reader text already carries the brand.
 - Two nested transforms, deliberately: the `<g>` carries eye travel, each `<rect>`
   carries the blink squash. Putting both on one element would make the blink
   transition lag the eye tracking.
@@ -816,32 +788,40 @@ above the headline. One per page.
 
 ### Eye tracking
 
-Eyes slide toward the pointer. Driven by the **existing shared rAF loop and pointer
-handler** — never a second loop, never its own listener.
+Eyes slide toward the pointer, and they are **the only thing on the page that reacts to
+it**. Driven by the **shared rAF loop and the one pointer handler** — never a second
+loop, never its own listener.
+
+It should read as *active*. The mascot is a character noticing you, not a subtle
+flourish — the eyes travel a real distance, arrive quickly, and respond to the pointer
+anywhere on screen, not just when it comes close.
 
 ```js
-var EX = 3, EY = 2, REACH = 150;          // user units, user units, screen px
-// in the existing pointermove handler, after the proximity math:
+var EX = 6, EY = 3.8, REACH = 90, EASE = .22;   // units, units, screen px, lerp
+// in the pointer handler:
 var ecx = mrect.left + mrect.width / 2, ecy = mrect.top + mrect.height / 2;
 var edx = e.clientX - ecx, edy = e.clientY - ecy;
 var ed  = Math.hypot(edx, edy) || 1;
 var g   = Math.min(1, ed / REACH);        // ramps in, so it doesn't jitter up close
 aimX = (edx / ed) * g * EX;
 aimY = (edy / ed) * g * EY;
-// in the existing frame():
-ex += (aimX - ex) * .12;                  // lerp, no snap
-ey += (aimY - ey) * .12;
+// in frame():
+ex += (aimX - ex) * EASE;                 // lerp, no snap
+ey += (aimY - ey) * EASE;
 ```
 
-- **Travel is capped at `±3` and `±2` units by construction** — a unit vector times a
+- **Travel is capped at `±6` and `±3.8` units by construction** — a unit vector times a
   factor that never exceeds 1. That is the clamp; the eyes cannot slide off the face.
-  Worst case they span `x 12–52` and `y 34.3–42.7`, inside a face that spans roughly
-  `x 2.7–61.3` at that height. Never raise the caps without redoing that arithmetic.
-- The mascot needs **its own rect** for direction. That is not a contradiction of the
-  one-measurement rule under Cursor proximity: `--prox` stays a single shared
-  brightness measurement, but a direction vector is meaningless from another element's
-  centre — the eyes would point at the headline instead of the pointer. Measure it in
-  the same `remeasure()`, never in the frame loop.
+  At full deflection the worst eye corner sits **26.18 units from the face centre**,
+  inside the `r=30` face with 3.8 units to spare. **Never raise the caps without
+  redoing that arithmetic** — it is the only thing keeping the eyes on the face.
+- `REACH` is deliberately small — about the width of the mascot. The ramp exists only
+  to stop jitter when the pointer is right on the face; past that the eyes are at full
+  deflection and simply track direction, so a pointer in a far screen corner still
+  moves them.
+- The mascot needs **its own rect** for direction — a vector from any other element's
+  centre would aim the eyes at the wrong thing. Measure it in `remeasure()`, never in
+  the frame loop.
 - Recentre on `pointerleave`. Eyes left staring at the last known position look broken.
 - Write `--ex`/`--ey` only when they move more than `.02`.
 
@@ -863,7 +843,7 @@ ey += (aimY - ey) * .12;
   small, local, non-vestibular, and it is what keeps the mascot from reading as a dead
   sticker. Everything else still shuts off.
 - That means the rAF loop **starts even under reduced motion** — gated so that decode,
-  typing and proximity never run, and the loop does nothing but blink. Still one loop.
+  typing and eye tracking never run, and the loop does nothing but blink. One loop.
 - The global `transition: none` under reduced motion turns the blink into a snap rather
   than a squash. That is fine and arguably better.
 
@@ -937,11 +917,11 @@ Start from this. Fill in, don't restructure.
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
 <style>
-  @property --prox{syntax:'<number>';inherits:true;initial-value:0}
   @property --beat{syntax:'<number>';inherits:true;initial-value:0}
-  @property --mx{syntax:'<number>';inherits:true;initial-value:0}
-  @property --my{syntax:'<number>';inherits:true;initial-value:0}
   @property --units{syntax:'<number>';inherits:true;initial-value:15.5}
+  @property --ex{syntax:'<number>';inherits:true;initial-value:0}
+  @property --ey{syntax:'<number>';inherits:true;initial-value:0}
+  @property --blink{syntax:'<number>';inherits:true;initial-value:1}
   :root{
     --bg:#06070a; --bg-lift:#0b0d12; --line:#1a1e26; --dim:#2b323d;
     --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5;
@@ -999,8 +979,7 @@ Start from this. Fill in, don't restructure.
   .hero{display:grid;justify-content:center;margin:0;max-width:100%;
     font-size:min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units)));
     line-height:1.04;letter-spacing:0;contain:layout style;
-    --glow:calc(1 + var(--prox) * .85 + var(--beat) * .7);
-    transform:translate3d(calc(var(--mx)*var(--prox)*6px),calc(var(--my)*var(--prox)*4px),0);
+    --glow:calc(1 + var(--beat) * .7);
   }
   .hero>span{grid-area:1/1;display:block;white-space:pre}
   .ln{display:block;min-height:1.04em}
@@ -1058,7 +1037,7 @@ Start from this. Fill in, don't restructure.
 <script>
   // Guard everything with REDUCED. Measure metrics after document.fonts.load
   // resolves, build the cell grid, then run ONE shared rAF loop for decode +
-  // proximity. See index.html for the full implementation.
+  // mascot eye tracking. See index.html for the full implementation.
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 </script>
 </body>
@@ -1152,9 +1131,8 @@ Added with the mascot and the lockup:
   child, centred as a group.
 - **A gray subline.** Lockup copy is green and glows. `--muted` is for labels and
   timestamps.
-- **A second proximity rect.** One measurement on the host; everything inside inherits.
-- **`--mx` / `--my` normalised per element.** Short elements produce huge values and
-  over-travel. One normalisation for the whole lockup.
+- **Any pointer reaction on text** — leaning, translating or brightening the headline
+  or subline on mouse move. The mascot's eyes are the only thing that reacts.
 - **Shrinking the headline's glow radii verbatim for smaller text.** Layer count comes
   down, relative radii go up. See Glow tiers.
 - **Writing a text layer without its glow duplicates in the same frame.** The blurred
@@ -1185,13 +1163,16 @@ Visual:
 - Headline has real air around it at 1440px — roughly 40% of the viewport, not 90%.
 - Headline and subline read as one block. If they look like two floating pieces, the
   gap is wrong or they aren't in the same `.lockup`.
-- Sweep the pointer across the lockup: headline and subline brighten and lean together,
-  in the same direction, at the same moment. Any lag or disagreement means two rects.
-- Subline glows green and never flashes on the headline's settle beat.
+- Sweep the pointer across the lockup: the headline and subline do not move, shift or
+  brighten by a single pixel. Only the eyes react.
+- Subline is a quiet gray-green, clearly dimmer than the headline, and never flashes on
+  the headline's settle beat.
 - No green ghost trailing the subline while it types — the blur layer is written in the
   same frame as the core.
-- Mascot sits at the top of the lockup and moves with it, not as a floating extra.
-- Sweep the pointer a full circle around the mascot: the eyes follow, stay inside the
+- Mascot reads as a character at the top of the lockup, with clear space beneath him and
+  a soft halo around him — not a small icon bolted above the text.
+- Sweep the pointer a full circle around the mascot, out to all four screen corners: the
+  eyes follow from anywhere, move a visible distance, arrive quickly, stay inside the
   face at every angle, and recentre when the pointer leaves the window.
 - Sit and watch for 30s: it blinks 5–7 times at irregular intervals, both eyes, squash
   not fade.
@@ -1220,7 +1201,9 @@ Performance:
 
 - DevTools Performance recording of a hover pass: **no layout, no style recalc** in the
   frame loop. Green frames only.
-- Sustained 60fps with the pointer sweeping the headline.
+- Sustained 60fps with the pointer sweeping across the mascot.
+- The mascot halo is a gradient layer, not a filter — confirm no filter re-raster shows
+  up while the eyes are moving.
 - Frame loop allocates nothing — Memory timeline is flat, no sawtooth.
 - Canvas (if any) drops to zero work on tab hide.
 - `will-change` is cleared after entrance; layer count stays in single digits.
@@ -1231,7 +1214,7 @@ Correctness:
   Michroma WOFF2. Anything else is a bug.
 - Block `fonts.googleapis.com` and reload: page still renders, still readable, still
   laid out — just in mono.
-- Reduced-motion pass: static grain, static vignette, no decode, no proximity, no
+- Reduced-motion pass: static grain, static vignette, no decode, no eye tracking, no
   canvas, page still complete.
 - JS disabled: headline reads correctly, page is fully usable.
 - Keyboard-only pass: every link and button reachable, focus always visible.
