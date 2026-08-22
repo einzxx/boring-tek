@@ -1,13 +1,15 @@
 # page-builder — SKILL.md
 
-Build single-file HTML/CSS/JS pages in The Boring Tek terminal style. Black-ish
-background, monospace, phosphor glow, no frameworks, no dependencies.
+Build single-file HTML/CSS/JS pages in The Boring Tek style. Monospace, two themes,
+no frameworks, no dependencies.
 
 This file is the source of truth for how pages look and are built. Don't invent tokens
 outside it.
 
-The reference is a real CRT terminal in a dark room, not a retro filter. Depth,
-phosphor bloom, grain, a slow vignette. Modern rendering, old hardware feel.
+The reference is a real CRT terminal in a dark room, not a retro filter — depth,
+phosphor bloom, grain, a slow vignette. **Since site v1 that terminal has a daylight
+half**: the same page in white, with the mascot inverted and the phosphor glow turned
+off. Dark is where the identity lives. Light is where the customers are. Both ship.
 
 ## Non-negotiables
 
@@ -15,9 +17,17 @@ phosphor bloom, grain, a slow vignette. Modern rendering, old hardware feel.
   No external files.
 - **Zero dependencies.** No npm, no build step, no framework, no CSS library, no icon
   library, no CDN scripts.
-- **Exactly one external request: Michroma from Google Fonts.** Nothing else leaves the
-  page — no fetch, no other assets, no analytics, no trackers. Inline `data:` URIs are
-  fine, they ship in the file. See Type → Display face for the exact tags.
+- **Exactly one external request at load: Michroma from Google Fonts.** No other assets,
+  no analytics, no trackers. Inline `data:` URIs are fine, they ship in the file. See
+  Type → Display face for the exact tags.
+- **Two runtime requests, and only on a press:** the contact form posts to Web3Forms and
+  to our own Cloudflare Worker at the same time. Nothing fetches on load, on scroll, on
+  hover or on idle. If a page grows another endpoint, that's a decision, not an
+  implementation detail.
+- **The one `<script>` lives in `<head>`, not at the end of `<body>`.** It applies the
+  saved theme and language to `<html>` synchronously as its first act, then defers
+  everything else to `DOMContentLoaded`. Deferring the whole script, or moving it to the
+  body, puts a white flash in front of every dark-mode visitor.
 - **No second webfont.** Michroma is the only face we load, ever. Body and UI text use
   the system monospace stack.
 - **JS is optional.** If the page works without it, ship it without it. Everything JS
@@ -27,57 +37,119 @@ phosphor bloom, grain, a slow vignette. Modern rendering, old hardware feel.
 - **One `<canvas>` maximum**, and only when it earns its place (see Canvas).
 - `index.html` stays in the repo root.
 
-## Color — phosphor palette
+## Color — two themes, one token set
 
-Tuned phosphor, not screen primaries. Every green is desaturated and shifted off the
-sRGB corner so it reads as emitted light rather than a CSS keyword.
+**Light is the default. Dark is the identity.** Every colour on the page is a semantic
+token that both themes define. Nothing reads a raw hex outside the two `:root` blocks,
+which is what makes the 0.5s cross-fade a single transition rule rather than one per
+element.
 
 ```
-/* surface */
---bg        #06070a   page base. near-black, faint cool cast. never #000.
---bg-lift   #0b0d12   raised blocks, cards, code boxes
---line      #1a1e26   borders, rules, dividers
---dim       #2b323d   decorative characters, ascii art, disabled
+                     light (default)          dark
+--bg                 #ffffff                  #06070a   page base. never flat #000.
+--fg                 #0b0d10                  #d5dbd8   body and headline
+--sub                #4b5058                  #c8c8c8   subline copy
+--muted              #767d86                  #6d7680   labels, hints, timestamps
+--line               #dfe3e7                  #1e242d   borders, rules, field edges
+--field              #fbfbfc                  #0b0d12   raised blocks, the form card
+--bub                rgba(11,13,16,.55)       rgba(213,219,216,.5)   bubble outlines
+--face               #0b0d10                  #f4f7f5   mascot face
+--eye                #ffffff                  #06070a   mascot eyes — always == --bg
+--accent             #0f8a3c                  #35ff6a   THE green
+--accent-soft        rgba(15,138,60,.10)      rgba(53,255,106,.09)   selected chip fill
+--red                #c62828                  #ff5c5c   errors only. never decorative.
+```
 
-/* text */
---text      #d5dbd8   body
---muted     #6d7680   secondary text, labels, timestamps
---sub       #c8c8c8   subline copy. dim neutral white — R=G=B, no green in it
+Plus three tokens that carry whole values rather than colours, so the theme swap can
+turn an effect off instead of recolouring it:
 
-/* phosphor green (P1) — core brand */
---p-100     #d6ffe6   pale white-green. hot core, highlight.
---p-300     #7cf5a8   hover, emphasis
---p-500     #35ff6a   THE green. links, prompts, caret.
---p-700     #17a34f   borders, underlines, dimmed state
---p-900     #0a3d21   glow floor, tinted backgrounds
-
-/* phosphor amber (P3) — status, warnings, secondary accent */
---a-300     #ffd79a
---a-500     #ffb340
---a-700     #a86a12
-
-/* alarm */
---red       #ff5c5c   errors only. never decorative.
-
---white     #f4f7f5   wordmark and hero only
+```
+--glowon        0 in light, 1 in dark   multiplies the headline's blur-layer opacity
+--hero-shadow   the four-layer phosphor text-shadow, alpha 0 in light
+--halo          the mascot's radial gradient
+--vig           the vignette gradient
+--grain-o       .026 light, .038 dark
 ```
 
 Rules:
 
-- **Never a default CSS color.** No `green`, `red`, `white`, `black`, `lime`,
-  `#000`, `#fff`. Tokens only.
+- **Never a default CSS color.** No `green`, `red`, `white`, `black`, `lime`, `#000`,
+  `#fff`. Tokens only. `--bg` is `#ffffff` in light, and that is the token's job, not
+  licence to type `#fff` somewhere.
 - **Never `#00ff00`** or any pure-primary lime. If it looks like a Matrix screensaver
   it's wrong.
-- Base is `--bg`, never flat `#000` — the vignette and grain need something to sit on.
-- One accent per screen region. Green is default; amber marks status or warning; never
-  both on the same element.
+- **The dark green is not the light green.** `#35ff6a` on white is unreadable — it
+  measures under 2:1. Light mode's `#0f8a3c` is the same hue walked down until it
+  passes on white. Never ship one green for both themes.
+- **`--eye` always equals `--bg`.** The face reads as a hole punched in the page, not
+  an illustration sitting on it. That is the whole reason the mascot inverts with the
+  theme instead of staying white on both.
 - Red only means something is wrong.
-- Contrast floor 4.5:1 for body text. `--muted` on `--bg` passes. `--dim` is
-  decorative only, never for text that must be read.
-- Glow is built from the phosphor ramp, never from `white` or from opacity on `--text`.
-  **One exception, the subline:** its fill is `--sub` and its glow is built from
-  `--white`. Green glow on a neutral fill reads as a colour cast, not as light. See
-  Glow tiers.
+- Contrast floor 4.5:1 for body text, checked in **both** themes. `--muted` passes on
+  both. Check any new token against both backgrounds before adding it.
+- **Phosphor glow is a dark-mode effect.** In light mode the headline is flat `--fg`
+  with no bloom — `--glowon: 0` and a zero-alpha `--hero-shadow`. Glow on white is a
+  smudge. Do not try to invent a "light glow"; the light theme's confidence comes from
+  contrast and space.
+- One accent per screen region. Green is the only accent v1 uses. The amber ramp
+  (`--a-300/500/700`) is retired — nothing on the site was using it.
+
+### Making the swap actually fade
+
+- Every paired gradient (`--halo`, `--vig`) must keep **the same stop count at the same
+  positions** in both themes. Gradients only interpolate when their shapes match; a
+  three-stop light halo against a four-stop dark one snaps instead of fading.
+- `--hero-shadow` in light mode is the dark stack with every alpha set to `0`, not
+  `none`. `none` ↔ a shadow list does not interpolate.
+- A custom property is not itself animatable (they're unregistered strings), but the
+  **property that reads it is**. `opacity: calc(... * var(--glowon))` transitions fine
+  because the computed opacity changes. So declare the transition on the real property —
+  `opacity`, `text-shadow`, `background-image` — not on the variable.
+- The universal `*` transition covers `background-color`, `border-color`, `color` and
+  `fill` only. Anything else that changes with the theme declares its own.
+
+## Theme switching
+
+- **Light is the default**, including for a first-time visitor with no stored choice.
+  We do not read `prefers-color-scheme`. A deliberate default beats a guess, and the
+  toggle is one press away in the top right.
+- Choice persists in `localStorage` under **`bt-theme`** (`'light'` | `'dark'`). Wrap
+  every read and write in `try/catch` — private windows and blocked site data throw on
+  access, and a thrown storage read must not take the page down with it.
+- The head script applies `data-theme` to `<html>` **before first paint**. Everything
+  else waits for `DOMContentLoaded`.
+- Three things move together on every switch and none may be forgotten:
+  `data-theme` on `<html>`, `html.style.colorScheme` (so native form controls and
+  scrollbars follow), and the `<meta name="theme-color">` content (so mobile browser
+  chrome follows). `<meta name="color-scheme">` stays `light dark`.
+- The toggle icon shows **the mode you would switch to** — a moon in light, a sun in
+  dark. Both SVGs ship inline and CSS picks one off `html[data-theme=dark]`; never
+  swap icon markup from JS.
+- Its `aria-label` is real text and re-renders with the language.
+
+## Languages
+
+EN, RU and LV, switched by three plain text buttons top left. Active is `--fg` at full
+opacity; the others are `--muted` at `.5`.
+
+- Choice persists in `localStorage` under **`bt-lang`**. Same `try/catch` rule.
+- The head script sets `<html lang>` before paint, alongside the theme.
+- **Every visible string lives in one `T` object**, keyed by language then by string
+  key, and nothing is typed into the markup that JS won't overwrite on boot. The markup
+  ships the English strings so the no-JS page still reads; boot rewrites them from `T`
+  as its first act, so a Russian visitor never sees an English flash.
+- A language switch **re-renders the current view in place**: static copy, the subline,
+  the form step being answered, and any bubble line currently held. It never resets
+  progress and never closes the card.
+- All three dictionaries carry **identical key sets**, including array lengths for
+  `idle` and `notes`. A missing key falls back to English rather than rendering
+  `undefined`, but the fallback is a safety net, not a translation strategy.
+- Copy rules apply in every language: lowercase, short, no exclamation marks, dry.
+- **The wordmark is never translated.** `THE BORING TEK` is the same fourteen
+  characters everywhere.
+- **The payload is not translated either.** Whatever language the visitor answered in,
+  the form posts English labels, plus a `language` field recording what they used. An
+  inbox you can't read is worse than no inbox.
 
 ## Type
 
@@ -107,6 +179,12 @@ logo. It is the **only** external request the page is allowed to make.
   gives them air, and that combination is what makes it legible at `1rem`. All three
   ship together or none of them do. This is not licence to put Michroma on the next
   paragraph.
+- **Michroma is Latin-only.** It has no Cyrillic and no Latvian diacritics, so the
+  Russian subline and half the Latvian one would fall back per glyph — two faces inside
+  one word, which looks broken rather than multilingual. The subline therefore tests its
+  own string (`/^[\x20-\x7E]*$/`) and drops the whole line to `--mono` at `.14em`
+  tracking when it isn't plain ASCII. All or nothing, never per glyph. The headline is
+  never translated, so it is always Michroma.
 - **Michroma ships one weight: 400.** There is no bold, no italic, no variable axis.
   Never request extra weights in the URL, never fake bold with `font-weight: 700`
   (which triggers synthetic bold and smears the squared edges), never fake it with
@@ -207,6 +285,10 @@ tu = cx.measureText(TAG.toUpperCase()).width / 200  // the line as it RENDERS, i
   Leave it; correcting it costs a negative margin and buys nothing visible.
 - Estimate mono units as `chars × 0.63` for anything still in mono. Round up. A line
   that fits with 2px to spare on one machine wraps on another.
+- **`--tu` is re-measured on every language switch, in the face that line will actually
+  render in.** Three strings of different lengths in two different faces cannot share
+  one divisor. Measure with the mono font string and `.14em` tracking when the line has
+  fallen back, with Michroma and `.18em` when it hasn't.
 - Register `--units` and `--tu` with `@property { syntax: '<number>' }` so the division
   resolves.
 - **Give `--tu` an `initial-value` that is deliberately too large** (`46` against a real
@@ -215,37 +297,58 @@ tu = cx.measureText(TAG.toUpperCase()).width / 200  // the line as it RENDERS, i
   reduced-motion screen; erring small means it overflows and gets clipped. Only one of
   those is recoverable by the reader. Re-check the number whenever the copy, the
   tracking or the casing changes — all three move it.
-- `--units` budgets a caret width even where the caret is absolutely positioned and
-  therefore outside the track. That is deliberate: it reserves room for the overhang so
-  the cursor can't push past the viewport edge.
+- `--units` is now `cells × cw + .4`. It used to carry a caret width; **the headline has
+  no caret since v1** (see The lockup), so the budget is cells plus plain slack. If a
+  caret ever comes back, the budget has to come back with it.
 
 ### The lockup
 
-Mascot, headline and subline are **one composed block**, not elements that happen to
-sit near each other. They go in a single wrapper, and that wrapper is what gets centred.
-Order: mascot, then headline, then subline.
+Everything down the middle of the page is **one composed block**, not elements that
+happen to sit near each other. One wrapper, and that wrapper is what gets centred.
+Order, top to bottom:
+
+```
+.m-zone   mascot + speech bubble
+.hero     THE BORING TEK
+.tag      the subline
+.cta-zone the button + the grey hint line
+.card     the form, folded shut until asked for
+```
 
 ```css
-.wrap{ min-height:100dvh; display:flex; justify-content:center; align-items:center }
+.wrap{ min-height:100dvh; display:flex; justify-content:center; align-items:center;
+       padding:74px 16px 36px }
 .lockup{
   display:flex; flex-direction:column; align-items:center;
-  gap:clamp(14px,2.6vh,26px);
-  max-width:100%;
+  gap:clamp(12px,2.2vh,22px);
+  width:100%; max-width:560px;
 }
 ```
 
-- **One child in `.wrap`.** Centring the group is the point; centring three siblings
-  with a shared gap makes them read as separate floating pieces.
-- Gap between headline and subline is `14`–`26px`. Close enough that the eye takes both
-  in as one block, open enough that the subline isn't crowding the wordmark. The hero's
-  `line-height: 1.04` leaves almost no leading beneath it, so the gap is doing all the
-  work — that's why it needs real value and not a token 8px.
+- **One child in `.wrap`.** Centring the group is the point; centring five siblings with
+  a shared gap makes them read as separate floating pieces.
 - Never put a `gap` on `.wrap` itself. It has one child.
-- Anything else that belongs to the headline — a status tag, a fallback line — goes
-  inside `.lockup` too, so the reduced-motion and no-JS views stay composed.
+- The top padding clears the fixed bar. The bar is `position: fixed`, so it adds no
+  height — without that padding the mascot slides under the language buttons on short
+  screens.
+- **The landing state must not scroll on desktop.** Mascot, wordmark, subline, button
+  and hint come to roughly 330px; that is the budget. Anything new competes for it.
 - The mascot gets extra breathing room below it — a `margin-bottom` on top of the gap,
   so the character isn't crowding the wordmark. It is a character, not a bullet point.
-- Nothing in the lockup reacts to the pointer. See Micro-interactions.
+- `.lockup` caps at `560px` because the form card lives in it. The headline sizes itself
+  against the viewport, not against this cap, so the cap costs the wordmark nothing.
+- **`.m-zone` is `width: max-content`.** The speech bubble is absolutely positioned
+  against it at `left: calc(100% + 12px)`, so that `100%` has to be the head, not the
+  560px lockup. Give the zone a full-width box and the bubble flies off to the right of
+  the whole column.
+- Nothing in the lockup reacts to the pointer except the mascot's eyes. See
+  Micro-interactions.
+
+**The headline carries no caret.** A block cursor lived after the wordmark through the
+coming-soon phase and was removed at v1: the CTA button now glitches every few seconds
+to ask for attention, and two blinking things on one screen fight each other. The button
+is the page's one attention-getter. If a caret is ever wanted back, the button's glitch
+comes off first.
 
 ### The stacked lockup (under 640px)
 
@@ -256,32 +359,18 @@ matching the logo lockup. Above it, one line.
   decode; only the line split and `--units` change.
 - `--units` is recomputed from the longest *line* (6, for `BORING`), not the longest
   string — that's what lets the stacked lockup run much larger than the single line.
-- `COMING SOON` splits to **COMING / SOON**, deliberately: `COMING` is also 6
-  characters, so both words share one cell grid and one `--units`.
-- **Always render three line boxes**, even when a word only fills two. Give `.ln` a
-  `min-height` of one line so an empty third line still holds its space — otherwise the
-  block changes height every time the words swap and everything below it jumps.
+- **Always render three line boxes.** Give `.ln` a `min-height` of one line so an empty
+  line still holds its space, and the block can't change height under whatever sits
+  below it.
 - **Rows breathe: `0.35em` between lines.** Set it as a `gap` on the flex column, not
   as margins, and apply it to every layer *and* the sizer so all four stacks stay in
   register. Without it the three rows read as one crushed block, not a lockup.
-- The block cursor sits on the **last line that has content** — line 3 for the
-  wordmark, line 2 for `COMING SOON`. One caret visible at a time, never three.
-- **Every line is centred on its own text, ignoring the cursor.** `THE`, `BORING` and
-  `TEK` each centre independently, and the caret must not drag that centring off. Take
-  the caret out of flow — `position: absolute; left: 100%` — so the line centres as if
-  it weren't there. The caret then hangs to the right of its own line's text.
-- That needs a wrapper: `.ln > .lw > (.t + .caret)`, with `.lw` block-level,
-  `width: max-content`, `margin: 0 auto`, `position: relative`. The caret cannot live
-  inside `.t` because the cell builder clears `.t` wholesale, and it cannot be
-  positioned against `.ln` because that would pin it to the track edge instead of the
-  end of the text.
-- Scope all of this to `.stack`. The desktop single line keeps its caret inline and
-  centres text-plus-caret as one run — leave it alone.
+- Each line centres on its own text. With the caret gone (see The lockup) that is just
+  the inherited `text-align: center` — the `.lw` wrapper that used to hold the caret out
+  of flow went with it. **If a caret ever returns, `.lw` returns with it**, because an
+  inline caret shifts every line off centre by half a cursor.
 - The hidden sizer needs the same three-line shape, each line padded to the longest
-  line's cell count, so the track width is identical in both words. In stacked mode the
-  caret is out of flow, so the track is the **text width only** — the caret overhangs
-  it on the right. `--units` still budgets a caret width, which is what keeps that
-  overhang inside the viewport.
+  line's cell count, so the track width can't move.
 - Decode spans the whole lockup from one schedule — flatten all three lines into a
   single character list, shuffle that, then split the output back per line. Three
   independent per-line decodes read as three separate events.
@@ -291,6 +380,13 @@ matching the logo lockup. Above it, one line.
 The subline types itself out **once**, after the headline's first decode resolves, then
 stays static forever.
 
+- **A language switch swaps the text statically — it never re-types.** The typing is an
+  entrance for the page, not a transition for the string. Re-running it every time
+  someone tries RU and comes back to EN turns a one-shot flourish into a tic. Once
+  `typed` is true it stays true.
+- Switching language re-measures `--tu` and re-tests the Latin check, because the new
+  string may be a different length in a different face. See Fit-to-width sizing.
+
 - **Nothing follows the text.** No cursor, no period, no bracket, no rule. The line
   ends on its last letter and the `0.18em` of trailing tracking, and that is the whole
   ending. An earlier build parked a blinking underscore there; it pulled the eye to the
@@ -298,7 +394,7 @@ stays static forever.
   moving thing below the headline.
 - **The subline carries no full stop**, even though house style ends lines with one.
   Set in caps and tracked wide it is a lockup element, not a sentence — the same reason
-  `[ COMING SOON ]` and the nav labels take no punctuation. Adding one back makes it
+  the nav labels and the status tags take no punctuation. Adding one back makes it
   read as a stray glyph floating a third of a space off the last letter.
 - One-shot only. Never on a loop, never re-triggered on the headline's later cycles.
 - Driven from the same shared rAF loop as the decode. Per-character thresholds with
@@ -315,9 +411,10 @@ stays static forever.
   caret: without it the centred line slides rightward one character at a time as it
   types, which is far more distracting than the typing itself.
 - The sizer holds the same lowercase string as the live text and inherits the same
-  `text-transform`, so the two can never disagree about width. Three copies of the
-  string live in the markup — sizer, blur layer, live text — and **all three must match
-  exactly**, or the typing drifts against its own box.
+  `text-transform`, so the two can never disagree about width. Two copies of the string
+  live in the markup — sizer and live text — and **both must match exactly**, or the
+  typing drifts against its own box. (There used to be a third, the blur duplicate; see
+  Glow tiers for why it's gone.)
 - The full text lives in the DOM for the no-JS and reduced-motion cases. JS blanks it
   as its first act and restores it when typing starts — so it must run before first
   paint, or the full string flashes.
@@ -369,22 +466,28 @@ document.documentElement.classList.toggle('vf', VF);
 Three stacked layers behind everything. All fixed, all `pointer-events: none`, all
 `aria-hidden="true"`.
 
+**Both survive the theme swap, both change value with it.** The dark vignette is the
+heavy near-black wash; the light one is a barely-there grey that keeps the white page
+from reading as a blank canvas. Grain drops from `.038` to `.026` — the same texture is
+more visible on white, so it needs less of it.
+
 ### 1. Base
 
 `--bg` on `body`. That's it.
 
 ### 2. Vignette — slow radial breathe
 
-An off-center radial that keeps the corners heavy and the hero area slightly lifted.
+A radial that keeps the corners heavy and the centre slightly lifted. The gradient
+itself is the `--vig` token, so both themes must declare **the same stop count at the
+same positions** or the swap snaps instead of fading.
 
 ```css
 .vignette{
   position:fixed; inset:-10%; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(120% 90% at 50% 18%, rgba(53,255,106,.055) 0%, transparent 58%),
-    radial-gradient(140% 120% at 50% 45%, transparent 32%, rgba(3,4,6,.72) 100%);
+  background-image: var(--vig);
   will-change: transform, opacity;
   animation: breathe 34s cubic-bezier(.45,0,.55,1) infinite alternate;
+  transition: background-image .5s ease;
 }
 @keyframes breathe{
   from{ transform: scale(1)     translate3d(0,0,0); opacity:.88 }
@@ -450,25 +553,24 @@ a mid halo, and a wide diffuse wash. Build three layers.
 
 /* layer 1 — core text + tight shadow stack */
 .glow__core{
-  z-index:3; color:var(--white);
-  text-shadow:
-    0 0 1px  rgba(53,255,106,.55),
-    0 0 6px  rgba(53,255,106,.34),
-    0 0 18px rgba(53,255,106,.20),
-    0 0 44px rgba(23,163,79,.14);
+  z-index:3; color:var(--fg);
+  text-shadow: var(--hero-shadow);      /* zero-alpha in light, phosphor in dark */
+  transition: color .5s ease, text-shadow .5s ease;
 }
 /* layer 2 — blurred duplicate, mid halo */
 .glow__blur{
-  z-index:2; color:var(--p-500);
-  filter: blur(10px);
-  opacity: calc(.42 * var(--glow));
+  z-index:2; color:var(--accent);
+  filter: blur(.055em);
+  opacity: calc(.42 * var(--glow) * var(--glowon));
+  transition: opacity .5s ease;
   will-change: opacity;
 }
 /* layer 3 — wide diffuse bloom */
 .glow__bloom{
-  z-index:1; color:var(--p-700);
-  filter: blur(38px);
-  opacity: calc(.30 * var(--glow));
+  z-index:1; color:var(--accent);
+  filter: blur(.2em);
+  opacity: calc(.24 * var(--glow) * var(--glowon));
+  transition: opacity .5s ease;
   will-change: opacity;
 }
 ```
@@ -489,53 +591,37 @@ Rules:
 
 ### Glow tiers
 
-Layer count comes down as the element gets smaller — but the **radii go up relative to
-the font size**, because small text needs a proportionally wider halo to read as lit at
-all. Never just shrink the headline's numbers and call it done.
+**Glow is dark-mode only.** In light mode `--glowon` is `0`, `--hero-shadow` is the same
+stack at zero alpha, and the page carries no bloom at all. Everything below describes
+the dark theme; in light it all resolves to flat `--fg` on white, which is correct and
+not a degradation.
 
 | Tier | Used on | Layers |
 |---|---|---|
 | Full | headline | core shadow stack + `blur(.055em)` duplicate + `blur(.2em)` bloom |
-| Reduced | subline | white core shadow stack + one `blur(.14em)` duplicate |
-| Flat | labels, status tags, links | core shadow stack only |
+| Flat | subline, labels, links, buttons | fill only |
 
-The subline's reduced tier, for reference:
-
-```css
-.tag{ color: var(--sub); text-transform: uppercase; letter-spacing: .18em }
-.tag-blur{ color: var(--white); filter: blur(.14em); opacity: .18 }
-.tag-txt{
-  text-shadow:
-    0 0 .05em rgba(244,247,245,.30),
-    0 0 .32em rgba(244,247,245,.15),
-    0 0 .95em rgba(244,247,245,.07);
-}
-```
-
-- **The subline is `--sub`, a dim neutral white, and its glow is white too.** It is a
-  quiet line under a loud one. The headline is the lit object; the subline sits in its
-  light rather than competing to be a second source.
-- **No green anywhere in it** — not in the fill, not in the shadow stack, not in the
-  blur duplicate, and there is nothing else down there to put green on. Below the
-  headline the page has no phosphor at all, which is what keeps the green reading as
-  the headline's own light.
-- This reverses the earlier rule that the subline was `--p-100` pale white-green.
-  The green fill made two glowing green lines stacked, which read as one undifferentiated
-  block of glow. Dropping the green gave the headline back its hierarchy. Don't restore it.
-- Neutral is not the same as `--muted`. `--sub` at `#c8c8c8` is a bright, confident
-  dim white that still carries a glow; `--muted` at `#6d7680` is a dead gray that
-  reads as an unstyled leftover. The old warning was against gray, and it still stands.
-- Its glow stays **subtle** — the fill is bright, so the shadow only has to lift the
-  edges. Three layers, none above `.30` alpha, and no third bloom.
-- Nothing in the lockup brightens on pointer move; these opacities are constants, not
-  `--glow` expressions. See Micro-interactions.
-- Note the radii: `1.7em` on the subline against `.28em` on the headline. At 16px that
-  wide stop is ~27px of soft halo. The same `.28em` would be 4px and invisible.
-- The widest bloom layer is dropped at subline size. A `blur(.2em)` duplicate there is
-  a formless smudge that adds cost and no glow.
-- If the text animates (typing, decode), **every** layer has to be written in the same
-  frame. A blur duplicate lagging one frame behind its core shows up as a ghost — white
-  on the subline, green on the headline. Either way it's a bug.
+- **The subline carries no glow layers at all since v1.** It used to have a white core
+  shadow stack plus a `blur(.14em)` duplicate. Both went, for two reasons: the duplicate
+  had to be written in the same frame as the core all through the typing or it trailed a
+  white ghost, and in light mode a white blur on white is nothing but cost. `--sub` at
+  full contrast carries the line on its own in both themes.
+- **The subline is `--sub` and there is no green in it** — not in the fill, not in a
+  shadow. Below the headline the page has no phosphor at all, which is what keeps the
+  green reading as the headline's own light.
+- This still reverses the older rule that the subline was `--p-100` pale white-green.
+  Two glowing green lines stacked read as one undifferentiated block of glow and cost
+  the headline its hierarchy. Don't restore it.
+- `--sub` is not `--muted`. `--sub` is a confident dim tone that reads as a deliberate
+  second line; `--muted` reads as an unstyled leftover. `--muted` is for the hint line,
+  field labels and timestamps.
+- Nothing in the lockup brightens on pointer move. The headline's `--glow` is driven by
+  the decode settle beat alone. See Micro-interactions.
+- The headline's blur duplicates still have to be written in the **same frame** as the
+  core all through the decode. A layer lagging one frame behind shows as a green ghost.
+- The `.l-mid` and `.l-wide` opacities now multiply by `var(--glowon)`, so they need
+  their own `transition: opacity .5s` — the universal `*` rule doesn't cover opacity.
+  Without it the phosphor snaps off mid-fade while the page is still cross-fading.
 
 ## Decode animation
 
@@ -647,17 +733,37 @@ So there is no `--prox`, no `--mx`, no `--my`, and no proximity host. What survi
 If a future element needs to react to the pointer, it reacts the way the mascot does —
 by looking at it — not by leaning or lighting up.
 
+### The CTA glitch
+
+The main button asks for attention on its own: **every 3–5 seconds, a `.34s` shake with
+an rgb split on the label.** Random interval, never a fixed beat.
+
+- Scheduled from the shared rAF clock like everything else. Never `setInterval`.
+- The class comes off on `animationend`, not by forcing a reflow with
+  `void el.offsetWidth`. A layout read every four seconds to restart an animation is a
+  layout read you didn't need.
+- Split colours are `--gr` / `--gc`, a red and a cyan at `.85` alpha, applied as
+  `text-shadow` offsets of 1–2px on the label span only. The border and fill never
+  glitch — only the text.
+- Travel is 1–3px horizontal. It's a twitch, not a jump; nothing around it moves.
+- **It stops the moment the form opens.** Once someone is answering questions the button
+  is gone and the page has nothing left to advertise.
+- This is the **one** deliberately attention-seeking element on the site, and it is why
+  the headline lost its caret. Adding a second is how a terminal turns into a carnival.
+
 ### Everything else
 
-- Links: `--p-500`, `1px` underline in `--p-700`; on hover the underline goes
-  `--p-500` and the core shadow tightens. No color change.
-- Buttons: `1px solid var(--p-700)`, transparent fill, `--p-500` text, square corners.
-  Hover fills `rgba(53,255,106,.07)` and lifts glow. Active `translate3d(0,1px,0)`.
+- Links: `--accent`, `1px` underline in `--accent`; hover tightens, no colour change.
+- Buttons: `1px solid var(--fg)`, transparent fill, `--fg` text, fully rounded.
+  **Hover fills solid** — background `--fg`, text `--bg`. Active `scale(.97)`.
+- Chips: `1px solid var(--line)`, `--bg` fill, fully rounded. Hover borders `--fg`.
+  Selected fills `--accent-soft` with an `--accent` border. Selection is carried by
+  `aria-pressed`, never by a class alone.
 - Cursor stays default. No custom cursors.
-- Tap targets minimum `44px` on mobile.
-- Focus: `outline: 1px solid var(--p-500); outline-offset: 3px;` — visible, never
-  removed. Focus also raises `--glow`, so keyboard users get the same feedback pointer
-  users get.
+- Tap targets minimum `44px` on mobile — `40px` on chips, which sit in a wrapped grid
+  with `8px` gaps and are never the only way forward.
+- Focus: `outline: 1px solid var(--accent); outline-offset: 3px;` — visible, never
+  removed, checked in both themes.
 
 ## Canvas
 
@@ -688,9 +794,28 @@ Three tiers. Each has its own rules; don't mix them.
 
 | Tier | What | Duration | Easing |
 |---|---|---|---|
-| Ambient | vignette breathe, grain, canvas drift | 7–40s | eased `alternate`, or stepped for grain |
-| Entrance | decode, fade-ups, settle pulse | 900–1400ms | `cubic-bezier(.16,1,.3,1)` |
-| Interactive | hover, focus, eye tracking, press | 120–260ms | `ease-out` |
+| Ambient | vignette breathe, grain, idle bubble, CTA glitch | 7–40s between events | eased `alternate`, or stepped for grain |
+| Entrance | decode, subline typing, settle pulse | 900–1400ms | `--ease` `cubic-bezier(.16,1,.3,1)` |
+| Spring | bubble, chips, card unfold, press | 280–520ms | `--spring` `cubic-bezier(.34,1.4,.64,1)` |
+| Theme | every colour on the page | 500ms | `ease` |
+| Interactive | hover, focus, eye tracking | 90–260ms | `ease-out` |
+
+**The spring tier is new at v1 and it is a deliberate reversal.** This file used to ban
+overshoot easing outright, on the grounds that nothing here is playful. That held for a
+page whose only job was to sit still and say COMING SOON. A form has to feel like it
+responds to being touched, and the way you say "that landed" without a sound or a colour
+is a little overshoot. So: `cubic-bezier(.34,1.4,.64,1)`, one curve, used everywhere a
+UI element arrives or is pressed. It is **not** licence for bounce, elastic, jelly or
+wobble — those are still out. One curve, small overshoot, and nothing overshoots twice.
+
+Where the spring is *not* allowed:
+
+- **Not on the theme cross-fade.** Colour overshooting means colour going wrong on the
+  way, and 0.5s is long enough to see it.
+- **Not on the card's `grid-template-rows`.** Overshooting `1fr` is undefined-looking
+  and clips content. The rows use `--ease`; the inner block carries the spring on a
+  `transform`, which can overshoot safely because it isn't the thing doing the clipping.
+- **Not on the blink**, which needs to be shorter than its own 120ms hold.
 
 Universal:
 
@@ -714,12 +839,34 @@ Universal:
 
 - Kill grain and vignette animation (layers stay, static).
 - Skip decode — render final text immediately, no scramble.
+- Skip the subline typing — the full line, at once.
 - Disable mascot eye tracking (text never tracks anything anyway).
+- Kill the CTA glitch and the idle bubble entirely. Both are ambient attention-seeking;
+  that is exactly what the setting is asking us to stop.
 - Skip canvas init.
 - Keep hover/focus feedback, but instant.
 - **Keep the mascot blink.** It is the one deliberate exception — small, local,
   non-vestibular. Which means the rAF loop still starts under reduced motion, gated so
   it does nothing else. See Mascot → Touch and reduced motion.
+- **Keep the theme cross-fade.** A colour fade is not vestibular motion, and snapping
+  the whole page between white and near-black is the harsher of the two. So the reduced
+  override is not a blanket `transition: none` — it narrows `transition-property` to
+  the four colour properties and holds them at `.5s`:
+
+```css
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation:none!important;
+    transition-property:background-color,border-color,color,fill!important;
+    transition-duration:.5s!important;
+  }
+}
+```
+
+- **The form still works under reduced motion.** It is event-driven, not rAF-driven, so
+  every step, validation and submit runs; only the chip stagger and the card's unfold
+  are gone. Check it — a contact form that only works for people who like animation is
+  a broken contact form.
 
 This is a real branch in the JS, not just a CSS override:
 
@@ -732,9 +879,22 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 - Max width `900px`, centered, `20px` side padding (`16px` under 480px). The hero sizes
   itself to fit the viewport (see Fit-to-width sizing) and caps at `2.75rem`.
 - Spacing scale, nothing between: `4 8 12 16 24 32 48 64 96 128`.
-- Left-aligned. Centered text only for a hero.
-- Borders `1px solid var(--line)`. **Zero border radius everywhere.** No rounded
-  corners, no pills.
+- Left-aligned. Centered text only for a hero, the lockup and the form's questions and
+  chips. Input fields inside the form stay left-aligned — centred field text reads as a
+  mistake.
+- Borders `1px solid var(--line)`.
+- **Radius, revised at v1.** This file used to ban rounded corners outright. That held
+  while the page was a wordmark on a black field. The contact flow is made of buttons,
+  chips, fields and a comic speech bubble, and square corners on a speech bubble is not
+  a style choice, it's a different object. So there are now exactly three radii and
+  nothing between them:
+  - `999px` — anything that reads as a pill: buttons, chips, the bubble, the dots.
+  - `18px` — the form card.
+  - `12px` — input and textarea fields.
+
+  Everything else is still square: rules, dividers, the depth layers, any future table
+  or code block. **Radius is for things you press or things that speak.** It is not a
+  general softening pass, and there is no `4px`/`6px`/`8px` tier to reach for.
 - No box shadows. Depth comes from the glow and vignette layers, never from a drop
   shadow on a card.
 - Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints. One
@@ -805,12 +965,42 @@ SVG with a single transform:
 
 ### Colour
 
-- **White face on dark is primary**: face `--white` `#f4f7f5`, eyes `--bg` `#06070a`.
-  In the page they are token-driven, in the standalone files they are literal hex.
-- The eyes are the page background colour, so the face reads as a hole punched in the
-  dark rather than an illustration sitting on top of it.
+**The mascot inverts with the theme.** Face `--face`, eyes `--eye`, and `--eye` is
+always the page background.
+
+| | face | eyes |
+|---|---|---|
+| dark | `#f4f7f5` | `#06070a` |
+| light | `#0b0d10` | `#ffffff` |
+
+- The eyes are the page background colour in **both** themes, so the face always reads
+  as a hole punched in the page rather than an illustration sitting on top of it. That
+  invariant is the reason he inverts at all — keeping him white on white would have
+  meant giving him an outline, and he has never had one.
+- Both fills cross-fade over the same 0.5s as everything else. The `.m-eye` rule
+  re-declares `transition` for its transform, so it must carry `fill .5s ease` too or
+  the eyes snap while the face fades.
+- The standalone `assets/*.svg` files and the favicon stay **white face, dark eyes** —
+  literal hex, the dark-mode version. They are used as avatars on dark surfaces, and a
+  favicon can't know the page theme.
 - Any variant keeps the geometry byte-identical and only swaps the two fills. Never
   recolour the face green, never tint the eyes, never add a third colour.
+
+### Wide eyes
+
+When the contact form opens, **the eyes go wide** — `--wide: 2.2`, a scaleY on each eye
+rect about its own centre — and return to `1` on restart.
+
+- It rides the same `scaleY` as the blink: `scaleY(calc(var(--blink) * var(--wide)))`.
+  Multiplying rather than adding a second transform means he can still blink while
+  surprised, which is the point.
+- **That shared transition must stay under the 120ms blink hold.** `90ms ease-out` is
+  the number. Give it a spring, or 180ms, and the eyes never reach the squash before the
+  blink is over — the blink silently stops working and nothing tells you.
+- Snap, don't spring. Surprise is instantaneous.
+- The mascot is also a **click target** for the form, alongside the button:
+  `role="button"`, `tabindex="0"`, a real `aria-label`, and Enter/Space handled. He is
+  the most clickable thing on the page; not wiring him up was the bug.
 
 ### On the page
 
@@ -831,13 +1021,13 @@ above the headline. One per page.
     rgba(23,163,79,0) 72%);
 }
 .mascot{position:relative;display:block;width:clamp(78px,17vw,130px);height:auto}
-.m-face{fill:var(--white)}
+.m-face{fill:var(--face)}
 .m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
 .m-eye{
-  fill:var(--bg);
+  fill:var(--eye);
   transform-box:fill-box; transform-origin:center;
-  transform:scaleY(var(--blink));
-  transition:transform 55ms ease-out;
+  transform:scaleY(calc(var(--blink) * var(--wide)));
+  transition:transform 90ms ease-out, fill .5s ease;
 }
 ```
 
@@ -860,7 +1050,8 @@ above the headline. One per page.
   transition lag the eye tracking.
 - `px` inside an SVG resolves to **user units**, so `--ex`/`--ey` are 64-grid units,
   not screen pixels. At the rendered size one unit is roughly half a screen pixel.
-- Register `--ex`, `--ey` and `--blink` with `@property { syntax: '<number>' }`.
+- Register `--ex`, `--ey`, `--blink` and `--wide` with
+  `@property { syntax: '<number>' }`.
 
 ### Eye tracking
 
@@ -938,18 +1129,209 @@ ey += (aimY - ey) * EASE;
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
 ```
 
+## Speech bubble
+
+Comic style, anchored to the **top right of the head**: three round dots climbing
+diagonally up and right — small, bigger, biggest — then a pill with the line in it.
+
+```
+                                    ( ok. noted. )
+                              ●
+                          ●
+     ( ◕ ◕ )         ·
+```
+
+- Structure is a flex row, `align-items: flex-end`, `5px` gap: `.d1` `5px`, `.d2` `7px`
+  with `8px` bottom margin, `.d3` `10px` with `18px`, then `.pill` with `27px`. The
+  climb is the increasing bottom margin, not a rotation.
+- **The gap from the head to the first dot is bigger than the gaps between the dots.**
+  `left: calc(100% + 12px)` against the `5px` flex gap. That first gap is what makes the
+  dots read as coming *from* him rather than stuck *to* him.
+- Dots and pill are `--bg` fill with a `--bub` border. `--bub` is a real outline weight,
+  not `--line`; a comic bubble needs an edge you can see, and `--line` disappears on
+  white.
+- Entrance staggers outward — dot, dot, dot, pill at `0 / 70 / 140 / 210ms`, each on
+  `--spring`. The delays live **only** in the `.on` rules, so dismissal has no stagger
+  and the whole thing leaves at once. Speech arrives in order; silence is instant.
+- `pointer-events: none` and `aria-hidden="true"`. It is a character doing a bit, not
+  content. Every line it says is either decorative or duplicated in real UI text.
+
+### Keeping it on screen
+
+At 320px there is about 60px to the right of the head. That is not enough for a pill,
+and no media query fixes it cleanly. Six things make this work; all six were found by
+measuring the rendered page, and every one of them looks optional until it isn't.
+
+- **`.bubble` needs `width: max-content`.** An absolutely positioned box shrink-to-fits
+  against its containing block, and `.m-zone` is only as wide as the head. Without this
+  the pill is squeezed to its minimum width and wraps a three-word line onto two rows
+  **even on a 1440px screen**, which reads as a layout bug rather than a bubble.
+- On show, and whenever the layout under it moves, the pill measures itself once. If its
+  right edge would pass `innerWidth - 12`, it takes `--pshift` (negative, exactly the
+  overflow) and `--pshiftY: -26px` — sliding left over the head and lifting clear of the
+  dots. The dots never move.
+- **`--pshift` is a negative `margin-left`, not a translate.** A transform leaves the
+  flex container's box out at the pill's untransformed right edge, so document
+  `scrollWidth` passes the viewport and the page scrolls sideways. A negative margin
+  shrinks the container, so the overflow never exists at all.
+  **`overflow-x: clip` on the root does not save you here — it was tried and the page
+  still scrolled the full 60px.** Fix the box, don't hide it.
+- **`--pshiftY` stays a transform, and `translate`/`scale` are set as independent
+  properties rather than one `transform`.** The transition then springs `scale` on
+  entrance without also animating the vertical correction. If the correction rides the
+  spring, the pill visibly lags behind the head all the way through the card's unfold.
+- **Measure with `offsetLeft` / `offsetTop` / `offsetWidth`, never
+  `getBoundingClientRect()` on the pill.** It is mid-entrance at `scale(.7)` when this
+  runs and a client rect is transformed — it reports the pill narrower than it will be
+  and under-shifts every time. Take the *bubble's* client rect for the origin, then add
+  the pill's untransformed offsets.
+- **Clamp the top to below the fixed bar, not to `0`.** With the card open the lockup is
+  tall enough that the head rides up and the bubble runs out of sky before it runs out
+  of room to the right — at which point the pill lands on the theme toggle. A live
+  control beats bubble placement: the pill comes down to meet the dots instead.
+- **Re-fit whenever the card resizes.** `say()` runs before the card unfolds, so a fit
+  computed then is stale by the time the head has risen. A `ResizeObserver` on the card,
+  gated on the bubble actually being visible, is what keeps it glued during the unfold.
+- The pill's own `max-width: min(250px, calc(100vw - 28px))` guarantees it can always
+  fit once shifted, and lets long lines wrap to two or three rows.
+- One layout read per line shown. **Never in the frame loop.**
+
+### What it says
+
+| Trigger | Line |
+|---|---|
+| idle, every 8–14s, form shut | one of: `boring...` / `still boring...` / `waiting...` / `so quiet...` |
+| form opens | `oh. a customer.` |
+| between steps | `mhm.` / `classic.` / `ok. noted.`, in order |
+| arriving at the last step | `almost done.` |
+| after send | `ok. we will look. go do business.` |
+| after send, question path | `got it. we will answer soon.` |
+
+- Timed lines hold **2.8s** then fade. The post-send line is the only permanent one — it
+  is the receipt, so it stays until the visitor starts again.
+- Idle chatter runs **only while the form is shut**. Once someone is answering questions
+  he stops being bored at them.
+- Every line is translated. Dry, lowercase, three words where two won't do. He is
+  unbothered, not chatty — if a line sounds like it's trying to be funny, cut it.
+
+## The contact form
+
+One question per step, in a card that unfolds under the lockup. It opens from the CTA
+button **or from pressing the mascot**.
+
+### Opening
+
+1. Eyes go wide, bubble says `oh. a customer.`
+2. Button and hint fade out over `260ms`, then go `display: none`.
+3. Card unfolds: `grid-template-rows: 0fr → 1fr` on `--ease`, with the inner block
+   springing in from `translateY(-10px) scale(.97)`. Progress dots at the top.
+
+**A class added in the same frame that `display: none` came off does not transition.**
+There is no "before" style to animate from, so the card snaps open with the inner
+transform never leaving `none` — and it looks exactly like a working animation you
+forgot to write. One `requestAnimationFrame` is not enough of a gap; **use two.** The
+same applies to the CTA fading back in on restart.
+
+### The paths
+
+```
+step 1  what brings you here          (single pick)
+        ├─ check my business ────┐
+        ├─ a problem to solve ───┴──▶ A
+        ├─ not sure what i need ────▶ B
+        └─ just a question ─────────▶ C
+
+A   what do you want (multi) → [explain in your words, if picked] → how big → fields
+B   what eats your time → how customers reach you → how big → fields
+C   your question + email → send
+```
+
+- **Steps are computed, never stored.** `steps()` derives the list from the answers each
+  time it is called, so picking "i will explain myself" grows the list by one and the
+  progress dots follow automatically. A hardcoded step count goes stale the moment a
+  branch changes.
+- **On step one the progress row renders empty and keeps its height.** How many steps
+  there are genuinely depends on the answer that hasn't been given yet, and a single
+  lone dot both claims "one step total" and reads as a stray bullet on the card. Empty
+  is the honest state; inventing a plausible count is not.
+- The final fields step: business or your name (**required**), registration number
+  (optional), website (optional), country, your email (**required**).
+- **Single-pick steps advance themselves** after `240ms` and carry no forward button.
+  Multi-pick and text steps need one. Back is available from step 2 on, always.
+- Chips stagger in at `55ms` intervals on `--spring`; the question block fades and
+  slides `8px` on `--ease`. Re-rendering a whole step to show one chip as selected
+  replays the whole stagger — set `aria-pressed` in place instead.
+
+### Validation
+
+Inline, small, `--red`, directly under whatever is wrong. One message at a time.
+
+| | |
+|---|---|
+| no name | `we need a name` |
+| bad or missing email | `we need your email to reply` |
+| nothing picked | `pick at least one` |
+| empty textarea | `write your question first` |
+| submit failed | `could not send. try again.` |
+
+- Never a modal, never a toast, never a red border with no words.
+- Clear the message on the next interaction, not on a timer.
+
+### Submit
+
+**Two destinations, fired together, and one arriving is a delivered form.**
+
+| | |
+|---|---|
+| `https://api.web3forms.com/submit` | email. takes `access_key` + `subject`, then the fields |
+| `https://boring-tek-forms.theboringtek.workers.dev` | telegram, our own worker. fields only, no key |
+
+```js
+Promise.allSettled([post(W3_URL, mail), post(TG_URL, fields)])
+```
+
+- **Success is at least one fulfilled.** The red line only appears when *both* fail.
+  A visitor should never retype a form because one mail relay was down.
+- **A fetch that resolves with a 4xx still counts as fulfilled**, so the wrapper has to
+  check `r.ok` and throw. Skip that and `allSettled` reads a rejection as a delivery and
+  the page cheerfully shows a check mark for a form nobody received.
+- **The web3forms key is public by design.** It is a write-only submission token, it is
+  meant to ship in the page, and it is not a secret under the Public repo rules. The
+  worker takes no key at all — never send it one.
+- **Only web3forms gets `access_key` and `subject`.** The worker gets the bare fields.
+- **The payload is English regardless of the visitor's language**, built from the `en`
+  dictionary, plus a `language` field recording what they actually used. Keys are
+  readable words (`business_size`, `time_sink`, `customers_reach`), not chip ids.
+- **Key order is the field order in the email**, so it reads top to bottom the way the
+  visitor answered: path, choices, free text, name, registration number, website,
+  country, email, then language as a footnote.
+- Only the fields that path collected are sent. A question-path submission carries a
+  question and an email, not five blank business fields.
+- **Never log the payload.** Not to `console`, not on failure, not "just while
+  debugging". It is someone's name, business and email address.
+- While sending, the button is genuinely `disabled` and carries a `.busy` class — an
+  eased `alternate` opacity breathe that ends when the request does. The disabled
+  attribute is the real state; the animation only says so out loud.
+- On success: a drawn check mark, `sent`, the permanent bubble line, and a
+  **start again** button that fully resets state.
+- On failure: the red line, the send button re-enabled, nothing else lost. Never clear
+  someone's answers because the network failed.
+- `W3_KEY` holds the real web3forms token. It is committed on purpose — see above.
+
 ## Terminal texture
 
 Use sparingly — one or two per page, not all of them.
 
-- **Prompt lines:** `>` or `boringtek:~$` in `--p-500` before a line.
-- **Blinking caret:** `▊` after the hero line, `1.05s step-end infinite`. Off under
-  reduced motion.
+- **Prompt lines:** `>` or `boringtek:~$` in `--accent` before a line.
+- **Blinking caret:** not on the landing page — see The lockup for why the headline's
+  was removed. If a future page has no glitching CTA competing for the eye, one `▊` at
+  `1.05s step-end infinite` may come back. One per page, ever, and off under reduced
+  motion.
 - **Section labels:** uppercase, `--muted`, letter-spaced — `// SERVICES` or
   `[ 01 ] SERVICES`. Pick one convention per page and hold it.
-- **Rules:** a `1px` `--line` divider, or a row of `─` in `--dim`.
-- **Status tags:** `[ONLINE]` green, `[BOOTING]` amber. Bracketed, uppercase.
-- **ASCII art:** wordmark only, `--dim` or `--p-700`, in `<pre>` with
+- **Rules:** a `1px` `--line` divider.
+- **Status tags:** `[ONLINE]` in `--accent`. Bracketed, uppercase.
+- **ASCII art:** wordmark only, `--muted` or `--accent`, in `<pre>` with
   `aria-hidden="true"` and a real text alternative nearby.
 
 ## Copy rules
@@ -976,166 +1358,53 @@ Use sparingly — one or two per page, not all of them.
 ## Page skeleton
 
 `index.html` in the repo root is the reference implementation of every rule in this
-file — the Michroma cell grid, the decode loop, the glow stack, the depth layers. Read
-it before building a new page; copy from it rather than from memory.
+file - the two-theme token set, the head bootstrap, the Michroma cell grid, the decode
+loop, the glow stack, the depth layers, the bubble, and the whole form flow. **Read it
+before building a new page, and copy from it rather than from memory.** Reproducing it
+here only guarantees the copy goes stale, which is what happened to the version this
+section used to hold.
 
-Start from this. Fill in, don't restructure.
+The shape a new page starts from:
 
-```html
-<!doctype html>
-<html lang="en">
+```
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>THE BORING TEK</title>
-<meta name="description" content="custom ai agents, backend infrastructure, workflow automation.">
-<meta name="color-scheme" content="dark">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
-<style>
-  @property --beat{syntax:'<number>';inherits:true;initial-value:0}
-  @property --units{syntax:'<number>';inherits:true;initial-value:15.5}
-  @property --ex{syntax:'<number>';inherits:true;initial-value:0}
-  @property --ey{syntax:'<number>';inherits:true;initial-value:0}
-  @property --blink{syntax:'<number>';inherits:true;initial-value:1}
-  @property --tu{syntax:'<number>';inherits:true;initial-value:46}
-  :root{
-    --bg:#06070a; --bg-lift:#0b0d12; --line:#1a1e26; --dim:#2b323d;
-    --text:#d5dbd8; --muted:#6d7680; --white:#f4f7f5; --sub:#c8c8c8;
-    --p-100:#d6ffe6; --p-300:#7cf5a8; --p-500:#35ff6a; --p-700:#17a34f; --p-900:#0a3d21;
-    --a-300:#ffd79a; --a-500:#ffb340; --a-700:#a86a12;
-    --red:#ff5c5c;
-    --mono: ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
-    --display: "Michroma", var(--mono);
-    --t-micro: clamp(.6875rem,.66rem + .14vw,.75rem);
-    --t-body:  clamp(.8125rem,.77rem + .22vw,.9375rem);
-    --t-lead:  clamp(1rem,.92rem + .42vw,1.25rem);
-    --ease: cubic-bezier(.16,1,.3,1);
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    background:var(--bg); color:var(--text);
-    font:400 var(--t-body)/1.65 var(--mono);
-    -webkit-font-smoothing:antialiased; overflow-x:hidden;
-  }
-
-  /* depth layers */
-  .vignette,.grain{position:fixed;pointer-events:none}
-  .vignette{
-    inset:-10%; z-index:0;
-    background:
-      radial-gradient(120% 90% at 50% 18%, rgba(53,255,106,.055) 0%, transparent 58%),
-      radial-gradient(140% 120% at 50% 45%, transparent 32%, rgba(3,4,6,.72) 100%);
-    animation:breathe 34s cubic-bezier(.45,0,.55,1) infinite alternate;
-  }
-  @keyframes breathe{
-    from{transform:scale(1) translate3d(0,0,0);opacity:.88}
-    to  {transform:scale(1.045) translate3d(0,-1.2%,0);opacity:1}
-  }
-  .grain{
-    inset:-150px; z-index:1; opacity:.038;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation:grainshift 7s steps(1,end) infinite;
-  }
-  @keyframes grainshift{
-    0%{transform:translate3d(0,0,0)}      14%{transform:translate3d(-3%,-2%,0)}
-    28%{transform:translate3d(2%,-4%,0)}  42%{transform:translate3d(-1%,3%,0)}
-    57%{transform:translate3d(3%,1%,0)}   71%{transform:translate3d(-2%,2%,0)}
-    85%{transform:translate3d(1%,-3%,0)}
-  }
-
-  /* content — one lockup, centred as a group */
-  .wrap{position:relative;z-index:2;min-height:100dvh;display:flex;
-    justify-content:center;align-items:center;padding:48px 16px;text-align:center}
-  .lockup{display:flex;flex-direction:column;align-items:center;
-    gap:clamp(14px,2.6vh,26px);max-width:100%}
-  @media (min-width:720px){.wrap{padding-inline:20px}}
-
-  /* headline — fit-to-width, capped at 2.75rem; --units set by JS from metrics */
-  .hero{display:grid;justify-content:center;margin:0;max-width:100%;
-    font-size:min(2.75rem, calc(min(100vw - 44px, 90vw) / var(--units)));
-    line-height:1.04;letter-spacing:0;contain:layout style;
-    --glow:calc(1 + var(--beat) * .7);
-  }
-  .hero>span{grid-area:1/1;display:block;white-space:pre}
-  .ln{display:block;min-height:1.04em}
-  .hero:not(.stack) .ln:nth-child(n+2){display:none}
-  /* stacked: rows breathe, each line centres on its own text */
-  .stack .layer,.stack .sizer{display:flex;flex-direction:column;gap:.35em}
-  .stack .lw{display:block;position:relative;width:max-content;margin:0 auto}
-  .stack .caret{position:absolute;left:100%;top:0}
-  .sizer{visibility:hidden}
-  .layer{font-family:var(--display);font-weight:400}
-  .grid .c{display:inline-block;width:var(--cw);text-align:center}
-  .l-core{z-index:3;color:var(--white);
-    text-shadow:0 0 .012em rgba(53,255,106,.58),0 0 .045em rgba(53,255,106,.34),
-                0 0 .11em rgba(53,255,106,.20),0 0 .28em rgba(23,163,79,.14)}
-  .l-mid {z-index:2;color:var(--p-500);filter:blur(.055em);opacity:calc(.42*var(--glow))}
-  .l-wide{z-index:1;color:var(--p-700);filter:blur(.2em);opacity:calc(.30*var(--glow))}
-
-  a{color:var(--p-500);text-decoration:underline;text-decoration-color:var(--p-700)}
-  a:hover{text-decoration-color:var(--p-500)}
-  :focus-visible{outline:1px solid var(--p-500);outline-offset:3px}
-  .label{color:var(--muted);text-transform:uppercase;letter-spacing:.16em;font-size:var(--t-micro)}
-  .caret{font-family:var(--mono);color:var(--p-500);animation:blink 1.05s step-end infinite}
-  @keyframes blink{50%{opacity:0}}
-
-  /* subline — headline face, uppercase, tracked wide, dim neutral white.
-     nothing follows the text. --tu set by JS from the rendered string. */
-  .tag{display:grid;justify-content:center;margin:0;
-    font-family:var(--display);font-weight:400;
-    color:var(--sub);letter-spacing:.18em;text-transform:uppercase;
-    font-size:min(1rem, calc((100vw - 44px) / var(--tu)))}
-  .tag>span{grid-area:1/1;white-space:pre}
-  .tag-size{visibility:hidden}
-  .tag-live{justify-self:start;display:grid;justify-content:start}
-  .tag-blur,.tag-txt{grid-area:1/1}
-  .tag-blur{color:var(--white);filter:blur(.14em);opacity:.18}
-  .tag-txt{text-shadow:0 0 .05em rgba(244,247,245,.30),0 0 .32em rgba(244,247,245,.15),
-                       0 0 .95em rgba(244,247,245,.07)}
-
-  @media (prefers-reduced-motion: reduce){
-    *,*::before,*::after{animation:none!important;transition:none!important}
-    .hero{transform:none!important}
-  }
-</style>
+  meta, canonical, og, twitter, favicon data URI     <- keep as they are
+  <link> michroma                                    <- the one load-time request
+  <style>
+    @property --ex --ey --blink --wide --beat --units --tu
+    :root{ light tokens }   html[data-theme=dark]{ dark tokens }
+    *,*::before,*::after{ transition: the four colour properties, .5s }
+    depth layers, bar, lockup, hero, tag, cta, bubble, card
+    @media (prefers-reduced-motion: reduce){ narrow transition-property, kill animation }
+  </style>
+  <script>
+    apply data-theme + lang from localStorage        <- synchronous, before paint
+    var T = { en:{}, ru:{}, lv:{} }                  <- every visible string
+    boot() on DOMContentLoaded:
+      rewrite static copy from T
+      measure michroma -> --cw, --units, --tu
+      build the cell grid, then ONE rAF loop:
+        blink | eyes | bubble | glitch | typing | decode
+  </script>
 </head>
 <body>
-  <div class="vignette" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
-
-  <main class="wrap">
-   <div class="lockup">
-    <h1 class="hero">
-      <span class="sr">the boring tek — coming soon</span>
-      <!-- sizer, then l-wide / l-mid / l-core. EACH carries three .ln lines,
-           and every line wraps its text + caret in .lw so the stacked lockup can
-           centre on the text alone:
-           <span class="ln"><span class="lw"><span class="t">THE BORING TEK</span><span class="caret">&#9610;</span></span></span>
-           <span class="ln"><span class="lw"><span class="t"></span><span class="caret">&#9610;</span></span></span>
-           <span class="ln"><span class="lw"><span class="t"></span><span class="caret">&#9610;</span></span></span>
-           Line 1 holds the whole string; lines 2-3 fill only in the stacked lockup.
-           Copy the exact markup from index.html. -->
-    </h1>
-    <p class="tag">
-      <!-- lowercase in the DOM, uppercased by CSS. no full stop, nothing after
-           the text, and all three copies of the string match exactly. -->
-      <span class="tag-size" aria-hidden="true">building the boring part of the future</span>
-      <span class="tag-live"><span class="tag-blur" aria-hidden="true">building the boring part of the future</span><span class="tag-txt">building the boring part of the future</span></span>
-    </p>
-   </div>
-  </main>
-
-<script>
-  // Guard everything with REDUCED. Measure metrics after document.fonts.load
-  // resolves, build the cell grid, then run ONE shared rAF loop for decode +
-  // mascot eye tracking. See index.html for the full implementation.
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-</script>
+  .vignette  .grain                                  <- aria-hidden
+  header.bar     -> .langs (EN RU LV)  |  .theme
+  main.wrap > .lockup
+    .m-zone   -> .m-wrap > svg.mascot  +  .bubble
+    h1.hero   -> .sr + .sizer + .l-wide + .l-mid + .l-core
+    p.tag     -> .tag-size + .tag-live
+    .cta-zone -> button.cta + p.hint
+    section.card > .cardin > .pad                    <- rendered by JS
 </body>
-</html>
 ```
+
+- **The `<script>` is in `<head>` and is not deferred.** See Non-negotiables.
+- The markup ships English copy so the page still reads with JS off; boot rewrites it
+  from `T` before paint work matters.
+- Four `.hero` layers, each holding three `.ln > .t` lines. Cells are built into `.t`.
+- `.pad` is empty in the markup. The form is rendered a step at a time, never
+  pre-built and never hidden with CSS.
 
 ## Not allowed
 
@@ -1146,20 +1415,40 @@ Original list, still in force:
 - CRT curve distortion.
 - Scanlines heavy enough to hurt readability.
 - Terminal window chrome with traffic-light dots.
-- Rounded corners, pills, gradients on text, glassmorphism, drop shadows on cards.
+- Gradients on text, glassmorphism, drop shadows on cards.
 - Scroll-jacking, parallax, scroll-triggered reveal chains.
 - Emoji anywhere in the UI.
+
+**Lifted at v1** — these were on the list and are now allowed, in exactly the scopes
+named and nowhere else. Do not re-ban them, and do not widen them:
+
+- **Rounded corners**, on the three radii in Layout only. Everything else is square.
+- **Springy overshoot easing**, on `--spring` only, and never on colour or on the card's
+  row animation. See Motion budget.
+- **Shake**, on the CTA glitch only, 1–3px, every 3–5s, dead while the form is open.
+- **A white background**, as the default theme. See Color.
 
 Added:
 
 - **Default CSS color keywords or shorthand hexes.** No `green`, `white`, `black`,
-  `lime`, `#000`, `#fff`. Palette tokens only.
+  `lime`, `#000`, `#fff`. Tokens only — including in light mode, where `--bg` happens
+  to be white.
 - **Pure `#00ff00`** or any unmodified sRGB primary. Phosphor ramp only.
-- **Flat `#000` page background.** It has to have grain and a vignette on it.
+- **One green for both themes.** `#35ff6a` is unreadable on white. Light gets its own.
+- **Glow in light mode.** `--glowon` is `0` and stays `0`.
+- **Mismatched gradient stops between themes.** They stop interpolating and the swap
+  snaps mid-fade.
+- **A blanket `transition: none` under reduced motion.** It kills the theme cross-fade,
+  which is the harsher option. Narrow `transition-property` instead.
+- **Reading `prefers-color-scheme` to pick the default theme.** Light, always, until the
+  visitor says otherwise.
+- **Deferring the theme bootstrap**, or putting the script at the end of `<body>`. Both
+  put a white flash in front of every dark-mode visitor.
+- **Untrapped `localStorage` access.** Private windows throw on it.
 - **Linear infinite anything** — spins, rotations, orbits, marquees, constant-rate
   drifts. Stepped grain is the only exception.
-- **Comic effects** — bounce, elastic, squash-and-stretch, wobble, shake, jelly,
-  confetti, springy overshoot easing. Nothing here is playful.
+- **Comic effects beyond the lifted list** — bounce, elastic, jelly, wobble, confetti,
+  anything that overshoots twice.
 - **One cheap `text-shadow`** standing in for the layered glow.
 - **Animated `filter: blur()` radius**, or any animation of a non-composited property.
 - **Layout reads inside a rAF loop** (`getBoundingClientRect`, `offsetWidth`,
@@ -1181,8 +1470,13 @@ Added with Michroma:
   file past any sane budget — use the Google Fonts link.
 - **Synthetic bold on Michroma** — `font-weight: 700`, `-webkit-text-stroke`, or a
   duplicated offset layer faking heft. It has one weight; that's the design.
-- **Michroma on body text, buttons, nav or status tags.** The headline and the lockup
-  subline are the whole list.
+- **Michroma on body text, buttons, chips, fields, nav or status tags.** The headline
+  and the lockup subline are the whole list.
+- **Michroma on a non-Latin string.** It has no Cyrillic and no Latvian diacritics, so
+  the line falls back per glyph and breaks a word across two faces. Test the string and
+  drop the whole line to `--mono`.
+- **One `--tu` for all three languages.** Different lengths in different faces cannot
+  share a divisor. Re-measure on every switch.
 - **Michroma at small sizes without caps and the `0.18em` tracking.** Lowercase,
   default-tracked Michroma under 1rem is a smudge. All three ship together.
 - **Measuring Michroma without applying the same `text-transform` the CSS will.** Caps
@@ -1210,28 +1504,38 @@ Added with the mascot and the lockup:
 - **Tilting the eyes in the neutral pose.** Rotation belongs to the up-left and
   up-right variants only, at 4°.
 - **Moving, rotating or scaling the face circle.** Only the eye group ever moves.
-- **Mascot motion beyond eye tracking and the blink** — bobbing, floating, rotating,
-  scanning, colour cycling, idle drift.
+- **Mascot motion beyond eye tracking, the blink and the wide-eye reaction** — bobbing,
+  floating, rotating, scanning, colour cycling, idle drift.
+- **A blink transition longer than the 120ms hold.** At 180ms, or on a spring, the eyes
+  never reach the squash and the blink silently stops working.
+- **Springing the wide-eye reaction.** Surprise snaps.
 - **A winking, fading or lidded blink.** Both eyes, squash, snap back.
 - **A second rAF loop or a `setInterval`** for the eyes or the blink. Both ride the
   shared loop and the existing pointer handler.
 - **Reading the mascot's rect inside the frame loop.** Measure it in `remeasure()`
   alongside the headline's.
-- **Raising the eye-travel caps** without redoing the containment arithmetic. `±3` and
-  `±2` units is what keeps the eyes on the face.
-- **Eye tracking on touch or under reduced motion.** Centred eyes, blink only.
+- **Raising the eye-travel caps** without redoing the containment arithmetic. `±6` and
+  `±3.8` units is what keeps the eyes on the face; at full deflection the worst eye
+  corner sits 26.2 units from centre, inside `r=30` with 3.8 to spare.
+- **Eye tracking on touch, under reduced motion, or while the form is open.** Centred
+  eyes, blink only. Once he's wide-eyed at a customer he stops following the cursor.
 - **Recolouring the mascot** beyond swapping the two fills. No green face, no tinted
-  eyes, no third colour, no gradient.
+  eyes, no third colour, no gradient. The theme swap is a fill swap, nothing more.
+- **`--eye` set to anything but `--bg`.** The eyes are a hole in the page in both
+  themes; that invariant is why he can invert without gaining an outline.
+- **Leaving `fill` off the `.m-eye` transition.** That rule re-declares `transition`, so
+  it drops the universal colour fade and the eyes snap while the face fades.
 - **A separate favicon file**, or a favicon using a pose variant. Inline `data:` URI,
-  neutral pose, transparent.
+  neutral pose, transparent, and always the dark-mode colourway.
 - **A separate cap for the stacked mobile lockup.** `2.75rem` is uniform everywhere.
-- **A `gap` on `.wrap`**, or headline and subline as loose siblings. One `.lockup`
+- **A `gap` on `.wrap`**, or the lockup's children as loose siblings. One `.lockup`
   child, centred as a group.
-- **A `--muted` subline.** The subline is `--sub`, a bright dim white with a glow.
-  `#6d7680` under a lit headline reads as an unstyled leftover. `--muted` is for labels
-  and timestamps.
-- **Green anywhere in the subline** — fill, shadow stack or blur duplicate. There is no
-  phosphor below the headline.
+- **A full-width `.m-zone`.** The bubble is anchored to `100%` of it, so it has to be
+  `width: max-content` or the bubble flies off the right of the whole column.
+- **A `--muted` subline.** The subline is `--sub`. `--muted` reads as an unstyled
+  leftover under a headline; it is for the hint line, field labels and timestamps.
+- **Green anywhere in the subline** — fill or shadow. There is no phosphor below the
+  headline.
 - **A full stop on the subline**, or anything else after the text.
 - **Typing the subline's caps into the markup.** `text-transform` does it; the DOM keeps
   the readable lowercase sentence.
@@ -1241,110 +1545,170 @@ Added with the mascot and the lockup:
   down, relative radii go up. See Glow tiers.
 - **Writing a text layer without its glow duplicates in the same frame.** The blurred
   copy lagging behind shows as a green ghost.
-- **Letting the stacked lockup collapse to two line boxes** when a word is two lines.
-  Three boxes always, or the layout jumps on every swap.
-- **An inline caret in the stacked lockup.** It shifts every line off centre by half a
-  cursor. Out of flow, `left: 100%`, always.
-- **Positioning the stacked caret against `.ln`** instead of the `.lw` text wrapper.
-  That pins it to the track edge, so short lines get a cursor floating away from their
-  text.
-- **Applying the stacked caret or row-gap rules to the desktop single line.** Scope
-  everything to `.stack`.
+- **Letting the stacked lockup collapse to two line boxes.** Three boxes always, or the
+  block changes height under whatever sits below it.
 - **Row gap as margins on `.ln`.** Use the flex `gap`, and put it on the sizer too or
   the four stacked layers drift out of register.
 - **Decoding the stacked lines independently.** One schedule across the whole lockup.
-- **Looping or re-triggering the subline typing.** Once, after the first headline
-  resolve, then static forever.
-- **A caret on the subline**, during the typing or after it. One blinking thing on the
-  page, and it belongs to the headline.
-- **Dropping the hidden sizer now that there's no caret to keep out of flow.** It is
-  what stops the centred line sliding right as it types.
-- **Letting a cursor inherit Michroma.** `font-family: var(--mono)` on every caret,
-  always.
+- **Looping or re-triggering the subline typing.** Once, on load, then static forever —
+  a language switch swaps the text, it does not re-type it.
+- **Bringing back a caret** while the CTA glitch is on the page. One attention-getter.
+  If a caret returns it takes the `.lw` wrapper and the `--units` caret budget with it,
+  and `font-family: var(--mono)` on the caret, always.
+- **Dropping the subline's hidden sizer.** It is what stops the centred line sliding
+  right one character at a time as it types.
+
+Added with the theme, the bubble and the form:
+
+- **A `.5s` transition on hover or press.** The universal colour rule is `.5s`;
+  interactive elements re-declare their own faster transition and win on specificity.
+  Check that every button, chip, field and dot does.
+- **Layout reads in the frame loop for the bubble.** Measure the pill on show, on
+  resize, and when the card resizes. Never per frame from the rAF loop.
+- **Measuring the pill with `getBoundingClientRect()`.** It is mid-entrance at
+  `scale(.7)` and a client rect is transformed — it under-shifts every time.
+- **A media query to fix the mobile bubble.** The shift is computed; there is no width
+  at which the pill both fits beside the head and stays readable.
+- **Moving the dots when the pill shifts.** They stay put; the pill lifts over them.
+- **An absolutely positioned bubble without `width: max-content`.** It shrink-to-fits
+  against the head and wraps short lines at any viewport width.
+- **Shifting the pill with a transform instead of a negative margin.** The container's
+  box stays out past the viewport and the page scrolls sideways. `overflow-x: clip` on
+  the root does not stop it — this was measured, not assumed.
+- **Rolling the pill's position correction into the same `transform` as its entrance
+  scale.** The correction inherits the spring and lags behind the head.
+- **Clamping the bubble to the viewport top instead of below the bar.** It parks the
+  pill on top of the theme toggle.
+- **Adding a transition class in the same frame `display: none` came off.** Two rAFs,
+  or it snaps and looks like an animation you forgot to write.
+- **Bubble text that isn't `aria-hidden`,** or that carries information nothing else on
+  the page says. He comments; he does not instruct.
+- **Idle chatter while the form is open.** He stops being bored once someone answers.
+- **A stored step count, or a hardcoded number of progress dots.** Steps are derived
+  from the answers every time.
+- **Re-rendering a whole step to show one chip as selected.** It replays the stagger.
+  Set `aria-pressed` in place.
+- **Selection carried by a class instead of `aria-pressed`.** The state has to be real.
+- **A modal, a toast, or a bare red border** for validation. Small red words, under the
+  thing that's wrong, one at a time.
+- **Clearing someone's answers because the network failed.**
+- **Posting the visitor's language in the payload body.** English labels, plus a
+  `language` field. An inbox you can't read is worse than no inbox.
+- **Treating `allSettled` fulfilment as delivery** without checking `r.ok`. A 4xx
+  fulfils, and the page shows a check mark for a form nobody got.
+- **Failing the submit because one destination failed.** One arriving is enough.
+- **Sending `access_key` to the worker**, or any key to anything that didn't ask for it.
+- **Logging the payload anywhere**, including in a `catch`. It is someone's name,
+  business and email address.
+- **Another runtime endpoint** without it being a decision. Two `POST`s, on a press.
+- **`void el.offsetWidth`** to restart an animation. Remove the class on `animationend`.
 
 ## Before shipping
 
-Visual:
+**Run every visual check in both themes.** Half of them only fail in one.
+
+Theme and language:
+
+- Toggle the theme ten times in a row. Every colour on the page fades over the same
+  0.5s - background, text, mascot face, mascot eyes, borders, the card, the bubble, the
+  vignette, the halo, the phosphor glow. Nothing snaps a beat early or late.
+- Watch the mascot specifically through a swap: face and eyes cross-fade together. If
+  the eyes snap, `fill` is missing from the `.m-eye` transition.
+- Pick the light-mode green with a colour picker against white: it must clear 4.5:1.
+  So must `--muted`, `--sub` and the red, in both themes.
+- Set dark, reload. **No white flash.** If there is one, the bootstrap is deferred.
+- Reload in a private window with site data blocked: the page still loads, still
+  defaults to light, and nothing throws.
+- Mobile browser chrome matches the theme - `theme-color` is being updated.
+- Switch language mid-form: the question, chips and buttons all change, progress is
+  kept, the card stays open, and nothing resets.
+- Switch language on the landing page: the subline swaps **without re-typing**, and
+  re-fits - check RU and LV at 320px, where they are longest.
+- The RU and LV sublines render in one face, not two. If a word is half Michroma and
+  half mono, the Latin test is broken.
+- `<html lang>` follows the language. Copy the subline out: it pastes back lowercase.
+
+Lockup:
 
 - Renders correctly at 320px, 768px, 1440px and 2560px wide.
-- Headline caps at 2.75rem on wide screens and stacks to three lines under 640px —
+- Headline caps at 2.75rem on wide screens and stacks to three lines under 640px -
   check both, and drag across the 640px boundary to confirm the swap is clean.
-- Headline has real air around it at 1440px — roughly 40% of the viewport, not 90%.
-- Headline and subline read as one block. If they look like two floating pieces, the
-  gap is wrong or they aren't in the same `.lockup`.
-- Sweep the pointer across the lockup: the headline and subline do not move, shift or
-  brighten by a single pixel. Only the eyes react.
-- Subline reads as quiet neutral white with no green cast in the letters, easily legible
-  at a glance, and never flashes on the headline's settle beat. Screenshot it and pick a
-  letter with a colour picker if you're unsure — R, G and B should be within a point or
-  two of each other.
-- Subline sits in the same face as the headline, all caps, and reads as tracked rather
-  than loose or crammed. At 1440px it runs close to the headline's own width — that
-  near-match is the point of the caps and the tracking, so if one is much longer than
-  the other, check `--tu` before changing the copy.
-- Nothing follows the last letter. No caret, no period, no stray glyph at any point
-  during or after the typing.
-- The headline's block cursor is the only blinking thing on the page.
-- No ghost trailing the subline while it types — the blur layer is written in the same
-  frame as the core.
-- Subline still types once and lands on the full line with no visible sideways drift —
-  the sizer is doing its job.
-- Copy the subline out of the rendered page: it should paste back as a lowercase
-  sentence, not as caps. If it pastes as caps, someone typed the transform into the
-  markup.
-- Every `nowrap` line still fits at 320px — the uppercase tracked subline is now the
-  tightest case on the page, not the headline. Check it first, and check it again after
-  any copy change.
-- Mascot reads as a character at the top of the lockup, with clear space beneath him and
-  a soft halo around him — not a small icon bolted above the text.
-- Sweep the pointer a full circle around the mascot, out to all four screen corners: the
-  eyes follow from anywhere, move a visible distance, arrive quickly, stay inside the
-  face at every angle, and recentre when the pointer leaves the window.
-- Sit and watch for 30s: it blinks 5–7 times at irregular intervals, both eyes, squash
-  not fade.
-- Touch and reduced motion: eyes dead centre, still blinking, nothing else moving.
-- Nothing below the headline jumps when the words swap. Watch a full cycle in stacked
-  mode: `COMING SOON` is two lines, the wordmark is three.
-- Exactly one cursor on the page, ever: the headline's block cursor, on its last line
-  with content.
-- In stacked mode, drop a vertical guide down the centre of the viewport: it should
-  bisect `THE`, `BORING` and `TEK` equally. If the text sits left of centre, the caret
-  is still in flow.
-- Stacked rows have visible air between them, and the block doesn't change height when
-  the words swap.
-- Desktop single line is untouched — caret still inline, still centred with the text.
-- Headline does not wobble horizontally during decode. Watch one full cycle at 1440px.
-- Subline types once and never again — sit through three headline cycles to confirm.
-- Favicon renders as a white circle with two dark dash eyes in the tab, at 16px — the
-  eyes still read as two separate marks and haven't merged into a blur.
+- Headline has real air around it at 1440px - roughly 40% of the viewport, not 90%.
+- Headline, subline and button read as one block, not floating pieces.
+- The landing state does not scroll on a 1440x900 desktop.
+- Sweep the pointer across the lockup: no text moves, shifts or brightens by a pixel.
+  Only the eyes react.
+- Headline does not wobble horizontally during decode. Watch it at 1440px.
+- In stacked mode, a vertical guide down the centre bisects THE, BORING and TEK
+  equally, and the rows have visible air between them.
+- Subline reads as one tracked line, no green cast in the letters, nothing after the
+  last letter, and it lands with no sideways drift.
+- Nothing blinks except the CTA glitch. No caret anywhere.
+- Favicon at 16px: white circle, two dark dash eyes still reading as two marks.
 - Grain is invisible until you look for it. Vignette is invisible until you screenshot
-  with and without.
-- Nothing looks like a default CSS color.
+  with and without - in both themes.
 - Throttle to Slow 3G and reload: the mono fallback headline is laid out sensibly and
-  the swap to Michroma doesn't break the layout.
+  the swap to Michroma does not break the layout.
+
+Mascot and bubble:
+
+- Sweep the pointer a full circle around the mascot, out to all four screen corners:
+  the eyes follow from anywhere, travel a visible distance, arrive quickly, stay inside
+  the face at every angle, and recentre when the pointer leaves the window.
+- Sit and watch for 30s: it blinks 5-7 times at irregular intervals, both eyes, squash
+  not fade. **Then open the form and watch again** - it still blinks while wide-eyed.
+  If it stopped, the shared transition is longer than the 120ms hold.
+- Sit for a minute on the landing page: a bored line appears every 8-14s and fades.
+- At 320px, trigger every bubble line including the longest done line: the pill always
+  stays fully on screen, wraps rather than clips, and the dots never move.
+- At 1440px the pill sits beside the head and is not shifted at all.
+- Press the mascot: the form opens, same as the button. Tab to him and press Enter:
+  same again, with a visible focus ring.
+
+Form:
+
+- Walk all four paths end to end: business check, problem, not sure, just a question.
+- Pick "i will explain myself": a step appears and the progress dots grow by one.
+  Deselect it: the step and the dot go away again.
+- Back out of every step. Answers are still there. Go forward again: still there.
+- Trigger all five validation messages. Each is small, red, under the right thing, and
+  only one shows at a time.
+- Submit with the network offline: the red line appears, the button comes back, and no
+  answer is lost. Reconnect and send: it goes.
+- Check the received payload is readable English with a `language` field, after
+  submitting in Russian.
+- Start again fully resets - state, card, button, hint, eyes, bubble.
+- Every step fits on a 320px screen without the card scrolling inside itself.
 
 Performance:
 
 - DevTools Performance recording of a hover pass: **no layout, no style recalc** in the
   frame loop. Green frames only.
 - Sustained 60fps with the pointer sweeping across the mascot.
-- The mascot halo is a gradient layer, not a filter — confirm no filter re-raster shows
+- The mascot halo is a gradient layer, not a filter - confirm no filter re-raster shows
   up while the eyes are moving.
-- Frame loop allocates nothing — Memory timeline is flat, no sawtooth.
-- Canvas (if any) drops to zero work on tab hide.
-- `will-change` is cleared after entrance; layer count stays in single digits.
+- Frame loop allocates nothing - Memory timeline is flat, no sawtooth.
+- `will-change` is cleared after the decode; layer count stays in single digits.
 
 Correctness:
 
-- Exactly two external requests in the network tab: the Google Fonts CSS and the
-  Michroma WOFF2. Anything else is a bug.
+- **Exactly two external requests on load**: the Google Fonts CSS and the Michroma
+  WOFF2. Anything else is a bug. The two form `POST`s appear only when send is pressed.
+- Send with one destination blocked and then the other: both deliver on their own. Block
+  both: the red line appears and no check mark does.
+- The network tab shows no form payload in any console message, on success or failure.
 - Block `fonts.googleapis.com` and reload: page still renders, still readable, still
-  laid out — just in mono.
-- Reduced-motion pass: static grain, static vignette, no decode, no eye tracking, no
-  canvas, page still complete.
-- JS disabled: headline reads correctly, page is fully usable.
-- Keyboard-only pass: every link and button reachable, focus always visible.
-- Screen reader reads the headline once, not four times.
+  laid out - just in mono.
+- Reduced-motion pass: static grain and vignette, no decode, no typing, no eye
+  tracking, no glitch, no idle bubble - **but the blink still runs, the theme still
+  cross-fades, and the whole form still works end to end.**
+- JS disabled: headline reads correctly and the page is legible. The form cannot open;
+  that is expected, and nothing else may be broken or misleading.
+- Keyboard-only pass: language buttons, theme toggle, mascot, CTA, every chip, field
+  and nav button reachable, focus always visible in both themes.
+- Screen reader reads the headline once, not four times, and never reads the bubble.
 - No `console.log`, no commented-out code, no TODOs left in the file.
-- No secrets, no client names, no personal contact details — the repo is public.
-- Copy re-read once against the banned-words list.
+- One real form sent end to end and confirmed to arrive. A stubbed network proves the
+  branching, not the delivery.
+- No secrets, no client names, no personal contact details - the repo is public.
+- Copy re-read once against the banned-words list, in all three languages.
