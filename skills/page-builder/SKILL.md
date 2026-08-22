@@ -289,6 +289,14 @@ tu = cx.measureText(TAG.toUpperCase()).width / 200  // the line as it RENDERS, i
   render in.** Three strings of different lengths in two different faces cannot share
   one divisor. Measure with the mono font string and `.14em` tracking when the line has
   fallen back, with Michroma and `.18em` when it hasn't.
+- **Never measure Michroma before it has loaded.** Wait for `document.fonts.load` in
+  *every* mode — reduced motion included — and check `document.fonts.check` before
+  trusting the result. Measuring while the mono fallback is still rendering gives a
+  short `--tu`, which sizes the line *up* and overflows every narrow screen. This one
+  hid for a while because it only shows below ~360px, and only on the path that skipped
+  the font wait.
+- If Michroma genuinely never arrives, treat the line as mono — mono face, mono
+  tracking, mono measurement. The three have to agree.
 - Register `--units` and `--tu` with `@property { syntax: '<number>' }` so the division
   resolves.
 - **Give `--tu` an `initial-value` that is deliberately too large** (`46` against a real
@@ -333,6 +341,13 @@ Order, top to bottom:
   screens.
 - **The landing state must not scroll on desktop.** Mascot, wordmark, subline, button
   and hint come to roughly 330px; that is the budget. Anything new competes for it.
+  The hero still fills `100dvh`; the about section sits below the fold, which is where
+  every section after it goes too.
+- **The page scrolls now, so the fixed bar needs a scrim.** Content passes under the
+  language and theme controls, and a transparent bar lets the headline collide with
+  them. The bar carries a `linear-gradient(to bottom, var(--bg) 42%, transparent)` and
+  `pointer-events: none`, with the buttons themselves set back to `auto`. **Not a solid
+  band** — that would occlude the vignette and leave a visible seam in dark mode.
 - The mascot gets extra breathing room below it — a `margin-bottom` on top of the gap,
   so the character isn't crowding the wordmark. It is a character, not a bullet point.
 - `.lockup` caps at `560px` because the form card lives in it. The headline sizes itself
@@ -845,9 +860,11 @@ Universal:
   that is exactly what the setting is asking us to stop.
 - Skip canvas init.
 - Keep hover/focus feedback, but instant.
-- **Keep the mascot blink.** It is the one deliberate exception — small, local,
-  non-vestibular. Which means the rAF loop still starts under reduced motion, gated so
-  it does nothing else. See Mascot → Touch and reduced motion.
+- **Keep the mascot blink — on every mascot on the page.** It is the one deliberate
+  exception: small, local, non-vestibular, and it is what stops a face reading as a
+  sticker. Which means the rAF loop still starts under reduced motion, gated so it does
+  nothing else. Eye movement — cursor tracking on the hero, wander on the boss — stops;
+  the lids do not. Two faces on one screen must not disagree about this.
 - **Keep the theme cross-fade.** A colour fade is not vestibular motion, and snapping
   the whole page between white and near-black is the harsher of the two. So the reduced
   override is not a blanket `transition: none` — it narrows `transition-property` to
@@ -1094,13 +1111,26 @@ ey += (aimY - ey) * EASE;
 
 ### Blink
 
-- Every **4–6 seconds**, randomised each time — never a fixed interval.
-- Eyes **squash flat** for ~`120ms`: `scaleY(.16)` about each eye's own centre, with a
-  `55ms` transition either side. Both eyes together. Never a wink, never a lid, never
-  a fade-out.
-- Scheduled from the same shared rAF loop, from the frame clock. No `setInterval`,
-  no `setTimeout` chain.
-- Write `--blink` only on the two state changes, not every frame.
+A **human lid**, not a squash: eases shut, holds shut a beat, eases back open, and now
+and then goes twice. Every mascot on the page uses the same engine.
+
+```
+1.00  0.97  0.88  0.74  0.54  0.28  0.06 . 0.06 . 0.27  0.46  0.61  0.74  0.85  1.00
+      |--------- 95ms ease in --------|  45ms  |-------- 140ms ease out --------|
+```
+
+- Every **3–5 seconds**, randomised each time — never a fixed interval. Roughly a 1 in 5
+  chance the blink repeats after ~`120ms`, which is what a real double blink looks like.
+- Lid floor is `.06`, not `0`. A hard zero makes the eye vanish for a frame.
+- **Driven per frame from the shared rAF loop, not by a CSS transition.** The shape of
+  the close is the whole point; a `transition` gives a linear squash that reads
+  mechanical, and it also fights any other transform on the same element.
+- Because it is per-frame, `.m-eye` carries **no transform transition at all** — only
+  `fill`. The wide-eye reaction then snaps, which is correct.
+- `--blink` is written **only while a blink is actually running**, and only when the
+  value changes. Between blinks the cost is one comparison per frame.
+- This replaces the old instant `scaleY(.16)` squash with a `55ms` CSS transition. Do
+  not go back to it: it could not double-blink, and it could not ease.
 
 ### Touch and reduced motion
 
@@ -1213,6 +1243,82 @@ measuring the rendered page, and every one of them looks optional until it isn't
   he stops being bored at them.
 - Every line is translated. Dry, lowercase, three words where two won't do. He is
   unbothered, not chatty — if a line sounds like it's trying to be funny, cut it.
+
+## The about section
+
+Below the hero: **the boss**, on the left of a `520px` centred column, with the same
+bubble the hero uses and a small sound button on his head. He reads the pitch out loud.
+
+```
+        ( building with ai every day. )
+      o
+    o
+  o
+ (o)  <- sound button, on the upper left edge
+[ @@ ]  <- the boss, 92px, eyes right, watching his own bubble
+```
+
+- Same mascot SVG, same geometry, same theme inversion. **`92px`** against the hero's
+  `110px` — he is a second appearance, not a second hero.
+- The bubble is the **same `.bubble` / `.dot` / `.pill` markup and CSS**, anchored the
+  same way to a `width: max-content` zone. Nothing about it is forked; only the colours
+  differ while idle.
+- Idle, the bubble is **always up** and dimmed, reading `press the sound button`. It
+  brightens (`.live`) while he talks and dims again when he stops. It is the only
+  bubble on the site that never hides.
+- The section carries its own top padding, and that padding is what guarantees the
+  bubble sky — which is why it passes **`null`** for the pill's top clamp instead of the
+  bar height. A viewport-relative clamp on a mid-page bubble would make it jump as the
+  page scrolls.
+- The whole script also lives in a visually hidden `<p>`, complete and static. The
+  bubble animates the same words four at a time and stays `aria-hidden`.
+
+### The sound button
+
+- Round, `30px`, on the **upper left edge** of the head — at the circle's 135° point, so
+  it straddles the outline rather than floating off the corner.
+- Quiet by default: the bubble's surface (`--bg`), the bubble's border (`--bub`), a
+  `--muted` glyph. **No shadow, no black plate, no fill of its own.**
+- While speaking, only the **border and glyph darken** to `--fg`, over `.3s`. Nothing
+  grows, nothing pulses, nothing changes size.
+- The visible button is smaller than the 44px tap minimum, so a `::before` with
+  `inset: -7px` pushes the hit area out. Never shrink the target to match the art.
+
+### Eyes
+
+- He looks **right, at his own bubble** — base `(5.1, -1.4)` in the 64-grid units the
+  hero's eye tracking uses, well inside the same `±6` / `±3.8` caps.
+- A small wander around that point every `0.9`–`2.4s`, and about **one glance in eight**
+  goes somewhere else entirely for `0.4`–`0.8s` before coming back.
+- Lerped at `.055` — slower than the hero's `.22`, because nothing is chasing a cursor.
+- Under reduced motion the eyes **park on the base position and stop wandering**, but
+  **the blink keeps running** — same as the hero. Both faces behave identically under
+  that setting; only the movement stops.
+
+### Speech
+
+`SpeechSynthesis`, `rate .85`, `pitch .55`, `u.lang` from the current site language
+(`en-US` / `ru-RU` / `lv-LV`). No controls beyond the one button; language follows the
+global switch.
+
+- **The voice is the device's, not ours.** Nothing is downloaded and no request is made,
+  so the one-external-request rule is untouched — but what it sounds like, and whether
+  it exists at all, is entirely down to the visitor's OS and browser. Do not tune the
+  copy to how it reads on one machine.
+- **The bubble is the product; the voice is a bonus.** A line advances when its
+  utterance has finished *and* a per-line floor of `1.5`–`1.9s` has passed. With a
+  working voice that keeps the words in step with the audio; with no voice at all the
+  floor does all the pacing and the script still reads at a natural speed.
+- **An empty `getVoices()` means the API is present but mute.** Plenty of devices ship
+  it that way, including headless Chrome. Treat that as no speech at all up front —
+  waiting on callbacks that never come leaves a line sitting on screen for seconds.
+- **A voice list is still not a promise of sound.** If nothing has actually started
+  `600ms` after `speak()`, give up on speech for the rest of the script and let the
+  floor pace it. There is also a backstop for an engine that starts and never reports
+  finishing.
+- **Presses are ignored while he is talking.** No queue, no restart, no overlap.
+- A language switch **stops him mid-sentence** rather than finishing in the old
+  language, and resets the bubble to the new idle line.
 
 ## The contact form
 
@@ -1581,6 +1687,27 @@ Added with the theme, the bubble and the form:
   pill on top of the theme toggle.
 - **Adding a transition class in the same frame `display: none` came off.** Two rAFs,
   or it snaps and looks like an animation you forgot to write.
+
+Added with the about section:
+
+- **A second mascot anywhere but the about section**, or either mascot at the other's
+  size. `110px` in the hero, `92px` below.
+- **Forking the bubble.** Same markup, same classes, same fit logic. Only the idle
+  colours differ.
+- **Clamping the about pill to the top bar.** It is mid-page; a viewport-relative clamp
+  makes it jump as the page scrolls. Pass `null` and give the section real padding.
+- **A CSS-transition blink.** It cannot ease and it cannot double-blink.
+- **A transform transition on `.m-eye`.** The blink is written per frame; a transition
+  smears it.
+- **Measuring Michroma before `document.fonts` says it is there** — in any mode.
+- **Trusting `speechSynthesis` because the object exists.** Check `getVoices()` up
+  front, and give up on it if nothing has started `600ms` after `speak()`.
+- **Letting the voice carry the message.** The bubble text is the product; the audio is
+  a bonus that a great many devices will not deliver.
+- **Queueing or restarting speech on a second press.** Ignore presses while talking.
+- **A tap target smaller than 44px** because the art is small. Push the hit area out.
+- **A solid background on the fixed bar.** Scrim to transparent, or the vignette gets a
+  visible seam.
 - **Bubble text that isn't `aria-hidden`,** or that carries information nothing else on
   the page says. He comments; he does not instruct.
 - **Idle chatter while the form is open.** He stops being bored once someone answers.
@@ -1649,6 +1776,25 @@ Lockup:
   with and without - in both themes.
 - Throttle to Slow 3G and reload: the mono fallback headline is laid out sensibly and
   the swap to Michroma does not break the layout.
+
+About section:
+
+- Scroll the whole page in both themes: the headline passes **under** the language and
+  theme controls and fades into the scrim. Nothing collides, and the controls stay
+  clickable the whole way down.
+- The boss is looking right at his own bubble. Watch 30s: the eyes drift a little, glance
+  away once or twice, and come back. Both mascots blink with an eased lid, not a squash,
+  and occasionally twice.
+- Press the sound button: the bubble brightens, four lines play, the button's border and
+  glyph darken, and it returns to the dimmed idle line in the current language.
+- Press it repeatedly while it is talking — nothing queues, nothing restarts.
+- Switch language mid-script: he stops, and the idle line comes back in the new one.
+- **Test with the device muted or with no voices installed** — the four lines must still
+  play at a readable pace, roughly 1.5–1.9s each, with no line hanging.
+- At 320px the pill never clips and the page never scrolls sideways, in all three
+  languages.
+- Reduced motion: **both** mascots still blink, neither moves its eyes, and the lines
+  still play. If one face is blinking and the other is not, that is a bug.
 
 Mascot and bubble:
 

@@ -137,11 +137,20 @@ body{
 :focus-visible{outline:1px solid var(--accent);outline-offset:3px}
 
 /* top bar — languages left, theme right */
+/* the page scrolls now that the about section exists, so the headline passes
+   under these controls. a scrim fading to transparent dissolves whatever is
+   behind it instead of cutting it with a hard band edge — a flat --bg strip
+   would occlude the vignette and leave a visible seam in dark mode.
+   pointer-events stay off the scrim so it never eats a click. */
 .bar{
   position:fixed; top:0; left:0; right:0; z-index:5;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 12px;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:12px 12px 30px;
+  pointer-events:none;
+  background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
+  transition:background-image .5s ease;
 }
+.langs,.theme{pointer-events:auto}
 .langs{display:flex;gap:2px}
 .lang{
   appearance:none;background:none;border:0;cursor:pointer;
@@ -183,7 +192,8 @@ html[data-theme=dark] .theme .i-moon{display:none}
    svg: the eyes repaint constantly and a filter would re-raster with them.
    .m-zone shrinks to the mascot so the bubble's 100% is the head, not the
    lockup. */
-.m-zone{position:relative;display:block;width:max-content;margin-bottom:clamp(14px,2.6vh,26px)}
+.m-zone{position:relative;display:block;width:max-content}
+.lockup > .m-zone{margin-bottom:clamp(14px,2.6vh,26px)}
 .m-wrap{position:relative;display:block;cursor:pointer;border-radius:50%}
 .m-wrap::before{
   content:""; position:absolute; left:50%; top:50%;
@@ -194,13 +204,14 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .mascot{position:relative;display:block;width:clamp(92px,22vw,110px);height:auto}
 .m-face{fill:var(--face)}
 .m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
-/* blink and the wide-eye reaction ride the same scaleY, so the transition has
-   to stay shorter than the 120ms blink hold or the squash never lands. */
+/* --blink is driven per frame by the blink engine, so the lid shape is already
+   smooth and a transform transition here would only smear it. the wide-eye
+   reaction rides the same scaleY and snaps, which is what surprise does. */
 .m-eye{
   fill:var(--eye);
   transform-box:fill-box; transform-origin:center;
   transform:scaleY(calc(var(--blink) * var(--wide)));
-  transition:transform 90ms ease-out,fill .5s ease;
+  transition:fill .5s ease;
 }
 
 /* speech bubble — three dots climbing off the top right of the head, then a
@@ -257,6 +268,52 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .bubble.on .d2{transition-delay:70ms}
 .bubble.on .d3{transition-delay:140ms}
 .bubble.on .pill{transition-delay:210ms}
+
+/* about — the boss, on the left, with the same bubble the hero uses. the top
+   padding is what guarantees the bubble has sky: it climbs dots + pill above
+   the head and a three-line pill is the tallest it gets. */
+.about{
+  position:relative; z-index:2;
+  max-width:520px; margin:0 auto;
+  padding:clamp(88px,10vh,116px) 16px clamp(72px,12vh,120px);
+}
+.a-row{display:flex;align-items:flex-end}
+.a-wrap{position:relative;display:block;border-radius:50%}
+.a-wrap::before{
+  content:""; position:absolute; left:50%; top:50%;
+  width:200%; height:200%; transform:translate(-50%,-50%);
+  border-radius:50%; pointer-events:none; background-image:var(--halo);
+  transition:background-image .5s ease;
+}
+.a-mascot{position:relative;display:block;width:clamp(76px,24vw,92px);height:auto}
+/* the idle bubble is always up; it only brightens when he starts talking */
+.a-bubble .pill{color:var(--muted);border-color:var(--line)}
+.a-bubble.live .pill{color:var(--fg);border-color:var(--bub)}
+.a-bubble .dot{border-color:var(--line)}
+.a-bubble.live .dot{border-color:var(--bub)}
+
+/* sound button — sits on the upper left edge of the head. quiet by default:
+   bubble surface, thin bubble border, grey glyph, no shadow, nothing black.
+   the hit area is pushed out to 44px by a pseudo element so the visible
+   button can stay small without becoming a mobile tap target problem. */
+.sound{
+  position:absolute; left:-2px; top:0;
+  width:30px; height:30px; padding:0;
+  display:grid; place-items:center;
+  appearance:none; cursor:pointer;
+  border:1px solid var(--bub); border-radius:50%;
+  background:var(--bg); color:var(--muted);
+  z-index:4;
+  transition:color .3s ease-out,border-color .3s ease-out,
+             background-color .5s ease,transform .28s var(--spring);
+}
+.sound::before{content:"";position:absolute;inset:-7px;border-radius:50%}
+.sound:hover{color:var(--fg)}
+.sound:active{transform:scale(.94)}
+.sound.on{color:var(--fg);border-color:var(--fg)}
+.sound[disabled]{cursor:default}
+.sound svg{width:15px;height:15px;display:block;fill:none;stroke:currentColor;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
 /* headline — fit-to-width, capped at 2.75rem. --units comes from measured glyph
    metrics; --cw is the fixed cell that stops proportional michroma wobbling
@@ -491,7 +548,16 @@ var T={
   e_pick:'pick at least one',
   e_question:'write your question first',
   e_net:'could not send. try again.',
-  th_dark:'dark mode', th_light:'light mode'
+  th_dark:'dark mode', th_light:'light mode',
+  voice:'en-US',
+  a_idle:'press the sound button',
+  a_play:'play',
+  a_lines:[
+    'building with ai every day.',
+    'payments. bots. systems. they run while you sleep.',
+    'you talk to the person who builds it.',
+    'tell him what you need.'
+  ]
  },
  ru:{
   sub:'строим скучную часть будущего',
@@ -537,7 +603,16 @@ var T={
   e_pick:'выберите хотя бы один',
   e_question:'сначала напишите вопрос',
   e_net:'не отправилось. попробуйте ещё раз.',
-  th_dark:'тёмная тема', th_light:'светлая тема'
+  th_dark:'тёмная тема', th_light:'светлая тема',
+  voice:'ru-RU',
+  a_idle:'нажмите кнопку звука',
+  a_play:'воспроизвести',
+  a_lines:[
+    'строит с ai каждый день.',
+    'платежи. боты. системы. они работают пока вы спите.',
+    'вы говорите с тем кто это строит.',
+    'скажите ему что вам нужно.'
+  ]
  },
  lv:{
   sub:'būvējam nākotnes garlaicīgo daļu',
@@ -583,7 +658,16 @@ var T={
   e_pick:'izvēlieties vismaz vienu',
   e_question:'vispirms uzrakstiet jautājumu',
   e_net:'neizdevās nosūtīt. mēģiniet vēlreiz.',
-  th_dark:'tumšais režīms', th_light:'gaišais režīms'
+  th_dark:'tumšais režīms', th_light:'gaišais režīms',
+  voice:'lv-LV',
+  a_idle:'nospiediet skaņas pogu',
+  a_play:'atskaņot',
+  a_lines:[
+    'būvē ar ai katru dienu.',
+    'maksājumi. boti. sistēmas. tās strādā kamēr jūs guļat.',
+    'jūs runājat ar to kurš to būvē.',
+    'pasakiet viņam ko jums vajag.'
+  ]
  }
 };
 function t(k){ return T[lang][k] !== undefined ? T[lang][k] : T.en[k]; }
@@ -621,6 +705,12 @@ var card=D.querySelector('.card');
 var pad=D.querySelector('.pad');
 var themeBtn=D.querySelector('.theme');
 var langBtns=D.querySelectorAll('.lang');
+var aMascot=D.querySelector('.a-mascot');
+var aBubble=D.querySelector('.a-bubble');
+var aPill=aBubble.querySelector('.pill');
+var aPillT=aBubble.querySelector('.pill-t');
+var aSr=D.querySelector('.a-sr');
+var sound=D.querySelector('.sound');
 var metaColor=D.querySelector('meta[name=theme-color]');
 var i;
 
@@ -743,9 +833,18 @@ function applyMode(){
 
 /* ---------- subline ---------- */
 var TAG='', TN=0, tat=[], typing=false, typed=false, ty0=0, tk=-1;
+/* michroma has to actually be loaded before its metrics mean anything. measure
+   it while the mono fallback is still rendering and --tu comes out short,
+   which sizes the line up rather than down and overflows every narrow screen. */
+function michromaReady(){
+  try{ return !!(D.fonts && D.fonts.check && D.fonts.check('400 1em Michroma')); }
+  catch(e){ return false; }
+}
 function setTag(str,animate){
   TAG=str; TN=str.length;
-  var isMono=!LATIN.test(str);
+  /* mono when the string cannot be michroma, and also when michroma never
+     arrived — either way the face that renders is the face that gets measured */
+  var isMono=!LATIN.test(str)||!michromaReady();
   tagEl.classList.toggle('mono',isMono);
   tagSize.textContent=str;
   var tu=tagUnits(str,isMono);
@@ -771,9 +870,45 @@ function setTag(str,animate){
    never raise the caps without redoing that arithmetic. */
 var mrect=null, EX=6, EY=3.8, REACH=90, EASE=.22;
 var ex=0, ey=0, aimX=0, aimY=0, lastEx=-9, lastEy=-9;
-var blinking=false, blinkAt=0, blinkOff=0;
 function remeasure(){ mrect=mascot.getBoundingClientRect(); }
 function eyesWide(on){ mascot.style.setProperty('--wide', on ? '2.2' : '1'); }
+
+/* ---------- blink ----------
+   a human lid: eases shut, holds a beat shut, eases back open, and now and
+   then goes twice. it is driven per frame rather than by a css transition
+   because the shape of the close is the whole point — a linear squash reads
+   mechanical. --blink is only written while a blink is actually running, so
+   the idle cost between blinks is one comparison. */
+var LID=.06, CLOSE=95, HOLD=45, OPEN=140;
+function blinker(el){ return {el:el,at:0,phase:0,t0:0,again:false,last:-1}; }
+function put(b,v){
+  if(v===b.last) return;
+  b.last=v;
+  b.el.style.setProperty('--blink',v.toFixed(3));
+}
+function blinkStep(b,now){
+  if(!b.at) b.at=now+800+Math.random()*1600;
+  if(b.phase===0){
+    if(now<b.at) return;
+    b.phase=1; b.t0=now;
+    b.again=Math.random()<.22;
+  }
+  var d=now-b.t0;
+  if(b.phase===1){                                  /* closing, ease in */
+    if(d>=CLOSE){ b.phase=2; b.t0=now; put(b,LID); }
+    else { var p=d/CLOSE; put(b,1-(1-LID)*p*p); }
+  }else if(b.phase===2){                            /* held shut */
+    if(d>=HOLD){ b.phase=3; b.t0=now; }
+    put(b,LID);
+  }else{                                            /* opening, ease out */
+    if(d>=OPEN){
+      b.phase=0; put(b,1);
+      /* a double blink comes back almost immediately; a single one waits */
+      b.at = b.again ? (b.again=false, now+90+Math.random()*70)
+                     : now+3000+Math.random()*2000;
+    }else{ var q=d/OPEN; put(b,LID+(1-LID)*(1-(1-q)*(1-q))); }
+  }
+}
 
 /* ---------- speech bubble ---------- */
 var bubShow=false, bubHideAt=0, idleAt=0;
@@ -783,27 +918,142 @@ function say(text,permanent){
   bubble.classList.add('on');
   bubShow=true;
   bubHideAt = permanent ? -1 : 0;
-  fitPill();
+  fitPill(bubble,pill,BAR);
 }
 function hush(){ bubble.classList.remove('on'); bubShow=false; bubHideAt=-1; }
 /* one layout read per shown line, never inside the frame loop. offsetLeft and
    offsetWidth ignore the pill's entrance transform, which getBoundingClientRect
    would not. */
-function fitPill(){
-  pill.style.setProperty('--pshift','0px');
-  pill.style.setProperty('--pshiftY','0px');
-  var br=bubble.getBoundingClientRect(), sx=0, sy=0;
-  var over=(br.left + pill.offsetLeft + pill.offsetWidth) - (innerWidth - 12);
+function fitPill(bub,pl,clampTop){
+  pl.style.setProperty('--pshift','0px');
+  pl.style.setProperty('--pshiftY','0px');
+  var br=bub.getBoundingClientRect(), sx=0, sy=0;
+  var over=(br.left + pl.offsetLeft + pl.offsetWidth) - (innerWidth - 12);
   if(over>0){ sx=-Math.round(over); sy=-26; }
   /* and never let it climb into the top bar. with the card open the lockup is
      tall enough that the head sits high and the bubble runs out of sky before
      it runs out of room to the right — at which point the pill would cover the
      theme toggle. a live control beats bubble placement, so the pill comes
-     down to meet the dots instead. */
-  var top=br.top + pill.offsetTop + sy;
-  if(top<BAR) sy+=Math.round(BAR-top);
-  pill.style.setProperty('--pshift',sx+'px');
-  pill.style.setProperty('--pshiftY',sy+'px');
+     down to meet the dots instead.
+     the about bubble passes null: it lives mid-page, its own top padding
+     guarantees it sky, and a viewport-relative clamp there would make the
+     bubble jump as the page scrolls. */
+  if(clampTop!=null){
+    var top=br.top + pl.offsetTop + sy;
+    if(top<clampTop) sy+=Math.round(clampTop-top);
+  }
+  pl.style.setProperty('--pshift',sx+'px');
+  pl.style.setProperty('--pshiftY',sy+'px');
+}
+
+/* ---------- about: the boss ----------
+   he looks at his own bubble, up and to the right, drifting a little around
+   that point and glancing away now and then. same eye-travel caps as the hero:
+   the base plus the widest wander stays inside +-6 / +-3.8. */
+var A_BX=5.1, A_BY=-1.4;
+var aex=0, aey=0, atx=A_BX, aty=A_BY, aNextAim=0, aLastX=-9, aLastY=-9;
+function aboutAim(now){
+  if(now<aNextAim) return;
+  if(Math.random()<.12){                 /* rare short glance away */
+    atx=-2.6+Math.random()*2.2;
+    aty=1.1+Math.random()*1.4;
+    aNextAim=now+420+Math.random()*420;
+  }else{                                 /* small wander around the bubble */
+    atx=A_BX+(Math.random()*1.8-.9);
+    aty=A_BY+(Math.random()*1.2-.6);
+    aNextAim=now+900+Math.random()*1500;
+  }
+}
+
+var aSpeaking=false, aTimers=[];
+function aClear(){
+  for(var n=0;n<aTimers.length;n++) clearTimeout(aTimers[n]);
+  aTimers.length=0;
+}
+function aboutLine(txt){
+  aPillT.textContent=txt;
+  fitPill(aBubble,aPill,null);
+}
+function aboutIdle(){
+  aSpeaking=false;
+  aClear();
+  aBubble.classList.remove('live');
+  sound.classList.remove('on');
+  aboutLine(t('a_idle'));
+}
+function aboutStop(){
+  try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
+  aboutIdle();
+}
+/* per-line floor, so the words are readable even when the device has no voice
+   and every utterance errors back instantly */
+function lineMs(s){ return Math.max(1500, Math.min(1900, 700+s.length*34)); }
+
+function pickVoice(tag){
+  var vs, n, base=tag.slice(0,2).toLowerCase(), lg;
+  try{ vs=speechSynthesis.getVoices()||[]; }catch(e){ return null; }
+  for(n=0;n<vs.length;n++){
+    lg=(vs[n].lang||'').toLowerCase().replace('_','-');
+    if(lg===tag.toLowerCase()) return vs[n];
+  }
+  for(n=0;n<vs.length;n++)
+    if((vs[n].lang||'').slice(0,2).toLowerCase()===base) return vs[n];
+  return null;
+}
+
+function aboutSpeak(){
+  if(aSpeaking) return;                  /* ignore presses while talking */
+  var lines=t('a_lines'), tag=t('voice');
+  aSpeaking=true;
+  aBubble.classList.add('live');
+  sound.classList.add('on');
+
+  var synth=window.speechSynthesis;
+  /* an empty voice list means the api is present but mute — plenty of devices
+     ship it that way. treat that as no speech at all rather than waiting on
+     callbacks that will never come. */
+  var voices=[];
+  try{ if(synth) voices=synth.getVoices()||[]; }catch(e){}
+  var speechDead=!(synth && typeof SpeechSynthesisUtterance!=='undefined' && voices.length);
+  var voice=speechDead ? null : pickVoice(tag);
+
+  /* a line advances when the speech for it has finished AND its floor has
+     elapsed. that keeps the bubble in step with a working voice, and still
+     paces the lines properly when there is no voice at all — where onerror
+     comes back immediately and the floor is doing all the timing. */
+  function chain(n){
+    if(!aSpeaking) return;
+    if(n>=lines.length){ aboutIdle(); return; }
+    aboutLine(lines[n]);
+    var floor=lineMs(lines[n]), t0=Date.now(), moved=false;
+    function next(){
+      if(moved||!aSpeaking) return;
+      moved=true;
+      aTimers.push(setTimeout(function(){ chain(n+1); },
+                              Math.max(0, floor-(Date.now()-t0))));
+    }
+    if(speechDead){ next(); return; }
+    var u=new SpeechSynthesisUtterance(lines[n]);
+    u.rate=.85; u.pitch=.55; u.lang=tag;
+    if(voice) u.voice=voice;
+    var started=false;
+    u.onstart=function(){ started=true; };
+    u.onend=next; u.onerror=next;
+    /* a voice list is not a promise of sound. if nothing has actually started
+       shortly after the call, stop asking and let the floor pace the rest —
+       otherwise a mute engine leaves a line sitting there for seconds. */
+    aTimers.push(setTimeout(function(){
+      if(started||moved) return;
+      speechDead=true;
+      try{ synth.cancel(); }catch(e){}
+      next();
+    },600));
+    /* and a backstop for an engine that starts but never reports finishing */
+    aTimers.push(setTimeout(next, floor+4000));
+    try{ synth.speak(u); }catch(e){ speechDead=true; next(); }
+  }
+  try{ if(!speechDead) synth.cancel(); }catch(e){}
+  chain(0);
 }
 
 /* ---------- form ---------- */
@@ -1135,6 +1385,10 @@ function setLang(v){
   hintEl.textContent=t('hint');
   themeBtn.setAttribute('aria-label', theme==='dark' ? t('th_light') : t('th_dark'));
   setTag(t('sub'), !typed);
+  /* the boss stops mid-sentence rather than finishing in the old language */
+  sound.setAttribute('aria-label',t('a_play'));
+  aSr.textContent=t('a_lines').join(' ');
+  aboutStop();
   if(open){ doneState ? finish() : render(); }
   else if(bubShow) hush();
 }
@@ -1144,17 +1398,26 @@ for(i=0;i<langBtns.length;i++){
 
 /* ---------- one shared rAF loop: blink, eyes, bubble, glitch, decode ---------- */
 var glitchAt=0;
+var heroBlink=blinker(mascot), aboutBlink=blinker(aMascot);
 function frame(now){
   if(!t0) t0=now;
 
-  /* blink runs in every mode, reduced motion included */
-  if(!blinkAt) blinkAt=now+900+Math.random()*1200;
-  if(!blinking && now>=blinkAt){
-    blinking=true; blinkOff=now+120;
-    mascot.style.setProperty('--blink','.16');
-  }else if(blinking && now>=blinkOff){
-    blinking=false; blinkAt=now+4000+Math.random()*2000;
-    mascot.style.setProperty('--blink','1');
+  /* both mascots blink in every mode, reduced motion included. it is the one
+     deliberate exception on this site — small, local, non-vestibular — and it
+     is what keeps a face from reading as a sticker. only the eye movement
+     stops. */
+  blinkStep(heroBlink,now);
+  blinkStep(aboutBlink,now);
+
+  /* the boss watches his own bubble, drifting around it */
+  if(RUN){
+    aboutAim(now);
+    aex+=(atx-aex)*.055; aey+=(aty-aey)*.055;
+    if(Math.abs(aex-aLastX)>.02||Math.abs(aey-aLastY)>.02){
+      aLastX=aex; aLastY=aey;
+      aMascot.style.setProperty('--ex',aex.toFixed(2));
+      aMascot.style.setProperty('--ey',aey.toFixed(2));
+    }
   }
 
   if(fine && RUN && !open){
@@ -1235,6 +1498,20 @@ tagSize.textContent=tagTxt.textContent=t('sub');
 tagEl.classList.toggle('mono',!LATIN.test(t('sub')));
 if(RUN) tagLive.style.visibility='hidden';
 
+sound.setAttribute('aria-label',t('a_play'));
+aSr.textContent=t('a_lines').join(' ');
+aPillT.textContent=t('a_idle');
+sound.addEventListener('click',aboutSpeak);
+/* voices load asynchronously in most browsers; touching the list early means
+   the first press already has one to choose from */
+try{ if(window.speechSynthesis) speechSynthesis.getVoices(); }catch(e){}
+if(!RUN){
+  /* no wander under reduced motion: park the eyes on the bubble and leave them
+     there. the blink still runs — see the frame loop. */
+  aMascot.style.setProperty('--ex',A_BX.toFixed(2));
+  aMascot.style.setProperty('--ey',A_BY.toFixed(2));
+}
+
 var started=false;
 function start(){
   if(started) return;
@@ -1249,11 +1526,13 @@ function start(){
   decoding=RUN;
   applyMode();
   setTag(t('sub'), false);
+  fitPill(aBubble,aPill,null);
 
   if(mqS.addEventListener) mqS.addEventListener('change',applyMode);
   addEventListener('resize',function(){
     if(fine) remeasure();
-    if(bubShow) fitPill();
+    if(bubShow) fitPill(bubble,pill,BAR);
+    fitPill(aBubble,aPill,null);
   },{passive:true});
 
   /* the card growing changes the lockup's height, which moves the mascot — and
@@ -1261,7 +1540,7 @@ function start(){
      stale by the time the card has opened and the head has risen. re-fit
      whenever the card resizes, but only while a line is actually showing. */
   if(window.ResizeObserver){
-    new ResizeObserver(function(){ if(bubShow) fitPill(); }).observe(card);
+    new ResizeObserver(function(){ if(bubShow) fitPill(bubble,pill,BAR); }).observe(card);
   }
   if(fine){
     addEventListener('scroll',remeasure,{passive:true});
@@ -1279,8 +1558,10 @@ function start(){
   requestAnimationFrame(frame);
 }
 
-if(!RUN) start();
-else if(D.fonts && D.fonts.load) D.fonts.load('400 1em Michroma').then(start,start);
+/* wait for the font in every mode, reduced motion included. the markup already
+   holds the real text, so nothing is hidden while we wait — and starting early
+   only means measuring michroma before it exists. */
+if(D.fonts && D.fonts.load) D.fonts.load('400 1em Michroma').then(start,start);
 else start();
 setTimeout(start,2500);
 }
@@ -1306,7 +1587,8 @@ else boot();
   </button>
 </header>
 
-<main class="wrap">
+<main>
+<div class="wrap">
  <div class="lockup">
 
   <div class="m-zone">
@@ -1350,6 +1632,39 @@ else boot();
   </section>
 
  </div>
+</div>
+
+<section class="about" aria-label="about">
+  <!-- the whole script, static and complete, for screen readers. the bubble
+       animates the same words four at a time and is decorative. -->
+  <p class="sr a-sr"></p>
+  <div class="a-row">
+    <div class="m-zone">
+      <div class="a-wrap">
+        <svg class="mascot a-mascot" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
+          <circle class="m-face" cx="32" cy="32" r="30"/>
+          <g class="m-eyes">
+            <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
+            <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
+          </g>
+        </svg>
+        <button class="sound" type="button" aria-label="play">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4z"/>
+            <path d="M15.6 9.2a4 4 0 0 1 0 5.6"/>
+            <path d="M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/>
+          </svg>
+        </button>
+      </div>
+      <div class="bubble a-bubble on" aria-hidden="true">
+        <span class="dot d1"></span>
+        <span class="dot d2"></span>
+        <span class="dot d3"></span>
+        <span class="pill"><span class="pill-t"></span></span>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 </body>
 </html>

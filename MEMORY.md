@@ -7,8 +7,8 @@ names in here either.
 ## Status
 
 - Phase: **site v1 is BUILT, not shipped.** The coming soon page is gone. `index.html`
-  is now the real site: two themes, three languages, a mascot with a speech bubble, and
-  a multi-step contact form.
+  is now the real site: two themes, three languages, a mascot with a speech bubble, a
+  multi-step contact form, and an about section where the boss reads the pitch aloud.
 - **Blocking ship:** the Cloudflare Worker at
   `boring-tek-forms.theboringtek.workers.dev` still has to be deployed. The web3forms
   key is in place, so email delivery works on its own and a send will already succeed
@@ -31,6 +31,15 @@ names in here either.
   button re-enabled and every answer still in place. The send button is genuinely
   `disabled` and carries the `.busy` breathe while in flight, the worker payload carries
   no `access_key`, and the console stays silent in all four cases.
+- **The about section was measured the same way.** No horizontal scroll and no clipping
+  at 320px or 1440px in both themes and all three languages; the blink eases over ~283ms
+  on both mascots at 3–5s intervals; the boss's eyes stay inside the travel caps while
+  wandering and glancing away; the sound button plays four lines and returns to idle,
+  ignores presses while talking, and paces correctly both with a working voice and with
+  none at all. Under reduced motion both mascots still blink and neither moves its eyes.
+- **The voice itself has never been heard.** Headless Chrome has no voices, so only the
+  silent path was exercised for real; the synced path was verified against a stub. How
+  it actually sounds on a real machine is unproven.
 - **Still unchecked:** real devices, real fonts on non-Chrome engines, Safari and
   Firefox, screen readers, and keyboard-only navigation. The rest of the "Before
   shipping" checklist in `skills/page-builder/SKILL.md` still applies.
@@ -47,7 +56,7 @@ names in here either.
 - **DNS:** done at Hostinger, pointed at GitHub Pages. `CNAME` in repo root holds the
   apex domain.
 - **Repo:** github.com/einzxx/boring-tek, public.
-- **Live page** — site v1, one file, ~53KB, one external request at load (Michroma):
+- **Live page** — site v1, one file, ~67KB, one external request at load (Michroma):
   - **Two themes.** Light is the default: white page, near-black mascot face with white
     eyes, no phosphor glow. Dark is the old look: near-black page, white face, dark
     eyes, green bloom on the headline. Toggle top right, saved in `localStorage` under
@@ -68,7 +77,12 @@ names in here either.
   - **Contact form** — unfolds under the lockup, one question per step, four paths,
     inline validation, and on send `POST`s the same readable JSON to two places at
     once — web3forms for email and our own Cloudflare Worker for Telegram.
+  - **About section**, below the hero — the boss at 92px on the left of a 520px column,
+    the same speech bubble, and a small sound button on his head. He watches his own
+    bubble, and pressing the button plays a four-line pitch out loud.
   - CRT grain and radial vignette in both themes, at different weights.
+  - The fixed top bar carries a scrim now that the page scrolls, so the headline fades
+    under the controls instead of colliding with them.
 - **Favicon:** the mascot, transparent background, no plate, inline data URI. Still the
   dark-mode colourway (white face, dark eyes) — a favicon can't know the page theme.
 - **SEO:** unchanged from the coming soon page. `<title>`, meta description, canonical,
@@ -88,6 +102,38 @@ names in here either.
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
 ## Decisions
+
+### About section — 2026-08-23
+
+- **The site has a second section now, so it scrolls.** The hero still fills the
+  viewport; the about section sits below the fold. That is where every future section
+  goes too, and it is why the fixed bar needed a scrim — a transparent bar let the
+  headline collide with the language and theme controls on the way past.
+- **The boss is the same mascot, not a new character.** Same SVG, same geometry, same
+  theme inversion, at 92px against the hero's 110px. He is a second appearance, not a
+  second hero, and the bubble is the hero's bubble reused unchanged.
+- **The blink is now a human lid, everywhere.** It eases shut over ~95ms, holds ~45ms,
+  eases open over ~140ms, and about one in five goes twice. Driven per frame from the
+  shared rAF loop rather than by a CSS transition, because the shape of the close is the
+  whole point — the old instant squash could not ease and could not double-blink.
+- **The voice is the device's, not ours.** `SpeechSynthesis` at rate .85 / pitch .55,
+  language following the site switch. **Nothing is downloaded and no request is made**,
+  so the one-external-request rule still holds — but whether it speaks at all, and what
+  it sounds like, is entirely down to the visitor's OS and browser. Do not tune the copy
+  to how it reads on one machine, and never let the audio carry anything the bubble text
+  does not already say.
+- **The bubble is the product; the voice is a bonus.** Lines advance when the utterance
+  finishes *and* a 1.5–1.9s per-line floor has passed. With a voice that stays in step
+  with the audio; with no voice the floor paces it and the script still reads properly.
+  An empty `getVoices()` is treated as no speech at all up front, and if nothing has
+  actually started 600ms after `speak()` we stop asking — plenty of devices ship the API
+  mute, headless Chrome among them, and waiting on callbacks that never come leaves a
+  line sitting on screen for seconds.
+- **Under reduced motion both mascots keep the blink; only eye movement stops.** The
+  boss parks his eyes on the bubble and the hero stops tracking the cursor, but the lids
+  keep going on both. The blink was already the site's one deliberate reduced-motion
+  exception, and having one face blink while the other sat frozen read as a bug rather
+  than as restraint.
 
 ### Site v1 — 2026-08-22
 
@@ -249,14 +295,17 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
    until it ships.
 2. **Send one real test form** and confirm it lands. Both endpoints have only been
    tested against a stubbed network — the first live send is unproven.
-3. **Run the "Before shipping" checklist** in `skills/page-builder/SKILL.md`. It is
+3. **Listen to the boss on a real machine**, in all three languages. Check the Latvian
+   and Russian voices exist and are not embarrassing; if a language has no usable voice
+   on common devices, the silent path is what people will get and that is fine.
+4. **Run the "Before shipping" checklist** in `skills/page-builder/SKILL.md`. It is
    written for v1 and every visual check has to be run in both themes. Nothing here has
    been seen in a browser yet.
-4. Have the EN, RU and LV copy corrected. The translations are natural but written by
+5. Have the EN, RU and LV copy corrected. The translations are natural but written by
    Claude, not by a native speaker, and Einz said corrections would come later.
-5. Decide whether the site links out to the socials now that there is a real page to
+6. Decide whether the site links out to the socials now that there is a real page to
    link from.
-6. **Milestone: social content rhythm** — cadence, pillars, a reusable post format.
+7. **Milestone: social content rhythm** — cadence, pillars, a reusable post format.
    Posts now have somewhere to point, which was the open question blocking it.
 
 ## Open questions
