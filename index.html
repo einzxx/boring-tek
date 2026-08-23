@@ -152,7 +152,6 @@ body{
 .bar{
   position:fixed; top:0; left:0; right:0; z-index:5;
   display:flex; align-items:flex-start; justify-content:space-between;
-  flex-wrap:wrap; container-type:inline-size;
   padding:12px 12px 30px;
   pointer-events:none;
   background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
@@ -169,14 +168,19 @@ body{
 .lang:hover{opacity:.85}
 .lang[aria-pressed=true]{color:var(--fg);opacity:1}
 
-/* socials - a quiet row centred in whatever space the language switch and the
-   theme toggle leave. its 270px basis is the six boxes and their gaps at full
-   size: flex-wrap breaks the line on that whole number before it would ever
-   squeeze them, which is the fallback if the query below misses. rest state is
-   the inactive language button's, exactly - muted at half opacity, no brand
-   colour. the glyphs are tabler icons, MIT, drawn on the same 24 grid as the
-   theme toggle and kept at their own stroke-width 2. */
-.socials{flex:1 1 270px;display:flex;justify-content:center;gap:6px}
+/* socials. one row of six, in the top bar on a wide screen and in the footer on
+   a narrow one - never both, never two rows. the glyphs are tabler icons, MIT,
+   drawn on the same 24 grid as the theme toggle and kept at their own
+   stroke-width 2. rest state is the inactive language button's, exactly: muted
+   at half opacity, no brand colour.
+   the sprite is why there are two rows of markup and one set of paths. */
+.sprite{display:none}
+.socials{display:flex;justify-content:center;gap:6px}
+/* under 560px the bar has no room for a centred row: 270px of icons plus the
+   language block plus the toggle do not fit without the row sliding off centre,
+   and a second bar row lands on the mascot. so the phone gets the footer copy
+   and the bar keeps its two original controls. */
+.bar .socials{display:none}
 .soc{
   flex:0 0 auto;
   display:grid;place-items:center;text-decoration:none;
@@ -198,18 +202,6 @@ body{
   26%{filter:drop-shadow(-1px 0 var(--gr)) drop-shadow(1px 0 var(--gc))}
   56%{filter:drop-shadow(1px 0 var(--gr)) drop-shadow(-1px 0 var(--gc))}
   80%,100%{filter:none}
-}
-/* narrow: the row stops fitting between the two controls, so it takes a line of
-   its own under them. the theme toggle jumps ahead of it in the order, which is
-   what keeps it on the first line, top right, where it has always been -
-   without that it is the item that wraps, and it lands bottom left.
-   queried on the bar, not the viewport: the bar is the thing running out of
-   room, and the page's two width breakpoints stay where they are. the row also
-   loses 6px of height here, so its icons clear the top of the mascot's head. */
-@container (max-width:440px){
-  .theme{order:1}
-  .socials{order:2;flex-basis:100%}
-  .soc{height:34px}
 }
 .theme{
   appearance:none;background:none;border:0;cursor:pointer;
@@ -547,6 +539,30 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 .cl::before{content:"// "}
 .ct{margin:0;font-size:var(--t-body);color:var(--sub);max-width:68ch}
 
+/* footer - phones only. the top bar's row and this one are the same six links
+   and the same styling; only their place on the page differs. */
+.foot{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  padding:0 16px clamp(32px,6vh,48px);
+}
+.foot-t{
+  margin:0; font-family:var(--mono); font-size:var(--t-micro);
+  letter-spacing:.14em; color:var(--muted); opacity:.75;
+}
+
+/* the swap, and the only place either row is positioned. absolute, so the row
+   is centred on the page rather than in the gap the language block and the
+   toggle happen to leave - those two are different widths, and a flex centre
+   between them is visibly off. */
+@media (min-width:560px){
+  .bar .socials{
+    display:flex; position:absolute; top:12px; left:50%;
+    transform:translateX(-50%);
+  }
+  .foot{display:none}
+}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation:none!important;
@@ -770,7 +786,6 @@ var cds=D.querySelectorAll('.cd');
 var card=D.querySelector('.card');
 var pad=D.querySelector('.pad');
 var themeBtn=D.querySelector('.theme');
-var socRow=D.querySelector('.socials');
 var langBtns=D.querySelectorAll('.lang');
 var metaColor=D.querySelector('meta[name=theme-color]');
 var i;
@@ -1007,12 +1022,12 @@ function blinkStep(b,now){
 
 /* ---------- speech bubble ---------- */
 var bubShow=false, bubHideAt=0, idleAt=0;
-/* the fixed bar's controls, measured, plus a little air. it was a flat 60
-   until the socials row arrived: that row wraps under the bar on narrow
-   screens and a hardcoded clamp let the pill sit on top of it. */
+/* the fixed bar's controls, measured, plus a little air. the socials row is
+   absolute and shorter than the toggle when it is in the bar at all, so the
+   toggle is the lowest thing up there - but measure it rather than write the
+   number down again, because the last constant outlived its layout. */
 function barBottom(){
-  return Math.max(socRow.getBoundingClientRect().bottom,
-                  themeBtn.getBoundingClientRect().bottom) + 8;
+  return themeBtn.getBoundingClientRect().bottom + 8;
 }
 function say(text,permanent){
   pillT.textContent=text;
@@ -1553,6 +1568,14 @@ else boot();
 </script>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></symbol>
+  <symbol id="i-youtube" viewBox="0 0 24 24"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M16.5 7.5v.01"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"/></symbol>
+</defs></svg>
 <div class="vignette" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
@@ -1563,24 +1586,12 @@ else boot();
     <button class="lang" type="button" data-l="lv" aria-pressed="false">LV</button>
   </nav>
   <nav class="socials" aria-label="socials">
-    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"/></svg>
-    </a>
-    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
-    </a>
-    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></svg>
-    </a>
-    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917z"/></svg>
-    </a>
-    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M16.5 7.5v.01"/></svg>
-    </a>
-    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"/></svg>
-    </a>
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
   </nav>
   <button class="theme" type="button" aria-label="dark mode">
     <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
@@ -1651,5 +1662,17 @@ else boot();
     </article>
   </div>
 </section>
+
+<footer class="foot">
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+  <p class="foot-t">theboringtek 2026</p>
+</footer>
 </body>
 </html>

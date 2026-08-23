@@ -989,14 +989,18 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   general softening pass, and there is no `4px`/`6px`/`8px` tier to reach for.
 - No box shadows. Depth comes from the glow and vignette layers, never from a drop
   shadow on a card.
-- Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints. One
-  `@media (min-width: 720px)` for structural layout changes only. Two breakpoints
-  maximum.
+- Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints.
+  **Three width breakpoints exist and that is the ceiling:** `720px` for the card grid,
+  `640px` for the stacked lockup (in JS, `mqS`), and `560px` for the socials, which is
+  the only one that moves a block from one end of the page to the other. A fourth is a
+  decision, not a convenience.
 
 ### The socials row
 
-Six links in the fixed top bar, centred in whatever space the language switch and the
-theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that order.
+Six links: telegram, x, youtube, tiktok, instagram, facebook, in that order. **One row,
+in one of two places.** Above `560px` it sits in the fixed top bar. Below, it moves to a
+footer at the bottom of the page and the bar goes back to the two controls it shipped
+with. Never both at once, and never a second bar row.
 
 - **The glyphs are Tabler Icons, MIT licensed** (tabler.io/icons, © Paweł Kuna) — the
   `outline` set, `brand-telegram`, `brand-x`, `brand-youtube`, `brand-tiktok`,
@@ -1006,12 +1010,23 @@ theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that o
   d="M0 0h24v24H0z" fill="none"/>` bounding box is dropped — it exists for their export
   pipeline and does nothing inline. MIT needs the licence kept with the source, not
   reproduced in the page; the attribution is this line.
-- **Inline SVG, one `<svg>` per link, stroked not filled.** `viewBox="0 0 24 24"`,
-  `22px` on screen in a `40px` box, `fill: none`, `stroke: currentColor`,
-  `stroke-width: 2`, round caps and joins. Tabler is drawn on the same 24 grid as the
-  theme toggle and at its own stroke-width 2, which is what keeps the six consistent
-  with each other; the toggle stays at 1.6 because it is smaller. No icon font, no
-  sprite sheet, no image file, no CDN — the paths ship in the page.
+- **Inline SVG, stroked not filled.** `viewBox="0 0 24 24"`, `22px` on screen in a
+  `40px` box, `fill: none`, `stroke: currentColor`, `stroke-width: 2`, round caps and
+  joins. Tabler is drawn on the same 24 grid as the theme toggle and at its own
+  stroke-width 2, which is what keeps the six consistent with each other; the toggle
+  stays at 1.6 because it is smaller. No icon font, no image file, no CDN — the paths
+  ship in the page.
+- **The paths are declared once, in an inline `<symbol>` sprite,** first thing in the
+  `<body>`, `.sprite { display: none }`, and both rows reference them with
+  `<use href="#i-telegram">`. This is the one sprite the site allows and it is inline:
+  the ban is on fetching a sprite sheet, not on writing a path once. `stroke`, `fill`
+  and `stroke-width` are inherited properties, so the CSS on the outer `<svg>` reaches
+  the cloned content and `currentColor` still follows the theme.
+- **Two rows of markup, one glyph set, no JS.** CSS cannot move a node from a fixed
+  header to the end of the document, and moving it with a `matchMedia` listener buys
+  nothing: the footer has to be hidden on desktop either way, so the breakpoint exists
+  regardless. The hidden row is `display: none`, so it is out of the accessibility tree
+  and out of the tab order — there is never a duplicate landmark or a phantom stop.
 - **`stroke-linecap: round` is load-bearing, not decoration.** Instagram's shutter dot
   is `M16.5 7.5v.01`, a zero-length line that only renders as a dot because of the cap.
   Drop the cap and the dot disappears.
@@ -1028,27 +1043,34 @@ theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that o
   as the CTA glitch at half the travel, so it reads as the same page. `drop-shadow()`,
   not `text-shadow`: these are strokes, not glyphs. Hover only — nothing in this row
   ever animates on its own. The CTA is still the page's one attention-seeker.
-- **`target="_blank"` and `rel="noopener"`** on all six.
-- **Narrow bars put the row on its own line, and that is a container query, not a third
-  breakpoint.** `.bar` carries `container-type: inline-size`;
-  `@container (max-width: 440px)` gives the theme toggle `order: 1` and the row
-  `order: 2; flex-basis: 100%`. The bar is what runs out of room, so the bar is what
-  gets queried, and the page's two width breakpoints stay where they are.
-- **The order swap is the whole point of the query.** With `flex-wrap: wrap` and no
-  reordering, the item that wraps is whichever one does not fit — which at 375px is the
-  theme toggle, landing it bottom left, under the language buttons. Ordering the toggle
-  ahead of the row keeps it on the first line, top right, where it has always been.
-- The row loses `6px` of height in the wrapped state (`34px` instead of `40px`), which
-  is what clears its icons off the top of the mascot's head on a short phone. Measured
-  at 320, 360, 375 and 414 on a 568-667px tall viewport: icon box bottom `84`, mascot
-  face top `86.9`. That clearance is the reason the wrapped row is shorter — at a flat
-  `40px` the icons land on his crown.
-- The icons never shrink — `flex: 0 0 auto`, and `flex-wrap` breaks the line on the
-  row's whole `270px` before it would squeeze them. That is the fallback if the query
-  ever misses.
-- **The pill's clamp is measured, not a constant.** `barBottom()` reads the row and the
-  toggle and takes the lower of the two, plus `8px`. A hardcoded `BAR = 60` was correct
-  for a one-row bar and parks the pill on top of the socials the moment the row wraps.
+- **`target="_blank"` and `rel="noopener"`** on all six, in both rows.
+- **The footer is the phone's version of the row, and nothing else.** `<footer class=
+  "foot">`, a sibling after `section.below`, holding the row and one line:
+  `theboringtek 2026`, mono, `--t-micro`, `--muted` at `.75`, tracked `.14em`,
+  lowercase, no full stop, no dash between name and year. It is column-flex, centred,
+  `16px` between the two, and `clamp(32px, 6vh, 48px)` of bottom air — the gap above it
+  is `.below`'s own bottom padding, not a margin of its own. It does not exist on
+  desktop: `display: none`, not a stretched-out variant.
+- **In the bar the row is absolutely positioned, not a flex item:**
+  `position: absolute; top: 12px; left: 50%; transform: translateX(-50%)`. It is centred
+  on the page, not in the gap between the language block and the toggle — those two are
+  `100px` and `44px`, so a flex centre sits `28px` right of true centre, and on a wide
+  screen that reads as a mistake. Measured at 560 through 2560: centre error `0px`.
+  Out of flow also means the bar cannot wrap, whatever is in it.
+- **`560px` is where it moves, and the number comes from the geometry.** Page-centred,
+  the row's left edge is `W/2 - 135`; it has to clear the language block's `112px` with
+  air to spare. That needs about `518px`, and `560` leaves a `32px` gap at the
+  narrowest desktop. The old wrap point (`464px`) is too early for a centred row: the
+  icons would sit on the language buttons.
+- **Below that the row is in the footer, and the bar keeps nothing new.** A second bar
+  row was the first attempt and it is gone: at `320px` it left `2.9px` between the icons
+  and the mascot's crown, and it pushed the theme toggle around. The footer has room,
+  which is the whole argument.
+- The icons never shrink: `flex: 0 0 auto`. `270px` of row fits inside `320px` of
+  viewport with the page's `16px` padding on both sides and `18px` to spare.
+- **The pill's clamp is measured, not a constant.** `barBottom()` reads the theme
+  toggle, plus `8px`. The bar is one row again, and the socials — when they are up there
+  at all — are absolute and end above it, so the toggle is the lowest thing in the bar.
 
 ## Mascot
 
@@ -1603,7 +1625,8 @@ The shape a new page starts from:
 </head>
 <body>
   .vignette  .grain                                  <- aria-hidden
-  header.bar     -> .langs (EN RU LV)  |  .socials (6 links)  |  .theme
+  svg.sprite                                         <- the six socials, once
+  header.bar     -> .langs (EN RU LV)  |  .socials (absolute, 560px+)  |  .theme
   main.wrap > .lockup
     .m-zone   -> .m-wrap > svg.mascot  +  .bubble
     h1.hero   -> .sr + .sizer + .l-wide + .l-mid + .l-core
@@ -1612,6 +1635,7 @@ The shape a new page starts from:
     section.card > .cardin > .pad                    <- rendered by JS
   section.below                                      <- sibling of main, not lockup
     .thread  +  .cards > article.cd > p.cl + p.ct
+  footer.foot    -> .socials  +  p.foot-t            <- under 560px only
 </body>
 ```
 
@@ -1834,14 +1858,18 @@ Added with the socials row:
 
 - **Hiding the subline from JS.** The stylesheet hides it, `prefers-reduced-motion` and
   `<noscript>` put it back, the typing unhides it. Anything else flashes the line.
-- **Brand colours, an icon font, an SVG sprite or a CDN icon set** for the socials.
-  Monochrome inline SVG, stroked, or it does not ship.
-- **A third width breakpoint** to place the socials row. The bar is a container; query
-  the container.
+- **Brand colours, an icon font or a CDN icon set** for the socials. Monochrome inline
+  SVG, stroked, or it does not ship. The inline `<symbol>` sprite is the one exception
+  and it is not a fetch.
+- **A fourth width breakpoint.** Three, named in Layout, and the socials own the third.
+- **A second row in the top bar.** It lands on the mascot at 320px. The row is either
+  centred in the bar or it is in the footer.
+- **Centring the bar row with flex** instead of absolute positioning. The two controls
+  it sits between are different widths, so a flex centre is not the page's centre.
+- **A copy of the six paths per row.** One `<symbol>` sprite, two `<use>` rows.
 - **Hand-drawn approximations of a brand mark.** Tabler's outline set, verbatim. If a
   seventh platform is ever added and Tabler does not have it, that is a decision, not a
   drawing exercise.
-- **Letting the theme toggle be the item that wraps.** Order the row last.
 - **An ambient animation in the top bar.** The flick is on hover and nowhere else.
 
 ## Before shipping
@@ -1914,18 +1942,23 @@ Mascot and bubble:
 
 The socials row:
 
-- 320px, 375px and 390px: the row sits on its own line, centred, the theme toggle is
-  still top right, and the icons clear the top of the mascot's head. 414px and up: one
-  line, between the language buttons and the toggle.
-- Open the form at 320px and check the pill: it lands **below** the socials row, never
-  across it.
-- Hover each of the six in both themes: it darkens to `--fg`, lifts, flicks once, and
-  settles. Leave the pointer on one for ten seconds — nothing repeats.
+- Drag the window across `560px`: the row leaves the bar and appears in the footer, and
+  the footer line comes with it. Never two rows on screen at once, never zero.
+- Above `560px`, measure it: the row's centre is the page's centre, to the pixel, at
+  560, 768, 1440 and 2560 — not the centre of the gap between the language block and the
+  toggle. At 560 it still clears the language buttons.
+- Below `560px`, the top bar is exactly what it was before the socials existed: three
+  language buttons and the toggle, one row.
+- Scroll to the bottom at 320px in both themes: six icons centred, `theboringtek 2026`
+  under them, comfortable air, no horizontal scroll.
+- Hover each of the six in both themes and in both places: it darkens to `--fg`, lifts,
+  flicks once, and settles. Leave the pointer on one for ten seconds — nothing repeats.
 - Reduced motion: no lift, no flick, colour only.
-- Tab through the bar: EN, RU, LV, the six links in order, then the theme toggle, each
-  with a visible focus ring.
+- Tab order: the bar's links sit between LV and the toggle on desktop; on a phone the
+  footer's six are the last stops on the page. The hidden row is never a stop.
 - Every link opens the right account in a new tab, and all six carry `rel="noopener"`.
-- No horizontal scroll at 320px with the row wrapped, closed or with the form open.
+- All six glyphs actually draw. A broken `<use href>` renders nothing and reads as an
+  empty gap, not as an error.
 
 Form:
 

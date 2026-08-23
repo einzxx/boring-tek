@@ -56,12 +56,12 @@ names in here either.
     eyes, no phosphor glow. Dark is the old look: near-black page, white face, dark
     eyes, green bloom on the headline. Toggle top right, saved in `localStorage` under
     `bt-theme`, every colour cross-fading over 0.5s.
-  - **A socials row in the top bar** — telegram, x, youtube, tiktok, instagram,
-    facebook, in that order, centred between the language switch and the theme toggle.
-    Tabler Icons (MIT) inlined as stroked SVG, 22px glyph in a 40px box, 6px gaps,
-    `--muted` at .5 like an inactive language button, no brand colour anywhere. Hover
-    darkens to `--fg`, lifts 2px and flicks the CTA's rgb split once. Under 440px of
-    bar the row drops to its own line and the toggle stays top right.
+  - **A socials row** — telegram, x, youtube, tiktok, instagram, facebook, in that
+    order. Tabler Icons (MIT) inlined as stroked SVG, 22px glyph in a 40px box, 6px
+    gaps, `--muted` at .5 like an inactive language button, no brand colour anywhere.
+    Hover darkens to `--fg`, lifts 2px and flicks the CTA's rgb split once. **Above
+    560px it is absolutely centred in the top bar; below, it moves to a footer** with
+    a `theboringtek 2026` line under it, and the bar goes back to two controls.
   - **Three languages.** EN / RU / LV as plain text buttons top left, saved under
     `bt-lang`. Every visible string lives in one `T` object; switching re-renders the
     current view in place without losing form progress.
@@ -109,6 +109,39 @@ names in here either.
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
 ## Decisions
+
+### The socials row moved, twice — 2026-08-23
+
+- **In the bar the row is absolutely positioned and centred on the page**, not centred
+  in the space the language block and the theme toggle leave. Those are 100px and 44px,
+  so a flex centre lands 28px right of true centre. Measured centre error at 560, 600,
+  768, 1024, 1440 and 2560: 0px.
+- **Under 560px the row leaves the bar entirely and becomes a footer** after the cards,
+  with `theboringtek 2026` under it in mono, micro, muted. **The two-row bar is gone.**
+  It was the first answer and it was never good: 2.9px between the icons and the
+  mascot's crown at 320px, and the theme toggle shuffling around to stay out of the way.
+- **560px is geometry, not taste.** Page-centred, the row's left edge is `W/2 - 135` and
+  it has to clear the language block at 112px with air. That needs about 518px; 560
+  leaves a 32px gap at the narrowest desktop. The old wrap point, 464px, is too early
+  for a centred row.
+- **Two rows of markup, one set of paths.** The glyphs are declared once in an inline
+  `<symbol>` sprite at the top of `<body>` and both rows `<use>` them. This is the one
+  sprite the site allows, and it is inline — the rule was always about not fetching one.
+  `stroke`, `fill` and `stroke-width` inherit into the cloned content, so `currentColor`
+  still follows the theme.
+- **No JS in the swap.** Moving one node with a `matchMedia` listener buys nothing: the
+  footer has to be hidden on desktop either way, so the breakpoint exists regardless,
+  and the hidden row costs six `<use>` elements. `display:none` also keeps it out of the
+  tab order and the accessibility tree.
+- **This is the third width breakpoint and the last one.** 720px for the cards, 640px
+  for the stacked lockup, 560px for the socials.
+- `barBottom()` is down to the theme toggle. The bar is one row again, and the socials
+  are absolute and end above the toggle when they are in it at all.
+- **Measured in headless Chrome over CDP** at 320, 360, 375, 390, 430, 480, 540, 559,
+  560, 600, 768, 1024, 1440 and 2560, both themes, closed and with the form open: one
+  row on screen at every width and never two, all six glyphs drawing, 40px boxes, no
+  horizontal overflow anywhere, no console errors. Footer hover behaves exactly like the
+  bar's.
 
 ### The socials row, and the subline no-flash fix — 2026-08-23
 
