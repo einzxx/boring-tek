@@ -58,10 +58,10 @@ names in here either.
     `bt-theme`, every colour cross-fading over 0.5s.
   - **A socials row in the top bar** — telegram, x, youtube, tiktok, instagram,
     facebook, in that order, centred between the language switch and the theme toggle.
-    Stroked inline SVG at 17px, `--muted` at .5 like an inactive language button, no
-    brand colour anywhere. Hover darkens to `--fg`, lifts 2px and flicks the CTA's rgb
-    split once. Under 385px of bar the row drops to its own line and the toggle stays
-    top right.
+    Tabler Icons (MIT) inlined as stroked SVG, 22px glyph in a 40px box, 6px gaps,
+    `--muted` at .5 like an inactive language button, no brand colour anywhere. Hover
+    darkens to `--fg`, lifts 2px and flicks the CTA's rgb split once. Under 440px of
+    bar the row drops to its own line and the toggle stays top right.
   - **Three languages.** EN / RU / LV as plain text buttons top left, saved under
     `bt-lang`. Every visible string lives in one `T` object; switching re-renders the
     current view in place without losing form progress.
@@ -127,11 +127,15 @@ names in here either.
 - **The trade, accepted:** if the script dies before the typing runs, the subline stays
   hidden. `<noscript>` covers a page with JS off, not a page whose JS threw. The line is
   in the DOM either way, so nothing is lost but the sight of it.
-- **Six socials in the top bar, monochrome and stroked.** Same drawing as the theme
-  toggle — `viewBox="0 0 24 24"`, 17px, `fill:none`, `stroke:currentColor` at 1.6, round
-  caps — so the bar reads as one set of controls rather than a logo wall. Brand colours
-  were never on the table: six of them would out-shout the mascot, the headline and the
-  CTA at once. Only instagram's shutter dot is filled.
+- **Six socials in the top bar, monochrome and stroked.** The glyphs are **Tabler
+  Icons, MIT** (tabler.io/icons, © Paweł Kuna), outline set, `d` attributes copied
+  verbatim and everything else dropped, including their empty bounding-box path. Same
+  24 grid as the theme toggle, at Tabler's own `stroke-width: 2`, 22px in a 40px hit
+  box with 6px gaps. Hand-drawn approximations were the first attempt and were replaced:
+  a brand mark is either the real one or it is wrong. Brand colours were never on the
+  table — six of them would out-shout the mascot, the headline and the CTA at once.
+  Instagram's shutter dot is a zero-length path that exists only because of
+  `stroke-linecap: round`.
 - **Hover borrows the CTA's glitch dna at half strength**: `translateY(-2px)` plus one
   `.2s` `steps(1,end)` rgb split, `--gr` / `--gc`, via `drop-shadow` because these are
   strokes and not glyphs. On hover only — the CTA is still the page's one
@@ -149,7 +153,7 @@ names in here either.
   mascot's crown at 320px — icon bottom 82, mascot top 84.
 - **Measured in headless Chrome over CDP** at 320 / 360 / 375 / 390 / 414 / 430 / 768 /
   1440, both themes, all three languages: six links everywhere, none off screen, none
-  under 34px, no horizontal overflow closed or with the form open, no console errors.
+  under 40px, no horizontal overflow closed or with the form open, no console errors.
   Tab order is EN, RU, LV, the six links, the toggle, the CTA. Reduced motion: no lift,
   no flick, colour only.
 - **Still unverified:** real devices and non-Chrome engines, same as everything else.

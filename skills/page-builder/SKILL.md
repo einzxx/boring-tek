@@ -998,15 +998,31 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 Six links in the fixed top bar, centred in whatever space the language switch and the
 theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that order.
 
+- **The glyphs are Tabler Icons, MIT licensed** (tabler.io/icons, © Paweł Kuna) — the
+  `outline` set, `brand-telegram`, `brand-x`, `brand-youtube`, `brand-tiktok`,
+  `brand-instagram`, `brand-facebook`, taken verbatim from
+  `@tabler/icons/icons/outline/`. Copy the `d` attributes and nothing else: the wrapper
+  attributes live in the stylesheet, and Tabler's leading `<path stroke="none"
+  d="M0 0h24v24H0z" fill="none"/>` bounding box is dropped — it exists for their export
+  pipeline and does nothing inline. MIT needs the licence kept with the source, not
+  reproduced in the page; the attribution is this line.
 - **Inline SVG, one `<svg>` per link, stroked not filled.** `viewBox="0 0 24 24"`,
-  `17px` on screen, `fill: none`, `stroke: currentColor`, `stroke-width: 1.6`, round
-  caps and joins — the same drawing as the theme toggle, so the bar reads as one set of
-  controls. No icon font, no sprite sheet, no image file, no CDN. The one filled part
-  on the page is instagram's shutter dot, which carries `.fill` and overrides both.
+  `22px` on screen in a `40px` box, `fill: none`, `stroke: currentColor`,
+  `stroke-width: 2`, round caps and joins. Tabler is drawn on the same 24 grid as the
+  theme toggle and at its own stroke-width 2, which is what keeps the six consistent
+  with each other; the toggle stays at 1.6 because it is smaller. No icon font, no
+  sprite sheet, no image file, no CDN — the paths ship in the page.
+- **`stroke-linecap: round` is load-bearing, not decoration.** Instagram's shutter dot
+  is `M16.5 7.5v.01`, a zero-length line that only renders as a dot because of the cap.
+  Drop the cap and the dot disappears.
 - **No brand colour, ever.** They are `--muted` at `.5` opacity — the exact rest state
   of an inactive language button — and they darken to `--fg` at opacity 1 on hover.
   Six logos in six brand colours in the top bar would out-shout the mascot, the
   headline and the CTA at once.
+- **Sized so the row is quiet, not small.** `22px` glyph, `40px` square hit box, `6px`
+  gap — `270px` for the six, which is the row's flex basis. They sit at `--muted` and
+  `.5` opacity, the same rest state as an inactive language button, so the row reads as
+  one dim strip until someone points at it.
 - **Hover is a lift plus one flick.** `translateY(-2px)`, and a single `.2s`
   `steps(1, end)` rgb split on the icon, running once per hover. Same `--gr` / `--gc`
   as the CTA glitch at half the travel, so it reads as the same page. `drop-shadow()`,
@@ -1015,7 +1031,7 @@ theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that o
 - **`target="_blank"` and `rel="noopener"`** on all six.
 - **Narrow bars put the row on its own line, and that is a container query, not a third
   breakpoint.** `.bar` carries `container-type: inline-size`;
-  `@container (max-width: 385px)` gives the theme toggle `order: 1` and the row
+  `@container (max-width: 440px)` gives the theme toggle `order: 1` and the row
   `order: 2; flex-basis: 100%`. The bar is what runs out of room, so the bar is what
   gets queried, and the page's two width breakpoints stay where they are.
 - **The order swap is the whole point of the query.** With `flex-wrap: wrap` and no
@@ -1023,10 +1039,12 @@ theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that o
   theme toggle, landing it bottom left, under the language buttons. Ordering the toggle
   ahead of the row keeps it on the first line, top right, where it has always been.
 - The row loses `6px` of height in the wrapped state (`34px` instead of `40px`), which
-  is what clears its icons off the top of the mascot's head at 320px. Measured: icon
-  bottom `82`, mascot top `84`.
+  is what clears its icons off the top of the mascot's head on a short phone. Measured
+  at 320, 360, 375 and 414 on a 568-667px tall viewport: icon box bottom `84`, mascot
+  face top `86.9`. That clearance is the reason the wrapped row is shorter — at a flat
+  `40px` the icons land on his crown.
 - The icons never shrink — `flex: 0 0 auto`, and `flex-wrap` breaks the line on the
-  row's whole `214px` before it would squeeze them. That is the fallback if the query
+  row's whole `270px` before it would squeeze them. That is the fallback if the query
   ever misses.
 - **The pill's clamp is measured, not a constant.** `barBottom()` reads the row and the
   toggle and takes the lower of the two, plus `8px`. A hardcoded `BAR = 60` was correct
@@ -1820,6 +1838,9 @@ Added with the socials row:
   Monochrome inline SVG, stroked, or it does not ship.
 - **A third width breakpoint** to place the socials row. The bar is a container; query
   the container.
+- **Hand-drawn approximations of a brand mark.** Tabler's outline set, verbatim. If a
+  seventh platform is ever added and Tabler does not have it, that is a decision, not a
+  drawing exercise.
 - **Letting the theme toggle be the item that wraps.** Order the row last.
 - **An ambient animation in the top bar.** The flick is on hover and nowhere else.
 
