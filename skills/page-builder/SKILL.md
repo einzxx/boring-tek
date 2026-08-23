@@ -17,9 +17,11 @@ off. Dark is where the identity lives. Light is where the customers are. Both sh
   No external files.
 - **Zero dependencies.** No npm, no build step, no framework, no CSS library, no icon
   library, no CDN scripts.
-- **Exactly one external request at load: Michroma from Google Fonts.** No other assets,
-  no analytics, no trackers. Inline `data:` URIs are fine, they ship in the file. See
-  Type → Display face for the exact tags.
+- **Exactly one external request at load, and it now carries two families.** One
+  Google Fonts `<link>`, `family=Michroma&family=Space+Grotesk:wght@400;500`. That is
+  still one request and it is the whole budget. No other assets, no analytics, no
+  trackers. Inline `data:` URIs are fine, they ship in the file. See Type for the
+  exact tag.
 - **Two runtime requests, and only on a press:** the contact form posts to Web3Forms and
   to our own Cloudflare Worker at the same time. Nothing fetches on load, on scroll, on
   hover or on idle. If a page grows another endpoint, that's a decision, not an
@@ -28,8 +30,9 @@ off. Dark is where the identity lives. Light is where the customers are. Both sh
   saved theme and language to `<html>` synchronously as its first act, then defers
   everything else to `DOMContentLoaded`. Deferring the whole script, or moving it to the
   body, puts a white flash in front of every dark-mode visitor.
-- **No second webfont.** Michroma is the only face we load, ever. Body and UI text use
-  the system monospace stack.
+- **No third webfont.** Michroma and Space Grotesk are the whole list, in one request.
+  Anything that is neither — and every russian string, which Space Grotesk cannot set —
+  uses the system monospace stack.
 - **JS is optional.** If the page works without it, ship it without it. Everything JS
   adds here is decoration layered on top of a page that already reads.
 - **Inline SVG** for graphics, `currentColor` for strokes and fills. No image files
@@ -153,8 +156,9 @@ opacity; the others are `--muted` at `.5`.
 
 ## Type
 
-Two faces, and only two. **Michroma** for the headline, system monospace for
-everything else. Never mix them within one element, and never add a third.
+Three faces. **Michroma** for the headline, **Space Grotesk** for reading text, system
+monospace for everything that is deliberately mono. Never mix them within one element,
+and never add a fourth.
 
 ### Display face — Michroma
 
@@ -163,15 +167,16 @@ logo. It is the **only** external request the page is allowed to make.
 
 ```html
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap">
 ```
 
 ```css
 --display: "Michroma", var(--mono);
 ```
 
-- **Headline / wordmark and the lockup subline.** Nothing else — never body text,
-  labels, buttons, nav or status tags. Those stay `--mono`.
+- **Headline / wordmark, the lockup subline, and the cta.** Nothing else — never body
+  text, labels, form buttons, nav or status tags. Those stay `--body`, or `--mono`
+  where mono is deliberate.
 - The subline is the one small-text exception, and it is deliberate: it belongs to the
   lockup, so it carries the lockup's face. It earns the exception by being **one short
   line, uppercase, tracked wide** — see Letter-spacing below. Michroma at small sizes,
@@ -183,8 +188,9 @@ logo. It is the **only** external request the page is allowed to make.
   Russian subline and half the Latvian one would fall back per glyph — two faces inside
   one word, which looks broken rather than multilingual. The subline therefore tests its
   own string (`/^[\x20-\x7E]*$/`) and drops the whole line to `--mono` at `.14em`
-  tracking when it isn't plain ASCII. All or nothing, never per glyph. The headline is
-  never translated, so it is always Michroma.
+  tracking when it isn't plain ASCII. All or nothing, never per glyph. **The cta runs
+  the same test** and drops to `--body` when it fails — Space Grotesk for latvian, mono
+  for russian. The headline is never translated, so it is always Michroma.
 - **Michroma ships one weight: 400.** There is no bold, no italic, no variable axis.
   Never request extra weights in the URL, never fake bold with `font-weight: 700`
   (which triggers synthetic bold and smears the squared edges), never fake it with
@@ -201,8 +207,37 @@ logo. It is the **only** external request the page is allowed to make.
 - **`text-transform` on Michroma changes its measured width by roughly 15%.** Caps are
   wider than lowercase. Anything that measures the face on a canvas has to measure the
   *rendered* string, not the DOM string — see Fit-to-width sizing.
-- Two network requests result from the one `<link>` — the CSS, then the WOFF2 from
-  `fonts.gstatic.com`. That pair is the whole external budget. Nothing else.
+- The one `<link>` fetches the CSS, then the WOFF2 files the page actually uses. That
+  is the whole external budget. Nothing else.
+
+### Body face — Space Grotesk
+
+Space Grotesk sets everything a visitor actually reads: the hint, the speech bubble,
+the form's questions, chips, fields, validation lines and its buttons. It arrives in
+the same `<link>` as Michroma, in weights 400 and 500 and no others.
+
+```css
+--body: "Space Grotesk", var(--mono);
+```
+
+- **Two weights, 400 and 500.** 500 is for the form question and the form's nav
+  buttons. Nothing else. Never request a third, never fake one.
+- **Space Grotesk ships latin and latin-ext only.** Latvian is covered. Cyrillic is
+  not, so a russian line would fall back per glyph — and the russian copy contains
+  latin words like `ai`, which is exactly the two-faces-in-one-line failure the
+  subline rule exists to prevent. The whole russian page therefore drops to the mono
+  stack with one rule:
+
+```css
+html[lang=ru]{ --body: var(--mono) }
+```
+
+- **Mono is not gone, it is deliberate.** The language buttons, the `// label` on the
+  cards below the hero, and anything that should read as terminal output stay
+  `var(--mono)`. Reading text does not.
+- The measure gate waits for **both** faces before anything is measured — Michroma at
+  400, Space Grotesk at 400 and 500. Measuring against a fallback is what makes a
+  fitted line overflow.
 
 ### Mono stack
 
@@ -252,6 +287,11 @@ from the space available and the number of character units it needs, not from a 
 
 /* subline: --tu is set by JS from the measured Michroma line plus tracking */
 .tag{ white-space: nowrap; font-size: min(1rem, calc((100vw - 44px) / var(--tu))); }
+
+/* cta: --cu is the measured button line. it divides by the LOCKUP, not by the
+   viewport — 100vw counts the scrollbar, and the page scrolls now. */
+.lockup{ container-type: inline-size; }
+.cta{ font-size: min(var(--t-body), calc((100cqi - 60px) / var(--cu))); }
 ```
 
 ```js
@@ -850,6 +890,23 @@ Universal:
 - One `requestAnimationFrame` loop for the whole page. Decode, eye tracking and canvas
   share it. Multiple rAF loops fight for frame budget.
 
+### The one scroll reveal
+
+This file used to ban scroll-triggered reveals outright, alongside scroll-jacking and
+parallax. That stays true for **chains** — section after section each waiting its turn,
+which turns reading into a queue. One exception is now allowed and it is the whole
+scope: **the cards in the section below the hero fade and slide up once, when they
+first enter view, and never again.**
+
+- `IntersectionObserver`, `unobserve` on the first intersection. No scroll handler.
+- Opacity and a 14px `translate3d` only, `.38s` on `--ease`. Nothing else moves.
+- The `.reveal` start state is added **by JS**, never written in the stylesheet. A
+  stylesheet that hides the cards hides them for good on a page with no script.
+- Under reduced motion the class is never added at all — the cards are simply already
+  there. Do not "reduce" it to a faster fade.
+- The pair staggers by 70ms through `transition-delay` declared against the card's own
+  transition list, so the hover lift and the border stay instant.
+
 ### Reduced motion
 
 `@media (prefers-reduced-motion: reduce)` must:
@@ -905,10 +962,11 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 - **Radius, revised at v1.** This file used to ban rounded corners outright. That held
   while the page was a wordmark on a black field. The contact flow is made of buttons,
   chips, fields and a comic speech bubble, and square corners on a speech bubble is not
-  a style choice, it's a different object. So there are now exactly three radii and
+  a style choice, it's a different object. So there are now exactly four radii and
   nothing between them:
   - `999px` — anything that reads as a pill: buttons, chips, the bubble, the dots.
   - `18px` — the form card.
+  - `16px` — the cards in the section below the hero, and nothing else.
   - `12px` — input and textarea fields.
 
   Everything else is still square: rules, dividers, the depth layers, any future table
@@ -1352,6 +1410,31 @@ Promise.allSettled([post(W3_URL, mail), post(TG_URL, fields)])
   someone's answers because the network failed.
 - `W3_KEY` holds the real web3forms token. It is committed on purpose — see above.
 
+## The section below the hero
+
+The first thing under the fold, and the shape every later section copies.
+
+- **It is a sibling of `main.wrap`, never a child of `.lockup`.** The lockup is
+  vertically centred and grows when the form unfolds; anything inside it moves with the
+  card. Outside it, the section holds still and cannot interfere with the unfold.
+- The hero keeps `min-height: 100dvh`, so the section always starts at the fold and the
+  landing state is unchanged.
+- **The thread.** A 1px rule, 56px tall, centred, `linear-gradient(to bottom,
+  var(--line), transparent)`. It leads the eye down out of the hint. It is
+  `aria-hidden`, it never animates, and it is the only decoration the section gets.
+- **Width matches the lockup:** `max-width: 560px`, `16px` side padding. The section is
+  not allowed to be wider than the thing it sits under.
+- **Three cards.** Two side by side above `720px` — the one structural breakpoint the
+  page already uses — one full width under them, all three stacked below it.
+- Card: `1px solid var(--line)`, `16px` radius, `var(--field)` background. Hover
+  darkens the border to `--muted` and lifts it 3px on a transform. No shadow.
+- Each card is a mono `// label` in caps at `.16em`, then body copy in `--body`.
+  The `//` is a `::before`, not typed into the markup.
+- Every string is keyed off the same `T` dictionary as the rest of the page, through
+  `data-k` attributes, and re-painted on every language switch.
+- The reveal is the one scroll animation on the site — see Motion budget → The one
+  scroll reveal.
+
 ## Terminal texture
 
 Use sparingly — one or two per page, not all of them.
@@ -1403,7 +1486,7 @@ The shape a new page starts from:
 ```
 <head>
   meta, canonical, og, twitter, favicon data URI     <- keep as they are
-  <link> michroma                                    <- the one load-time request
+  <link> michroma + space grotesk                    <- the one load-time request
   <style>
     @property --ex --ey --blink --wide --beat --units --tu
     :root{ light tokens }   html[data-theme=dark]{ dark tokens }
@@ -1430,6 +1513,8 @@ The shape a new page starts from:
     p.tag     -> .tag-size + .tag-live
     .cta-zone -> button.cta + p.hint
     section.card > .cardin > .pad                    <- rendered by JS
+  section.below                                      <- sibling of main, not lockup
+    .thread  +  .cards > article.cd > p.cl + p.ct
 </body>
 ```
 
@@ -1450,7 +1535,9 @@ Original list, still in force:
 - Scanlines heavy enough to hurt readability.
 - Terminal window chrome with traffic-light dots.
 - Gradients on text, glassmorphism, drop shadows on cards.
-- Scroll-jacking, parallax, scroll-triggered reveal chains.
+- Scroll-jacking, parallax, and reveal *chains* — a sequence of sections each waiting
+  its turn as you scroll. One card group fading up once is not a chain; see Motion
+  budget → The one scroll reveal.
 - Emoji anywhere in the UI.
 
 **Lifted at v1** — these were on the list and are now allowed, in exactly the scopes
@@ -1498,14 +1585,14 @@ Added:
 
 Added with Michroma:
 
-- **Any second webfont**, any extra Michroma weight or style in the Google Fonts URL,
-  any other external host. One `<link>`, one family, weight 400.
+- **Any third webfont**, any extra Michroma weight or style, any Space Grotesk weight
+  beyond 400 and 500, any other external host. One `<link>`, two families.
 - **Self-hosting or inlining Michroma** as a base64 `data:` URI. It bloats the single
   file past any sane budget — use the Google Fonts link.
 - **Synthetic bold on Michroma** — `font-weight: 700`, `-webkit-text-stroke`, or a
   duplicated offset layer faking heft. It has one weight; that's the design.
-- **Michroma on body text, buttons, chips, fields, nav or status tags.** The headline
-  and the lockup subline are the whole list.
+- **Michroma on body text, form buttons, chips, fields, nav or status tags.** The
+  headline, the lockup subline and the cta are the whole list.
 - **Michroma on a non-Latin string.** It has no Cyrillic and no Latvian diacritics, so
   the line falls back per glyph and breaks a word across two faces. Test the string and
   drop the whole line to `--mono`.
@@ -1735,8 +1822,9 @@ Performance:
 
 Correctness:
 
-- **Exactly two external requests on load**: the Google Fonts CSS and the Michroma
-  WOFF2. Anything else is a bug. The two form `POST`s appear only when send is pressed.
+- **One Google Fonts `<link>` on load**: the CSS, then the WOFF2 files for Michroma and
+  Space Grotesk. Anything from another host is a bug. The two form `POST`s appear only
+  when send is pressed.
 - Send with one destination blocked and then the other: both deliver on their own. Block
   both: the red line appears and no check mark does.
 - The network tab shows no form payload in any console message, on success or failure.
@@ -1745,8 +1833,10 @@ Correctness:
 - Reduced-motion pass: static grain and vignette, no decode, no typing, no eye
   tracking, no glitch, no idle bubble - **but the blink still runs, the theme still
   cross-fades, and the whole form still works end to end.**
-- JS disabled: headline reads correctly and the page is legible. The form cannot open;
-  that is expected, and nothing else may be broken or misleading.
+- JS disabled: headline reads correctly and the page is legible, **and the cards below
+  the hero are visible** — if they are blank, the reveal start state leaked into the
+  stylesheet. The form cannot open; that is expected, and nothing else may be broken or
+  misleading.
 - Keyboard-only pass: language buttons, theme toggle, mascot, CTA, every chip, field
   and nav button reachable, focus always visible in both themes.
 - Screen reader reads the headline once, not four times, and never reads the bubble.
@@ -1755,3 +1845,19 @@ Correctness:
   branching, not the delivery.
 - No secrets, no client names, no personal contact details - the repo is public.
 - Copy re-read once against the banned-words list, in all three languages.
+
+The section below the hero:
+
+- Scroll down at 320px, 375px, 768px and 1440px in both themes: no horizontal scroll at
+  any width, and `document.scrollWidth === clientWidth` throughout. The scrollbar now
+  exists on desktop, and anything that measures `innerWidth` instead of
+  `documentElement.clientWidth` is off by its width.
+- The cards fade up once. Scroll back up and down again: they do not replay.
+- Reduced motion: the cards are already there on arrival, at full opacity.
+- Hover each card: the border darkens and it lifts 3px, immediately, with no reveal
+  delay attached.
+- Switch language over the section: labels and copy all change, in one face per card.
+  Russian reads entirely in mono, `ai` included.
+- Open the form and watch the section: it does not move, flicker or re-reveal.
+- The cta reads as one line in all three languages at 320px. If it wraps, `--cu` was
+  measured in the wrong face or against the wrong width.

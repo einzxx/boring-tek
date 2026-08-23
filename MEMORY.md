@@ -9,6 +9,9 @@ names in here either.
 - Phase: **site v1 is LIVE.** The coming soon page is gone. `index.html` is the real
   site: two themes, three languages, a mascot with a speech bubble, and a multi-step
   contact form. Pushed and serving from `main` at theboringtek.com.
+- **Uncommitted on top of v1 (2026-08-23):** Space Grotesk as the body face, and the
+  first section below the hero — three cards on a thread. Rendered and measured, not
+  pushed. See Decisions.
 - **Outstanding, but not blocking:** the Cloudflare Worker at
   `boring-tek-forms.theboringtek.workers.dev` has not been deployed. The web3forms key
   is in place, so email delivery works on its own and a send already succeeds — the
@@ -48,7 +51,8 @@ names in here either.
 - **DNS:** done at Hostinger, pointed at GitHub Pages. `CNAME` in repo root holds the
   apex domain.
 - **Repo:** github.com/einzxx/boring-tek, public.
-- **Live page** — site v1, one file, ~57KB, one external request at load (Michroma):
+- **Live page** — site v1, one file, one external request at load, now carrying
+  two families (Michroma + Space Grotesk):
   - **Two themes.** Light is the default: white page, near-black mascot face with white
     eyes, no phosphor glow. Dark is the old look: near-black page, white face, dark
     eyes, green bloom on the headline. Toggle top right, saved in `localStorage` under
@@ -70,8 +74,12 @@ names in here either.
     inline validation, and on send `POST`s the same readable JSON to two places at
     once — web3forms for email and our own Cloudflare Worker for Telegram.
   - CRT grain and radial vignette in both themes, at different weights.
-  - The fixed top bar carries a scrim — invisible on a page that does not scroll, and
-    ready for the first section added below the hero.
+  - The fixed top bar carries a scrim, which the section below the hero now needs:
+    without it the headline scrolls up into the language and theme controls.
+  - **The section below the hero** — a 1px thread down from the hint, then three
+    cards: two side by side above 720px, one full width under them, all stacked below
+    it. Mono // label, body copy in Space Grotesk, EN/RU/LV like everything else.
+    Fades up once on scroll and never again.
 - **Favicon:** the mascot, transparent background, no plate, inline data URI. Still the
   dark-mode colourway (white face, dark eyes) — a favicon can't know the page theme.
 - **SEO:** unchanged from the coming soon page. `<title>`, meta description, canonical,
@@ -91,6 +99,49 @@ names in here either.
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
 ## Decisions
+
+### Space Grotesk, and the first section below the hero — 2026-08-23
+
+- **The one Google Fonts request now carries two families**, not one:
+  `css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap`. Still one
+  `<link>`, still one request. The "no second webfont" rule is lifted to exactly this;
+  a third family is still out.
+- **Space Grotesk is the body face** — hint, bubble, form questions, chips, fields,
+  validation lines, form buttons. Weight 500 is used on the form question and the form's
+  nav buttons and nowhere else.
+- **Michroma keeps the wordmark, the subline and the cta.** The cta was mono before and
+  is Michroma now, which is the one visual change in this batch that is not just a
+  swapped face.
+- **Space Grotesk has no Cyrillic.** It ships latin and latin-ext, so Latvian is covered
+  and Russian is not — and the Russian copy contains latin words like `ai`, which would
+  have split a line across two faces. The whole Russian page therefore drops to the mono
+  stack: `html[lang=ru]{--body:var(--mono)}`. Same all-or-nothing rule the subline has
+  always followed. **Do not "fix" this by requesting a Cyrillic subset; there isn't one.**
+- **The cta is measured and fitted like the subline.** It runs the same plain-ASCII test
+  and drops to `--body` when it fails (Space Grotesk for LV, mono for RU), and its size
+  divides by a measured `--cu`. The divide uses `100cqi` off the lockup, **not `100vw`**
+  — `vw` counts the scrollbar, and the page scrolls now, which was enough to wrap the
+  button at 375px. At 320px the Michroma cta renders around 10.5px; that is the cost of
+  putting the display face on the button and it is smaller than the mono one it replaced.
+- **The section below the hero is a sibling of `main`, never a child of `.lockup`.** The
+  lockup is vertically centred and grows when the form unfolds; anything inside it moves
+  with the card. Outside it, the section holds still — verified: its document offset is
+  identical before and after the form opens.
+- **The scroll reveal is a deliberate, named exception.** Reveal chains are still banned.
+  One group of cards, fading up once on `IntersectionObserver`, `unobserve`d on first
+  intersection. The start state is added by JS so a page with no script still shows the
+  cards, and under reduced motion it is never added at all.
+- **`fitPill` was measuring against `innerWidth`.** That was fine while the page never
+  scrolled. It does now, and `innerWidth` counts the scrollbar the pill cannot use — it
+  put 4px of horizontal overflow on screen at 320px while the card unfolded. It reads
+  `documentElement.clientWidth` now.
+- **Radius gained a fourth tier, 16px**, for these cards only.
+- **Measured in headless Chrome over CDP** at 320 / 360 / 375 / 414 / 768 / 1440, both
+  themes, all three languages: no horizontal overflow at any width, closed or with the
+  form open; the cta is one line everywhere; the cards reveal once and are already
+  visible under reduced motion; no console errors across a full pass of language
+  switches, theme toggle, scroll and form open.
+- **Still unverified:** real devices and non-Chrome engines, same as v1.
 
 ### About section built, then removed — 2026-08-23
 

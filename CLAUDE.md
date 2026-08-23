@@ -87,10 +87,18 @@ state or makes a decision.
   no separate scripts.
 - **Zero dependencies.** No npm, no package.json, no build step, no bundler, no
   framework, no CSS library, no icon library, no CDN scripts.
-- **Exactly one external request at load: Michroma from Google Fonts.** That is the
+- **Exactly one external request at load, carrying exactly two families: Michroma
+  and Space Grotesk, from Google Fonts.** One `<link>`,
+  `css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap`. That is the
   whole budget and it is a deliberate, approved exception to the "no external fonts"
-  rule this line used to carry. Everything else the page needs ships in the file, and
-  body/UI text uses the system monospace stack.
+  rule this line used to carry. Michroma sets the wordmark, the subline and the cta;
+  Space Grotesk sets reading text, at weights 400 and 500 only. Everything else the
+  page needs ships in the file, and anything deliberately mono uses the system
+  monospace stack.
+- **Space Grotesk has no Cyrillic**, so the whole Russian page falls back to mono with
+  one rule — `html[lang=ru]{--body:var(--mono)}`. All or nothing, never per glyph:
+  a line that mixes two faces mid-sentence is the failure this prevents. There is no
+  Cyrillic subset to request, so do not try to "fix" it.
 - **Two requests at runtime, and only when someone presses send:** the contact form
   posts to Web3Forms (email) and to our Cloudflare Worker (Telegram). Nothing fetches
   on load, on scroll, on hover or on idle. Another endpoint is a decision, not an
@@ -123,8 +131,9 @@ state or makes a decision.
 - Add a build step, a package manager, or a framework "to make it maintainable".
 - Split the file into components, partials, or a `src/` directory.
 - Pull in Tailwind, Bootstrap, Font Awesome, or any CDN script or CSS library.
-  (Google Fonts is the one exception, for Michroma only — see Build constraints. Never
-  a second family, never a second weight.)
+  (Google Fonts is the one exception, for Michroma and Space Grotesk only, in one
+  request — see Build constraints. Never a third family, never a Michroma weight
+  beyond 400 or a Space Grotesk weight beyond 400 and 500.)
 - Add a roadmap, a team section with fake headshots, testimonials, or logo walls.
 - Write corporate filler copy, taglines with "solutions", or AI-generated blurb.
 - Add emoji, glassmorphism, drop shadows, or gradients on text.

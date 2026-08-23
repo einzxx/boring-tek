@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap">
 <style>
 @property --ex{syntax:'<number>';inherits:true;initial-value:0}
 @property --ey{syntax:'<number>';inherits:true;initial-value:0}
@@ -58,6 +58,7 @@
 
   --mono:ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
   --display:"Michroma",var(--mono);
+  --body:"Space Grotesk",var(--mono);
   --t-micro:clamp(.6875rem,.66rem + .14vw,.75rem);
   --t-body:clamp(.8125rem,.77rem + .22vw,.9375rem);
   --ease:cubic-bezier(.16,1,.3,1);
@@ -93,6 +94,11 @@ html[data-theme=dark]{
   --grain-o:.038;
 }
 
+/* space grotesk ships latin and latin-ext only. latvian is covered, cyrillic
+   is not, so the whole russian page drops to the mono stack rather than
+   falling back per glyph and mixing two faces inside one line. */
+html[lang=ru]{--body:var(--mono)}
+
 *{box-sizing:border-box}
 /* the theme cross-fade. interactive elements re-declare transition below and
    win on specificity, so hover and press stay fast. */
@@ -102,7 +108,7 @@ html[data-theme=dark]{
 html,body{margin:0;padding:0;min-height:100%}
 body{
   background:var(--bg); color:var(--fg);
-  font:400 var(--t-body)/1.65 var(--mono);
+  font:400 var(--t-body)/1.65 var(--body);
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
 }
@@ -155,7 +161,7 @@ body{
 .langs{display:flex;gap:2px}
 .lang{
   appearance:none;background:none;border:0;cursor:pointer;
-  font:inherit;font-size:var(--t-micro);letter-spacing:.14em;
+  font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
   padding:10px 8px;color:var(--muted);opacity:.5;
   transition:opacity .22s ease-out,color .5s ease;
 }
@@ -187,6 +193,9 @@ html[data-theme=dark] .theme .i-moon{display:none}
   display:flex; flex-direction:column; align-items:center;
   gap:clamp(12px,2.2vh,22px);
   width:100%; max-width:560px;
+  /* the cta divides by the lockup, not by 100vw: vw counts the scrollbar and
+     the page scrolls now, which was enough to wrap the button at 375px. */
+  container-type:inline-size;
 }
 
 /* mascot — the halo is a static radial layer on a wrapper, not a filter on the
@@ -320,7 +329,12 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .cta-zone.off{display:none}
 .cta{
   appearance:none;cursor:pointer;
-  font:inherit;font-size:var(--t-body);letter-spacing:.12em;text-transform:uppercase;
+  font:inherit;font-family:var(--display);
+  /* fit-to-width, the same divide the subline uses. --cu is the cta line
+     measured in em in whichever face renders it, so michroma can never wrap
+     the pill or push it past the viewport. */
+  font-size:min(var(--t-body),calc((100cqi - 60px) / var(--cu,22)));
+  letter-spacing:.12em;text-transform:uppercase;
   padding:14px 26px; min-height:44px;
   border:1px solid var(--fg); border-radius:999px;
   background:transparent; color:var(--fg);
@@ -328,6 +342,9 @@ html[data-theme=dark] .theme .i-moon{display:none}
              border-color .5s ease,transform .3s var(--spring);
 }
 .cta:hover{background:var(--fg);color:var(--bg)}
+/* michroma has no cyrillic and no latvian diacritics, so the button follows the
+   subline rule: all one face or none of it. */
+.cta.mono{font-family:var(--body)}
 .cta:active{transform:scale(.97)}
 .cta-t{display:inline-block}
 .cta.shake{animation:shake .34s ease-out}
@@ -376,7 +393,7 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .pdot.now{background:var(--accent);transform:scale(1.5)}
 .step{display:flex;flex-direction:column;gap:14px;animation:qin .3s var(--ease) both}
 @keyframes qin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.q{margin:0;font-size:var(--t-body);color:var(--fg)}
+.q{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
 .qs{margin:-8px 0 0;font-size:var(--t-micro);color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .chip{
@@ -409,6 +426,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 .nav{display:flex;justify-content:center;gap:8px}
 .btn{
   appearance:none;cursor:pointer;font:inherit;font-size:var(--t-micro);
+  font-weight:500;
   letter-spacing:.1em;text-transform:uppercase;
   padding:12px 22px;min-height:44px;
   border:1px solid var(--fg);border-radius:999px;
@@ -431,6 +449,52 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 .tick circle{stroke:var(--line);stroke-dasharray:126;stroke-dashoffset:126;animation:draw .55s var(--ease) forwards}
 .tick path{stroke-dasharray:34;stroke-dashoffset:34;animation:draw .45s var(--ease) .18s forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---- the section below the hero ----
+   a sibling of the lockup, never a child of it, so opening the form cannot
+   move it and it cannot interfere with the card's unfold. the thread is a 1px
+   rule fading out of the border colour, carrying the eye down from the hint. */
+.below{
+  position:relative; z-index:2;
+  width:100%; max-width:560px; margin:0 auto;
+  padding:0 16px clamp(56px,10vh,96px);
+}
+.thread{
+  width:1px; height:56px; margin:0 auto clamp(20px,3.4vh,32px);
+  background-image:linear-gradient(to bottom,var(--line),transparent);
+  transition:background-image .5s ease;
+}
+.cards{display:grid;gap:12px}
+@media (min-width:720px){
+  .cards{grid-template-columns:1fr 1fr}
+  .cd.wide{grid-column:1 / -1}
+}
+/* 16px is a fourth radius and it belongs to these cards only. */
+.cd{
+  border:1px solid var(--line); border-radius:16px;
+  background:var(--field);
+  padding:clamp(16px,3.6vw,22px);
+  text-align:left;
+  transition:border-color .24s ease-out,background-color .5s ease,
+             transform .38s var(--ease),opacity .38s ease-out;
+}
+/* .reveal is added by JS, so the cards read with no script at all, and it is
+   never added under reduced motion. it sits above the hover rule on purpose —
+   equal specificity, so .cd:hover has to come last to keep the lift. */
+.reveal{opacity:0;transform:translate3d(0,14px,0)}
+.reveal.in{opacity:1;transform:none}
+/* the pair staggers by declaring delays against the transition list above, so
+   the hover lift and the border stay instant. */
+.cards .cd:nth-child(2){transition-delay:0s,0s,70ms,70ms}
+.cards .cd:nth-child(3){transition-delay:0s,0s,140ms,140ms}
+.cd:hover{border-color:var(--muted);transform:translate3d(0,-3px,0)}
+.cl{
+  margin:0 0 8px; font-family:var(--mono);
+  font-size:var(--t-micro); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted);
+}
+.cl::before{content:"// "}
+.ct{margin:0;font-size:var(--t-body);color:var(--sub);max-width:68ch}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
@@ -462,6 +526,12 @@ var T={
   sub:'building the boring part of the future',
   cta:'tell us what you need',
   hint:'few clicks. we look. we reply.',
+  c1l:'who we are',
+  c1t:'we build with ai every day. payments. bots. systems that run alone. you talk to the person who builds it.',
+  c2l:'honest part',
+  c2t:'every business will use ai. the ones that start early win. the ones that wait fall behind. that is just how it goes.',
+  c3l:'so write',
+  c3t:'know what you need, write. no idea what ai can do for you, write. no time to think about it, write. we look and reply with real options. costs nothing to ask.',
   idle:['boring...','still boring...','waiting...','so quiet...'],
   open:'oh. a customer.',
   notes:['mhm.','classic.','ok. noted.'],
@@ -508,6 +578,12 @@ var T={
   sub:'строим скучную часть будущего',
   cta:'расскажите что вам нужно',
   hint:'пару кликов. мы смотрим. мы отвечаем.',
+  c1l:'кто мы',
+  c1t:'мы каждый день строим с ai. платежи. боты. системы которые работают сами. вы говорите с тем кто это строит.',
+  c2l:'честная часть',
+  c2t:'каждый бизнес будет использовать ai. кто начинает раньше — выигрывает. кто ждёт — отстаёт. так это работает.',
+  c3l:'поэтому пишите',
+  c3t:'знаете что вам нужно — пишите. не знаете что ai может для вас сделать — пишите. нет времени об этом думать — пишите. мы посмотрим и ответим реальными вариантами. спросить ничего не стоит.',
   idle:['скучно...','всё ещё скучно...','жду...','так тихо...'],
   open:'о. клиент.',
   notes:['угу.','классика.','хорошо. записал.'],
@@ -554,6 +630,12 @@ var T={
   sub:'būvējam nākotnes garlaicīgo daļu',
   cta:'pastāstiet ko jums vajag',
   hint:'daži klikšķi. mēs skatāmies. mēs atbildam.',
+  c1l:'kas mēs esam',
+  c1t:'mēs katru dienu būvējam ar ai. maksājumi. boti. sistēmas kas strādā pašas. jūs runājat ar to kurš tās būvē.',
+  c2l:'godīgā daļa',
+  c2t:'katrs bizness izmantos ai. tie kas sāk agrāk — uzvar. tie kas gaida — atpaliek. tā tas notiek.',
+  c3l:'tāpēc rakstiet',
+  c3t:'zināt ko jums vajag — rakstiet. nezināt ko ai var jums dot — rakstiet. nav laika par to domāt — rakstiet. mēs paskatāmies un atbildam ar reāliem variantiem. pajautāt neko nemaksā.',
   idle:['garlaicīgi...','joprojām garlaicīgi...','gaidu...','tik klusi...'],
   open:'o. klients.',
   notes:['mhm.','klasika.','labi. pierakstīts.'],
@@ -628,6 +710,8 @@ var ctaZone=D.querySelector('.cta-zone');
 var cta=D.querySelector('.cta');
 var ctaT=D.querySelector('.cta-t');
 var hintEl=D.querySelector('.hint');
+var keyed=D.querySelectorAll('[data-k]');
+var cds=D.querySelectorAll('.cd');
 var card=D.querySelector('.card');
 var pad=D.querySelector('.pad');
 var themeBtn=D.querySelector('.theme');
@@ -686,6 +770,34 @@ function tagUnits(str,isMono){
     ? '400 200px ui-monospace, Consolas, monospace'
     : '400 200px Michroma, ui-monospace, monospace';
   return cx.measureText(str.toUpperCase()).width/200 + str.length*(isMono?.14:.18) + .2;
+}
+
+/* the cta carries michroma now, so it gets the subline treatment: measured in
+   the face that will actually render it, and dropped whole to the body face
+   when the string is not plain latin. michroma has no cyrillic and no latvian
+   diacritics, and half a button in one face is worse than all of it in the
+   other. */
+function ctaUnits(str,face){
+  var cx;
+  try{ cx=D.createElement('canvas').getContext('2d'); }catch(e){ return 0; }
+  if(!cx) return 0;
+  cx.font = face==='display' ? '400 200px Michroma, ui-monospace, monospace'
+          : face==='mono'    ? '400 200px ui-monospace, Consolas, monospace'
+          : '400 200px "Space Grotesk", ui-monospace, monospace';
+  return cx.measureText(str.toUpperCase()).width/200 + str.length*.12 + .2;
+}
+function setCta(str){
+  ctaT.textContent=str;
+  var face = (LATIN.test(str) && michromaReady()) ? 'display'
+           : (lang==='ru' ? 'mono' : 'grotesk');
+  cta.classList.toggle('mono',face!=='display');
+  var cu=ctaUnits(str,face);
+  if(cu) cta.style.setProperty('--cu',cu.toFixed(3));
+}
+/* every string in the section below the hero is keyed off the same dictionary
+   as the rest of the page. */
+function paintKeys(){
+  for(var n=0;n<keyed.length;n++) keyed[n].textContent=t(keyed[n].getAttribute('data-k'));
 }
 
 function build(el){
@@ -849,7 +961,9 @@ function fitPill(){
   pill.style.setProperty('--pshift','0px');
   pill.style.setProperty('--pshiftY','0px');
   var br=bubble.getBoundingClientRect(), sx=0, sy=0;
-  var over=(br.left + pill.offsetLeft + pill.offsetWidth) - (innerWidth - 12);
+  /* clientWidth, not innerWidth: the page scrolls now that there is a section
+     below the hero, and innerWidth counts the scrollbar the pill cannot use. */
+  var over=(br.left + pill.offsetLeft + pill.offsetWidth) - (R.clientWidth - 12);
   if(over>0){ sx=-Math.round(over); sy=-26; }
   /* and never let it climb into the top bar. with the card open the lockup is
      tall enough that the head sits high and the bubble runs out of sky before
@@ -1187,8 +1301,9 @@ function setLang(v){
   try{ localStorage.setItem('bt-lang',v); }catch(e){}
   for(var n=0;n<langBtns.length;n++)
     langBtns[n].setAttribute('aria-pressed', langBtns[n].getAttribute('data-l')===v ? 'true':'false');
-  ctaT.textContent=t('cta');
+  setCta(t('cta'));
   hintEl.textContent=t('hint');
+  paintKeys();
   themeBtn.setAttribute('aria-label', theme==='dark' ? t('th_light') : t('th_dark'));
   setTag(t('sub'), !typed);
   if(open){ doneState ? finish() : render(); }
@@ -1280,13 +1395,27 @@ function frame(now){
 
 /* ---------- start ---------- */
 setTheme(theme);
-ctaT.textContent=t('cta');
+setCta(t('cta'));
 hintEl.textContent=t('hint');
+paintKeys();
 for(i=0;i<langBtns.length;i++)
   langBtns[i].setAttribute('aria-pressed', langBtns[i].getAttribute('data-l')===lang ? 'true':'false');
 tagSize.textContent=tagTxt.textContent=t('sub');
 tagEl.classList.toggle('mono',!LATIN.test(t('sub')));
 if(RUN) tagLive.style.visibility='hidden';
+
+/* the cards below the hero arrive once, on scroll. the class is added here and
+   not in the stylesheet, so a page with no script still shows them — and under
+   reduced motion it is never added at all: they are simply already there. */
+if(RUN && window.IntersectionObserver){
+  var io=new IntersectionObserver(function(es){
+    for(var n=0;n<es.length;n++) if(es[n].isIntersecting){
+      es[n].target.classList.add('in');
+      io.unobserve(es[n].target);
+    }
+  },{rootMargin:'0px 0px -10% 0px'});
+  for(i=0;i<cds.length;i++){ cds[i].classList.add('reveal'); io.observe(cds[i]); }
+}
 
 var started=false;
 function start(){
@@ -1302,6 +1431,7 @@ function start(){
   decoding=RUN;
   applyMode();
   setTag(t('sub'), false);
+  setCta(t('cta'));
 
   if(mqS.addEventListener) mqS.addEventListener('change',applyMode);
   addEventListener('resize',function(){
@@ -1332,10 +1462,14 @@ function start(){
   requestAnimationFrame(frame);
 }
 
-/* wait for the font in every mode, reduced motion included. the markup already
-   holds the real text, so nothing is hidden while we wait — and starting early
-   only means measuring michroma before it exists. */
-if(D.fonts && D.fonts.load) D.fonts.load('400 1em Michroma').then(start,start);
+/* wait for both faces in every mode, reduced motion included. the markup
+   already holds the real text, so nothing is hidden while we wait — and
+   starting early only means measuring michroma before it exists. */
+if(D.fonts && D.fonts.load) Promise.all([
+  D.fonts.load('400 1em Michroma'),
+  D.fonts.load('400 1em "Space Grotesk"'),
+  D.fonts.load('500 1em "Space Grotesk"')
+]).then(start,start);
 else start();
 setTimeout(start,2500);
 }
@@ -1406,5 +1540,23 @@ else boot();
 
  </div>
 </main>
+
+<section class="below" aria-label="about">
+  <div class="thread" aria-hidden="true"></div>
+  <div class="cards">
+    <article class="cd">
+      <p class="cl" data-k="c1l">who we are</p>
+      <p class="ct" data-k="c1t">we build with ai every day. payments. bots. systems that run alone. you talk to the person who builds it.</p>
+    </article>
+    <article class="cd">
+      <p class="cl" data-k="c2l">honest part</p>
+      <p class="ct" data-k="c2t">every business will use ai. the ones that start early win. the ones that wait fall behind. that is just how it goes.</p>
+    </article>
+    <article class="cd wide">
+      <p class="cl" data-k="c3l">so write</p>
+      <p class="ct" data-k="c3t">know what you need, write. no idea what ai can do for you, write. no time to think about it, write. we look and reply with real options. costs nothing to ask.</p>
+    </article>
+  </div>
+</section>
 </body>
 </html>
