@@ -583,9 +583,9 @@ var T={
   c1l:'кто мы',
   c1t:'мы каждый день строим с ai. платежи. боты. системы которые работают сами. вы говорите с тем кто это строит.',
   c2l:'честная часть',
-  c2t:'каждый бизнес будет использовать ai. кто начинает раньше — выигрывает. кто ждёт — отстаёт. так это работает.',
+  c2t:'каждый бизнес будет использовать ai. кто начинает раньше, тот выигрывает. кто ждёт, тот отстаёт. так это работает.',
   c3l:'поэтому пишите',
-  c3t:'знаете что вам нужно — пишите. не знаете что ai может для вас сделать — пишите. нет времени об этом думать — пишите. мы посмотрим и ответим реальными вариантами. спросить ничего не стоит.',
+  c3t:'знаете что вам нужно, пишите. не знаете что ai может для вас сделать, пишите. нет времени об этом думать, пишите. мы посмотрим и ответим реальными вариантами. спросить ничего не стоит.',
   idle:['скучно...','всё ещё скучно...','жду...','так тихо...'],
   open:'о. клиент.',
   notes:['угу.','классика.','хорошо. записал.'],
@@ -635,9 +635,9 @@ var T={
   c1l:'kas mēs esam',
   c1t:'mēs katru dienu būvējam ar ai. maksājumi. boti. sistēmas kas strādā pašas. jūs runājat ar to kurš tās būvē.',
   c2l:'godīgā daļa',
-  c2t:'katrs bizness izmantos ai. tie kas sāk agrāk — uzvar. tie kas gaida — atpaliek. tā tas notiek.',
+  c2t:'katrs bizness izmantos ai. tie kas sāk agrāk, uzvar. tie kas gaida, atpaliek. tā tas notiek.',
   c3l:'tāpēc rakstiet',
-  c3t:'zināt ko jums vajag — rakstiet. nezināt ko ai var jums dot — rakstiet. nav laika par to domāt — rakstiet. mēs paskatāmies un atbildam ar reāliem variantiem. pajautāt neko nemaksā.',
+  c3t:'zināt ko jums vajag, rakstiet. nezināt ko ai var jums dot, rakstiet. nav laika par to domāt, rakstiet. mēs paskatāmies un atbildam ar reāliem variantiem. pajautāt neko nemaksā.',
   idle:['garlaicīgi...','joprojām garlaicīgi...','gaidu...','tik klusi...'],
   open:'o. klients.',
   notes:['mhm.','klasika.','labi. pierakstīts.'],
@@ -1230,7 +1230,7 @@ function post(url,body){
 function submit(){
   sending=true; netErr=false; render();
   var fields=payload();
-  var mail={access_key:W3_KEY, subject:'new form — the boring tek'};
+  var mail={access_key:W3_KEY, subject:'new form, the boring tek'};
   for(var k in fields) if(Object.prototype.hasOwnProperty.call(fields,k)) mail[k]=fields[k];
   /* two independent destinations, fired together. one arriving is enough —
      the visitor should not retype anything because a mail relay was down. */

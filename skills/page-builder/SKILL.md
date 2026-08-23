@@ -1472,6 +1472,16 @@ Use sparingly — one or two per page, not all of them.
 - Say what it does. Banned: leverage, empower, solutions, synergy, seamless,
   cutting-edge, revolutionize, unlock, transform your business, next-generation.
 - No emoji. No exclamation marks. No rhetorical questions in headings.
+- **No punctuation dashes in user-facing copy, in any language.** No em dash, no en
+  dash, no hyphen standing in for one. A comma or a full stop does the same work and
+  reads plainer, which is the voice. Applies to every visible string: cards, hints,
+  form questions, chip options, placeholders, validation lines, bubble lines, and the
+  subject line the form mails us.
+  **Hyphens inside words stay** — `e-pasts`, `что-то`, `cutting-edge` when quoting it. Those are
+  spelling, not punctuation, and removing them misspells the word.
+  The trap is translation: RU and LV reach for the em dash where English uses a comma,
+  so this has to be re-checked every time copy is added in either language. Code
+  comments and this file are not user-facing and are unaffected.
 - No invented clients, metrics, headcounts or testimonials.
 - Dry and deadpan beats clever.
 

@@ -31,6 +31,10 @@ Raw, anti-corporate, terminal-native.
   "cutting-edge", "seamless", "revolutionize", "unlock the power of".
 - No emoji. No stock photos. No smiling-team-around-a-laptop imagery.
 - No exclamation marks. No hype. Confidence comes from specificity, not volume.
+- **No punctuation dashes anywhere a visitor can read, in any language** — no em dash,
+  no en dash, no hyphen used as one. Use a comma or a full stop. **Hyphens inside words
+  stay** (`e-pasts`, `что-то`): that is spelling, not punctuation. Watch this hardest in
+  RU and LV, which reach for the em dash where English uses a comma.
 - Never claim work, clients, metrics or partnerships we can't name.
 - Humour is dry and deadpan, never memey.
 
