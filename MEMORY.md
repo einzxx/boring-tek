@@ -135,6 +135,15 @@ names in here either.
   tab order and the accessibility tree.
 - **This is the third width breakpoint and the last one.** 720px for the cards, 640px
   for the stacked lockup, 560px for the socials.
+- **The hero starts 32px lower above 560px**, because the row in the bar sits directly
+  over the mascot. `.wrap{padding-top:clamp(116px,11vh + 32px,132px)}`, inside the same
+  media query. Gap from the icons to the face was 35px on a 720-768px tall laptop and 50
+  on a 900; it is 67-83 now. Below 560px the padding is untouched: the bar is two
+  controls again and the socials are in the footer.
+- **The same 32px comes off `.below`'s bottom padding on desktop**, so the document is
+  exactly as tall as it was before the socials existed and 1440x900 still fits one
+  screen with no scroll. Measured identical at 1024x768, 1280x720, 1366x768, 1440x900,
+  1920x1080 and 2560x1200.
 - `barBottom()` is down to the theme toggle. The bar is one row again, and the socials
   are absolute and end above the toggle when they are in it at all.
 - **Measured in headless Chrome over CDP** at 320, 360, 375, 390, 430, 480, 540, 559,

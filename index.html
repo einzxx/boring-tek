@@ -561,6 +561,15 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
     transform:translateX(-50%);
   }
   .foot{display:none}
+  /* the icons are only in the bar on this side of the line, and they sit right
+     above the head. 32px more sky, so the row reads as part of the bar and not
+     as something balanced on the mascot. the phone keeps the original padding:
+     its bar is two controls and the socials are down in the footer. */
+  .wrap{padding-top:clamp(116px,11vh + 32px,132px)}
+  /* and the same 32px comes off the bottom of the page, so the whole landing
+     state still fits one screen at 1440x900 the way it did before the row
+     existed. the air below the cards is the cheapest 32px on the page. */
+  .below{padding-bottom:clamp(32px,10vh - 32px,64px)}
 }
 
 @media (prefers-reduced-motion:reduce){

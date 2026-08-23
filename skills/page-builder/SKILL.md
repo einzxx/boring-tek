@@ -364,8 +364,10 @@ Order, top to bottom:
 ```
 
 ```css
-.wrap{ min-height:100dvh; display:flex; justify-content:center; align-items:center;
-       padding:74px 16px 36px }
+.wrap{ display:flex; justify-content:center; align-items:center;
+       padding:clamp(84px,11vh,100px) 16px clamp(12px,2vh,18px) }
+/* above 560px, where the socials sit in the bar: */
+.wrap{ padding-top:clamp(116px,11vh + 32px,132px) }
 .lockup{
   display:flex; flex-direction:column; align-items:center;
   gap:clamp(12px,2.2vh,22px);
@@ -379,6 +381,12 @@ Order, top to bottom:
 - The top padding clears the fixed bar. The bar is `position: fixed`, so it adds no
   height — without that padding the mascot slides under the language buttons on short
   screens.
+- **Above `560px` that padding carries another `32px`**, because the socials row is in
+  the bar on that side of the line and lands right above the mascot's head. Clearing the
+  controls is not the same as looking clear of them: at the old value the gap from the
+  icons to the face was `35px` on a 720–768px tall laptop, which read as the row
+  balancing on him. It is `67–83px` now. The phone keeps the original padding — its bar
+  is two controls and the socials are down in the footer.
 - **The landing state must not scroll on desktop.** Mascot, wordmark, subline, button
   and hint come to roughly 330px; that is the budget. Anything new competes for it.
   The hero fills `100dvh` and the landing page does not scroll; any section added later
@@ -1044,6 +1052,12 @@ with. Never both at once, and never a second bar row.
   not `text-shadow`: these are strokes, not glyphs. Hover only — nothing in this row
   ever animates on its own. The CTA is still the page's one attention-seeker.
 - **`target="_blank"` and `rel="noopener"`** on all six, in both rows.
+- **The 32px the hero gains above 560px comes back off the bottom of the page.**
+  `.below` drops to `padding-bottom: clamp(32px, 10vh - 32px, 64px)` in the same media
+  query, so the document is exactly as tall as it was before the row existed and the
+  landing state still fits one screen at 1440×900. Verified identical at 1024×768,
+  1280×720, 1366×768, 1440×900, 1920×1080 and 2560×1200. The air below the cards is the
+  cheapest 32px on the page; the air above the mascot is not.
 - **The footer is the phone's version of the row, and nothing else.** `<footer class=
   "foot">`, a sibling after `section.below`, holding the row and one line:
   `theboringtek 2026`, mono, `--t-micro`, `--muted` at `.75`, tracked `.14em`,
@@ -1944,6 +1958,9 @@ The socials row:
 
 - Drag the window across `560px`: the row leaves the bar and appears in the footer, and
   the footer line comes with it. Never two rows on screen at once, never zero.
+- Above `560px`, the gap from the bottom of the icons to the top of the mascot's face
+  is never under `60px` — check it on a short laptop (1280×720, 1366×768), not just on
+  a 900px-tall screen, because the hero's top padding is partly `vh`.
 - Above `560px`, measure it: the row's centre is the page's centre, to the pixel, at
   560, 768, 1440 and 2560 — not the centre of the gap between the language block and the
   toggle. At 560 it still clears the language buttons.
