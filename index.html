@@ -152,12 +152,13 @@ body{
 .bar{
   position:fixed; top:0; left:0; right:0; z-index:5;
   display:flex; align-items:flex-start; justify-content:space-between;
+  flex-wrap:wrap; container-type:inline-size;
   padding:12px 12px 30px;
   pointer-events:none;
   background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
   transition:background-image .5s ease;
 }
-.langs,.theme{pointer-events:auto}
+.langs,.socials,.theme{pointer-events:auto}
 .langs{display:flex;gap:2px}
 .lang{
   appearance:none;background:none;border:0;cursor:pointer;
@@ -167,6 +168,48 @@ body{
 }
 .lang:hover{opacity:.85}
 .lang[aria-pressed=true]{color:var(--fg);opacity:1}
+
+/* socials - a quiet row centred in whatever space the language switch and the
+   theme toggle leave. its 214px basis is the six icons at full size: flex-wrap
+   breaks the line on that whole number before it would ever squeeze them, which
+   is the fallback if the query below misses. rest state is the inactive
+   language button's, exactly - muted at half opacity, no brand colour. */
+.socials{flex:1 1 214px;display:flex;justify-content:center;gap:2px}
+.soc{
+  flex:0 0 auto;
+  display:grid;place-items:center;text-decoration:none;
+  width:34px;height:40px;
+  color:var(--muted);opacity:.5;
+  transition:color .5s ease,opacity .22s ease-out,transform .22s ease-out;
+}
+.soc svg{
+  width:17px;height:17px;display:block;
+  fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.soc .fill{fill:currentColor;stroke:none}
+.soc:hover{color:var(--fg);opacity:1;transform:translateY(-2px)}
+/* the cta's glitch dna, at half the travel and once per hover. drop-shadow,
+   not text-shadow: these are strokes, not glyphs. */
+.soc:hover svg{animation:flick .2s steps(1,end)}
+@keyframes flick{
+  0%{filter:none}
+  26%{filter:drop-shadow(-1px 0 var(--gr)) drop-shadow(1px 0 var(--gc))}
+  56%{filter:drop-shadow(1px 0 var(--gr)) drop-shadow(-1px 0 var(--gc))}
+  80%,100%{filter:none}
+}
+/* narrow: the row stops fitting between the two controls, so it takes a line of
+   its own under them. the theme toggle jumps ahead of it in the order, which is
+   what keeps it on the first line, top right, where it has always been -
+   without that it is the item that wraps, and it lands bottom left.
+   queried on the bar, not the viewport: the bar is the thing running out of
+   room, and the page's two width breakpoints stay where they are. the row also
+   loses 6px of height here, so its icons clear the top of the mascot's head. */
+@container (max-width:385px){
+  .theme{order:1}
+  .socials{order:2;flex-basis:100%}
+  .soc{height:34px}
+}
 .theme{
   appearance:none;background:none;border:0;cursor:pointer;
   width:44px;height:44px;padding:0;display:grid;place-items:center;
@@ -319,7 +362,12 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .tag.mono{font-family:var(--mono);letter-spacing:.14em}
 .tag > span{grid-area:1/1;white-space:pre}
 .tag-size{visibility:hidden}
-.tag-live{justify-self:start;display:grid;justify-content:start}
+/* the live text is hidden from first paint, by the stylesheet, never by js:
+   the script runs at DOMContentLoaded and a slow parse paints before that,
+   which flashed the whole subline for a frame before the typing blanked it.
+   it is unhidden by the typing itself. reduced motion and a page with no js
+   both override this below - they never type, so they never hide. */
+.tag-live{justify-self:start;display:grid;justify-content:start;visibility:hidden}
 
 /* call to action */
 .cta-zone{
@@ -504,8 +552,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
     transition-property:background-color,border-color,color,fill!important;
     transition-duration:.5s!important;
   }
+  /* nothing types here, so there is nothing to hide the line from. */
+  .tag-live{visibility:visible}
+  .soc:hover{transform:none}
 }
 </style>
+<noscript><style>.tag-live{visibility:visible}</style></noscript>
 <script>
 (function(){
 "use strict";
@@ -717,6 +769,7 @@ var cds=D.querySelectorAll('.cd');
 var card=D.querySelector('.card');
 var pad=D.querySelector('.pad');
 var themeBtn=D.querySelector('.theme');
+var socRow=D.querySelector('.socials');
 var langBtns=D.querySelectorAll('.lang');
 var metaColor=D.querySelector('meta[name=theme-color]');
 var i;
@@ -889,12 +942,18 @@ function setTag(str,animate){
     tat=new Array(TN);
     for(n=0;n<TN;n++) tat[n]=Math.pow(n/last,1.06)*.93 + Math.random()*.07;
     tagTxt.textContent='';
-    tagLive.style.visibility='';
+    /* unhidden empty: the line becomes readable one character at a time and
+       never before. the stylesheet holds it hidden until this runs. */
+    tagLive.style.visibility='visible';
     typing=true; ty0=0; tk=-1;
   }else{
     typing=false;
     tagTxt.textContent=str;
-    tagLive.style.visibility='';
+    /* a static set only shows the line if the typing is not owed: reduced
+       motion, or a language switch after it has already run. the setTag that
+       start() fires before the decode falls through here and must stay
+       hidden, or the full string sits on screen for the whole decode. */
+    if(!RUN||typed) tagLive.style.visibility='visible';
   }
 }
 
@@ -947,7 +1006,13 @@ function blinkStep(b,now){
 
 /* ---------- speech bubble ---------- */
 var bubShow=false, bubHideAt=0, idleAt=0;
-var BAR=60;   /* the fixed top bar's height, plus a little air */
+/* the fixed bar's controls, measured, plus a little air. it was a flat 60
+   until the socials row arrived: that row wraps under the bar on narrow
+   screens and a hardcoded clamp let the pill sit on top of it. */
+function barBottom(){
+  return Math.max(socRow.getBoundingClientRect().bottom,
+                  themeBtn.getBoundingClientRect().bottom) + 8;
+}
 function say(text,permanent){
   pillT.textContent=text;
   bubble.classList.add('on');
@@ -978,7 +1043,7 @@ function fitPill(){
      br.top goes deeply negative, and the unguarded clamp shoved the pill
      hundreds of px down the page, unglued from the mascot — the one thing a
      speech bubble may never do. off screen there is no bar to avoid. */
-  var top=br.top + pill.offsetTop + sy;
+  var top=br.top + pill.offsetTop + sy, BAR=barBottom();
   if(top<BAR && br.bottom>BAR) sy+=Math.round(BAR-top);
   pill.style.setProperty('--pshift',sx+'px');
   pill.style.setProperty('--pshiftY',sy+'px');
@@ -1410,7 +1475,6 @@ for(i=0;i<langBtns.length;i++)
   langBtns[i].setAttribute('aria-pressed', langBtns[i].getAttribute('data-l')===lang ? 'true':'false');
 tagSize.textContent=tagTxt.textContent=t('sub');
 tagEl.classList.toggle('mono',!LATIN.test(t('sub')));
-if(RUN) tagLive.style.visibility='hidden';
 
 /* the cards below the hero arrive once, on scroll. the class is added here and
    not in the stylesheet, so a page with no script still shows them — and under
@@ -1496,6 +1560,26 @@ else boot();
     <button class="lang" type="button" data-l="en" aria-pressed="true">EN</button>
     <button class="lang" type="button" data-l="ru" aria-pressed="false">RU</button>
     <button class="lang" type="button" data-l="lv" aria-pressed="false">LV</button>
+  </nav>
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+    </a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 4.8 19.2 19.2"/><path d="M19.2 4.8 4.8 19.2"/></svg>
+    </a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.2" y="5.2" width="19.6" height="13.6" rx="4"/><path d="M10.3 9.4 15.4 12l-5.1 2.6z"/></svg>
+    </a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 3v11.3a3.9 3.9 0 1 1-3.9-3.9"/><path d="M14.2 3c.3 2.5 2.2 4.4 4.7 4.6"/></svg>
+    </a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4"/><circle class="fill" cx="17" cy="7" r="1"/></svg>
+    </a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.8"/><path d="M15.2 7.4h-1.3c-1 0-1.6.6-1.6 1.7v11.7"/><path d="M9.9 12.4h5.1"/></svg>
+    </a>
   </nav>
   <button class="theme" type="button" aria-label="dark mode">
     <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>

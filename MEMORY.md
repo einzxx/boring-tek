@@ -9,9 +9,8 @@ names in here either.
 - Phase: **site v1 is LIVE.** The coming soon page is gone. `index.html` is the real
   site: two themes, three languages, a mascot with a speech bubble, and a multi-step
   contact form. Pushed and serving from `main` at theboringtek.com.
-- **Uncommitted on top of v1 (2026-08-23):** Space Grotesk as the body face, and the
-  first section below the hero — three cards on a thread. Rendered and measured, not
-  pushed. See Decisions.
+- **Uncommitted on top of v1 (2026-08-23):** the socials row in the top bar, and the
+  subline no-flash fix. Rendered and measured, not pushed. See Decisions.
 - **Outstanding, but not blocking:** the Cloudflare Worker at
   `boring-tek-forms.theboringtek.workers.dev` has not been deployed. The web3forms key
   is in place, so email delivery works on its own and a send already succeeds — the
@@ -57,6 +56,12 @@ names in here either.
     eyes, no phosphor glow. Dark is the old look: near-black page, white face, dark
     eyes, green bloom on the headline. Toggle top right, saved in `localStorage` under
     `bt-theme`, every colour cross-fading over 0.5s.
+  - **A socials row in the top bar** — telegram, x, youtube, tiktok, instagram,
+    facebook, in that order, centred between the language switch and the theme toggle.
+    Stroked inline SVG at 17px, `--muted` at .5 like an inactive language button, no
+    brand colour anywhere. Hover darkens to `--fg`, lifts 2px and flicks the CTA's rgb
+    split once. Under 385px of bar the row drops to its own line and the toggle stays
+    top right.
   - **Three languages.** EN / RU / LV as plain text buttons top left, saved under
     `bt-lang`. Every visible string lives in one `T` object; switching re-renders the
     current view in place without losing form progress.
@@ -66,8 +71,10 @@ names in here either.
     Bored lines every 8–14s while idle; dry comments between form steps; a permanent
     line after send.
   - Michroma wordmark, one-shot decode on load, three-line stacked lockup under 640px.
-  - Subline types itself once, then static. Michroma for EN, drops to mono for RU and LV
-    because Michroma has no Cyrillic and no Latvian diacritics.
+  - Subline types itself once, then static. **Hidden from first paint by the
+    stylesheet, so it can never be read before the typing writes it.** Michroma for EN,
+    drops to mono for RU and LV because Michroma has no Cyrillic and no Latvian
+    diacritics.
   - **CTA button** — bordered pill, "tell us what you need", shaking with an rgb split
     on the text every 3–5s to ask for attention. Fills solid on hover.
   - **Contact form** — unfolds under the lockup, one question per step, four paths,
@@ -92,6 +99,9 @@ names in here either.
 
 ### Socials
 
+- **Handles, all six the same word:** `t.me/boringtek`, `x.com/boringtek`,
+  `youtube.com/@boringtek`, `tiktok.com/@boringtek`, `instagram.com/boringtek`,
+  `facebook.com/boringtek`. Linked from the top bar of the site since 2026-08-23.
 - Dressed and consistent: mascot as the avatar and **THE BORING TEK** as the name
   everywhere. Same face, same wordmark, no per-platform variation.
 - Banners delivered for **X, Facebook and YouTube**.
@@ -99,6 +109,50 @@ names in here either.
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
 ## Decisions
+
+### The socials row, and the subline no-flash fix — 2026-08-23
+
+- **The subline is hidden by the stylesheet, not by the script.** `.tag-live` ships
+  `visibility: hidden`; reduced motion and a `<noscript><style>` put it back, and the
+  typing unhides it by setting `visible` on an empty span. The script used to blank the
+  text at `DOMContentLoaded`, which is one paint too late — on a throttled CPU the full
+  line was laid out and painted before the script ever ran. Measured at 6x CPU throttle:
+  first frame `hidden` with 38 characters in the DOM at 519ms, first `visible` frame
+  carrying 0 characters at 1862ms, then 0 to 38 as it types. Reduced motion: one sample,
+  visible and whole at 113ms.
+- **`start()`'s pre-decode `setTag` had to stop revealing too.** It runs before the
+  headline decode, with `animate` false, and it used to clear the inline hide — which
+  parked the whole subline on screen for the entire decode. The static path now only
+  unhides when the typing is not owed: `if(!RUN||typed)`.
+- **The trade, accepted:** if the script dies before the typing runs, the subline stays
+  hidden. `<noscript>` covers a page with JS off, not a page whose JS threw. The line is
+  in the DOM either way, so nothing is lost but the sight of it.
+- **Six socials in the top bar, monochrome and stroked.** Same drawing as the theme
+  toggle — `viewBox="0 0 24 24"`, 17px, `fill:none`, `stroke:currentColor` at 1.6, round
+  caps — so the bar reads as one set of controls rather than a logo wall. Brand colours
+  were never on the table: six of them would out-shout the mascot, the headline and the
+  CTA at once. Only instagram's shutter dot is filled.
+- **Hover borrows the CTA's glitch dna at half strength**: `translateY(-2px)` plus one
+  `.2s` `steps(1,end)` rgb split, `--gr` / `--gc`, via `drop-shadow` because these are
+  strokes and not glyphs. On hover only — the CTA is still the page's one
+  attention-seeker, and an ambient twitch in the top bar would be a second.
+- **The narrow layout is a container query on the bar, not a third breakpoint.**
+  `.bar` is `container-type: inline-size`, and `@container (max-width:385px)` gives the
+  toggle `order:1` and the row `order:2; flex-basis:100%`. **The order swap is the whole
+  point:** with plain `flex-wrap` the item that wraps is whichever does not fit, which
+  at 375px was the theme toggle — it landed bottom left, under the language buttons.
+  The page's two width breakpoints are untouched.
+- **`BAR = 60` was a bug the moment the bar could be two rows tall.** The pill's clamp
+  now measures: `barBottom()` takes the lower of the socials row and the toggle, plus
+  8px. Verified at 320px with the form open: pill top 98, socials row bottom 90.
+- The wrapped row is 34px tall rather than 40px, which is what clears its icons off the
+  mascot's crown at 320px — icon bottom 82, mascot top 84.
+- **Measured in headless Chrome over CDP** at 320 / 360 / 375 / 390 / 414 / 430 / 768 /
+  1440, both themes, all three languages: six links everywhere, none off screen, none
+  under 34px, no horizontal overflow closed or with the form open, no console errors.
+  Tab order is EN, RU, LV, the six links, the toggle, the CTA. Reduced motion: no lift,
+  no flick, colour only.
+- **Still unverified:** real devices and non-Chrome engines, same as everything else.
 
 ### Three layout fixes on the new section — 2026-08-23
 
@@ -357,14 +411,11 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
    real device has not.
 4. Have the EN, RU and LV copy corrected. The translations are natural but written by
    Claude, not by a native speaker, and Einz said corrections would come later.
-5. Decide whether the site links out to the socials now that there is a real page to
-   link from.
-6. **Milestone: social content rhythm** — cadence, pillars, a reusable post format.
+5. **Milestone: social content rhythm** — cadence, pillars, a reusable post format.
    Posts now have somewhere to point, which was the open question blocking it.
 
 ## Open questions
 
-- Social handles aren't recorded here and aren't linked from the site. Write them down.
 - Business email to publish — still not decided. The form is now the contact route, so
   this is no longer blocking, but a real address is still worth having.
 - Whether the full site stays single-file as it grows past v1. Default: stays

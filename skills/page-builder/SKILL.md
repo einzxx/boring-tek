@@ -472,9 +472,24 @@ stays static forever.
   live in the markup — sizer and live text — and **both must match exactly**, or the
   typing drifts against its own box. (There used to be a third, the blur duplicate; see
   Glow tiers for why it's gone.)
-- The full text lives in the DOM for the no-JS and reduced-motion cases. JS blanks it
-  as its first act and restores it when typing starts — so it must run before first
-  paint, or the full string flashes.
+- **The line must never be readable before it types itself, and the stylesheet is what
+  guarantees that.** `.tag-live` ships `visibility: hidden` in the CSS. Two overrides
+  put it back: `@media (prefers-reduced-motion: reduce)`, which never types, and a
+  `<noscript><style>` in the head, for a page whose script never runs. Nothing else
+  unhides it — the typing does, by setting `visibility: visible` on an empty span and
+  growing the text inside it.
+- **Hiding it from JS is the bug this replaces.** The script blanked the text at
+  `DOMContentLoaded`, which is one paint too late: on a slow CPU the parser hands over
+  a fully laid-out subline first, and the whole string flashes for a frame before the
+  typing wipes it. A stylesheet rule applies at first paint, before any script has run,
+  which is the only place this can be fixed.
+- **The static path is not a reveal path.** `setTag(str, false)` only unhides when the
+  typing is not owed — reduced motion, or a language switch after it has already run.
+  `start()` calls it before the decode begins, and that call must leave the line hidden
+  or the full string sits on screen for the whole decode, which is the same flash with
+  a longer fuse.
+- The full text still lives in the DOM for the no-JS and reduced-motion cases, and for
+  the sizer to measure. It is hidden, not absent.
 
 ### Variable weight animation
 
@@ -977,6 +992,45 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 - Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints. One
   `@media (min-width: 720px)` for structural layout changes only. Two breakpoints
   maximum.
+
+### The socials row
+
+Six links in the fixed top bar, centred in whatever space the language switch and the
+theme toggle leave: telegram, x, youtube, tiktok, instagram, facebook, in that order.
+
+- **Inline SVG, one `<svg>` per link, stroked not filled.** `viewBox="0 0 24 24"`,
+  `17px` on screen, `fill: none`, `stroke: currentColor`, `stroke-width: 1.6`, round
+  caps and joins — the same drawing as the theme toggle, so the bar reads as one set of
+  controls. No icon font, no sprite sheet, no image file, no CDN. The one filled part
+  on the page is instagram's shutter dot, which carries `.fill` and overrides both.
+- **No brand colour, ever.** They are `--muted` at `.5` opacity — the exact rest state
+  of an inactive language button — and they darken to `--fg` at opacity 1 on hover.
+  Six logos in six brand colours in the top bar would out-shout the mascot, the
+  headline and the CTA at once.
+- **Hover is a lift plus one flick.** `translateY(-2px)`, and a single `.2s`
+  `steps(1, end)` rgb split on the icon, running once per hover. Same `--gr` / `--gc`
+  as the CTA glitch at half the travel, so it reads as the same page. `drop-shadow()`,
+  not `text-shadow`: these are strokes, not glyphs. Hover only — nothing in this row
+  ever animates on its own. The CTA is still the page's one attention-seeker.
+- **`target="_blank"` and `rel="noopener"`** on all six.
+- **Narrow bars put the row on its own line, and that is a container query, not a third
+  breakpoint.** `.bar` carries `container-type: inline-size`;
+  `@container (max-width: 385px)` gives the theme toggle `order: 1` and the row
+  `order: 2; flex-basis: 100%`. The bar is what runs out of room, so the bar is what
+  gets queried, and the page's two width breakpoints stay where they are.
+- **The order swap is the whole point of the query.** With `flex-wrap: wrap` and no
+  reordering, the item that wraps is whichever one does not fit — which at 375px is the
+  theme toggle, landing it bottom left, under the language buttons. Ordering the toggle
+  ahead of the row keeps it on the first line, top right, where it has always been.
+- The row loses `6px` of height in the wrapped state (`34px` instead of `40px`), which
+  is what clears its icons off the top of the mascot's head at 320px. Measured: icon
+  bottom `82`, mascot top `84`.
+- The icons never shrink — `flex: 0 0 auto`, and `flex-wrap` breaks the line on the
+  row's whole `214px` before it would squeeze them. That is the fallback if the query
+  ever misses.
+- **The pill's clamp is measured, not a constant.** `barBottom()` reads the row and the
+  toggle and takes the lower of the two, plus `8px`. A hardcoded `BAR = 60` was correct
+  for a one-row bar and parks the pill on top of the socials the moment the row wraps.
 
 ## Mascot
 
@@ -1531,7 +1585,7 @@ The shape a new page starts from:
 </head>
 <body>
   .vignette  .grain                                  <- aria-hidden
-  header.bar     -> .langs (EN RU LV)  |  .theme
+  header.bar     -> .langs (EN RU LV)  |  .socials (6 links)  |  .theme
   main.wrap > .lockup
     .m-zone   -> .m-wrap > svg.mascot  +  .bubble
     h1.hero   -> .sr + .sizer + .l-wide + .l-mid + .l-core
@@ -1725,6 +1779,8 @@ Added with the theme, the bubble and the form:
   scale.** The correction inherits the spring and lags behind the head.
 - **Clamping the bubble to the viewport top instead of below the bar.** It parks the
   pill on top of the theme toggle.
+- **A constant for the bar's height.** It is two rows tall under 385px of bar. Measure
+  it.
 - **Adding a transition class in the same frame `display: none` came off.** Two rAFs,
   or it snaps and looks like an animation you forgot to write.
 
@@ -1755,6 +1811,17 @@ Added with the theme, the bubble and the form:
   business and email address.
 - **Another runtime endpoint** without it being a decision. Two `POST`s, on a press.
 - **`void el.offsetWidth`** to restart an animation. Remove the class on `animationend`.
+
+Added with the socials row:
+
+- **Hiding the subline from JS.** The stylesheet hides it, `prefers-reduced-motion` and
+  `<noscript>` put it back, the typing unhides it. Anything else flashes the line.
+- **Brand colours, an icon font, an SVG sprite or a CDN icon set** for the socials.
+  Monochrome inline SVG, stroked, or it does not ship.
+- **A third width breakpoint** to place the socials row. The bar is a container; query
+  the container.
+- **Letting the theme toggle be the item that wraps.** Order the row last.
+- **An ambient animation in the top bar.** The flick is on hover and nowhere else.
 
 ## Before shipping
 
@@ -1797,6 +1864,10 @@ Lockup:
 - Subline reads as one tracked line, no green cast in the letters, nothing after the
   last letter, and it lands with no sideways drift.
 - Nothing blinks except the CTA glitch. No caret anywhere.
+- **Hard reload with the CPU throttled 6x and watch the subline: it is never readable
+  before it types.** Not a frame of it, not at 20% opacity, not while the headline
+  decodes. Then turn reduced motion on and reload: it is there immediately, whole, with
+  no typing. Then disable JS and reload: there again, whole.
 - Favicon at 16px: white circle, two dark dash eyes still reading as two marks.
 - Grain is invisible until you look for it. Vignette is invisible until you screenshot
   with and without - in both themes.
@@ -1819,6 +1890,21 @@ Mascot and bubble:
 - At 1440px the pill sits beside the head and is not shifted at all.
 - Press the mascot: the form opens, same as the button. Tab to him and press Enter:
   same again, with a visible focus ring.
+
+The socials row:
+
+- 320px, 375px and 390px: the row sits on its own line, centred, the theme toggle is
+  still top right, and the icons clear the top of the mascot's head. 414px and up: one
+  line, between the language buttons and the toggle.
+- Open the form at 320px and check the pill: it lands **below** the socials row, never
+  across it.
+- Hover each of the six in both themes: it darkens to `--fg`, lifts, flicks once, and
+  settles. Leave the pointer on one for ten seconds — nothing repeats.
+- Reduced motion: no lift, no flick, colour only.
+- Tab through the bar: EN, RU, LV, the six links in order, then the theme toggle, each
+  with a visible focus ring.
+- Every link opens the right account in a new tab, and all six carry `rel="noopener"`.
+- No horizontal scroll at 320px with the row wrapped, closed or with the form open.
 
 Form:
 
