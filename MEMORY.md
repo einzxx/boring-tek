@@ -100,6 +100,28 @@ names in here either.
 
 ## Decisions
 
+### Three layout fixes on the new section — 2026-08-23
+
+- **The hero no longer holds `min-height: 100dvh`.** It centred the lockup in a full
+  viewport, and that centring slack — not the thread — was 200–300px of the ~340px gap
+  between the hint and the cards. The wrap sizes to its content now, its bottom padding
+  is `clamp(12px,2vh,18px)`, and the thread came down from 56px to 22px. Measured gap:
+  54–58px at 320 / 768 / 1440. On a 1440×900 desktop the whole page now fits one screen.
+  **The trade, accepted:** opening the form pushes the section down the document by the
+  card's height, because there is no slack left to absorb it. It happens off screen and
+  does not touch the unfold.
+- **The section is 860px wide, wider than the 560px lockup.** Deliberate, and it
+  overrides the old "never wider than the thing it sits under" line. Top two cards land
+  at 408px on desktop, about 52ch.
+- **The speech bubble's bar clamp was a scroll bug.** `fitPill` clamped the pill below
+  the fixed top bar unconditionally. Scrolled down to the cards, `br.top` goes deeply
+  negative and the clamp pushed the pill **482px** below the head — measured against the
+  previous commit — leaving it floating mid-page, and 576px with the form open. It is
+  now guarded on `br.bottom > BAR`: off screen there is no bar to avoid. Verified glued
+  (`translate: 0px` / `-26px`) at 375×700 and 1440×700, scrolled and with the form open.
+- Re-verified: no horizontal overflow at 320/360/375/768/1440 closed or during the card
+  unfold, both themes, no console errors, reduced motion still shows the cards.
+
 ### Space Grotesk, and the first section below the hero — 2026-08-23
 
 - **The one Google Fonts request now carries two families**, not one:

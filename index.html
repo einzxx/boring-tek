@@ -182,11 +182,13 @@ html[data-theme=dark] .theme .i-moon{display:none}
 /* content — one lockup, centred as a group */
 .wrap{
   position:relative; z-index:2;
-  min-height:100dvh;
   display:flex; justify-content:center; align-items:center;
-  /* top padding clears the fixed bar AND reserves room for the speech bubble,
-     which climbs above the mascot. deliberately larger than the bottom. */
-  padding:clamp(84px,11vh,100px) 16px clamp(28px,5vh,48px);
+  /* the hero sizes to its content. it used to carry min-height:100dvh and
+     centre the lockup inside it, which put 200-300px of centring slack between
+     the hint and the section below — the thread was never why that gap read
+     long. top padding clears the fixed bar AND reserves room for the speech
+     bubble, which climbs above the mascot. deliberately larger than the bottom. */
+  padding:clamp(84px,11vh,100px) 16px clamp(12px,2vh,18px);
   text-align:center;
 }
 .lockup{
@@ -456,11 +458,11 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
    rule fading out of the border colour, carrying the eye down from the hint. */
 .below{
   position:relative; z-index:2;
-  width:100%; max-width:560px; margin:0 auto;
+  width:100%; max-width:860px; margin:0 auto;
   padding:0 16px clamp(56px,10vh,96px);
 }
 .thread{
-  width:1px; height:56px; margin:0 auto clamp(20px,3.4vh,32px);
+  width:1px; height:22px; margin:0 auto clamp(12px,2vh,18px);
   background-image:linear-gradient(to bottom,var(--line),transparent);
   transition:background-image .5s ease;
 }
@@ -969,9 +971,15 @@ function fitPill(){
      tall enough that the head sits high and the bubble runs out of sky before
      it runs out of room to the right — at which point the pill would cover the
      theme toggle. a live control beats bubble placement, so the pill comes
-     down to meet the dots instead. */
+     down to meet the dots instead.
+
+     the clamp is anchored to the head, not to the viewport: it applies only
+     while the bubble still reaches below the bar. scrolled past the hero,
+     br.top goes deeply negative, and the unguarded clamp shoved the pill
+     hundreds of px down the page, unglued from the mascot — the one thing a
+     speech bubble may never do. off screen there is no bar to avoid. */
   var top=br.top + pill.offsetTop + sy;
-  if(top<BAR) sy+=Math.round(BAR-top);
+  if(top<BAR && br.bottom>BAR) sy+=Math.round(BAR-top);
   pill.style.setProperty('--pshift',sx+'px');
   pill.style.setProperty('--pshiftY',sy+'px');
 }

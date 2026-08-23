@@ -1281,6 +1281,13 @@ measuring the rendered page, and every one of them looks optional until it isn't
   tall enough that the head rides up and the bubble runs out of sky before it runs out
   of room to the right — at which point the pill lands on the theme toggle. A live
   control beats bubble placement: the pill comes down to meet the dots instead.
+- **Guard that clamp on the head still being at the bar** (`br.bottom > BAR`). It is the
+  one part of the fit that reads the viewport rather than the mascot, and unguarded it
+  is a bug: scrolled down to the section, `br.top` goes deeply negative and the clamp
+  pushed the pill **480px** below the head, floating in the middle of the page. Off
+  screen there is no bar to avoid. A speech bubble may drift for nothing else — the
+  horizontal page-edge shift is the only other correction allowed, and it is
+  scroll-invariant.
 - **Re-fit whenever the card resizes.** `say()` runs before the card unfolds, so a fit
   computed then is stale by the time the head has risen. A `ResizeObserver` on the card,
   gated on the bubble actually being visible, is what keeps it glued during the unfold.
@@ -1412,18 +1419,26 @@ Promise.allSettled([post(W3_URL, mail), post(TG_URL, fields)])
 
 ## The section below the hero
 
-The first thing under the fold, and the shape every later section copies.
+The first thing under the hero, and the shape every later section copies.
 
-- **It is a sibling of `main.wrap`, never a child of `.lockup`.** The lockup is
-  vertically centred and grows when the form unfolds; anything inside it moves with the
-  card. Outside it, the section holds still and cannot interfere with the unfold.
-- The hero keeps `min-height: 100dvh`, so the section always starts at the fold and the
-  landing state is unchanged.
-- **The thread.** A 1px rule, 56px tall, centred, `linear-gradient(to bottom,
+- **It is a sibling of `main.wrap`, never a child of `.lockup`.** The lockup grows when
+  the form unfolds; anything inside it rides the unfold and the card's row animation.
+  Outside it, the section is untouched by both.
+- **The hero sizes to its content — it no longer holds `min-height: 100dvh`.** It did,
+  and centring the lockup inside a full viewport put 200–300px of slack between the
+  hint and this section. The thread was never why that gap read long. With the slack
+  gone the cards start 50–60px under the hint at every width, and on a 1440×900 desktop
+  the whole page — hero and cards — fits one screen with no scroll.
+- **The trade:** with no slack to absorb it, opening the form now pushes this section
+  down the document by the card's height. That is ordinary flow, it happens off screen
+  while the visitor is looking at the form, and it does not touch the unfold itself.
+- **The thread.** A 1px rule, 22px tall, centred, `linear-gradient(to bottom,
   var(--line), transparent)`. It leads the eye down out of the hint. It is
   `aria-hidden`, it never animates, and it is the only decoration the section gets.
-- **Width matches the lockup:** `max-width: 560px`, `16px` side padding. The section is
-  not allowed to be wider than the thing it sits under.
+- **Wider than the lockup, deliberately:** `max-width: 860px`, `16px` side padding. The
+  lockup is a centred block of display type and stays at 560px; the cards are reading
+  text in columns and need the room. 860px puts each of the top two at 408px on a
+  desktop, which is about 52ch — inside the line-length rule with air to spare.
 - **Three cards.** Two side by side above `720px` — the one structural breakpoint the
   page already uses — one full width under them, all three stacked below it.
 - Card: `1px solid var(--line)`, `16px` radius, `var(--field)` background. Hover
