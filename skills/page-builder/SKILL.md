@@ -341,13 +341,15 @@ Order, top to bottom:
   screens.
 - **The landing state must not scroll on desktop.** Mascot, wordmark, subline, button
   and hint come to roughly 330px; that is the budget. Anything new competes for it.
-  The hero still fills `100dvh`; the about section sits below the fold, which is where
-  every section after it goes too.
-- **The page scrolls now, so the fixed bar needs a scrim.** Content passes under the
-  language and theme controls, and a transparent bar lets the headline collide with
-  them. The bar carries a `linear-gradient(to bottom, var(--bg) 42%, transparent)` and
-  `pointer-events: none`, with the buttons themselves set back to `auto`. **Not a solid
-  band** — that would occlude the vignette and leave a visible seam in dark mode.
+  The hero fills `100dvh` and the landing page does not scroll; any section added later
+  goes below the fold.
+- **The fixed bar carries a scrim, ready for that.** The moment anything sits below the
+  hero, the headline scrolls up under the language and theme controls and collides with
+  them. The bar has `linear-gradient(to bottom, var(--bg) 42%, transparent)` and
+  `pointer-events: none`, with the buttons set back to `auto`. It is invisible on a page
+  that does not scroll — `--bg` fading into `--bg` — so it costs nothing to keep.
+  **Not a solid band**: that would occlude the vignette and leave a visible seam in
+  dark mode.
 - The mascot gets extra breathing room below it — a `margin-bottom` on top of the gap,
   so the character isn't crowding the wordmark. It is a character, not a bullet point.
 - `.lockup` caps at `560px` because the form card lives in it. The headline sizes itself
@@ -863,8 +865,8 @@ Universal:
 - **Keep the mascot blink — on every mascot on the page.** It is the one deliberate
   exception: small, local, non-vestibular, and it is what stops a face reading as a
   sticker. Which means the rAF loop still starts under reduced motion, gated so it does
-  nothing else. Eye movement — cursor tracking on the hero, wander on the boss — stops;
-  the lids do not. Two faces on one screen must not disagree about this.
+  nothing else. Eye movement stops; the lids do not. If a second mascot is ever added,
+  it follows the same rule — two faces on one screen must not disagree about this.
 - **Keep the theme cross-fade.** A colour fade is not vestibular motion, and snapping
   the whole page between white and near-black is the harsher of the two. So the reduced
   override is not a blanket `transition: none` — it narrows `transition-property` to
@@ -1011,10 +1013,10 @@ rect about its own centre — and return to `1` on restart.
 - It rides the same `scaleY` as the blink: `scaleY(calc(var(--blink) * var(--wide)))`.
   Multiplying rather than adding a second transform means he can still blink while
   surprised, which is the point.
-- **That shared transition must stay under the 120ms blink hold.** `90ms ease-out` is
-  the number. Give it a spring, or 180ms, and the eyes never reach the squash before the
-  blink is over — the blink silently stops working and nothing tells you.
-- Snap, don't spring. Surprise is instantaneous.
+- **`.m-eye` carries no transform transition at all**, because `--blink` is written per
+  frame and a transition would smear the lid. So the wide-eye change snaps — which is
+  correct, surprise is instantaneous. Adding a transition back to get a softer wide-eye
+  would quietly wreck the blink instead.
 - The mascot is also a **click target** for the form, alongside the button:
   `role="button"`, `tabindex="0"`, a real `aria-label`, and Enter/Space handled. He is
   the most clickable thing on the page; not wiring him up was the bug.
@@ -1141,8 +1143,10 @@ and then goes twice. Every mascot on the page uses the same engine.
   sticker. Everything else still shuts off.
 - That means the rAF loop **starts even under reduced motion** — gated so that decode,
   typing and eye tracking never run, and the loop does nothing but blink. One loop.
-- The global `transition: none` under reduced motion turns the blink into a snap rather
-  than a squash. That is fine and arguably better.
+- The blink is **unaffected** by the reduced-motion CSS override. It is written per
+  frame in JS, not run off a transition or a keyframe, so narrowing
+  `transition-property` and killing `animation` leaves it exactly as it is. That is
+  deliberate: the lid should look the same in both modes.
 
 ### Favicon
 
@@ -1243,82 +1247,6 @@ measuring the rendered page, and every one of them looks optional until it isn't
   he stops being bored at them.
 - Every line is translated. Dry, lowercase, three words where two won't do. He is
   unbothered, not chatty — if a line sounds like it's trying to be funny, cut it.
-
-## The about section
-
-Below the hero: **the boss**, on the left of a `520px` centred column, with the same
-bubble the hero uses and a small sound button on his head. He reads the pitch out loud.
-
-```
-        ( building with ai every day. )
-      o
-    o
-  o
- (o)  <- sound button, on the upper left edge
-[ @@ ]  <- the boss, 92px, eyes right, watching his own bubble
-```
-
-- Same mascot SVG, same geometry, same theme inversion. **`92px`** against the hero's
-  `110px` — he is a second appearance, not a second hero.
-- The bubble is the **same `.bubble` / `.dot` / `.pill` markup and CSS**, anchored the
-  same way to a `width: max-content` zone. Nothing about it is forked; only the colours
-  differ while idle.
-- Idle, the bubble is **always up** and dimmed, reading `press the sound button`. It
-  brightens (`.live`) while he talks and dims again when he stops. It is the only
-  bubble on the site that never hides.
-- The section carries its own top padding, and that padding is what guarantees the
-  bubble sky — which is why it passes **`null`** for the pill's top clamp instead of the
-  bar height. A viewport-relative clamp on a mid-page bubble would make it jump as the
-  page scrolls.
-- The whole script also lives in a visually hidden `<p>`, complete and static. The
-  bubble animates the same words four at a time and stays `aria-hidden`.
-
-### The sound button
-
-- Round, `30px`, on the **upper left edge** of the head — at the circle's 135° point, so
-  it straddles the outline rather than floating off the corner.
-- Quiet by default: the bubble's surface (`--bg`), the bubble's border (`--bub`), a
-  `--muted` glyph. **No shadow, no black plate, no fill of its own.**
-- While speaking, only the **border and glyph darken** to `--fg`, over `.3s`. Nothing
-  grows, nothing pulses, nothing changes size.
-- The visible button is smaller than the 44px tap minimum, so a `::before` with
-  `inset: -7px` pushes the hit area out. Never shrink the target to match the art.
-
-### Eyes
-
-- He looks **right, at his own bubble** — base `(5.1, -1.4)` in the 64-grid units the
-  hero's eye tracking uses, well inside the same `±6` / `±3.8` caps.
-- A small wander around that point every `0.9`–`2.4s`, and about **one glance in eight**
-  goes somewhere else entirely for `0.4`–`0.8s` before coming back.
-- Lerped at `.055` — slower than the hero's `.22`, because nothing is chasing a cursor.
-- Under reduced motion the eyes **park on the base position and stop wandering**, but
-  **the blink keeps running** — same as the hero. Both faces behave identically under
-  that setting; only the movement stops.
-
-### Speech
-
-`SpeechSynthesis`, `rate .85`, `pitch .55`, `u.lang` from the current site language
-(`en-US` / `ru-RU` / `lv-LV`). No controls beyond the one button; language follows the
-global switch.
-
-- **The voice is the device's, not ours.** Nothing is downloaded and no request is made,
-  so the one-external-request rule is untouched — but what it sounds like, and whether
-  it exists at all, is entirely down to the visitor's OS and browser. Do not tune the
-  copy to how it reads on one machine.
-- **The bubble is the product; the voice is a bonus.** A line advances when its
-  utterance has finished *and* a per-line floor of `1.5`–`1.9s` has passed. With a
-  working voice that keeps the words in step with the audio; with no voice at all the
-  floor does all the pacing and the script still reads at a natural speed.
-- **An empty `getVoices()` means the API is present but mute.** Plenty of devices ship
-  it that way, including headless Chrome. Treat that as no speech at all up front —
-  waiting on callbacks that never come leaves a line sitting on screen for seconds.
-- **A voice list is still not a promise of sound.** If nothing has actually started
-  `600ms` after `speak()`, give up on speech for the rest of the script and let the
-  floor pace it. There is also a backstop for an engine that starts and never reports
-  finishing.
-- **Presses are ignored while he is talking.** No queue, no restart, no overlap.
-- A language switch **stops him mid-sentence** rather than finishing in the old
-  language, and resets the bubble to the new idle line.
 
 ## The contact form
 
@@ -1612,10 +1540,10 @@ Added with the mascot and the lockup:
 - **Moving, rotating or scaling the face circle.** Only the eye group ever moves.
 - **Mascot motion beyond eye tracking, the blink and the wide-eye reaction** — bobbing,
   floating, rotating, scanning, colour cycling, idle drift.
-- **A blink transition longer than the 120ms hold.** At 180ms, or on a spring, the eyes
-  never reach the squash and the blink silently stops working.
+- **Any transform transition on `.m-eye`.** The lid is written per frame; a transition
+  smears it, and a long one stops the blink landing at all.
 - **Springing the wide-eye reaction.** Surprise snaps.
-- **A winking, fading or lidded blink.** Both eyes, squash, snap back.
+- **A winking or fading blink.** Both eyes, together, on the same lid curve.
 - **A second rAF loop or a `setInterval`** for the eyes or the blink. Both ride the
   shared loop and the existing pointer handler.
 - **Reading the mascot's rect inside the frame loop.** Measure it in `remeasure()`
@@ -1688,24 +1616,10 @@ Added with the theme, the bubble and the form:
 - **Adding a transition class in the same frame `display: none` came off.** Two rAFs,
   or it snaps and looks like an animation you forgot to write.
 
-Added with the about section:
-
-- **A second mascot anywhere but the about section**, or either mascot at the other's
-  size. `110px` in the hero, `92px` below.
-- **Forking the bubble.** Same markup, same classes, same fit logic. Only the idle
-  colours differ.
-- **Clamping the about pill to the top bar.** It is mid-page; a viewport-relative clamp
-  makes it jump as the page scrolls. Pass `null` and give the section real padding.
 - **A CSS-transition blink.** It cannot ease and it cannot double-blink.
 - **A transform transition on `.m-eye`.** The blink is written per frame; a transition
   smears it.
 - **Measuring Michroma before `document.fonts` says it is there** — in any mode.
-- **Trusting `speechSynthesis` because the object exists.** Check `getVoices()` up
-  front, and give up on it if nothing has started `600ms` after `speak()`.
-- **Letting the voice carry the message.** The bubble text is the product; the audio is
-  a bonus that a great many devices will not deliver.
-- **Queueing or restarting speech on a second press.** Ignore presses while talking.
-- **A tap target smaller than 44px** because the art is small. Push the hit area out.
 - **A solid background on the fixed bar.** Scrim to transparent, or the vignette gets a
   visible seam.
 - **Bubble text that isn't `aria-hidden`,** or that carries information nothing else on
@@ -1777,33 +1691,16 @@ Lockup:
 - Throttle to Slow 3G and reload: the mono fallback headline is laid out sensibly and
   the swap to Michroma does not break the layout.
 
-About section:
-
-- Scroll the whole page in both themes: the headline passes **under** the language and
-  theme controls and fades into the scrim. Nothing collides, and the controls stay
-  clickable the whole way down.
-- The boss is looking right at his own bubble. Watch 30s: the eyes drift a little, glance
-  away once or twice, and come back. Both mascots blink with an eased lid, not a squash,
-  and occasionally twice.
-- Press the sound button: the bubble brightens, four lines play, the button's border and
-  glyph darken, and it returns to the dimmed idle line in the current language.
-- Press it repeatedly while it is talking — nothing queues, nothing restarts.
-- Switch language mid-script: he stops, and the idle line comes back in the new one.
-- **Test with the device muted or with no voices installed** — the four lines must still
-  play at a readable pace, roughly 1.5–1.9s each, with no line hanging.
-- At 320px the pill never clips and the page never scrolls sideways, in all three
-  languages.
-- Reduced motion: **both** mascots still blink, neither moves its eyes, and the lines
-  still play. If one face is blinking and the other is not, that is a bug.
-
 Mascot and bubble:
 
 - Sweep the pointer a full circle around the mascot, out to all four screen corners:
   the eyes follow from anywhere, travel a visible distance, arrive quickly, stay inside
   the face at every angle, and recentre when the pointer leaves the window.
-- Sit and watch for 30s: it blinks 5-7 times at irregular intervals, both eyes, squash
-  not fade. **Then open the form and watch again** - it still blinks while wide-eyed.
-  If it stopped, the shared transition is longer than the 120ms hold.
+- Sit and watch for 30s: it blinks 6-9 times at irregular intervals, both eyes, with an
+  eased lid rather than a squash, and roughly one in five goes twice. **Then open the
+  form and watch again** - it still blinks while wide-eyed.
+- Turn reduced motion on and watch again: the blink is unchanged. Only the eye tracking
+  stops.
 - Sit for a minute on the landing page: a bored line appears every 8-14s and fades.
 - At 320px, trigger every bubble line including the longest done line: the pill always
   stays fully on screen, wraps rather than clips, and the dots never move.
