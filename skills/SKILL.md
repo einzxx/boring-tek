@@ -10,12 +10,13 @@ kind of work — the skill file is the source of truth, this page is just the ma
 
 **File:** `skills/page-builder/SKILL.md`
 
-Builds single-file HTML/CSS/JS pages in The Boring Tek terminal style — black
-background, monospace, no frameworks. Holds the design tokens (colors, type, spacing),
-the layout rules, the copy rules, and the page skeleton to start from.
+Builds single-file HTML/CSS/JS pages in The Boring Tek style — monospace, two themes
+(light default, dark), no frameworks. Holds the design tokens (colors, type, spacing),
+the layout rules, the copy rules, the mascot spec, the speech bubble, the contact form,
+and the shipping checklist.
 
-**Use it when:** creating or editing any page in this repo — the coming soon page, the
-full site, or any one-off page.
+**Use it when:** creating or editing any page in this repo — the live site or any
+one-off page.
 
 **Do not:** invent colors, fonts or spacing outside this spec, or reach for a
 framework because the spec doesn't cover something. Ask instead.

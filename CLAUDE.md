@@ -5,9 +5,11 @@ Domain: theboringtek.com. Repo: github.com/einzxx/boring-tek (PUBLIC).
 
 ## What this is
 
-- **Now:** a static coming soon page. One file, no build step, no dependencies.
-- **Later:** the full agency site — services, work, process, contact. Same repo, same
-  constraints until explicitly lifted.
+- **Now:** site v1, live. One file, no build step, no dependencies. Two themes (light
+  default, dark), three languages (EN/RU/LV), the mascot, and a multi-step contact form
+  that posts to two endpoints. The coming soon page is gone.
+- **Later:** services, work, process. Same repo, same constraints until explicitly
+  lifted.
 
 ### What we sell
 
@@ -36,7 +38,11 @@ Read like a terminal, not a brochure.
 
 ## Visual identity
 
-- Black background. Monospace. Green/amber terminal accents.
+- **Two themes, light is the default.** White page with an inverted (dark) mascot;
+  dark is the near-black terminal look with the phosphor glow. Monospace throughout,
+  green as the single accent — light and dark each have their own green, because the
+  dark one is unreadable on white.
+- The amber ramp is retired. Green is the only accent.
 - Full spec lives in `skills/page-builder/SKILL.md` — that is the source of truth for
   colors, type and layout. Never invent tokens outside it.
 
@@ -46,8 +52,11 @@ Read like a terminal, not a brochure.
 boring-tek/
 ├── index.html          # the live site — single file, root, never moves
 ├── CNAME               # theboringtek.com — never edit, never move
+├── robots.txt          # root by convention
+├── sitemap.xml         # root by convention
 ├── CLAUDE.md           # this file
 ├── MEMORY.md           # decisions + current state, updated every session
+├── assets/             # the mascot: source svg, png reference, pose variants
 └── skills/
     ├── SKILL.md        # index of available skills
     └── page-builder/
@@ -77,9 +86,15 @@ state or makes a decision.
 - **Single file.** All HTML, CSS and JS live in one `.html`. No separate stylesheets,
   no separate scripts.
 - **Zero dependencies.** No npm, no package.json, no build step, no bundler, no
-  framework, no CSS library, no icon library, no CDN links, no external fonts.
-- **No external requests at runtime.** Everything the page needs ships in the file.
-  System monospace stack only.
+  framework, no CSS library, no icon library, no CDN scripts.
+- **Exactly one external request at load: Michroma from Google Fonts.** That is the
+  whole budget and it is a deliberate, approved exception to the "no external fonts"
+  rule this line used to carry. Everything else the page needs ships in the file, and
+  body/UI text uses the system monospace stack.
+- **Two requests at runtime, and only when someone presses send:** the contact form
+  posts to Web3Forms (email) and to our Cloudflare Worker (Telegram). Nothing fetches
+  on load, on scroll, on hover or on idle. Another endpoint is a decision, not an
+  implementation detail.
 - **No analytics, no trackers, no cookie banners, no popups, no newsletter capture.**
 - Vanilla JS only, and only when it earns its place. A page that needs no JS ships
   with no JS.
@@ -107,10 +122,14 @@ state or makes a decision.
 
 - Add a build step, a package manager, or a framework "to make it maintainable".
 - Split the file into components, partials, or a `src/` directory.
-- Pull in Tailwind, Bootstrap, Google Fonts, Font Awesome, or any CDN.
+- Pull in Tailwind, Bootstrap, Font Awesome, or any CDN script or CSS library.
+  (Google Fonts is the one exception, for Michroma only — see Build constraints. Never
+  a second family, never a second weight.)
 - Add a roadmap, a team section with fake headshots, testimonials, or logo walls.
 - Write corporate filler copy, taglines with "solutions", or AI-generated blurb.
-- Add emoji, gradients, glassmorphism, drop shadows, or rounded pill buttons.
+- Add emoji, glassmorphism, drop shadows, or gradients on text.
+  (Rounded pills and background gradients were both allowed at v1, in named scopes
+  only — see Layout and Depth in `skills/page-builder/SKILL.md`. Don't widen them.)
 - Invent client names, case studies, headcounts, or metrics.
 - Add analytics or a chat widget.
 - Move `index.html` or `CNAME` out of root.

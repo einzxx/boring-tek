@@ -6,16 +6,15 @@ names in here either.
 
 ## Status
 
-- Phase: **site v1 is BUILT, not shipped.** The coming soon page is gone. `index.html`
-  is now the real site: two themes, three languages, a mascot with a speech bubble, a
-  multi-step contact form.
-- **Blocking ship:** the Cloudflare Worker at
-  `boring-tek-forms.theboringtek.workers.dev` still has to be deployed. The web3forms
-  key is in place, so email delivery works on its own and a send will already succeed
-  without the Worker — the Telegram half just stays silent until it is up. Nothing else
-  blocks.
+- Phase: **site v1 is LIVE.** The coming soon page is gone. `index.html` is the real
+  site: two themes, three languages, a mascot with a speech bubble, and a multi-step
+  contact form. Pushed and serving from `main` at theboringtek.com.
+- **Outstanding, but not blocking:** the Cloudflare Worker at
+  `boring-tek-forms.theboringtek.workers.dev` has not been deployed. The web3forms key
+  is in place, so email delivery works on its own and a send already succeeds — the
+  Telegram half just stays silent until the Worker is up.
 - **Neither endpoint has been called for real.** Both were only ever exercised against a
-  stubbed network. The first live send is still unproven.
+  stubbed network. The first live send is still unproven, and the form is live.
 - **v1 has been rendered and measured in headless Chrome** at 320px and 1440px, in both
   themes and all three languages. Verified: no horizontal scroll anywhere; all 33 bubble
   lines across EN/RU/LV fit with no clipping left, right or top; the card unfold
@@ -112,11 +111,12 @@ names in here either.
      the reduced-motion path, so `--tu` was measured against the mono fallback, came out
      short, and the line overflowed below ~360px. Every mode now waits for
      `document.fonts.load` and checks `document.fonts.check` before trusting metrics.
-  4. `fitPill` went back to its single-purpose form. The generalised
-     `fitPill(bubble, pill, clampTop)` signature only existed for the mid-page bubble
-     and had no second caller left.
-- **The site is now exactly v1 plus those four fixes**, verified by diffing `index.html`
-  against `ae0b373`: 72 insertions, 18 deletions, and nothing in them but the four.
+  4. `fitPill` went back to its single-purpose form — a revert rather than an addition,
+     so it contributes no lines. The generalised `fitPill(bubble, pill, clampTop)`
+     signature only existed for the mid-page bubble and had no second caller left.
+- **The site is now exactly v1 plus those fixes**, verified by diffing `index.html`
+  against `ae0b373`: **73 insertions, 18 deletions**, containing only the first three
+  (the fourth is a revert to v1 and shows no diff at all).
 
 ### Site v1 — 2026-08-22
 
@@ -278,9 +278,10 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
    until it ships.
 2. **Send one real test form** and confirm it lands. Both endpoints have only been
    tested against a stubbed network — the first live send is unproven.
-3. **Run the "Before shipping" checklist** in `skills/page-builder/SKILL.md`. It is
-   written for v1 and every visual check has to be run in both themes. Nothing here has
-   been seen in a browser yet.
+3. **Run the "Before shipping" checklist** in `skills/page-builder/SKILL.md` against the
+   live site. It is written for v1 and every visual check has to be run in both themes.
+   Headless Chrome has covered layout, motion and the form logic; a real browser on a
+   real device has not.
 4. Have the EN, RU and LV copy corrected. The translations are natural but written by
    Claude, not by a native speaker, and Einz said corrections would come later.
 5. Decide whether the site links out to the socials now that there is a real page to
