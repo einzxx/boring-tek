@@ -137,6 +137,8 @@ opacity; the others are `--muted` at `.5`.
 
 - Choice persists in `localStorage` under **`bt-lang`**. Same `try/catch` rule.
 - The head script sets `<html lang>` before paint, alongside the theme.
+- **Which language, in strict priority order:** the url, then a saved choice, then the
+  browser, then English. See below.
 - **Every visible string lives in one `T` object**, keyed by language then by string
   key, and nothing is typed into the markup that JS won't overwrite on boot. The markup
   ships the English strings so the no-JS page still reads; boot rewrites them from `T`
@@ -153,6 +155,59 @@ opacity; the others are `--muted` at `.5`.
 - **The payload is not translated either.** Whatever language the visitor answered in,
   the form posts English labels, plus a `language` field recording what they used. An
   inbox you can't read is worse than no inbox.
+
+### Language urls
+
+`/` is English, `/ru` is Russian, `/lv` is Latvian, and the address bar always names
+the language on screen — so any url a visitor copies opens the way they were reading it.
+
+**The mechanism, because GitHub Pages has no rewrites and the site is one file.**
+
+- `ru/index.html` and `lv/index.html` are stubs, and each is one line of real work:
+  set `documentElement.style.background` from the saved theme, then
+  `location.replace('/#ru')`. Both run in a `<script>` in `<head>`, before the body is
+  parsed, so the stub never paints — and the background guard means that even a slow
+  replace shows the theme the visitor is about to land in rather than a white card.
+- **`index.html` reads the hash in the bootstrap, before first paint**, applies the
+  language, and then `history.replaceState`s the clean path back into the address bar.
+  The `#ru` is gone before anything renders. Measured frame by frame from
+  document-start on a shared `/ru` link: the first sampled frame already says
+  `lang="ru"`, Russian copy, path `/ru`. There is no English frame at any point.
+- **A copy of the site per language is the thing this avoids.** Three documents mean
+  three copies of the form, the mascot and the dictionaries, kept in sync by hand.
+  The stubs are 30 lines that never need touching again.
+- `location.replace`, never `href =`: the stub must not become a back-button stop.
+  Same reason the switch uses `replaceState` and never `pushState` — `history.length`
+  is unchanged after a dozen switches, and back still leaves the site.
+- **The stub degrades to English with JS off**, via `<noscript><meta http-equiv=
+  "refresh" content="0;url=/">` and a plain link. The hash cannot be read without a
+  script, so there is nothing better to degrade to.
+- **No relative urls anywhere in `index.html`.** `replaceState` moves the document's
+  base path to `/ru`, so `assets/x.svg` would start resolving to `/ru/assets/x.svg`.
+  Everything in the page is a data URI or an absolute url, and it has to stay that way.
+- GitHub Pages 301s `/ru` to `/ru/` before serving the stub. It is one invisible hop on
+  a reload and it is why the sitemap and the `hreflang` tags can use either form; they
+  use `/ru`, matching what the address bar shows and what people share.
+
+**Detection, for a first visit with no url and no saved choice.**
+
+- `navigator.languages[0]` (falling back to `navigator.language`), everything before the
+  first `-`: `ru` gets Russian, `lv` gets Latvian, anything else gets English.
+- **Nothing is written to storage.** A detected language is a guess; it must not outlive
+  the visit or shout down a choice made later. Only pressing a language button writes
+  `bt-lang`.
+- **A saved choice beats the browser. The url beats both** — for that visit only, and it
+  does not overwrite what is saved. Someone who chose Latvian and opens a shared `/ru`
+  link reads Russian, and their next visit to `/` is still Latvian.
+
+**SEO.**
+
+- `hreflang` for `en`, `ru`, `lv` and `x-default` in all three documents; the main page's
+  canonical stays `https://theboringtek.com/`, and each stub is canonical to itself.
+- `sitemap.xml` carries all three urls.
+- **The honest limitation:** the stubs redirect, so a crawler sees one page of content in
+  English. This is real multilingual routing for people, not for search engines. Getting
+  the second half needs three real documents, which is the copy problem above.
 
 ## Type
 
@@ -1619,6 +1674,7 @@ The shape a new page starts from:
 ```
 <head>
   meta, canonical, og, twitter, favicon data URI     <- keep as they are
+  hreflang en / ru / lv / x-default                  <- all three documents
   <link> michroma + space grotesk                    <- the one load-time request
   <style>
     @property --ex --ey --blink --wide --beat --units --tu
@@ -1628,7 +1684,8 @@ The shape a new page starts from:
     @media (prefers-reduced-motion: reduce){ narrow transition-property, kill animation }
   </style>
   <script>
-    apply data-theme + lang from localStorage        <- synchronous, before paint
+    apply data-theme, and lang from url > saved > navigator   <- before paint
+    replaceState the clean path for that language
     var T = { en:{}, ru:{}, lv:{} }                  <- every visible string
     boot() on DOMContentLoaded:
       rewrite static copy from T
@@ -1900,6 +1957,14 @@ Theme and language:
 - Pick the light-mode green with a colour picker against white: it must clear 4.5:1.
   So must `--muted`, `--sub` and the red, in both themes.
 - Set dark, reload. **No white flash.** If there is one, the bootstrap is deferred.
+- Open `/ru` in a clean profile with an English browser: Russian, no English frame, and
+  the address bar reads `/ru` with no `#`. Same for `/lv`.
+- Set the browser to Russian, clear site data, open `/`: Russian, url `/ru`, and
+  `localStorage` still empty — a guess is not a choice.
+- Choose Latvian, then open a shared `/ru` link: Russian for that visit, and `bt-lang`
+  is still `lv` afterwards.
+- Switch language three times and check `history.length`: unchanged. Back leaves the
+  site rather than walking the switches.
 - Reload in a private window with site data blocked: the page still loads, still
   defaults to light, and nothing throws.
 - Mobile browser chrome matches the theme - `theme-color` is being updated.

@@ -6,6 +6,10 @@
 <title>THE BORING TEK</title>
 <meta name="description" content="the future is cool. building it is boring. honest content about ai and tech.">
 <link rel="canonical" href="https://theboringtek.com/">
+<link rel="alternate" hreflang="en" href="https://theboringtek.com/">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv">
+<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://theboringtek.com/">
 <meta property="og:title" content="THE BORING TEK">
@@ -589,15 +593,37 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 "use strict";
 var D=document, R=D.documentElement;
 
-/* ---- bootstrap: theme and language land before first paint ---- */
-var theme='light', lang='en';
+/* the address bar always names the language on screen, so whatever url someone
+   copies opens in the language they were looking at. replaceState, never push:
+   a language switch is not a place to press back to. wrapped, because a page
+   opened over file:// throws on any path change. */
+var LANG={en:1,ru:1,lv:1};
+function setPath(l){
+  try{ history.replaceState(null,'',(l==='en'?'/':'/'+l)+location.search); }catch(e){}
+}
+
+/* ---- bootstrap: theme and language land before first paint ----
+   language, in priority order: the url, then a saved choice, then the browser.
+   /ru and /lv are stub documents that land here as /#ru and /#lv, so the hash
+   is the url arriving; it is read once and the path is rewritten clean.
+   nothing is written to storage here. an autodetected language is a guess, and
+   a guess must not outlive the visit or shout down a choice made later. */
+var theme='light', lang='';
+var h=location.hash.slice(1).toLowerCase();
+if(LANG[h]) lang=h;
 try{
   var ts=localStorage.getItem('bt-theme'), ls=localStorage.getItem('bt-lang');
   if(ts==='dark'||ts==='light') theme=ts;
-  if(ls==='ru'||ls==='lv'||ls==='en') lang=ls;
+  if(!lang && LANG[ls]) lang=ls;
 }catch(e){}
+if(!lang){
+  var nl=((navigator.languages && navigator.languages[0]) || navigator.language || '')
+         .toLowerCase().split('-')[0];
+  lang = nl==='ru' ? 'ru' : nl==='lv' ? 'lv' : 'en';
+}
 R.setAttribute('data-theme',theme);
 R.setAttribute('lang',lang);
+setPath(lang);
 R.style.colorScheme=theme;
 
 /* ---- copy. every visible string lives here. ---- */
@@ -1397,6 +1423,7 @@ function setLang(v){
   lang=v;
   R.setAttribute('lang',v);
   try{ localStorage.setItem('bt-lang',v); }catch(e){}
+  setPath(v);
   for(var n=0;n<langBtns.length;n++)
     langBtns[n].setAttribute('aria-pressed', langBtns[n].getAttribute('data-l')===v ? 'true':'false');
   setCta(t('cta'));

@@ -55,6 +55,8 @@ Read like a terminal, not a brochure.
 ```
 boring-tek/
 ├── index.html          # the live site — single file, root, never moves
+├── ru/index.html       # language stub, redirects to /#ru — no copy of the site
+├── lv/index.html       # language stub, redirects to /#lv — no copy of the site
 ├── CNAME               # theboringtek.com — never edit, never move
 ├── robots.txt          # root by convention
 ├── sitemap.xml         # root by convention

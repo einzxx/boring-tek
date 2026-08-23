@@ -62,6 +62,11 @@ names in here either.
     Hover darkens to `--fg`, lifts 2px and flicks the CTA's rgb split once. **Above
     560px it is absolutely centred in the top bar; below, it moves to a footer** with
     a `theboringtek 2026` line under it, and the bar goes back to two controls.
+  - **Language urls.** `/` english, `/ru` russian, `/lv` latvian, served by two stub
+    documents that redirect to `/#ru` and `/#lv`; the bootstrap reads the hash before
+    first paint and `replaceState`s the clean path back. The address bar always names
+    the language on screen. First visit with no url and no saved choice reads
+    `navigator.language` and saves nothing.
   - **Three languages.** EN / RU / LV as plain text buttons top left, saved under
     `bt-lang`. Every visible string lives in one `T` object; switching re-renders the
     current view in place without losing form progress.
@@ -94,7 +99,9 @@ names in here either.
   now `light dark` and `theme-color` is updated by JS on every theme switch — those two
   are part of the theme system, not the SEO block.
 - **`robots.txt`** (root) — allows everything, points at the sitemap.
-- **`sitemap.xml`** (root) — one url, `https://theboringtek.com/`. No `lastmod`.
+- **`sitemap.xml`** (root) — three urls now, `/`, `/ru` and `/lv`. No `lastmod`.
+- **`ru/index.html`, `lv/index.html`** — the two language stubs. They hold no content and
+  no copy of the site; see Decisions before touching them.
 - **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked.
 
 ### Socials
@@ -109,6 +116,37 @@ names in here either.
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
 ## Decisions
+
+### Language urls and auto detect — 2026-08-23
+
+- **`/ru` and `/lv` are stubs, not copies of the site.** Each sets the background from
+  the saved theme and then `location.replace('/#ru')`, both in a head script that runs
+  before the body is parsed, so the stub never paints. `index.html` reads the hash in
+  the bootstrap, applies the language before first paint, and `replaceState`s `/ru`
+  back into the address bar. **Three real documents would mean three copies of the
+  form, the mascot and the dictionaries** — that was the alternative and it is worse.
+- **Priority is url, then saved choice, then browser, then english.** The url wins for
+  that visit only and never overwrites `bt-lang`: someone who chose latvian and opens a
+  shared `/ru` link reads russian, and their next visit to `/` is latvian again.
+- **Autodetect saves nothing.** `navigator.languages[0]` before the first `-`, `ru` or
+  `lv` or english. A guess must not outlive the visit or shout down a later choice.
+  Only pressing a language button writes storage.
+- **Every switch `replaceState`s the path**, never `pushState`. `history.length` is
+  unchanged after a dozen switches, and back still leaves the site.
+- **No relative urls may ever enter `index.html`.** `replaceState` moves the document
+  base to `/ru`, so a relative `assets/x.svg` would resolve to `/ru/assets/x.svg`.
+  Everything is a data URI or absolute today; keep it that way.
+- `hreflang` en / ru / lv / x-default in all three documents, canonical unchanged on the
+  main page, each stub canonical to itself, and both new urls in `sitemap.xml`.
+- **The honest limit:** the stubs redirect, so a crawler still sees one english page.
+  This is routing for people, not for search engines.
+- **Verified over a local http server** in headless Chrome, nine cases: english browser
+  on `/`; russian and latvian browsers on `/` landing on `/ru` and `/lv` with nothing
+  saved; a shared `/ru` link on an english browser with the frame-by-frame sampler
+  showing no english frame at any point; saved latvian beating a russian browser; a
+  shared `/ru` link not overwriting saved latvian; manual switches updating path and
+  storage with `history.length` flat; the form question and chips following into
+  latvian; and a reload on `/lv` staying latvian. No console errors.
 
 ### The socials row moved, twice — 2026-08-23
 

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="lv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- the whole page. it runs before anything can paint: the background is set to
+     whichever theme this visitor already chose, so even a slow replace shows the
+     right colour rather than a white card, and then the real page is loaded with
+     the language in the hash. index.html reads it, applies it before first paint
+     and puts /lv back in the address bar. -->
+<script>try{document.documentElement.style.background=localStorage.getItem('bt-theme')==='dark'?'#06070a':'#ffffff';}catch(e){}location.replace('/#lv');</script>
+<title>THE BORING TEK</title>
+<meta name="description" content="nākotne ir forša. būvēt to ir garlaicīgi. godīgi par ai un tehnoloģijām.">
+<link rel="canonical" href="https://theboringtek.com/lv">
+<link rel="alternate" hreflang="en" href="https://theboringtek.com/">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv">
+<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/">
+<meta name="color-scheme" content="light dark">
+<noscript><meta http-equiv="refresh" content="0;url=/"></noscript>
+<style>
+html{background:#ffffff}
+body{margin:0;min-height:100vh;display:grid;place-items:center;
+  font:400 .8125rem/1.6 ui-monospace,"Cascadia Code","JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  color:#767d86;letter-spacing:.06em}
+a{color:inherit}
+</style>
+</head>
+<body><a href="/">theboringtek.com</a></body>
+</html>
