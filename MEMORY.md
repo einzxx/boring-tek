@@ -9,14 +9,19 @@ names in here either.
 - Phase: **site v1 is LIVE.** The coming soon page is gone. `index.html` is the real
   site: two themes, three languages, a mascot with a speech bubble, and a multi-step
   contact form. Pushed and serving from `main` at theboringtek.com.
-- **Uncommitted on top of v1 (2026-08-23):** the socials row in the top bar, and the
-  subline no-flash fix. Rendered and measured, not pushed. See Decisions.
-- **Outstanding, but not blocking:** the Cloudflare Worker at
-  `boring-tek-forms.theboringtek.workers.dev` has not been deployed. The web3forms key
-  is in place, so email delivery works on its own and a send already succeeds — the
-  Telegram half just stays silent until the Worker is up.
-- **Neither endpoint has been called for real.** Both were only ever exercised against a
-  stubbed network. The first live send is still unproven, and the form is live.
+- **Shipped 2026-08-23, all pushed and live** (`e66132d`, `79fae78`, `15cc787`,
+  `5f2241e`, `3adfeaa`):
+  1. The subline no longer flashes before it types. Hidden by the stylesheet from first
+     paint, unhidden by the typing.
+  2. A socials row: six Tabler brand glyphs, centred in the top bar on desktop, in a
+     new footer on a phone.
+  3. More sky between that row and the mascot on desktop, at no cost to page height.
+  4. Language urls, `/ru` and `/lv`, with browser autodetect and `hreflang`.
+- **Both submit destinations are live and confirmed by Einz.** The Cloudflare Worker at
+  `boring-tek-forms.theboringtek.workers.dev` was fixed and deployed and Telegram is
+  arriving; web3forms email delivery is confirmed too. **This is Einz's report, not a
+  measurement made here** — the runs in this repo's history were all against a stubbed
+  network. A full walk of all four form paths against the live endpoints is still open.
 - **v1 has been rendered and measured in headless Chrome** at 320px and 1440px, in both
   themes and all three languages. Verified: no horizontal scroll anywhere; all 33 bubble
   lines across EN/RU/LV fit with no clipping left, right or top; the card unfold
@@ -40,7 +45,8 @@ names in here either.
   is the deploy — there is no staging, so check the diff before every push.
 - **v1 is committed and pushed** (`ae0b373`), and so is the about section that followed
   it (`f6fdf52`). The about section has since been removed again — see Decisions. The
-  live site is v1 plus four page-wide fixes.
+  live site is v1, plus the four page-wide fixes that outlived it, plus Space Grotesk
+  and the section below the hero, plus everything shipped on 2026-08-23 above.
 
 ## Current state
 
@@ -84,7 +90,8 @@ names in here either.
     on the text every 3–5s to ask for attention. Fills solid on hover.
   - **Contact form** — unfolds under the lockup, one question per step, four paths,
     inline validation, and on send `POST`s the same readable JSON to two places at
-    once — web3forms for email and our own Cloudflare Worker for Telegram.
+    once — web3forms for email and our own Cloudflare Worker for Telegram. **Both
+    channels are deployed and delivering** as of 2026-08-23.
   - CRT grain and radial vignette in both themes, at different weights.
   - The fixed top bar carries a scrim, which the section below the hero now needs:
     without it the headline scrolls up into the language and theme controls.
@@ -484,19 +491,21 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 ## Next steps
 
-1. **Deploy the Cloudflare Worker** at `boring-tek-forms.theboringtek.workers.dev`. The
-   web3forms key is already in, so email works without it; the Telegram half is silent
-   until it ships.
-2. **Send one real test form** and confirm it lands. Both endpoints have only been
-   tested against a stubbed network — the first live send is unproven.
-3. **Run the "Before shipping" checklist** in `skills/page-builder/SKILL.md` against the
-   live site. It is written for v1 and every visual check has to be run in both themes.
-   Headless Chrome has covered layout, motion and the form logic; a real browser on a
-   real device has not.
-4. Have the EN, RU and LV copy corrected. The translations are natural but written by
-   Claude, not by a native speaker, and Einz said corrections would come later.
-5. **Milestone: social content rhythm** — cadence, pillars, a reusable post format.
-   Posts now have somewhere to point, which was the open question blocking it.
+1. **Refresh the og:image.** The generation prompt is ready and lives in the chat, not
+   in this repo — carry it over before it is lost. Still needs the two decisions in Open
+   questions: a binary in the repo, and which theme the mascot wears on the card.
+2. **Walk the whole form against the live endpoints**, all four paths, and confirm each
+   one lands in both the inbox and Telegram. Delivery is confirmed; the full flow is not.
+3. **Upload the yellow profile picture on Telegram.** The other platforms already carry
+   the mascot.
+4. **The about section, as a concept.** It is not a rebuild: an about section was built
+   and removed on 2026-08-22 and the entry in Decisions says why. Start from what the
+   page needs now, not from that code.
+5. **Analytics, as an idea only.** CLAUDE.md and the skill both ban analytics, trackers
+   and cookie banners outright. Nothing goes in the page until Einz lifts that rule in
+   writing, and the first question is what number would actually change a decision.
+6. **Content posts.** The socials are dressed, the site links out to them and every
+   language has a url to share. Cadence, pillars and a reusable post format.
 
 ## Open questions
 
@@ -505,8 +514,9 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 - Whether the full site stays single-file as it grows past v1. Default: stays
   single-file until it genuinely can't.
 - Whether to ship an `og:image`. Needs a real hosted PNG (1200×630). That means a binary
-  in the repo — decide before adding one. **Now also needs a theme decision:** which
-  version of the mascot goes on the card.
+  in the repo — decide before adding one. **Also needs a theme decision:** which version
+  of the mascot goes on the card. A generation prompt exists in the chat; it has never
+  been written down here.
 - Whether to register the site in Google Search Console and submit the sitemap.
 - Whether the light or the dark screenshot is the one that goes on the socials.
 
