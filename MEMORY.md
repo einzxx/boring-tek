@@ -23,6 +23,11 @@ names in here either.
   posts a form. **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
   `sitemap.xml` and the language stubs were untouched, so this deploy changed nothing a
   visitor sees. Full detail under Current state and in `demo/README.md`.
+- **Shipped 2026-08-24: the og card.** `assets/og.png` (1200x630, the light theme) is the
+  first binary the site itself ships, and the head now carries `og:image` with width,
+  height, type and alt, plus `twitter:card` raised from `summary` to
+  `summary_large_image`. The meta description was rewritten with it, on all three pages.
+  `demo/og.mjs` builds the card and is tracked. See Decisions.
 - **Both cuts are with the editor for sound, and the first video is posted** across the
   platforms with a caption and three lowercase hashtags each. Both are Einz's report,
   not measured here. See the Demo reel section for a duration mismatch to resolve.
@@ -110,10 +115,16 @@ names in here either.
     Fades up once on scroll and never again.
 - **Favicon:** the mascot, transparent background, no plate, inline data URI. Still the
   dark-mode colourway (white face, dark eyes) — a favicon can't know the page theme.
-- **SEO:** unchanged from the coming soon page. `<title>`, meta description, canonical,
-  og:title / og:description / og:url / og:type, twitter:card=summary. `color-scheme` is
-  now `light dark` and `theme-color` is updated by JS on every theme switch — those two
-  are part of the theme system, not the SEO block.
+- **SEO:** `<title>`, meta description, canonical, `hreflang`, og:title / og:description
+  / og:url / og:type, and since 2026-08-24 a real card: `og:image` at
+  `https://theboringtek.com/assets/og.png` with `og:image:width` 1200,
+  `og:image:height` 630, `og:image:type` and `og:image:alt`, `twitter:card` now
+  `summary_large_image`, and `twitter:image` pointing at the same file. The description
+  is keyword-carrying and shared by all three pages. `color-scheme` is `light dark` and
+  `theme-color` is updated by JS on every theme switch — those two are part of the theme
+  system, not the SEO block.
+- **`assets/og.png`** — the share card. 1200x630, light theme, 61KB. Built by
+  `demo/og.mjs`, which is tracked.
 - **`robots.txt`** (root) — allows everything, points at the sitemap.
 - **`sitemap.xml`** (root) — three urls now, `/`, `/ru` and `/lv`. No `lastmod`.
 - **`ru/index.html`, `lv/index.html`** — the two language stubs. They hold no content and
@@ -137,7 +148,7 @@ names in here either.
   matches: lowercase tags, three of them, no more. That is now the house rule.
 - Still no posting cadence or content pillars. See Next steps.
 
-### Demo reel — `demo/`
+### Demo reel and the og card — `demo/`
 
 - **The demo video pipeline is done and shipped** (`2bcfb62`, pushed 2026-08-24).
   `demo/record.mjs` renders a 24.1 second reel of the live site to mp4. It drives the
@@ -149,6 +160,11 @@ names in here either.
   Outputs `demo/out/reel-demo-1080x1920.mp4` and `demo/out/demo-1080x1080.mp4`, both
   60fps, both exactly 24.10s. `DEMO_FPS=12 node record.mjs` is the fast preview pass
   to use while changing the timeline. Full detail in `demo/README.md`.
+- **`demo/og.mjs` is the second script in here**, added 2026-08-24. It renders
+  `assets/og.png`, the share card, in the same headless Chrome with the same flags.
+  `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
+  instead of the tracked asset. It is the one thing in `demo/` that puts a file in the
+  repo, and that file is a png, not code. See Decisions for how the card is composed.
 - **This is tooling, not the site.** `demo/` has its own `package.json` and
   `node_modules`. `index.html` is untouched, still one file, still zero dependencies,
   and nothing in `demo/` is loaded by or linked from it. The build constraints in
@@ -235,6 +251,63 @@ names in here either.
   `DEMO_FPS=12`, where one frame genuinely is 83ms of eyelid.
 
 ## Decisions
+
+### The og card, and a description that carries keywords — 2026-08-24
+
+**A binary ships.** `assets/og.png`, 1200x630, ~61KB. Both open questions that were
+blocking it are answered: yes to a binary in the repo, and the card wears **light** —
+white page, black face, white eyes. Light is what most people see, and a white card is
+the one that does not fight a timeline. The dark card was not made; if it ever is, it is
+a second file, not a replacement.
+
+- **Composed from the site's own tokens, not redrawn.** `--bg`, `--fg`, `--sub`,
+  `--face`, `--eye`, `--halo` and `--vig` are copied verbatim out of `index.html`'s light
+  `:root`. The mascot is `assets/mascot.svg` geometry with the two fills swapped to the
+  light colourway, the way the in-page mascot inverts.
+- **Layout:** mascot 190px centred in the upper half, wordmark under it in Michroma,
+  subline under that in Michroma caps at `.18em` tracking in `--sub`, and the CTA as a
+  small bordered pill at the bottom, `999px` radius and the site's own `14px 26px`
+  padding. 78px of clear space top and bottom.
+- **Fit-to-width, not guessed sizes.** The wordmark is measured at 100px and divided down
+  to exactly 760px wide; the subline is fitted to 660px so it stays *narrower* than the
+  wordmark. Michroma's subline is naturally wider than the wordmark at the site's own
+  44:16 ratio (939px against 760px), which on a card inverts the hierarchy and eats the
+  margins. On the page that is right. On a card it is not.
+- **`demo/og.mjs` builds it.** `cd demo && node og.mjs`, or `--preview` to write to the
+  gitignored `demo/out/` instead of the tracked asset. One throwaway html, headless
+  Chrome, one screenshot: the same chrome discovery and the same flags as
+  `demo/record.mjs`, with `document.fonts.ready` awaited before the shot. **Deterministic**
+  — the same commit renders the same bytes, so a no-op run leaves `git status` clean.
+- **It reads the site rather than copying it.** The light `:root` block is lifted out of
+  `index.html` at run time and the mascot out of `assets/mascot.svg`, with the two fills
+  swapped to `--face` and `--eye`. Change a token on the site, re-run, the card follows.
+  It exits non-zero on wrong dimensions, a subline wider than the wordmark, margins under
+  60px, a png over 300KB, and **Michroma not having loaded** — offline the card renders
+  in the mono fallback and looks almost right, which is the worst kind of wrong to ship.
+- No grain layer. The vignette and the halo are in, both at their light values; grain on
+  a card that gets recompressed by every platform is noise, not texture.
+- The green never appears. There is no accent on the card — light mode's confidence is
+  contrast and space, and that holds here.
+
+**The meta description was rewritten in the same pass**, because the card is what a
+shared link looks like and the description is the line under it.
+
+```
+we build custom ai solutions, websites, apps and bots for businesses, plus the backend
+automation behind them. tell us what you need.
+```
+
+- 133 characters, under the 160 cap. Lowercase, no dashes, one clause then the ask.
+- It says what we sell in words people search: ai solutions, websites, apps, bots,
+  businesses, backend, automation. The old line — `honest content about ai and tech` —
+  described a blog we do not run.
+- **It replaces the bio line in this one slot.** `the future is cool. building it is
+  boring.` is still locked and still verbatim everywhere else. It is a bio, not a
+  description, and it carried no keyword at all.
+- **All three pages carry the english string for now**, including `/ru` and `/lv`, which
+  gave up their translated descriptions to get it. That is a deliberate holding position,
+  not an oversight: translating it is ten minutes and the dash rule makes RU and LV the
+  careful ones. Open question below.
 
 ### Language urls and auto detect — 2026-08-23
 
@@ -557,6 +630,7 @@ names in here either.
 - Basic SEO added: head meta, `robots.txt` and `sitemap.xml` in root. Two top-level
   files, both required to sit in root by convention.
 - `twitter:card` is `summary`, not `summary_large_image`. There is no card image.
+  **Superseded 2026-08-24:** there is one now, and the card is `summary_large_image`.
 
 ## Mascot — variant 5, tired eyes, FINAL
 
@@ -605,22 +679,23 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 In this order, agreed 2026-08-24.
 
-1. **Refresh the og:image, and the meta description with it.** The two are one job: the
-   card is what a shared link looks like and the description is the line under it. The
-   generation prompt is ready and lives in the chat, not in this repo — carry it over
-   before it is lost. Still needs the two decisions in Open questions: a binary in the
-   repo, and which theme the mascot wears on the card.
-2. **Recheck the sitemap in Search Console.** `sitemap.xml` carries `/`, `/ru` and
+1. **Re-scrape the card.** It is pushed and live. Run the url through the X and Facebook
+   card validators once: both cache hard, and any link that was fetched before the image
+   existed keeps showing the old small card until it is re-scraped.
+2. **Translate the description into RU and LV.** Both stubs are carrying the english
+   string as a holding position. Watch the dash rule: RU and LV both reach for the em
+   dash where english uses a comma.
+3. **Recheck the sitemap in Search Console.** `sitemap.xml` carries `/`, `/ru` and
    `/lv`. Confirm the property exists, the sitemap is submitted, and all three urls are
    actually indexed rather than merely accepted. **`/demo/` is now live and fetchable**
    since `2bcfb62` — check whether it turns up in coverage, and if it does, add
    `Disallow: /demo/` to `robots.txt`.
-3. **Upload the yellow profile picture on Telegram.** The other platforms already carry
+4. **Upload the yellow profile picture on Telegram.** The other platforms already carry
    the mascot.
-4. **Walk the whole form against the live endpoints**, all four paths, and confirm each
+5. **Walk the whole form against the live endpoints**, all four paths, and confirm each
    one lands in both the inbox and Telegram. Delivery is confirmed; the full flow is
    not, and every run in this repo's history was against a stubbed network.
-5. **The about section, as a concept.** It is not a rebuild: an about section was built
+6. **The about section, as a concept.** It is not a rebuild: an about section was built
    and removed on 2026-08-22 and the entry in Decisions says why. Start from what the
    page needs now, not from that code.
 
@@ -638,12 +713,12 @@ Not scheduled, parked:
   this is no longer blocking, but a real address is still worth having.
 - Whether the full site stays single-file as it grows past v1. Default: stays
   single-file until it genuinely can't.
-- Whether to ship an `og:image`. Needs a real hosted PNG (1200×630). That means a binary
-  in the repo — decide before adding one. **Also needs a theme decision:** which version
-  of the mascot goes on the card. A generation prompt exists in the chat; it has never
-  been written down here.
+- ~~Whether to ship an `og:image`, and which theme it wears.~~ Decided 2026-08-24: yes,
+  and light. `assets/og.png` exists. See Decisions.
+- Whether the RU and LV stubs keep the english description or get translated ones. They
+  share the english string today. Next steps item 2.
 - ~~Whether to register the site in Google Search Console and submit the sitemap.~~
-  Decided: yes. It is Next steps item 2, as a recheck rather than a first setup.
+  Decided: yes. It is Next steps item 3, as a recheck rather than a first setup.
 - Whether the light or the dark screenshot is the one that goes on the socials.
 
 ## Not committed / lives elsewhere
@@ -652,5 +727,6 @@ Not scheduled, parked:
 - Brand image assets (`BT.png`, headers, earlier mascot renders) sit in
   `~/Downloads/Boring TEK files/`. Not committed — decide format and whether inline SVG
   can replace them before adding any binary.
-- `assets/` in the repo holds only the mascot: `mascot.png` (reference), `mascot.svg`
-  (source of truth) and the four pose variants.
+- `assets/` in the repo holds the mascot — `mascot.png` (reference), `mascot.svg` (source
+  of truth) and the four pose variants — and, since 2026-08-24, `og.png`, the share card.
+  That card is the first binary the live site actually requests.

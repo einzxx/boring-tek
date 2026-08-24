@@ -1,8 +1,14 @@
-# demo/ — the reel recorder
+# demo/ — the recorders
 
-Renders a 24.1 second demo of the live site to mp4. It drives the real
-`index.html` from this repo, served on localhost. It never touches production
-and it never posts a form anywhere.
+Two scripts, both headless Chrome, both tooling.
+
+- **`record.mjs`** renders a 24.1 second demo of the live site to mp4. It drives
+  the real `index.html` from this repo, served on localhost. It never touches
+  production and it never posts a form anywhere.
+- **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
+  See The og card at the bottom.
+
+Everything below is about `record.mjs` unless it says otherwise.
 
 **This is tooling, not the site.** The site is still one file with zero
 dependencies. `demo/` has its own `package.json` and its own `node_modules`,
@@ -246,14 +252,45 @@ The whole script is `buildTimeline()` in `record.mjs`, about 60 lines. `cam()`
 is a camera move, `mv()` a cursor move, `press()` a press, `at()` anything
 else. Times are seconds. Iterate with `DEMO_FPS=12`, then do a full pass.
 
+## The og card
+
+```
+cd demo
+node og.mjs              # writes assets/og.png, the tracked asset
+node og.mjs --preview    # writes demo/out/og.png instead, which is gitignored
+```
+
+Deterministic: the same commit renders the same bytes, so a run that changes
+nothing leaves `assets/og.png` untouched in `git status`.
+
+**The card is not a separate design.** `og.mjs` lifts the light `:root` block
+out of `index.html` and the mascot out of `assets/mascot.svg` at run time, so
+the card cannot drift from the page it is a picture of. Change a token on the
+site, re-run this, the card follows. The mascot's two fills become `--face` and
+`--eye` so he inverts the way the in-page one does; the geometry is never
+touched.
+
+Sizes are fitted rather than set: the wordmark and the subline are each measured
+at 100px and divided down to the width they should occupy. The subline is fitted
+on its own rather than at the site's 44:16 ratio, which would put it at 939px
+against a 760px wordmark — wider than the thing it sits under. Correct on the
+page, wrong on a card.
+
+It checks itself and exits non-zero on: wrong dimensions, a subline wider than
+the wordmark, margins under 60px, a png over 300KB, and **Michroma not having
+loaded** — offline, the card renders in the mono fallback and looks almost
+right, which is the worst kind of wrong to ship.
+
 ## Why demo/ is safe to have in a public repo
 
-`record.mjs`, `README.md` and `package.json` are tracked. `node_modules/`,
-`frames/`, `out/` and `package-lock.json` are in `.gitignore`.
+`record.mjs`, `og.mjs`, `README.md` and `package.json` are tracked.
+`node_modules/`, `frames/`, `out/` and `package-lock.json` are in
+`.gitignore`.
 
-GitHub Pages serves the whole repo root, so `theboringtek.com/demo/record.mjs`
-and `/demo/README.md` are fetchable. That is harmless: they are static text,
-nothing executes them, they hold no secrets and no endpoint that is not already
-in `index.html` — the two urls named here are named in order to **block** them.
+GitHub Pages serves the whole repo root, so `theboringtek.com/demo/record.mjs`,
+`/demo/og.mjs` and `/demo/README.md` are fetchable. That is harmless: they are
+static text, nothing executes them, they hold no secrets and no endpoint that is
+not already in `index.html` — the urls named here are named in order to
+**block** them.
 `demo/` is in neither `sitemap.xml` nor any link on the site. If you would
 rather it were not crawled at all, add `Disallow: /demo/` to `robots.txt`.
