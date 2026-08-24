@@ -17,6 +17,15 @@ names in here either.
      new footer on a phone.
   3. More sky between that row and the mascot on desktop, at no cost to page height.
   4. Language urls, `/ru` and `/lv`, with browser autodetect and `hreflang`.
+- **Shipped 2026-08-24** (`2bcfb62`, pushed): **a demo video pipeline in `demo/`.** One
+  command films the real `index.html` over localhost and renders a 24.1s reel at
+  1080x1920/60fps plus a 1080x1080 square cut. It never touches production and never
+  posts a form. **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
+  `sitemap.xml` and the language stubs were untouched, so this deploy changed nothing a
+  visitor sees. Full detail under Current state and in `demo/README.md`.
+- **Both cuts are with the editor for sound, and the first video is posted** across the
+  platforms with a caption and three lowercase hashtags each. Both are Einz's report,
+  not measured here. See the Demo reel section for a duration mismatch to resolve.
 - **Both submit destinations are live and confirmed by Einz.** The Cloudflare Worker at
   `boring-tek-forms.theboringtek.workers.dev` was fixed and deployed and Telegram is
   arriving; web3forms email delivery is confirmed too. **This is Einz's report, not a
@@ -121,11 +130,18 @@ names in here either.
 - Banners delivered for **X, Facebook and YouTube**.
 - **Bio line, locked:** `the future is cool. building it is boring.`
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
+- **The first video content is posted**, 2026-08-24, each platform carrying a caption
+  and **three lowercase hashtags**. Einz's report, not something done from here — the
+  captions and the exact tags per platform are not written down. **Write them down
+  before the second post**, because the whole point of a format is that the next one
+  matches: lowercase tags, three of them, no more. That is now the house rule.
+- Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel — `demo/`
 
-- **A demo video pipeline exists.** `demo/record.mjs` renders a 20 second reel of the
-  live site to mp4. It drives the real `index.html` from this repo over localhost.
+- **The demo video pipeline is done and shipped** (`2bcfb62`, pushed 2026-08-24).
+  `demo/record.mjs` renders a 24.1 second reel of the live site to mp4. It drives the
+  real `index.html` from this repo over localhost.
   **It never hits production and it never posts a form anywhere** — `fetch` is stubbed
   for web3forms, `workers.dev` and theboringtek, and the run prints how many posts it
   intercepted (must be 2).
@@ -137,6 +153,15 @@ names in here either.
   `node_modules`. `index.html` is untouched, still one file, still zero dependencies,
   and nothing in `demo/` is loaded by or linked from it. The build constraints in
   CLAUDE.md are not relaxed.
+- **Both cuts are rendered and have gone to the editor for sound.** That handoff is
+  Einz's report, not something done here. **Note a mismatch worth resolving:** the
+  handoff was described as 23.5s, but the files this pipeline currently produces are
+  **24.10s**, measured on disk. 23.50s was the duration of the cut *before* the last
+  round of changes — the reg value, the story-order fill, and hiding the start again
+  button. So the editor may be holding the older cut. Check before the sound mix is
+  locked; re-rendering is one command and takes four minutes.
+- **The mp4s are not in the repo** and never will be — `demo/out/` is ignored. Whoever
+  needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/README.md`, `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
@@ -147,7 +172,7 @@ names in here either.
   frame by frame with `Emulation.setVirtualTimePolicy` advancing the page clock exactly
   16.667ms per frame, then ffmpeg. Screencast only emits a frame when the compositor
   makes one, which at 1080x1920 in headless is well under 60 and irregular. Virtual
-  time makes the output deterministic and exactly 20.00s.
+  time makes the output deterministic and exactly 24.10s.
 - **Virtual time does not drive `requestAnimationFrame`, and that was a real bug.**
   Virtual time governs css transitions and timers correctly, but rAF rides BeginFrames
   from the compositor, and `captureScreenshot` forces five or six per capture, each
@@ -182,10 +207,11 @@ names in here either.
   from a fixed seed — `HERO_EYES` and `HERO_BLINKS` — so the rhythm is uneven and
   reproducible.
 - **The end card is ours, runs three and a half seconds, and the mascot is alive on it
-  to the last frame** — looks left, blinks, looks right, `your move.` pops in on the
-  site's own `--spring`, then he keeps looking around and blinking; the final eye move
-  is still running at 23.45s. The line is `your move`, no full stop, which is a
-  deliberate departure from the site's own bubble copy. The dot trail has to start
+  to the last frame** — looks left, blinks, looks right, then `your move` pops in on
+  the site's own `--spring`, and he keeps looking around and blinking; the final eye
+  move is still running at 24.05s. **The line is exactly `your move`, no full stop**,
+  which is a deliberate departure from the site's own bubble copy, where every line
+  ends in one. The dot trail has to start
   clear of the head: white
   circle on black, so on the 45 degree diagonal anything inside box (109,19) is white
   on white and invisible.
@@ -577,21 +603,34 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 ## Next steps
 
-1. **Refresh the og:image.** The generation prompt is ready and lives in the chat, not
-   in this repo — carry it over before it is lost. Still needs the two decisions in Open
-   questions: a binary in the repo, and which theme the mascot wears on the card.
-2. **Walk the whole form against the live endpoints**, all four paths, and confirm each
-   one lands in both the inbox and Telegram. Delivery is confirmed; the full flow is not.
+In this order, agreed 2026-08-24.
+
+1. **Refresh the og:image, and the meta description with it.** The two are one job: the
+   card is what a shared link looks like and the description is the line under it. The
+   generation prompt is ready and lives in the chat, not in this repo — carry it over
+   before it is lost. Still needs the two decisions in Open questions: a binary in the
+   repo, and which theme the mascot wears on the card.
+2. **Recheck the sitemap in Search Console.** `sitemap.xml` carries `/`, `/ru` and
+   `/lv`. Confirm the property exists, the sitemap is submitted, and all three urls are
+   actually indexed rather than merely accepted. **`/demo/` is now live and fetchable**
+   since `2bcfb62` — check whether it turns up in coverage, and if it does, add
+   `Disallow: /demo/` to `robots.txt`.
 3. **Upload the yellow profile picture on Telegram.** The other platforms already carry
    the mascot.
-4. **The about section, as a concept.** It is not a rebuild: an about section was built
+4. **Walk the whole form against the live endpoints**, all four paths, and confirm each
+   one lands in both the inbox and Telegram. Delivery is confirmed; the full flow is
+   not, and every run in this repo's history was against a stubbed network.
+5. **The about section, as a concept.** It is not a rebuild: an about section was built
    and removed on 2026-08-22 and the entry in Decisions says why. Start from what the
    page needs now, not from that code.
-5. **Analytics, as an idea only.** CLAUDE.md and the skill both ban analytics, trackers
-   and cookie banners outright. Nothing goes in the page until Einz lifts that rule in
-   writing, and the first question is what number would actually change a decision.
-6. **Content posts.** The socials are dressed, the site links out to them and every
-   language has a url to share. Cadence, pillars and a reusable post format.
+
+Not scheduled, parked:
+
+- **Analytics, as an idea only.** CLAUDE.md and the skill both ban analytics, trackers
+  and cookie banners outright. Nothing goes in the page until Einz lifts that rule in
+  writing, and the first question is what number would actually change a decision.
+- **Content cadence and pillars.** The first video is posted and the reel pipeline can
+  produce more on demand. What is missing is a rhythm and a reason, not another asset.
 
 ## Open questions
 
@@ -603,7 +642,8 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
   in the repo — decide before adding one. **Also needs a theme decision:** which version
   of the mascot goes on the card. A generation prompt exists in the chat; it has never
   been written down here.
-- Whether to register the site in Google Search Console and submit the sitemap.
+- ~~Whether to register the site in Google Search Console and submit the sitemap.~~
+  Decided: yes. It is Next steps item 2, as a recheck rather than a first setup.
 - Whether the light or the dark screenshot is the one that goes on the socials.
 
 ## Not committed / lives elsewhere
