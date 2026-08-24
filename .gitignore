@@ -18,3 +18,9 @@ Thumbs.db
 
 # local notes, drafts, scratch — never pushed
 private/
+
+# demo reel — the recorder is tracked, what it produces is not.
+# frames are gigabytes of jpeg, out/ is regenerable mp4, and git is forever.
+demo/frames/
+demo/out/
+demo/package-lock.json

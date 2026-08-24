@@ -122,6 +122,92 @@ names in here either.
 - **Bio line, locked:** `the future is cool. building it is boring.`
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
+### Demo reel — `demo/`
+
+- **A demo video pipeline exists.** `demo/record.mjs` renders a 20 second reel of the
+  live site to mp4. It drives the real `index.html` from this repo over localhost.
+  **It never hits production and it never posts a form anywhere** — `fetch` is stubbed
+  for web3forms, `workers.dev` and theboringtek, and the run prints how many posts it
+  intercepted (must be 2).
+- **Run it:** `cd demo && npm install && node record.mjs`. About four minutes.
+  Outputs `demo/out/reel-demo-1080x1920.mp4` and `demo/out/demo-1080x1080.mp4`, both
+  60fps, both exactly 24.10s. `DEMO_FPS=12 node record.mjs` is the fast preview pass
+  to use while changing the timeline. Full detail in `demo/README.md`.
+- **This is tooling, not the site.** `demo/` has its own `package.json` and
+  `node_modules`. `index.html` is untouched, still one file, still zero dependencies,
+  and nothing in `demo/` is loaded by or linked from it. The build constraints in
+  CLAUDE.md are not relaxed.
+- **Tracked:** `demo/record.mjs`, `demo/README.md`, `demo/package.json`.
+  **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
+  Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
+  text, no secrets, no endpoint that is not already in `index.html`. Not in
+  `sitemap.xml`, not linked from anywhere. Add `Disallow: /demo/` to `robots.txt` if
+  we ever want it out of crawlers.
+- **The recording method is CDP virtual time, not screencast.** `Page.captureScreenshot`
+  frame by frame with `Emulation.setVirtualTimePolicy` advancing the page clock exactly
+  16.667ms per frame, then ffmpeg. Screencast only emits a frame when the compositor
+  makes one, which at 1080x1920 in headless is well under 60 and irregular. Virtual
+  time makes the output deterministic and exactly 20.00s.
+- **Virtual time does not drive `requestAnimationFrame`, and that was a real bug.**
+  Virtual time governs css transitions and timers correctly, but rAF rides BeginFrames
+  from the compositor, and `captureScreenshot` forces five or six per capture, each
+  carrying a timestamp 83 to 100ms further on. Measured: **the page's rAF clock ran
+  5.5x faster than the capture clock.** Everything `index.html` animates by hand rode
+  that — the wordmark decode, the subline typing, the bubble timers and the blink. A
+  whole 280ms blink finished inside one captured frame and sampled as 0.97, 0.06, 0.74:
+  a flash, not a blink, thirteen of them in seven seconds. The recorder now shims rAF
+  into a queue before any page script runs and flushes it exactly once per captured
+  frame. **If the site's hand-animated pieces ever look fast in a render, this is
+  why.**
+- **Other traps worth remembering:** `Page.captureScreenshot` returns css pixels
+  (540x960) regardless of `deviceScaleFactor` — you need `clip` with `scale: 2` to get
+  device pixels. And the crop filter in the bundled ffmpeg has no `eval` option; its
+  x/y expressions are re-evaluated per frame anyway.
+- **Three framing rules the page imposes on any camera over it**, all found by
+  rendering and looking: zoom below 1.0 exposes the boxes of the fixed bar, vignette
+  and grain; zoom above 1.09 clips the first and last letter of the subline, which is
+  the widest line on the page; and a resting shot must frame either page zero or
+  everything below the bar, never halfway through it, because the bar paints an opaque
+  scrim over its own top 42% that shows as a hard edge against the grain. The camera
+  language is therefore vertical, not scale.
+- **The reel is deliberately calm, but the mascot is not dead.** The cta's glitch shake
+  is frozen for the whole video, so the push lands on a still button. Eye *tracking* is
+  off — two causes had to go: pointer tracking, which aims at a stale head rect for a
+  frame whenever the camera moves the head without a remeasure, and `eyesWide()`, which
+  snaps `--wide` 1 to 2.2 with no transition when the form opens. What replaces it is
+  **idle life, not reaction**: the recorder drives `--ex` and `--blink` itself, written
+  after the page's rAF tick so its values win. Gaze turns take .8 to 1.3s eased, hold a
+  second or two, and every third look returns through the middle; blinks land every 2
+  to 3s on the page's own lid curve, occasionally twice. Both patterns are generated
+  from a fixed seed — `HERO_EYES` and `HERO_BLINKS` — so the rhythm is uneven and
+  reproducible.
+- **The end card is ours, runs three and a half seconds, and the mascot is alive on it
+  to the last frame** — looks left, blinks, looks right, `your move.` pops in on the
+  site's own `--spring`, then he keeps looking around and blinking; the final eye move
+  is still running at 23.45s. The line is `your move`, no full stop, which is a
+  deliberate departure from the site's own bubble copy. The dot trail has to start
+  clear of the head: white
+  circle on black, so on the 45 degree diagonal anything inside box (109,19) is white
+  on white and invisible.
+- **The last step fills in the order a person would, and the card arrives empty.**
+  `Your Business name` types character by character, then `registration number`,
+  `yourweb.com` and `Europe` land one after another a fifth of a second apart, then
+  `your@business.com` types. Nothing is pre filled.
+- **The start again button is hidden once the check mark lands**, so the sent state
+  stays clean to the end card. Scoped by `.pad:has(.tick)` so the form's own back
+  button, which is the same `.btn.ghost`, survives on every step before it. The cursor
+  also leaves after the send — otherwise the real pointer stays parked where the send
+  button was and the card shrinking under it leaves a card below the hero highlighted
+  for the rest of the shot.
+- **Verified on the finished mp4s:** resolution, 60fps, 24.10s duration, all nine
+  presses landing inside their target rect, the gaze moving only as fast as a real turn
+  can, `--wide` never budging off 1, and the blink arriving gradually. The press check
+  records the cursor's real position and the target's real rect, asserts containment,
+  then extracts those exact frames from the mp4 into `demo/out/verify/` — all nine dead
+  centre. The eye checks read back computed style every frame; both limits are derived
+  from the frame rate so they stay meaningful at 60 and clamp out of the way under
+  `DEMO_FPS=12`, where one frame genuinely is 83ms of eyelid.
+
 ## Decisions
 
 ### Language urls and auto detect — 2026-08-23

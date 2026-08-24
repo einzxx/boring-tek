@@ -1,0 +1,10 @@
+{
+  "name": "boring-tek-demo",
+  "private": true,
+  "type": "module",
+  "description": "offline demo reel recorder. tooling only — the site itself stays single-file and dependency-free.",
+  "devDependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "puppeteer-core": "^24.10.0"
+  }
+}
