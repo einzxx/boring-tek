@@ -25,8 +25,9 @@ names in here either.
   visitor sees. Full detail under Current state and in `demo/README.md`.
 - **Posted 2026-08-25: the second clip is out.** Caption `scared of ai?`, per platform
   hashtags carrying an **ai taking jobs** angle, and a sound pass that puts a **servo
-  on the eye turns**. Einz's report, not something done or measured from here. See
-  Socials for what still is not written down.
+  on the eye turns**. Einz's report, not something done or measured from here.
+- **Recorded 2026-08-25: both posts are now written down exactly.** Captions, the tags
+  per platform and the full sound recipe are under Socials. The two post gap is closed.
 - **Shipped 2026-08-25 (`c62a2d4`): phone safe framing, and the clip is signed.** 96
   device px of guaranteed air at every border, measured and guarded rather than
   assumed; the statement lower and capped at 75% of the frame width; the wordmark
@@ -44,8 +45,9 @@ names in here either.
   `summary_large_image`. The meta description was rewritten with it, on all three pages.
   `demo/og.mjs` builds the card and is tracked. See Decisions.
 - **Both cuts are with the editor for sound, and the first video is posted** across the
-  platforms with a caption and three lowercase hashtags each. Both are Einz's report,
-  not measured here. See the Demo reel section for a duration mismatch to resolve.
+  platforms. Einz's report, not measured here. The caption and the exact tags are now
+  recorded under Socials — tiktok carried **five** tags, not the three this line used to
+  claim. See the Demo reel section for a duration mismatch to resolve.
 - **Both submit destinations are live and confirmed by Einz.** The Cloudflare Worker at
   `boring-tek-forms.theboringtek.workers.dev` was fixed and deployed and Telegram is
   arriving; web3forms email delivery is confirmed too. **This is Einz's report, not a
@@ -156,20 +158,44 @@ names in here either.
 - Banners delivered for **X, Facebook and YouTube**.
 - **Bio line, locked:** `the future is cool. building it is boring.`
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
-- **The first video content is posted**, 2026-08-24, each platform carrying a caption
-  and **three lowercase hashtags**. Einz's report, not something done from here — the
-  captions and the exact tags per platform are not written down. **Write them down
-  before the second post**, because the whole point of a format is that the next one
-  matches: lowercase tags, three of them, no more. That is now the house rule.
-- **The second clip is posted**, 2026-08-25. Caption `scared of ai?`, per platform
-  hashtags carrying an **ai taking jobs** angle, and a sound pass that puts a **servo
-  on the eye turns** — the audio follows the head, so the sound is cut to the eye keys
-  rather than to the music. Einz's report again, and **the exact captions, the exact
-  tags per platform and the sound recipe beyond "servo on the turns" are still not
-  written down here.** That is now two posts deep with the same gap. The house rule
-  from the first post stands (lowercase, three tags, no more) and the servo is worth
-  keeping as the clip's sound signature, but neither is reconstructable from this file.
-- Still no posting cadence or content pillars. See Next steps.
+
+#### post1 — posted 2026-08-24, recorded 2026-08-25
+
+Einz's report, transcribed exactly. Nothing here was measured from this repo.
+
+- **Caption, the same on both platforms:** `cool. now build something`
+- **Hashtags, tiktok:** `#ai #tech #fyp #aihype #techtok`
+
+That is **five tags, not three**. The "three lowercase hashtags, no more" house rule
+this file wrote down after post1 describes post2, not post1 — post1 never carried it.
+Lowercase is the part that held across both. The count is unsettled and is now an open
+question rather than a rule.
+
+#### post2 — posted 2026-08-25, recorded 2026-08-25
+
+- **Caption, X:** `scared of ai?`
+- **Hashtags, tiktok:** `#ai #aitakingjobs #techtok`
+- **Hashtags, instagram:** `#ai #aitakingjobs #automation`
+- **Hashtags, youtube:** `#ai #artificialintelligence #future`
+
+Three each, lowercase, and the **ai taking jobs** angle is carried by every platform
+except youtube, which trades it for the broader `#artificialintelligence #future`.
+
+#### Sound recipe — both posts
+
+The clip's audio signature. Same recipe on post1 and post2, and it carries to post3
+unless something in the scene changes.
+
+- **classical restaurant music, low volume, under everything** — the brand sound, and
+  the only thing that runs for the whole clip
+- **servo `zzt` on the eye turns** — cut to the eye keys, not to the music, so the
+  audio follows the head
+- **pop** on the bubbles
+- **soft click** on presses
+- **ding** on the check
+- **glitch stutter plus a lock click** on the wordmark decode
+
+Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
@@ -772,11 +798,13 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 ## Next steps
 
-In this order, agreed 2026-08-24.
+In this order, agreed 2026-08-24. **Rechecked 2026-08-25: still six items, same order,
+nothing done and nothing dropped.**
 
 1. **Re-scrape the card.** It is pushed and live. Run the url through the X and Facebook
    card validators once: both cache hard, and any link that was fetched before the image
-   existed keeps showing the old small card until it is re-scraped.
+   existed keeps showing the old small card until it is re-scraped. **Not run yet,
+   confirmed 2026-08-25.**
 2. **Translate the description into RU and LV.** Both stubs are carrying the english
    string as a holding position. Watch the dash rule: RU and LV both reach for the em
    dash where english uses a comma.
@@ -835,7 +863,10 @@ Not scheduled, parked:
 - ~~Whether to ship an `og:image`, and which theme it wears.~~ Decided 2026-08-24: yes,
   and light. `assets/og.png` exists. See Decisions.
 - Whether the RU and LV stubs keep the english description or get translated ones. They
-  share the english string today. Next steps item 2.
+  share the english string today. **Confirmed still open 2026-08-25 — the stubs still
+  carry the english string.** Next steps item 2.
+- **How many hashtags a post carries.** post1 went out with five on tiktok, post2 with
+  three everywhere. Lowercase is settled; the count is not. Pick one before post3.
 - ~~Whether to register the site in Google Search Console and submit the sitemap.~~
   Decided: yes. It is Next steps item 3, as a recheck rather than a first setup.
 - Whether the light or the dark screenshot is the one that goes on the socials.
