@@ -23,11 +23,15 @@ names in here either.
   posts a form. **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
   `sitemap.xml` and the language stubs were untouched, so this deploy changed nothing a
   visitor sees. Full detail under Current state and in `demo/README.md`.
-- **Reframed 2026-08-25 for phone safe margins:** 96 device px of guaranteed air at every border, measured and
-  guarded rather than assumed; the statement lower and capped at 75% of the frame
-  width; the wordmark added, dim, at 89%; and **the square is now its own render
-  rather than a crop**, because no 1080 tall window holds a statement at y=350 and
-  a wordmark at y=1710.
+- **Posted 2026-08-25: the second clip is out.** Caption `scared of ai?`, per platform
+  hashtags carrying an **ai taking jobs** angle, and a sound pass that puts a **servo
+  on the eye turns**. Einz's report, not something done or measured from here. See
+  Socials for what still is not written down.
+- **Shipped 2026-08-25 (`c62a2d4`): phone safe framing, and the clip is signed.** 96
+  device px of guaranteed air at every border, measured and guarded rather than
+  assumed; the statement lower and capped at 75% of the frame width; the wordmark
+  added, dim, at 89%; and **the square is now its own render rather than a crop**,
+  because no 1080 tall window holds a statement at y=350 and a wordmark at y=1710.
 - **Shipped 2026-08-25: `demo/post2.mjs`, a second social clip.** Nine seconds,
   60fps, loop friendly, in both the vertical and the square cut. It does not film
   the page, it composes a scene out of the site's parts. **The live site did not
@@ -157,6 +161,14 @@ names in here either.
   captions and the exact tags per platform are not written down. **Write them down
   before the second post**, because the whole point of a format is that the next one
   matches: lowercase tags, three of them, no more. That is now the house rule.
+- **The second clip is posted**, 2026-08-25. Caption `scared of ai?`, per platform
+  hashtags carrying an **ai taking jobs** angle, and a sound pass that puts a **servo
+  on the eye turns** — the audio follows the head, so the sound is cut to the eye keys
+  rather than to the music. Einz's report again, and **the exact captions, the exact
+  tags per platform and the sound recipe beyond "servo on the turns" are still not
+  written down here.** That is now two posts deep with the same gap. The house rule
+  from the first post stands (lowercase, three tags, no more) and the servo is worth
+  keeping as the clip's sound signature, but neither is reconstructable from this file.
 - Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
@@ -781,6 +793,30 @@ In this order, agreed 2026-08-24.
 6. **The about section, as a concept.** It is not a rebuild: an about section was built
    and removed on 2026-08-22 and the entry in Decisions says why. Start from what the
    page needs now, not from that code.
+
+### Content queue
+
+- **post3, "missed calls".** Queued 2026-08-25, not built. Same composer rig:
+  `demo/post2.mjs` is the template, so this is a copy with new copy and new eye keys,
+  not a new pipeline.
+
+  ```
+  statement    every missed call is missed money
+  bubble beat 1  ai answers in 3 seconds.
+  bubble beat 2  every time.
+  ```
+
+  - The statement is written lowercase here because the scene sets caps with
+    `text-transform` and uppercases the cells in js. Six words against post2's five,
+    so **the line breaks are a fresh decision, not a copy of post2's** — the fit
+    divides by the longest line's cell count, and a bad break costs real size. Four
+    short lines beat three long ones.
+  - Two beats again, and the second is the punchline, so it wants the same deadpan
+    look back at the viewer post2 uses for `i am fine.`
+  - Everything else carries over untouched: the phone safe framing, the safe area
+    guard, the wordmark, the two cuts, the seeded idle, the servo on the turns.
+- Beyond post3, still no cadence and no pillars. Two clips is a format, three is a
+  habit; what is missing is a reason to post, not another asset.
 
 Not scheduled, parked:
 
