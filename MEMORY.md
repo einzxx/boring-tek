@@ -23,6 +23,11 @@ names in here either.
   posts a form. **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
   `sitemap.xml` and the language stubs were untouched, so this deploy changed nothing a
   visitor sees. Full detail under Current state and in `demo/README.md`.
+- **Reframed 2026-08-25 for phone safe margins:** 96 device px of guaranteed air at every border, measured and
+  guarded rather than assumed; the statement lower and capped at 75% of the frame
+  width; the wordmark added, dim, at 89%; and **the square is now its own render
+  rather than a crop**, because no 1080 tall window holds a statement at y=350 and
+  a wordmark at y=1710.
 - **Shipped 2026-08-25: `demo/post2.mjs`, a second social clip.** Nine seconds,
   60fps, loop friendly, in both the vertical and the square cut. It does not film
   the page, it composes a scene out of the site's parts. **The live site did not
@@ -285,11 +290,28 @@ job.** then **i am fine.** Nine seconds, written to loop.
   decision, not a wrap: four short lines run far larger than three long ones,
   because the fit divides by the longest line's cell count. The hero cap of 44px
   is not raised for a video.
-- The composition serves both aspect ratios at once. The block sits above centre
-  so the tall frame's bottom third stays clear of the caption and buttons every
-  platform paints there, and so the square is a straight crop with 52px to spare
-  rather than a pan. **The square cut needs no camera move** — unlike the reel,
-  whose two subjects are more than 1080 apart.
+- **The square is a second render, not a crop** (changed 2026-08-25 when the
+  wordmark went in). A crop cannot hold a statement at y=350 and a wordmark at
+  y=1710 inside 1080, so each cut has its own geometry in one layout table at the
+  top of the file, over the identical performance: same seeds, same eye keys,
+  same bubble beats, the same nine seconds framed twice.
+- **Phone safe framing, measured rather than assumed.** `SAFE` is 48 css px, 96
+  device px that nothing may sit inside. Every element that renders, dots
+  included, is checked against all four borders on the busiest frame and the run
+  fails naming the offender. The bubble clamps against the safe area rather than
+  the frame edge, because the pill is always the piece that reaches furthest.
+- The tall cut carries the stated proportions: statement at 18.5% capped at 75%
+  of the frame width, head centred at 50%, wordmark at 89%. **The square's
+  verticals are adapted, not copied**, and that is forced: the bubble needs about
+  70px of air above the head, so a 540 tall frame cannot also hold a statement, a
+  centred head at a useful size and a wordmark at the same percentages. It keeps
+  the rules, at proportions a square can hold.
+- The wordmark is Michroma caps, tracked `.18em`, in `--muted`: the lockup
+  subline's treatment, which is the one place the brand allows Michroma small. It
+  is fitted to a target width so tracking can never push it into the safe area,
+  and shifted by **half** the tracking, not all of it, because letter-spacing is
+  added after the last glyph too and the ink otherwise sits half a space left of
+  the box centre.
 
 Three things that cost real time, all worth knowing before the next clip:
 

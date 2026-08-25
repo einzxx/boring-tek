@@ -258,16 +258,36 @@ else. Times are seconds. Iterate with `DEMO_FPS=12`, then do a full pass.
 
 ```
 cd demo
-node post2.mjs                  # out/post2-1080x1920.mp4 + the square cut
+node post2.mjs                  # both cuts, rendered separately
 DEMO_FPS=12 node post2.mjs      # the fast preview pass, same 9 seconds
 node post2.mjs --encode-only    # re-encode from kept frames
 ```
 
 Nine seconds, 60fps, loop friendly. A statement decodes in at the top, the
-mascot sits large in the middle living his life, and at 5.5s a bubble pops up
-beside his head: **it took my job.** then **i am fine.** About a minute to
-render, and it reuses the recorder's rAF shim, its seeded idle, its gaze and lid
-guards and its encode settings.
+mascot sits in the middle living his life, at 5.5s a bubble pops up beside his
+head (**it took my job.** then **i am fine.**), and the wordmark sits dim at the
+bottom for the whole clip. About two minutes for both cuts, and it reuses the
+recorder's rAF shim, its seeded idle, its gaze and lid guards and its encode
+settings.
+
+**The square is rendered, not cropped.** It used to be a crop of the tall frame
+and it cannot be one any more: the wordmark sits at 89% of 1920, which is
+y=1710, and the statement sits at y=350, so no 1080 tall window holds both, let
+alone with 96px of air at each edge. Each cut gets its own pass over the
+identical performance — same seeds, same eye keys, same bubble beats — so they
+are the same nine seconds framed twice. The layout table at the top of the file
+is the whole of the difference.
+
+**Phone safe framing.** `SAFE` is 48 css px, which is 96 device px that nothing
+is allowed inside, and the run measures it rather than trusting it: every
+element that can render, dots included, is checked against all four borders on
+the busiest frame, and the render fails naming the offender. The bubble is the
+piece that reaches furthest, so it clamps against the safe area rather than the
+frame edge. In the tall cut the statement caps at 75% of the frame width, sits
+at 18.5% from the top and the head's centre is at 50%; in the square those
+verticals are adapted, because the bubble needs about 70px of air above the head
+and a 540 tall frame cannot also hold a statement, a centred head and a wordmark
+at the stated proportions.
 
 **It composes a scene rather than filming the page.** The statement is not on
 the site, the mascot is drawn far larger than the page ever draws him, and the

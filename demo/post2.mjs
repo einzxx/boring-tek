@@ -34,7 +34,49 @@ const FPS = Number(process.env.DEMO_FPS || 60);   /* DEMO_FPS=12 for a fast prev
 const SECONDS = 9.0;
 const N = Math.round(FPS * SECONDS);
 const STEP = 1000 / FPS;
-const VW = 540, VH = 960, DSF = 2;          /* 540x960 at 2x = 1080x1920 native */
+const DSF = 2;                              /* css px at 2x, so 540 wide is 1080 */
+
+/* ---------- the two cuts ----------
+   the square is rendered, not cropped. it used to be a crop of the tall frame,
+   and it cannot be one any more: the wordmark sits at 89% of 1920, which is
+   y=1710, and the statement sits at y=350. no 1080 tall window holds both, let
+   alone with 96px of air at each edge. so each cut gets its own pass with its
+   own geometry, over the identical performance — same seeds, same eye keys,
+   same bubble beats, so they are the same nine seconds framed twice.
+
+   every number below is css px in that cut's viewport; device px are double.
+   SAFE is 48, which is the 96 device px nothing is allowed inside.
+
+   the square's vertical percentages are adapted rather than copied, and that is
+   forced by the content. the bubble needs about 70px of air above the head, and
+   with a statement above it and a wordmark below it, a 540 tall frame cannot
+   also put the head's centre at 45 to 50 percent and keep him large. the tall
+   cut gets the stated proportions; the square keeps the rules (safe margins,
+   statement off the top edge, head centred, wordmark near the bottom) at the
+   proportions a square can actually hold. */
+const SAFE = 48;
+const CUTS = [
+  {
+    name: 'post2-1080x1920', vw: 540, vh: 960,
+    statementTop: 178,      /* 18.5% */
+    statementW: 0.75,       /* of the frame */
+    mascot: 204, mascotCy: 480,   /* 50% */
+    wordmarkCy: 854,        /* 89% */
+    wordmarkW: 250,
+    pillFont: 16, pillLift: -26,
+  },
+  {
+    name: 'post2-1080x1080', vw: 540, vh: 540,
+    statementTop: 62,       /* 11.5%, and still 124 device px clear of the top */
+    statementW: 0.62,
+    mascot: 142, mascotCy: 270,   /* 50% */
+    wordmarkCy: 480,        /* 89% */
+    wordmarkW: 210,
+    /* no lift in the square: there is no room above the head to spend, so an
+       overrunning pill shifts left and stays at its own height. */
+    pillFont: 14, pillLift: 0,
+  },
+];
 
 const argv = process.argv.slice(2);
 const has = f => argv.includes(f);
@@ -128,19 +170,9 @@ function mascotBody() {
   return [face, '<g class="m-eyes">', ...eyes, '</g>'].join('\n      ');
 }
 
-/* the composition has to serve two aspect ratios at once. the tall frame wants
-   the block above centre, so the bottom third stays clear of the caption and the
-   buttons every platform paints there. the square is a straight crop of the same
-   frame, so the statement and the head together have to fit inside 1080 device
-   px with margin to spare — which is what caps the mascot and pins his centre
-   above the middle rather than on it. */
-const MASCOT = 224;      /* px in a 540 wide frame. the page caps him at 130. */
-const MASCOT_CY = 442;   /* px from the top, a little above centre */
-const PAD = 30;          /* the statement's side margin */
 const HERO_CAP = 44;     /* the brand's hero cap, and it is not raised here */
-const STATEMENT_TOP = 66;
 
-function sceneHtml() {
+function sceneHtml(cut) {
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -154,7 +186,7 @@ ${lightRoot()}
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;overflow:hidden;background:var(--bg)}
-body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
+body{width:${cut.vw}px;height:${cut.vh}px;color:var(--fg);font-family:var(--body)}
 /* the vignette, at its light value, breathing on the site's own 34s loop. no
    grain: every platform recompresses a clip, and grain through that is noise
    rather than texture.
@@ -172,12 +204,12 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
   to{transform:scale(1.045) translate3d(0,-1.2%,0);opacity:1}
 }
 
-.stage{position:relative;width:${VW}px;height:${VH}px;z-index:1}
+.stage{position:relative;width:${cut.vw}px;height:${cut.vh}px;z-index:1}
 
 /* the statement. michroma, caps, on the fixed cell grid the site uses for the
    wordmark, so a scrambling glyph cannot change the line's width. */
 .say{
-  position:absolute;left:50%;top:${STATEMENT_TOP}px;transform:translateX(-50%);
+  position:absolute;left:50%;top:${cut.statementTop}px;transform:translateX(-50%);
   font-family:var(--display);font-weight:400;color:var(--fg);
   text-transform:uppercase;letter-spacing:0;line-height:1.04;
   display:flex;flex-direction:column;gap:.35em;text-align:center;
@@ -187,9 +219,23 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
 
 /* the mascot, centred, large. --ex/--ey/--blink are written per frame by the
    recorder, exactly as the reel writes the hero's. */
-.m-zone{position:absolute;left:50%;top:${MASCOT_CY}px;transform:translate(-50%,-50%);
+.m-zone{position:absolute;left:50%;top:${cut.mascotCy}px;transform:translate(-50%,-50%);
   display:block;width:max-content}
-.mascot{position:relative;display:block;width:${MASCOT}px;height:auto}
+.mascot{position:relative;display:block;width:${cut.mascot}px;height:auto}
+
+/* the wordmark, present for the whole clip. michroma caps, tracked wide and
+   dim: the lockup subline's treatment, which is the one place the brand allows
+   michroma at a small size. it signs the clip without competing with anything. */
+.wordmark{
+  position:absolute;left:50%;top:${cut.wordmarkCy}px;transform:translate(-50%,-50%);
+  font-family:var(--display);font-weight:400;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.18em;white-space:nowrap;line-height:1;
+  /* letter-spacing is added after every glyph including the last, so the box is
+     one full space wider than the ink and the ink sits half a space left of the
+     box centre. shifting by half the tracking, not all of it, is what actually
+     centres it. */
+  text-indent:.09em;
+}
 .m-face{fill:var(--face)}
 .m-eyes{transform:translate(calc(var(--ex,0) * 1px),calc(var(--ey,0) * 1px))}
 .m-eye{fill:var(--eye);transform-box:fill-box;transform-origin:center;
@@ -215,7 +261,7 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
   max-width:min(280px,calc(100vw - 28px));
   padding:8px 15px;border:1px solid var(--bub);border-radius:999px;
   background:var(--bg);color:var(--fg);
-  font-family:var(--body);font-size:16px;line-height:1.35;text-align:left;
+  font-family:var(--body);font-size:${cut.pillFont}px;line-height:1.35;text-align:left;
   white-space:nowrap;
   transform-origin:left bottom;opacity:0;
   translate:0 var(--pshiftY,0px);
@@ -235,6 +281,7 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
   <div class="say" id="say">
 ${STATEMENT.map(l => '    <span class="ln">' + l + '</span>').join('\n')}
   </div>
+  <div class="wordmark" id="wordmark">the boring tek</div>
   <div class="m-zone">
     <svg class="mascot" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
       ${mascotBody()}
@@ -248,7 +295,9 @@ ${STATEMENT.map(l => '    <span class="ln">' + l + '</span>').join('\n')}
 <script>
 /* the scene's script is serialised from post2.mjs, so anything it needs from
    node arrives here as data rather than as an interpolation inside it. */
-window.__CFG = ${JSON.stringify({ VW, PAD, HERO_CAP })};
+window.__CFG = ${JSON.stringify({ HERO_CAP, SAFE })};
+window.__CUT = ${JSON.stringify({ vw: cut.vw, vh: cut.vh, statementW: cut.statementW,
+  wordmarkW: cut.wordmarkW, pillLift: cut.pillLift })};
 ${scenePage.toString()}
 scenePage();
 </script>
@@ -294,14 +343,30 @@ function scenePage() {
     return out;
   }
 
+  /* the wordmark is fitted too, so tracking changes or a longer name can never
+     push it into the safe area. measured rendered, in caps, because
+     text-transform is invisible to measureText. */
+  function fitWordmark() {
+    const el = document.getElementById('wordmark');
+    const s = el.textContent.toUpperCase();
+    const cv = document.createElement('canvas').getContext('2d');
+    cv.font = '400 100px Michroma';
+    const em = (cv.measureText(s).width + 0.18 * 100 * s.length) / 100;
+    el.style.fontSize = (__CUT.wordmarkW / em).toFixed(3) + 'px';
+  }
+
   function build() {
     const cw = cellWidth();
     sayEl.style.setProperty('--cw', cw.toFixed(4) + 'em');
     /* fit to width from the longest line's cell count, then cap. the cap is the
        brand's and is not raised for a video. */
     const units = Math.max(...lines.map(l => l.length)) * cw;
+    /* the statement is capped by a share of the frame, not by a side padding.
+       that is what keeps the longest line clear of the edges by a wide margin
+       whatever the copy says, and it can only ever come out smaller than the
+       brand's hero cap. */
     sayEl.style.fontSize =
-      Math.min(__CFG.HERO_CAP, (__CFG.VW - 2 * __CFG.PAD) / units).toFixed(3) + 'px';
+      Math.min(__CFG.HERO_CAP, __CUT.vw * __CUT.statementW / units).toFixed(3) + 'px';
     /* the block gets the longest line's width so shorter lines centre inside a
        track that never resizes. */
     sayEl.style.width = (units).toFixed(4) + 'em';
@@ -363,9 +428,12 @@ function scenePage() {
       pill.style.setProperty('--pshiftY', '0px');
       const br = b.getBoundingClientRect();
       let sx = 0, sy = 0;
+      /* the clamp is against the safe area, not the frame edge: a pill touching
+         the border is exactly what a phone's rounded corner or a platform's
+         button eats. */
       const over = (br.left + pill.offsetLeft + pill.offsetWidth)
-        - (document.documentElement.clientWidth - 14);
-      if (over > 0) { sx = -Math.round(over); sy = -26; }
+        - (__CUT.vw - __CFG.SAFE);
+      if (over > 0) { sx = -Math.round(over); sy = __CUT.pillLift; }
       pill.style.setProperty('--pshift', sx + 'px');
       pill.style.setProperty('--pshiftY', sy + 'px');
       return { over: Math.round(over), sx, sy };
@@ -398,15 +466,33 @@ function scenePage() {
         cs.getPropertyValue('--wide').trim() || '1',
         parseFloat(cs.getPropertyValue('--blink')) || 1];
     },
-    /* what the square cut has to hold: the statement and the head. */
     boxes() {
       const r = s => { const b = document.querySelector(s).getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right }; };
-      return { say: r('#say'), mascot: r('.mascot'), pill: r('.pill') };
+      return { say: r('#say'), mascot: r('.mascot'), pill: r('.pill'), wordmark: r('#wordmark') };
+    },
+    /* how close the nearest ink gets to each border, in css px. everything that
+       can render is measured, including the dots, because the trail is the
+       piece that reaches furthest right. */
+    safe() {
+      const sels = ['#say', '.mascot', '.pill', '.d1', '.d2', '.d3', '#wordmark'];
+      let left = 1e9, top = 1e9, right = 1e9, bottom = 1e9, worst = null;
+      for (const sel of sels) {
+        const el = document.querySelector(sel);
+        if (!el || parseFloat(getComputedStyle(el).opacity) < 0.02) continue;
+        const b = el.getBoundingClientRect();
+        if (!b.width && !b.height) continue;
+        const d = [b.left, b.top, __CUT.vw - b.right, __CUT.vh - b.bottom];
+        if (Math.min(...d) < Math.min(left, top, right, bottom)) worst = sel;
+        left = Math.min(left, d[0]); top = Math.min(top, d[1]);
+        right = Math.min(right, d[2]); bottom = Math.min(bottom, d[3]);
+      }
+      return { left, top, right, bottom, worst };
     },
   };
 
   document.fonts.load('400 1em Michroma').then(() => document.fonts.ready).then(() => {
     build();
+    fitWordmark();
     paint(0);
     window.__p2.ready = true;
     requestAnimationFrame(tick);
@@ -565,13 +651,15 @@ const BLINK_LIMIT = Math.min(0.95, 3.4 * 0.94 * STEP / 95);
 const GAZE_LIMIT = 1.2 * STEP / 16.6667;
 
 /* ---------- render ---------- */
-async function render() {
+async function render(cut) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
-  fs.rmSync(FRAMES, { recursive: true, force: true });
-  fs.mkdirSync(FRAMES, { recursive: true });
+  const frames = path.join(FRAMES, cut.name);
+  fs.rmSync(frames, { recursive: true, force: true });
+  fs.mkdirSync(frames, { recursive: true });
   fs.mkdirSync(OUT, { recursive: true });
+  console.log('  ' + cut.name + ': ' + cut.vw * DSF + 'x' + cut.vh * DSF);
 
-  const { srv, port } = await serve(sceneHtml());
+  const { srv, port } = await serve(sceneHtml(cut));
   const browser = await puppeteer.launch({
     executablePath: CHROME,
     headless: true,
@@ -579,7 +667,7 @@ async function render() {
       '--force-color-profile=srgb', '--disable-dev-shm-usage', '--mute-audio'],
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: VW, height: VH, deviceScaleFactor: DSF });
+  await page.setViewport({ width: cut.vw, height: cut.vh, deviceScaleFactor: DSF });
   await page.evaluateOnNewDocument(injected);
   const cdp = await page.createCDPSession();
   await cdp.send('Emulation.setEmulatedMedia', {
@@ -624,14 +712,16 @@ async function render() {
 
   const boxes = await page.evaluate(() => window.__p2.boxes());
   console.log('  statement ' + boxes.say.top.toFixed(0) + '..' + boxes.say.bottom.toFixed(0)
-    + 'px, head ' + boxes.mascot.top.toFixed(0) + '..' + boxes.mascot.bottom.toFixed(0) + 'px');
+    + ', head ' + boxes.mascot.top.toFixed(0) + '..' + boxes.mascot.bottom.toFixed(0)
+    + ', wordmark ' + boxes.wordmark.top.toFixed(0) + '..' + boxes.wordmark.bottom.toFixed(0)
+    + '  (css px of ' + cut.vh + ')');
 
   const fired = new Set();
   let wideSeen = null, lastTx = null, gazeJump = { d: 0, t: 0 };
   const eyeMoves = [];
   let lastBlink = null, blinkJump = { d: 0, t: 0 };
   const blinkSteps = [];
-  let pillFit = null;
+  let pillFit = null, safeWorst = null;
 
   /* only the words are cued. everything that moves is written every frame. */
   const cues = [
@@ -680,13 +770,22 @@ async function render() {
     }
     lastBlink = eye[2];
 
+    /* the safe area is measured on the frame where the most is on screen: the
+       bubble fully in, the statement solid, the wordmark up. measured live, so
+       it is the drawn boxes that are asserted rather than the intended ones. */
+    if (Math.abs(t - (BUBBLE_ON + 0.6)) < 0.5 / FPS) {
+      const sa = await page.evaluate(() => window.__p2.safe());
+      if (!safeWorst || Math.min(sa.left, sa.top, sa.right, sa.bottom)
+        < Math.min(safeWorst.left, safeWorst.top, safeWorst.right, safeWorst.bottom)) safeWorst = sa;
+    }
+
     /* clip.scale is what actually gets device pixels out. a plain
        captureScreenshot hands back css pixels however high the dsf is. */
     const shot = await cdp.send('Page.captureScreenshot', {
       format: 'jpeg', quality: 94, captureBeyondViewport: false,
-      clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+      clip: { x: 0, y: 0, width: cut.vw, height: cut.vh, scale: DSF },
     });
-    fs.writeFileSync(path.join(FRAMES, 'f' + String(f).padStart(5, '0') + '.jpg'),
+    fs.writeFileSync(path.join(frames, 'f' + String(f).padStart(5, '0') + '.jpg'),
       Buffer.from(shot.data, 'base64'));
     await advance(STEP);
 
@@ -696,7 +795,6 @@ async function render() {
     }
   }
 
-  const after = await page.evaluate(() => window.__p2.boxes());
   const turns = EYE_KEYS.filter((k, i) => i > 0 && k[1] !== EYE_KEYS[i - 1][1]).length;
   console.log('  idle: ' + BLINKS.length + ' blinks over ' + SECONDS + 's ('
     + (SECONDS / BLINKS.length).toFixed(1) + 's apart), ' + turns + ' eye turns');
@@ -709,15 +807,21 @@ async function render() {
     + BLINK_LIMIT.toFixed(2) + ' limit');
   if (pillFit) {
     console.log('  bubble: pill ' + (pillFit.over > 0
-      ? 'overran the frame by ' + pillFit.over + 'px, shifted ' + pillFit.sx + 'px and lifted ' + pillFit.sy + 'px'
+      ? 'overran the safe area by ' + pillFit.over + 'px, shifted ' + pillFit.sx
+        + 'px and lifted ' + pillFit.sy + 'px'
       : 'fits beside the head with no shift'));
   }
+  const dev = v => Math.round(v * DSF);
+  console.log('  safe area: ' + dev(safeWorst.left) + 'px left, ' + dev(safeWorst.top)
+    + ' top, ' + dev(safeWorst.right) + ' right, ' + dev(safeWorst.bottom)
+    + ' bottom (device px, floor ' + SAFE * DSF + ', tightest is ' + safeWorst.worst + ')');
 
   await browser.close();
   srv.close();
 
-  const state = { boxes, after, eyeMoves, blinkSteps, blinkJump, gazeJump, wide: wideSeen, pillFit };
-  fs.writeFileSync(path.join(OUT, 'post2.json'), JSON.stringify(state, null, 2));
+  const state = { cut: cut.name, boxes, safe: safeWorst, eyeMoves, blinkSteps,
+    blinkJump, gazeJump, wide: wideSeen, pillFit };
+  fs.writeFileSync(path.join(OUT, 'post2-' + cut.name + '.json'), JSON.stringify(state, null, 2));
   return state;
 }
 
@@ -740,35 +844,16 @@ function probe(file) {
   };
 }
 
-/* the square cut is a fixed crop, not a pan. the reel pans because its two
-   subjects are more than 1080 apart; here the statement and the head are one
-   composition and both fit in the square, so moving the camera would be motion
-   for its own sake. centred on the content, rounded to an even line so the
-   chroma planes land where yuv420p wants them. */
-function squareY(boxes) {
-  const top = boxes.say.top * DSF, bottom = boxes.mascot.bottom * DSF;
-  const mid = (top + bottom) / 2;
-  let y = Math.round(mid - 540);
-  y = Math.max(0, Math.min(VH * DSF - 1080, y));
-  const margin = Math.min(top - y, (y + 1080) - bottom);
-  return { y: 2 * Math.floor(y / 2), margin: Math.round(margin) };
-}
-
-function encode(boxes) {
-  const tall = path.join(OUT, 'post2-1080x1920.mp4');
-  const sq = path.join(OUT, 'post2-1080x1080.mp4');
-  console.log('  encoding 1080x1920 ...');
+/* each cut encodes from its own frames. no crop, no pan: the square is a
+   render, not a window onto the tall one. settings are the reel's. */
+function encode(cut) {
+  const out = path.join(OUT, cut.name + '.mp4');
+  console.log('  encoding ' + cut.name + ' ...');
   ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS),
-    '-i', path.join(FRAMES, 'f%05d.jpg'),
+    '-i', path.join(FRAMES, cut.name, 'f%05d.jpg'),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17',
-    '-pix_fmt', 'yuv420p', '-r', String(FPS), '-movflags', '+faststart', '-an', tall]);
-  const { y, margin } = squareY(boxes);
-  console.log('  cutting 1080x1080 at y=' + y + ' (' + margin + 'px clear of the content) ...');
-  ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', tall,
-    '-vf', 'crop=w=1080:h=1080:x=0:y=' + y,
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '17',
-    '-pix_fmt', 'yuv420p', '-r', String(FPS), '-movflags', '+faststart', '-an', sq]);
-  return { tall, sq, margin };
+    '-pix_fmt', 'yuv420p', '-r', String(FPS), '-movflags', '+faststart', '-an', out]);
+  return out;
 }
 
 /* pull frames back out of the finished mp4, so the check is against what
@@ -786,44 +871,55 @@ function sampleFrames(mp4, at) {
 
 /* ---------- go ---------- */
 console.log('the boring tek — social clip #2');
-const state = ONLY_ENCODE
-  ? JSON.parse(fs.readFileSync(path.join(OUT, 'post2.json'), 'utf8'))
-  : await render();
-const { tall, sq, margin } = encode(state.boxes);
+const results = [];
+for (const cut of CUTS) {
+  const state = ONLY_ENCODE
+    ? JSON.parse(fs.readFileSync(path.join(OUT, 'post2-' + cut.name + '.json'), 'utf8'))
+    : await render(cut);
+  results.push({ cut, state, file: encode(cut) });
+}
 
-const a = probe(tall), b = probe(sq);
-const mb = f => (fs.statSync(f).size / 1e6).toFixed(1) + ' MB';
-console.log('  ' + a.w + 'x' + a.h + ' @' + a.fps + 'fps ' + a.seconds.toFixed(2) + 's  '
-  + mb(tall) + '  ' + path.relative(ROOT, tall));
-console.log('  ' + b.w + 'x' + b.h + ' @' + b.fps + 'fps ' + b.seconds.toFixed(2) + 's  '
-  + mb(sq) + '  ' + path.relative(ROOT, sq));
+const mb = f => (fs.statSync(f).size / 1e6).toFixed(2) + ' MB';
+for (const r of results) {
+  const p = probe(r.file);
+  r.probe = p;
+  console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps ' + p.seconds.toFixed(2) + 's  '
+    + mb(r.file) + '  ' + path.relative(ROOT, r.file));
+}
 
-const dir = sampleFrames(tall, [
+const dir = sampleFrames(results[0].file, [
   [0.05, 'a-decode-opens'], [0.60, 'b-decode-mid'], [1.60, 'c-statement-solid'],
   [2.60, 'd-looks-left'], [4.60, 'e-looks-right'],
   [6.20, 'f-it-took-my-job'], [7.70, 'g-i-am-fine'],
   /* inside the last frame at any frame rate this runs at */
   [SECONDS - 2 / FPS, 'h-last-frame'],
 ]);
-console.log('  frames sampled from the mp4 into ' + path.relative(ROOT, dir));
+console.log('  frames sampled from ' + results[0].cut.name + ' into ' + path.relative(ROOT, dir));
 
 if (!KEEP && !ONLY_ENCODE) fs.rmSync(FRAMES, { recursive: true, force: true });
 
 const fail = [];
-if (a.w !== 1080 || a.h !== 1920) fail.push('the clip is not 1080x1920');
-if (b.w !== 1080 || b.h !== 1080) fail.push('the square cut is not 1080x1080');
-if (Math.abs(a.fps - FPS) > 0.5) fail.push('the clip is not ' + FPS + 'fps');
-if (Math.abs(a.seconds - SECONDS) > 0.2) fail.push('the clip is ' + a.seconds + 's, wanted ' + SECONDS);
-if (state.eyeMoves.length) fail.push(state.eyeMoves.length + ' eye fault(s), first at '
-  + state.eyeMoves[0].t.toFixed(2) + 's (' + state.eyeMoves[0].what + ')');
-if (state.blinkSteps.length) fail.push(state.blinkSteps.length
-  + ' blink step(s) over the limit — it is flashing, not blinking');
-/* the smoothness guards pass trivially on a mascot that never moves, which is
-   exactly what a missing .m-eyes group produces: a still face and a clean
-   report. so liveness is checked too. */
-if (!(state.gazeJump.d > 0)) fail.push('the eyes never moved — is the .m-eyes group there?');
-if (!(state.blinkJump.d > 0)) fail.push('the mascot never blinked');
-if (state.wide !== '1') fail.push('--wide read back as "' + state.wide + '", wanted 1');
-if (margin < 8) fail.push('the square cut clears the content by only ' + margin + 'px');
-if (fail.length) { console.error('\nFAILED\n  ' + fail.join('\n  ')); process.exit(1); }
+for (const { cut, state, probe: p } of results) {
+  const tag = cut.name + ': ';
+  if (p.w !== cut.vw * DSF || p.h !== cut.vh * DSF) fail.push(tag + 'not ' + cut.vw * DSF + 'x' + cut.vh * DSF);
+  if (Math.abs(p.fps - FPS) > 0.5) fail.push(tag + 'not ' + FPS + 'fps');
+  if (Math.abs(p.seconds - SECONDS) > 0.2) fail.push(tag + p.seconds + 's, wanted ' + SECONDS);
+  if (state.eyeMoves.length) fail.push(tag + state.eyeMoves.length + ' eye fault(s), first at '
+    + state.eyeMoves[0].t.toFixed(2) + 's (' + state.eyeMoves[0].what + ')');
+  if (state.blinkSteps.length) fail.push(tag + state.blinkSteps.length
+    + ' blink step(s) over the limit — it is flashing, not blinking');
+  /* the smoothness guards pass trivially on a mascot that never moves, which is
+     exactly what a missing .m-eyes group produces: a still face and a clean
+     report. so liveness is checked too. */
+  if (!(state.gazeJump.d > 0)) fail.push(tag + 'the eyes never moved — is the .m-eyes group there?');
+  if (!(state.blinkJump.d > 0)) fail.push(tag + 'the mascot never blinked');
+  if (state.wide !== '1') fail.push(tag + '--wide read back as "' + state.wide + '", wanted 1');
+  const sa = state.safe;
+  const near = Math.min(sa.left, sa.top, sa.right, sa.bottom) * DSF;
+  if (near < SAFE * DSF - 0.5) {
+    fail.push(tag + sa.worst + ' comes within ' + Math.round(near)
+      + 'px of a border, floor is ' + SAFE * DSF);
+  }
+}
+if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
 console.log('\nall checks passed.');
