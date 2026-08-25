@@ -23,6 +23,12 @@ names in here either.
   posts a form. **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
   `sitemap.xml` and the language stubs were untouched, so this deploy changed nothing a
   visitor sees. Full detail under Current state and in `demo/README.md`.
+- **Shipped 2026-08-25: `demo/post2.mjs`, a second social clip.** Nine seconds,
+  60fps, loop friendly, in both the vertical and the square cut. It does not film
+  the page, it composes a scene out of the site's parts. **The live site did not
+  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
+  stubs and `assets/` were all untouched, so this deploy changed nothing a visitor
+  sees. See Decisions.
 - **Shipped 2026-08-24: the og card.** `assets/og.png` (1200x630, the light theme) is the
   first binary the site itself ships, and the head now carries `og:image` with width,
   height, type and alt, plus `twitter:card` raised from `summary` to
@@ -160,7 +166,12 @@ names in here either.
   Outputs `demo/out/reel-demo-1080x1920.mp4` and `demo/out/demo-1080x1080.mp4`, both
   60fps, both exactly 24.10s. `DEMO_FPS=12 node record.mjs` is the fast preview pass
   to use while changing the timeline. Full detail in `demo/README.md`.
-- **`demo/og.mjs` is the second script in here**, added 2026-08-24. It renders
+- **`demo/post2.mjs`**, added 2026-08-25: the second clip, `it took my job`. Nine
+  seconds at 60fps, out to `demo/out/post2-1080x1920.mp4` and
+  `post2-1080x1080.mp4`. `DEMO_FPS=12` previews it, `--encode-only` re-encodes.
+  It keeps its frames under `out/` so a `record.mjs` run cannot wipe them mid
+  flight. Roughly a minute end to end.
+- **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
   `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
   instead of the tracked asset. It is the one thing in `demo/` that puts a file in the
@@ -251,6 +262,56 @@ names in here either.
   `DEMO_FPS=12`, where one frame genuinely is 83ms of eyelid.
 
 ## Decisions
+
+### The second clip composes a scene rather than filming the page — 2026-08-25
+
+`demo/post2.mjs`. A statement decodes in at the top, the mascot sits large in the
+middle living his life, and at 5.5s a bubble pops beside his head: **it took my
+job.** then **i am fine.** Nine seconds, written to loop.
+
+- **It is not a camera move over `index.html`, and it could not be.** The
+  statement is not on the site, the mascot is drawn 224px where the page caps him
+  at 130, and the bubble says something the page never says. So the scene is
+  composed from the site's parts the way `og.mjs` composes the card: the light
+  `:root` block is lifted out of `index.html` and the mascot out of
+  `assets/mascot.svg` at run time. Change a token on the site and the clip
+  follows. **This is the pattern for clips from here on** — film the page when
+  the page is the subject, compose when it is not.
+- Reused from the recorder unchanged: the rAF shim, the seeded prng behind the
+  idle, the virtual time frame loop, the gaze and lid guards, and the encode
+  settings (libx264, preset slow, crf 17, yuv420p, faststart).
+- The statement sits on the **fixed cell grid** the site uses for the wordmark,
+  so a scrambling glyph cannot change a line's width. Line breaks are a design
+  decision, not a wrap: four short lines run far larger than three long ones,
+  because the fit divides by the longest line's cell count. The hero cap of 44px
+  is not raised for a video.
+- The composition serves both aspect ratios at once. The block sits above centre
+  so the tall frame's bottom third stays clear of the caption and buttons every
+  platform paints there, and so the square is a straight crop with 52px to spare
+  rather than a pan. **The square cut needs no camera move** — unlike the reel,
+  whose two subjects are more than 1080 apart.
+
+Three things that cost real time, all worth knowing before the next clip:
+
+- **A scene where nothing animates hangs the render.** With no running
+  animation Chrome stops producing compositor frames, and `Page.captureScreenshot`
+  waits for one that never comes: frame zero lands, frame one blocks until the
+  protocol times out. The vignette breathing on the site's own 34s loop is both
+  the fix and the more faithful scene. `record.mjs` never meets this because
+  `index.html` always has it running.
+- **CSS transitions cannot be trusted in this pipeline.** One captured frame
+  carries five or six BeginFrames, so the animation timeline advances about 5x
+  per frame: the bubble's `.4s` spring resolved in five frames. The rAF shim
+  fixes rAF and nothing fixes transitions, so every moving value on the bubble is
+  eased in JS and written per frame. The reel already does this for its end card;
+  now it is the rule, not a detail of that one shot.
+- **`assets/mascot.svg` is one circle and two loose rects.** The page wraps the
+  rects in a `<g class="m-eyes">` and travels the group, leaving the blink on each
+  rect. Rebuild that structure or the gaze has nothing to move — and the
+  smoothness guards pass perfectly on a mascot that never moves at all. So the
+  clip also checks **liveness**: the eyes must have moved, he must have blinked,
+  and `--wide` must read back as 1. A guard that only catches a snap says nothing
+  about a corpse.
 
 ### The og card, and a description that carries keywords — 2026-08-24
 

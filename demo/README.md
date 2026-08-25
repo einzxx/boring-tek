@@ -1,10 +1,12 @@
 # demo/ — the recorders
 
-Two scripts, both headless Chrome, both tooling.
+Three scripts, all headless Chrome, all tooling.
 
 - **`record.mjs`** renders a 24.1 second demo of the live site to mp4. It drives
   the real `index.html` from this repo, served on localhost. It never touches
   production and it never posts a form anywhere.
+- **`post2.mjs`** renders a 9 second social clip. It does not film the page: it
+  composes a scene out of the site's parts. See The social clip below.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -252,6 +254,49 @@ The whole script is `buildTimeline()` in `record.mjs`, about 60 lines. `cam()`
 is a camera move, `mv()` a cursor move, `press()` a press, `at()` anything
 else. Times are seconds. Iterate with `DEMO_FPS=12`, then do a full pass.
 
+## The social clip
+
+```
+cd demo
+node post2.mjs                  # out/post2-1080x1920.mp4 + the square cut
+DEMO_FPS=12 node post2.mjs      # the fast preview pass, same 9 seconds
+node post2.mjs --encode-only    # re-encode from kept frames
+```
+
+Nine seconds, 60fps, loop friendly. A statement decodes in at the top, the
+mascot sits large in the middle living his life, and at 5.5s a bubble pops up
+beside his head: **it took my job.** then **i am fine.** About a minute to
+render, and it reuses the recorder's rAF shim, its seeded idle, its gaze and lid
+guards and its encode settings.
+
+**It composes a scene rather than filming the page.** The statement is not on
+the site, the mascot is drawn far larger than the page ever draws him, and the
+bubble says something the page never says, so there is no camera move that could
+produce this shot. Instead the light `:root` block is lifted out of
+`index.html` and the mascot out of `assets/mascot.svg` at run time, the way
+`og.mjs` does it, so the clip cannot drift from the brand. The bubble is the
+site's own shape, radius and dot trail, at a font size a feed can actually read.
+
+Three things cost an afternoon each:
+
+- **A scene where nothing animates hangs the render.** With no running
+  animation, Chrome stops producing compositor frames and
+  `Page.captureScreenshot` waits for one that never comes: frame zero lands,
+  frame one blocks until the protocol times out. The vignette breathes on the
+  site's own 34s loop, which is both the fix and the more faithful scene.
+  `record.mjs` never meets this because `index.html` always has it running.
+- **CSS transitions cannot be trusted here.** One captured frame carries five or
+  six BeginFrames, so the animation timeline advances about 5x per frame and the
+  bubble's `.4s` spring resolved in five frames. The rAF shim fixes rAF and
+  nothing fixes transitions, so every moving value on the bubble is eased in JS
+  and written per frame, on the site's own curves and durations. This is what
+  the reel already does for its end card.
+- **`mascot.svg` is one circle and two loose rects.** The page wraps the rects in
+  a `<g class="m-eyes">` and travels the group, leaving the blink on each rect.
+  Rebuild that or the gaze has nothing to move, and the smoothness guards pass
+  perfectly on a mascot that never moves at all. That is why there are now
+  liveness checks too: the eyes must have moved, and he must have blinked.
+
 ## The og card
 
 ```
@@ -283,14 +328,15 @@ right, which is the worst kind of wrong to ship.
 
 ## Why demo/ is safe to have in a public repo
 
-`record.mjs`, `og.mjs`, `README.md` and `package.json` are tracked.
-`node_modules/`, `frames/`, `out/` and `package-lock.json` are in
-`.gitignore`.
+`record.mjs`, `post2.mjs`, `og.mjs`, `README.md` and `package.json` are tracked.
+`node_modules/`, `frames/`, `out/` and `package-lock.json` are in `.gitignore`,
+and `post2.mjs` keeps its frames under `out/` so a `record.mjs` run cannot wipe
+them mid flight.
 
 GitHub Pages serves the whole repo root, so `theboringtek.com/demo/record.mjs`,
-`/demo/og.mjs` and `/demo/README.md` are fetchable. That is harmless: they are
-static text, nothing executes them, they hold no secrets and no endpoint that is
-not already in `index.html` — the urls named here are named in order to
-**block** them.
-`demo/` is in neither `sitemap.xml` nor any link on the site. If you would
+`/demo/post2.mjs`, `/demo/og.mjs` and `/demo/README.md` are fetchable. That is
+harmless: they are static text, nothing executes them, they hold no secrets and
+no endpoint that is not already in `index.html` — the urls named here are named
+in order to **block** them. `demo/` is in neither `sitemap.xml` nor any link on
+the site. If you would
 rather it were not crawled at all, add `Disallow: /demo/` to `robots.txt`.
