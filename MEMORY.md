@@ -329,16 +329,17 @@ written to loop. post2 is the template; post3 was not built and was not renamed.
   attempted rather than attempted badly.
 - **The pill is anchored, not slid.** post2's bubble hangs off the head's right
   shoulder and, when it runs long, slides left until its right edge lands on the
-  safe line. At these widths that slide is 269px and the pill tears away from its
+  safe line. At these widths that slide is 136px and the pill tears away from its
   own dot trail. So the pill's right edge now parks on a fixed line 8px inside
   the safe area on every beat and it grows leftward; `--porigin` moves the
   transform origin to where the dots end, so the spring still comes out of the
   trail at any width. Right edge measured identical on all four beats, widths
-  326 / 275 / 221 / 159px.
-- **The bubble is a rounded rect, 26px, not a stadium.** At 100px tall a 999px
-  radius clamps to 50, and the top and bottom lines' first characters cross the
-  curve: measured, the border sits at x=18.7 where the text starts at x=16. The
-  border, the fill and the tokens are the page's, untouched. **This is a clip
+  249 / 210 / 167 / 119px.
+- **The bubble is a rounded rect, not a stadium.** A stadium's ends clamp to
+  half the height, and at three lines that curve crosses the first characters of
+  the top and bottom lines: measured, the border would sit at x=15.7 where the
+  text starts at x=10.1. The border, the fill and the tokens are the page's,
+  untouched. **This is a clip
   only change** — `index.html`'s one line bubble keeps its pill radius.
 - **Every beat is three lines on purpose.** The pill's height then never changes
   between beats, so only its width moves and nothing above the head jumps. A
@@ -355,6 +356,21 @@ written to loop. post2 is the template; post3 was not built and was not renamed.
   about the widest state. Four samples, and the worst of the four is what the
   guard runs against. Measured: 135px left, 224 top, 111 right, 195 bottom,
   device px, against a floor of 96.
+- **Resized 2026-08-26, same session.** The head went to **136px, 63% of the
+  216px it first shipped at, with its top on 42% of the frame** (403 of 960),
+  still centred. The bubble rides it: every geometric number in the trail, the
+  offsets, the padding and the radius is now written as its value against the
+  216px head times `bubScale`, so the next resize is one number and not a pass.
+  **The font is the one thing held above proportional.** Strictly proportional
+  is 11.3px, and this file already records 12px on this viewport as a caption on
+  a phone and unreadable in a feed, which is why post2 raised its pill to 16. So
+  the chrome shrank by .63 and the words by .78: 18px to 14px, still 28 device
+  px tall. The bubble is now slightly larger against this head than it was
+  against the big one, and that is the price of legibility paid in the right
+  place. The 1px borders are held too: a hairline scaled to 0.63px lands sub
+  pixel. Statement, wordmark, timeline and all guards unchanged, and the 306px
+  of white under the head is deliberate, so the lower third stays clear for the
+  edit.
 - Everything else carries over untouched: the rAF shim, the seeded prng, the
   virtual time frame loop, the cell grid, the wordmark fit, all three guards and
   the encode settings. New seeds for post4 so the scramble and the blink rhythm

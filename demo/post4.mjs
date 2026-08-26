@@ -12,8 +12,8 @@
    copy instead of two short lines, so the pill has to hold three lines and get
    wide. post2's bubble hangs off the head's right shoulder and, when it runs
    long, slides left until its right edge lands on the safe line. at these
-   widths that slide is about 270px and the pill would tear away from its own
-   dot trail. so the pill is anchored instead: its right edge parks on a fixed
+   widths that slide is 136px on the widest beat and the pill would tear away
+   from its own dot trail. so the pill is anchored instead: its right edge parks on a fixed
    line inside the safe area on every beat, it grows leftward, and its
    transform origin moves to wherever the trail ends, so the spring still reads
    as coming out of the dots however wide the words are.
@@ -50,9 +50,11 @@ const DSF = 2;                              /* css px at 2x, so 540 wide is 1080
    the vertical budget, top to bottom, and it is tighter than post2's because
    the bubble is three lines instead of one:
      112..252    the statement, four lines, capped by a share of the frame
-     ~335..435   the pill at its tallest, 9px clear of the head
-     444..660    the mascot
+     ~323..397   the pill at its tallest, 5.7px clear of the head
+     403..539    the mascot, its top on 42% of the frame
      ~846..862   the wordmark
+   the 306px of white under the head is deliberate, not slack: the head sits
+   high so the lower third stays clear for whatever the edit puts there.
    the statement and the pill are the two that move if the copy changes, so the
    run prints both boxes and the guard measures the drawn ones, not these. */
 const SAFE = 48;
@@ -61,15 +63,35 @@ const CUTS = [
     name: 'post4-1080x1920', vw: 540, vh: 960,
     statementTop: 112,      /* 11.7%, and 224 device px clear of the top */
     statementW: 0.75,       /* of the frame, the share post2's tall cut uses */
-    mascot: 216, mascotCy: 552,   /* 57.5%: lower than post2's centre, to open
-                                     the sky a three line bubble needs */
+    /* 63% of the 216px head this clip first shipped at, with its top on 42%
+       of the frame: 403 of 960. cy is that top plus half the head. */
+    mascot: 136, mascotCy: 471,
     wordmarkCy: 854,        /* 89% */
     wordmarkW: 250,
-    pillFont: 18,           /* post2 uses 16 for one line. the payload of this
-                               clip is the words, so they get the extra 2px. */
-    pillMaxW: 400,          /* a guard, not a layout: the breaks are explicit,
+    bubScale: 0.63,         /* 136/216. every geometric number in the bubble is
+                               the value it carried against the 216px head times
+                               this, so the trail, the offsets, the padding and
+                               the radius keep their exact relationship to a
+                               smaller one. the 1px borders are held: a hairline
+                               scaled to 0.63px lands sub pixel and renders
+                               unevenly, and a hairline is a hairline at any
+                               size. */
+    pillFont: 14,           /* held above proportional, deliberately. strictly
+                               proportional is 11.3px, and MEMORY.md already
+                               records 12px on this viewport as a caption on a
+                               phone and unreadable in a feed — which is why
+                               post2 raised its pill to 16 in the first place.
+                               so the chrome shrinks by .63 and the words by
+                               .78: down from 18, still 28 device px tall. the
+                               bubble comes out slightly larger against this
+                               head than it was against the big one, and that is
+                               the price of legibility, paid in the right
+                               place. */
+    pillMaxW: 310,          /* a guard, not a layout: the breaks are explicit,
                                so anything reaching this means a line grew long
-                               enough to re-wrap, and the check will say so. */
+                               enough to re-wrap, and the check will say so.
+                               scaled with the font, so it keeps the same 23% of
+                               headroom over the widest beat it had at 400. */
     pillInset: 8,           /* how far inside the safe line the pill's right
                                edge parks. 56 css px of clearance on the
                                tightest beat, 112 device px. */
@@ -222,6 +244,11 @@ function mascotBody() {
 const HERO_CAP = 44;     /* the brand's hero cap, and it is not raised here */
 
 function sceneHtml(cut) {
+  /* every geometric number in .bubble, .dot and .pill below is written as the
+     value it carried against the 216px head, put through this. nothing in the
+     trail is hand typed for a size, so the head can be resized again and the
+     bubble follows it without a second pass. */
+  const bs = n => +(n * cut.bubScale).toFixed(2);
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -302,26 +329,27 @@ body{width:${cut.vw}px;height:${cut.vh}px;color:var(--fg);font-family:var(--body
       the value is measured per beat by text(), never assumed.
    3. --porigin puts the transform origin back where the dots end, so the spring
       still comes out of the trail whatever the shift was.
-   4. the radius is 26px, not 999px. at 100px tall a stadium's ends carry a 50px
-      radius, and the top and bottom lines' first characters cross it: measured,
-      the border sits at x=18.7 where the text starts at 16. a rounded rect is
-      what a three line bubble has to be. the border, the fill and the token
-      colours are the page's, untouched. */
+   4. the radius is 26px scaled, not 999px. a stadium's ends clamp to half the
+      height, and at three lines that curve crosses the first characters of the
+      top and bottom lines: at this size the border would sit at x=15.7 where
+      the text starts at 10.1. a rounded rect is what a three line bubble has to
+      be, at any size. the border, the fill and the token colours are the
+      page's, untouched. */
 .bubble{
-  position:absolute;left:calc(100% + 12px);bottom:calc(100% - 18px);
-  display:flex;align-items:flex-end;gap:5px;width:max-content;
+  position:absolute;left:calc(100% + ${bs(12)}px);bottom:calc(100% - ${bs(18)}px);
+  display:flex;align-items:flex-end;gap:${bs(5)}px;width:max-content;
   pointer-events:none;z-index:3;
 }
 .dot{display:block;border-radius:50%;
   background:var(--bg);border:1px solid var(--bub);
   opacity:0;transform:scale(.2)}
-.d1{width:5px;height:5px}
-.d2{width:7px;height:7px;margin-bottom:8px}
-.d3{width:10px;height:10px;margin-bottom:18px}
+.d1{width:${bs(5)}px;height:${bs(5)}px}
+.d2{width:${bs(7)}px;height:${bs(7)}px;margin-bottom:${bs(8)}px}
+.d3{width:${bs(10)}px;height:${bs(10)}px;margin-bottom:${bs(18)}px}
 .pill{
-  margin-bottom:27px;margin-left:var(--pshift,0px);
+  margin-bottom:${bs(27)}px;margin-left:var(--pshift,0px);
   max-width:${cut.pillMaxW}px;
-  padding:11px 16px;border:1px solid var(--bub);border-radius:26px;
+  padding:${bs(11)}px ${bs(16)}px;border:1px solid var(--bub);border-radius:${bs(26)}px;
   background:var(--bg);color:var(--fg);
   font-family:var(--body);font-size:${cut.pillFont}px;line-height:1.4;text-align:left;
   white-space:pre-line;

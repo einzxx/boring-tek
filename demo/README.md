@@ -349,15 +349,16 @@ Three things had to change to carry multi sentence copy, and only these three:
 
 - **The pill is anchored, not slid.** `post2.mjs` hangs the bubble off the head's
   right shoulder and, when the words run long, slides it left until its right
-  edge lands on the safe line. At these widths that slide is 269px and the pill
+  edge lands on the safe line. At these widths that slide is 136px and the pill
   tears away from its own dot trail. Here the pill's right edge parks on a fixed
   line 8px inside the safe area on every beat and grows leftward instead, and
   `--porigin` moves the transform origin to wherever the dots end, so the spring
-  still comes out of the trail at any width. Beat widths measured 326 / 275 /
-  221 / 159px against one identical right edge.
-- **The bubble is a 26px rounded rect, not a 999px stadium.** At 100px tall the
-  pill radius clamps to 50 and the top and bottom lines' first characters cross
-  the curve: the border sits at x=18.7 where the text starts at x=16. Border,
+  still comes out of the trail at any width. Beat widths measured 249 / 210 /
+  167 / 119px against one identical right edge.
+- **The bubble is a rounded rect, not a 999px stadium.** A stadium's ends clamp
+  to half the height, and at three lines that curve crosses the first characters
+  of the top and bottom lines: the border would sit at x=15.7 where the text
+  starts at x=10.1. Border,
   fill and tokens are the page's, untouched, and this is a clip only change —
   the one line bubble in `index.html` keeps its pill radius.
 - **The safe area is sampled once per beat, not once per clip.** With four beats
@@ -378,6 +379,22 @@ character count sets the size and nothing else does. For this sentence: two
 lines gives 12.6px, three gives 16.5px, four gives 26.9px. Four wins by 63%, and
 is bigger than post2's statement at 17.9px. Shorten the longest line, spend the
 height.
+
+**The head is 136px with its top on 42% of the frame**, 63% of the 216px this
+clip first shipped at, centred. The bubble rides it: every geometric number in
+`.bubble`, `.dot` and `.pill` is written as its value against the 216px head put
+through `bubScale`, so nothing in the trail is hand typed for a size and the next
+resize is one number, not a pass. The 1px borders are held — a hairline scaled
+to 0.63px lands sub pixel and renders unevenly. The 306px of white under the head
+is deliberate: the head sits high so the lower third stays clear for the edit.
+
+**The pill font is held above proportional, and that is deliberate.** Strictly
+proportional is 11.3px, and MEMORY.md already records 12px on this viewport as a
+caption on a phone and unreadable in a feed — which is why `post2.mjs` raised
+its pill to 16 in the first place. So the chrome shrinks by .63 and the words by
+.78: 18px down to 14px, still 28 device px tall. The bubble ends up slightly
+larger against this head than it was against the big one. That is the price of
+legibility, and this is the right place to pay it.
 
 The seeds are post4's own, so the scramble order and the blink rhythm are not
 post2's replayed under new words, and the eye keys are new: he looks up at the
