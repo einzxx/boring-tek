@@ -33,6 +33,15 @@ names in here either.
   assumed; the statement lower and capped at 75% of the frame width; the wordmark
   added, dim, at 89%; and **the square is now its own render rather than a crop**,
   because no 1080 tall window holds a statement at y=350 and a wordmark at y=1710.
+- **Built and pushed 2026-08-26: `demo/post5.mjs`, a fifth social clip, `what is the
+  most boring part of your business?`.** Ten and a half seconds, 60fps, vertical only,
+  out to `demo/out/post5-1080x1920.mp4`. post4 is the template. The statement is six
+  lines and holds the whole clip; the bubble comes up once at 4.50 and **swaps in
+  place** rather than exiting, `tell us.` then `we will fix it.`; and **the mascot
+  searches the room on two axes**, the first clip to drive `--ey` at all. All three
+  guards pass and the gaze guard was widened to measure both axes. **The render has
+  gone nowhere yet** — not with the editor, not posted, and caption, tags and music
+  are all undecided. **The live site did not change.** See Decisions.
 - **Built, resized and pushed 2026-08-26: `demo/post4.mjs`, a fourth social clip,
   `3 free ai tools for your business`.** `f01e0a7` built it, `6817c4b` resized it.
   Nineteen seconds, 60fps, vertical only, out to `demo/out/post4-1080x1920.mp4`.
@@ -276,6 +285,12 @@ Still no posting cadence or content pillars. See Next steps.
   re-encodes. Frames under `out/frames-post4`, state under
   `out/post4-1080x1920.json`, verify stills under `out/verify-post4`. About two
   and a half minutes end to end.
+- **`demo/post5.mjs`**, added 2026-08-26: the fifth clip, `what is the most
+  boring part of your business?`. Ten and a half seconds at 60fps, **vertical
+  only**, out to `demo/out/post5-1080x1920.mp4`. `DEMO_FPS=12` previews it,
+  `--encode-only` re-encodes. Frames under `out/frames-post5`, state under
+  `out/post5-1080x1920.json`, verify stills under `out/verify-post5`. About
+  ninety seconds end to end, the fastest of the clips because it is the shortest.
 - **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
   `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
@@ -294,7 +309,8 @@ Still no posting cadence or content pillars. See Next steps.
   locked; re-rendering is one command and takes four minutes.
 - **The mp4s are not in the repo** and never will be — `demo/out/` is ignored. Whoever
   needs them either gets the files directly or regenerates them.
-- **Tracked:** `demo/record.mjs`, `demo/README.md`, `demo/package.json`.
+- **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
+  `demo/og.mjs`, `demo/README.md`, `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
   text, no secrets, no endpoint that is not already in `index.html`. Not in
@@ -367,6 +383,75 @@ Still no posting cadence or content pillars. See Next steps.
   `DEMO_FPS=12`, where one frame genuinely is 83ms of eyelid.
 
 ## Decisions
+
+### The fifth clip asks a question, and the mascot searches for the answer — 2026-08-26
+
+`demo/post5.mjs`, `what is the most boring part of your business?`. One question
+on screen the whole clip, two beats of answer, ten and a half seconds, vertical
+only, written to loop. post4 is the template and its rigs are untouched.
+
+- **Six lines, and the floor is a number.** `business?` is nine characters, so
+  no split at any line count goes below nine. No split into five or fewer gets
+  below eleven, because every pair of adjacent words in this sentence that would
+  fit a ten cell line is already merged at six. Measured against the 405px this
+  cut allows: four lines gives 17.9px, five gives 19.5px, **six gives 23.9px**.
+  So six is both the largest type available and the fewest lines that reaches
+  it. It costs 191px of height where post4 spent 140, and this layout has it
+  because the bubble under it is one line rather than three. `boring` lands
+  alone on the middle line, which is the reason to prefer this break over the
+  other six way splits.
+- **The beats swap in place, they do not exit and return.** post4's four beats
+  fully exit so the editor gets empty air for a voice line per beat. This clip
+  is one question and one answer: a bubble that left and came back would read as
+  two separate thoughts. So the dots come up once at 4.50, hold through the
+  swap, and leave once at 9.80, and only the pill knows the swap happened. The
+  swap itself is **post2's, numbers untouched** — the pill dips to .86 and
+  re-springs rather than fading the words over. The text is cued on the frame
+  the dip bottoms out on, so the reflow from the 73px pill to the 117px one
+  lands under the smallest scale of the bounce rather than at rest.
+- **The mascot moves on two axes, and that is new.** post2 and post4 both drive
+  `--ex` only and hand `--ey` a flat zero, because they only ever had one thing
+  to look at. This clip is a mascot waiting for an answer, so the vertical is a
+  real track. The site's own clamps are `EX=6` and `EY=3.8`; the furthest look
+  here is 5.63 combined and 2.0 vertical, inside both, and a check at the top of
+  the file fails if a key ever passes 6.
+- **What makes it read as searching rather than twitching: holds.** Ten turns
+  and ten holds. Every turn lands on a value and sits a quarter to a half second
+  before the next starts, no turn is faster than 0.30s or slower than 0.55s, and
+  the two tracks share their key times so a turn is one movement in a direction
+  rather than two on different clocks. Seven blinks at 1.5s apart, a shorter gap
+  than post2's and post4's 1.7 to 2.9s, because a mascot searching the room
+  blinks more than one reading a list.
+- **The gaze guard now measures a vector, not an x.** post4 read `matrix()[4]`
+  and compared it frame to frame, which was complete when the vertical was
+  always zero. It is not any more, so the guard reads `[4]` and `[5]` and
+  compares the length of the step. A snap on the new axis would otherwise have
+  passed a check that was only ever looking sideways. Biggest one-frame move
+  0.582 against a 1.20 limit.
+- **The pill font went back to 16px.** post4 held it at 14 because three lines
+  had to fit between the statement and the head, and it says so in its own
+  comments. One line has no such pressure, and 16px is 32 device px of caption,
+  which survives a platform recompress. The bubble stays a rounded rect rather
+  than a stadium even though one line would survive a stadium: the series should
+  not change shape between clips for a reason a viewer cannot see.
+- **The anchor barely engaged, and that is worth recording.** `we will fix it.`
+  clamped by only 2px, `tell us.` by none. The rig is present and measured, not
+  assumed, but at these widths post2's slide would have done the same job. The
+  anchor stays because it is the template's and because it costs nothing.
+- **A new guard: the pill must clear the statement by 24px.** Six lines is the
+  tallest block any of these clips has carried and the statement and the pill
+  are the two things that move if the copy changes. Nothing else would have
+  caught them touching. Measured clearance 57px, and the pill clears the head by
+  6px.
+- Everything else carries over untouched: the rAF shim, the seeded prng, the
+  virtual time frame loop, the cell grid, the wordmark fit, the anchored pill,
+  the encode settings, and the line count, pill width, no-dash, blink and safe
+  area guards. New seeds for post5 so the scramble and the blink rhythm are its
+  own, and new eye keys. Safe area measured 135px left, 224 top, 113 right, 195
+  bottom, device px, against a floor of 96.
+- **The question mark stays.** The brand bans dashes, not question marks, and it
+  is the whole point of the line. The no-dash check runs over every string in
+  the file including the statement and both beats.
 
 ### The fourth clip anchors the bubble instead of sliding it — 2026-08-26
 
@@ -975,6 +1060,13 @@ of them.
   **post3, "missed calls", is still unbuilt** and still wants building. Caption,
   tweet, tags, music and the voice plan are all decided and written down under
   Socials. Not posted yet.
+- **post5, "what is the most boring part of your business?", is built** —
+  2026-08-26, `demo/post5.mjs`, rendered. It jumped post3 too, so **post3,
+  "missed calls", is now two clips behind and still unbuilt.** post5 has no
+  caption, no tags, no music and no voice plan yet, and it has not gone to the
+  editor. It is the first of these clips that asks the viewer a question, which
+  makes the comments the point rather than the watch time; whoever writes the
+  caption should say so.
 - Beyond post3, still no cadence and no pillars. Two clips is a format, three is a
   habit; what is missing is a reason to post, not another asset.
 
