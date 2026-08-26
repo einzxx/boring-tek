@@ -33,12 +33,16 @@ names in here either.
   assumed; the statement lower and capped at 75% of the frame width; the wordmark
   added, dim, at 89%; and **the square is now its own render rather than a crop**,
   because no 1080 tall window holds a statement at y=350 and a wordmark at y=1710.
-- **Built 2026-08-26: `demo/post4.mjs`, a fourth social clip, `3 free ai tools for
-  your business`.** Nineteen seconds, 60fps, vertical only, out to
-  `demo/out/post4-1080x1920.mp4`. Four bubble beats with real air between them for
-  a voice line and a logo per beat. **post3 was skipped, not renamed** — "missed
-  calls" is still queued and unbuilt, and post2 was the template. **The live site
-  did not change.** See Decisions.
+- **Built, resized and pushed 2026-08-26: `demo/post4.mjs`, a fourth social clip,
+  `3 free ai tools for your business`.** `f01e0a7` built it, `6817c4b` resized it.
+  Nineteen seconds, 60fps, vertical only, out to `demo/out/post4-1080x1920.mp4`.
+  Four bubble beats with real air between them for a voice line and a logo per
+  beat. The head is 136px with its top on 42% of the frame and the bubble rides
+  it. **The render is with the editor and the clip is not posted yet** — caption,
+  tweet, tags, music and the voice plan are all decided and written down under
+  Socials. **post3 was skipped, not renamed** — "missed calls" is still queued and
+  unbuilt, and post2 was the template. **The live site did not change.**
+  See Decisions.
 - **Shipped 2026-08-25: `demo/post2.mjs`, a second social clip.** Nine seconds,
   60fps, loop friendly, in both the vertical and the square cut. It does not film
   the page, it composes a scene out of the site's parts. **The live site did not
@@ -174,8 +178,9 @@ Einz's report, transcribed exactly. Nothing here was measured from this repo.
 
 That is **five tags, not three**. The "three lowercase hashtags, no more" house rule
 this file wrote down after post1 describes post2, not post1 — post1 never carried it.
-Lowercase is the part that held across both. The count is unsettled and is now an open
-question rather than a rule.
+Lowercase is the part that held across both. **The count is settled as of 2026-08-26:
+exactly three lowercase hashtags per platform** — see the house rule under post4.
+post1 is the outlier and stays one.
 
 #### post2 — posted 2026-08-25, recorded 2026-08-25
 
@@ -187,10 +192,55 @@ question rather than a rule.
 Three each, lowercase, and the **ai taking jobs** angle is carried by every platform
 except youtube, which trades it for the broader `#artificialintelligence #future`.
 
+#### post4 — built 2026-08-26, not posted yet
+
+The clip is rendered and with the editor. Everything below is the plan Einz set, not
+something measured here, except the timings noted against the render.
+
+- **Caption:** `3 free ai tools your business can use today. all from google. which one
+  you trying first?`
+- **Tweet, X:** `3 free ai tools for your business. all from google. most people never
+  heard of them.`
+- **Hashtags, tiktok:** `#ai #aitools #techtok`
+- **Hashtags, instagram:** `#ai #aitools #automation`
+- **Hashtags, youtube:** `#ai #aitools #business`
+
+Three each, lowercase, and **`#ai #aitools` is the spine on all three** with the third
+tag doing the platform: `#techtok` for reach, `#automation` for the feed we want,
+`#business` for the search. No dashes in any of it, and no exclamation marks.
+
+- **Music: Vivaldi, Spring.** Named rather than left as "classical", which is a first
+  — the recipe below still governs everything else.
+- **Voice lines at 4.4, 9.4 and 14.4**, with a logo after each. Three voice marks
+  against four beats: the close carries itself.
+- **One timing to check before the mix.** The render's gaps run 4.86 to 6.00, 9.26 to
+  10.40 and 13.66 to 14.80. **9.4 and 14.4 land inside their gaps; 4.4 does not** —
+  beat 1's pill is still up until 4.50 and not clear until 4.86, so a voice line at 4.4
+  starts over the bubble by about half a second. Either it is deliberate overlap or 4.4
+  wants to be 4.9. Not changed here; the render was not touched for it.
+
+#### Free text to speech, researched 2026-08-26
+
+Two options, both checked as commercial safe, in preference order.
+
+1. **CapCut's built in TTS.** First choice. In the editor already, so no extra step and
+   no extra account.
+2. **Gemini in AI Studio, TTS.** Second choice.
+
+Neither is committed to yet. This is the shortlist, not a decision about voice.
+
+#### House rule — hashtags, settled 2026-08-26
+
+**Exactly three lowercase hashtags per platform. No more, no fewer.** post2 and post4
+both carry it; post1's five on tiktok predate it and stay as the one exception on
+record. This closes the open question the file has carried since post1.
+
 #### Sound recipe — both posts
 
 The clip's audio signature. Same recipe on post1 and post2, and it carries to post3
-unless something in the scene changes.
+and post4 unless something in the scene changes. post4 names the music — Vivaldi,
+Spring — where the line below only said "classical"; that is a choice inside the
+recipe, not a change to it.
 
 - **classical restaurant music, low volume, under everything** — the brand sound, and
   the only thing that runs for the whole clip
@@ -872,8 +922,11 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 ## Next steps
 
-In this order, agreed 2026-08-24. **Rechecked 2026-08-25: still six items, same order,
-nothing done and nothing dropped.**
+In this order, agreed 2026-08-24. **Rechecked 2026-08-26: still six items, same order,
+nothing done and nothing dropped.** Confirmed by Einz at the end of the post4 session:
+sitemap check, telegram pfp, the real form test, the about section, the RU and LV
+descriptions and the card validators are all still open, and post4 did not touch any
+of them.
 
 1. **Re-scrape the card.** It is pushed and live. Run the url through the X and Facebook
    card validators once: both cache hard, and any link that was fetched before the image
@@ -917,10 +970,11 @@ nothing done and nothing dropped.**
     look back at the viewer post2 uses for `i am fine.`
   - Everything else carries over untouched: the phone safe framing, the safe area
     guard, the wordmark, the two cuts, the seeded idle, the servo on the turns.
-- **post4, "3 free ai tools", is built** — 2026-08-26, `demo/post4.mjs`, rendered
-  and ready for the editor. It jumped post3 in the queue; post3 above is still
-  unbuilt and still wants building. Caption and hashtags not decided, and the
-  hashtag count is still the open question below.
+- **post4, "3 free ai tools", is built and resized** — 2026-08-26,
+  `demo/post4.mjs`, rendered and with the editor. It jumped post3 in the queue;
+  **post3, "missed calls", is still unbuilt** and still wants building. Caption,
+  tweet, tags, music and the voice plan are all decided and written down under
+  Socials. Not posted yet.
 - Beyond post3, still no cadence and no pillars. Two clips is a format, three is a
   habit; what is missing is a reason to post, not another asset.
 
@@ -943,8 +997,9 @@ Not scheduled, parked:
 - Whether the RU and LV stubs keep the english description or get translated ones. They
   share the english string today. **Confirmed still open 2026-08-25 — the stubs still
   carry the english string.** Next steps item 2.
-- **How many hashtags a post carries.** post1 went out with five on tiktok, post2 with
-  three everywhere. Lowercase is settled; the count is not. Pick one before post3.
+- ~~**How many hashtags a post carries.**~~ Settled 2026-08-26: **exactly three
+  lowercase hashtags per platform.** post2 and post4 both carry it, post1's five on
+  tiktok is the one exception on record. See the house rule under Socials.
 - ~~Whether to register the site in Google Search Console and submit the sitemap.~~
   Decided: yes. It is Next steps item 3, as a recheck rather than a first setup.
 - Whether the light or the dark screenshot is the one that goes on the socials.
