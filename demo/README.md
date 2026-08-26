@@ -1,12 +1,14 @@
 # demo/ — the recorders
 
-Three scripts, all headless Chrome, all tooling.
+Four scripts, all headless Chrome, all tooling.
 
 - **`record.mjs`** renders a 24.1 second demo of the live site to mp4. It drives
   the real `index.html` from this repo, served on localhost. It never touches
   production and it never posts a form anywhere.
 - **`post2.mjs`** renders a 9 second social clip. It does not film the page: it
   composes a scene out of the site's parts. See The social clip below.
+- **`post4.mjs`** renders a 19 second social clip, vertical only. Same composer
+  rig as `post2.mjs`, four bubble beats instead of two. See The fourth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -316,6 +318,71 @@ Three things cost an afternoon each:
   Rebuild that or the gaze has nothing to move, and the smoothness guards pass
   perfectly on a mascot that never moves at all. That is why there are now
   liveness checks too: the eyes must have moved, and he must have blinked.
+
+## The fourth clip
+
+```
+cd demo
+node post4.mjs                  # vertical only, out/post4-1080x1920.mp4
+DEMO_FPS=12 node post4.mjs      # the fast preview pass, same 19 seconds
+node post4.mjs --encode-only    # re-encode from kept frames
+```
+
+Nineteen seconds, 60fps, 1080x1920, loop friendly. About two and a half minutes.
+`post2.mjs` is the template and the whole rig carries over: the rAF shim, the
+seeded idle, the cell grid behind the statement, the wordmark fit, all three
+guards and the encode settings. post3 is a separate queued clip and was not
+built; this is post4 and it skipped it.
+
+**`3 free ai tools for your business`** holds the top for the whole clip, then
+four bubble beats name notebooklm, opal and pomelli and close on **all free.
+from google. try one today.** Each beat springs in, holds 2.90s and springs out,
+and then there is 1.14s of genuinely empty air before the next one. That air is
+the point: it is where the editor drops a voice line and a logo, per beat. The
+run prints the timings as a card at the end.
+
+**Vertical only, and that is forced.** A statement, a three line bubble, the head
+and the wordmark do not fit inside a 1080 tall frame. There is no square cut
+rather than a bad one.
+
+Three things had to change to carry multi sentence copy, and only these three:
+
+- **The pill is anchored, not slid.** `post2.mjs` hangs the bubble off the head's
+  right shoulder and, when the words run long, slides it left until its right
+  edge lands on the safe line. At these widths that slide is 269px and the pill
+  tears away from its own dot trail. Here the pill's right edge parks on a fixed
+  line 8px inside the safe area on every beat and grows leftward instead, and
+  `--porigin` moves the transform origin to wherever the dots end, so the spring
+  still comes out of the trail at any width. Beat widths measured 326 / 275 /
+  221 / 159px against one identical right edge.
+- **The bubble is a 26px rounded rect, not a 999px stadium.** At 100px tall the
+  pill radius clamps to 50 and the top and bottom lines' first characters cross
+  the curve: the border sits at x=18.7 where the text starts at x=16. Border,
+  fill and tokens are the page's, untouched, and this is a clip only change —
+  the one line bubble in `index.html` keeps its pill radius.
+- **The safe area is sampled once per beat, not once per clip.** With four beats
+  of different widths one sample proves nothing about the widest state. Four
+  samples, worst of the four is what the guard runs against.
+
+**Every beat is three lines on purpose.** The pill's height then never changes
+between beats, so only its width moves and nothing above the head jumps. The
+breaks in `BEATS` are the breaks that render (`white-space:pre-line`), and a
+guard counts the drawn line boxes per beat and fails if `max-width` re-wrapped
+one — a fourth line would eat the gap under the statement. Counting line boxes
+means counting distinct rect tops, not rects: a range over pre-line text hands
+back a zero width marker at each forced break, so a naive count reads 5 for 3.
+
+**Michroma's widest glyph is 1.885em.** Measured, and it is the number that
+decides the statement. One cell is nearly two ems, so the longest line's
+character count sets the size and nothing else does. For this sentence: two
+lines gives 12.6px, three gives 16.5px, four gives 26.9px. Four wins by 63%, and
+is bigger than post2's statement at 17.9px. Shorten the longest line, spend the
+height.
+
+The seeds are post4's own, so the scramble order and the blink rhythm are not
+post2's replayed under new words, and the eye keys are new: he looks up at the
+bubble on each of the four beats and away between them, by a different amount
+each time so it never turns into a metronome.
 
 ## The og card
 

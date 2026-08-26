@@ -33,6 +33,12 @@ names in here either.
   assumed; the statement lower and capped at 75% of the frame width; the wordmark
   added, dim, at 89%; and **the square is now its own render rather than a crop**,
   because no 1080 tall window holds a statement at y=350 and a wordmark at y=1710.
+- **Built 2026-08-26: `demo/post4.mjs`, a fourth social clip, `3 free ai tools for
+  your business`.** Nineteen seconds, 60fps, vertical only, out to
+  `demo/out/post4-1080x1920.mp4`. Four bubble beats with real air between them for
+  a voice line and a logo per beat. **post3 was skipped, not renamed** — "missed
+  calls" is still queued and unbuilt, and post2 was the template. **The live site
+  did not change.** See Decisions.
 - **Shipped 2026-08-25: `demo/post2.mjs`, a second social clip.** Nine seconds,
   60fps, loop friendly, in both the vertical and the square cut. It does not film
   the page, it composes a scene out of the site's parts. **The live site did not
@@ -214,6 +220,12 @@ Still no posting cadence or content pillars. See Next steps.
   `post2-1080x1080.mp4`. `DEMO_FPS=12` previews it, `--encode-only` re-encodes.
   It keeps its frames under `out/` so a `record.mjs` run cannot wipe them mid
   flight. Roughly a minute end to end.
+- **`demo/post4.mjs`**, added 2026-08-26: the fourth clip, `3 free ai tools for
+  your business`. Nineteen seconds at 60fps, **vertical only**, out to
+  `demo/out/post4-1080x1920.mp4`. `DEMO_FPS=12` previews it, `--encode-only`
+  re-encodes. Frames under `out/frames-post4`, state under
+  `out/post4-1080x1920.json`, verify stills under `out/verify-post4`. About two
+  and a half minutes end to end.
 - **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
   `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
@@ -305,6 +317,52 @@ Still no posting cadence or content pillars. See Next steps.
   `DEMO_FPS=12`, where one frame genuinely is 83ms of eyelid.
 
 ## Decisions
+
+### The fourth clip anchors the bubble instead of sliding it — 2026-08-26
+
+`demo/post4.mjs`, `3 free ai tools for your business`. Four beats naming
+notebooklm, opal and pomelli, then the close. Nineteen seconds, vertical only,
+written to loop. post2 is the template; post3 was not built and was not renamed.
+
+- **Vertical only, and that is forced.** A statement, a three line bubble, the
+  head and the wordmark do not fit in a 1080 tall frame. The square cut is not
+  attempted rather than attempted badly.
+- **The pill is anchored, not slid.** post2's bubble hangs off the head's right
+  shoulder and, when it runs long, slides left until its right edge lands on the
+  safe line. At these widths that slide is 269px and the pill tears away from its
+  own dot trail. So the pill's right edge now parks on a fixed line 8px inside
+  the safe area on every beat and it grows leftward; `--porigin` moves the
+  transform origin to where the dots end, so the spring still comes out of the
+  trail at any width. Right edge measured identical on all four beats, widths
+  326 / 275 / 221 / 159px.
+- **The bubble is a rounded rect, 26px, not a stadium.** At 100px tall a 999px
+  radius clamps to 50, and the top and bottom lines' first characters cross the
+  curve: measured, the border sits at x=18.7 where the text starts at x=16. The
+  border, the fill and the tokens are the page's, untouched. **This is a clip
+  only change** — `index.html`'s one line bubble keeps its pill radius.
+- **Every beat is three lines on purpose.** The pill's height then never changes
+  between beats, so only its width moves and nothing above the head jumps. A
+  guard counts the drawn line boxes per beat and fails if `max-width` re-wrapped
+  one, because a fourth line would eat the gap under the statement.
+- **Michroma's widest glyph is 1.885em**, measured. One cell is nearly two ems,
+  so the longest line's character count decides the statement's size and nothing
+  else does. For this sentence: two lines gives 12.6px, three gives 16.5px, four
+  gives 26.9px. **Four won by 63%**, which is also larger than post2's statement
+  at 17.9px. The rule MEMORY.md already carried is confirmed with a number:
+  shorten the longest line, spend the height.
+- **The safe area is now sampled once per beat, not once per clip.** post2
+  measured one frame; with four beats of different widths that proves nothing
+  about the widest state. Four samples, and the worst of the four is what the
+  guard runs against. Measured: 135px left, 224 top, 111 right, 195 bottom,
+  device px, against a floor of 96.
+- Everything else carries over untouched: the rAF shim, the seeded prng, the
+  virtual time frame loop, the cell grid, the wordmark fit, all three guards and
+  the encode settings. New seeds for post4 so the scramble and the blink rhythm
+  are its own, and new eye keys.
+- **The gaps are the feature.** Each beat springs in, holds 2.90s, springs out,
+  and then 1.14s of empty air before the next. That air is where the editor puts
+  a voice line and a logo. It is why the bubble fully exits rather than swapping
+  in place the way post2's two beats do.
 
 ### The second clip composes a scene rather than filming the page — 2026-08-25
 
@@ -843,6 +901,10 @@ nothing done and nothing dropped.**
     look back at the viewer post2 uses for `i am fine.`
   - Everything else carries over untouched: the phone safe framing, the safe area
     guard, the wordmark, the two cuts, the seeded idle, the servo on the turns.
+- **post4, "3 free ai tools", is built** — 2026-08-26, `demo/post4.mjs`, rendered
+  and ready for the editor. It jumped post3 in the queue; post3 above is still
+  unbuilt and still wants building. Caption and hashtags not decided, and the
+  hashtag count is still the open question below.
 - Beyond post3, still no cadence and no pillars. Two clips is a format, three is a
   habit; what is missing is a reason to post, not another asset.
 
