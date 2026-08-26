@@ -39,9 +39,14 @@ names in here either.
   lines and holds the whole clip; the bubble comes up once at 4.50 and **swaps in
   place** rather than exiting, `tell us.` then `we will fix it.`; and **the mascot
   searches the room on two axes**, the first clip to drive `--ey` at all. All three
-  guards pass and the gaze guard was widened to measure both axes. **The render has
-  gone nowhere yet** — not with the editor, not posted, and caption, tags and music
-  are all undecided. **The live site did not change.** See Decisions.
+  guards pass and the gaze guard was widened to measure both axes. Built and pushed
+  in `990b206`. **The live site did not change.** See Decisions.
+- **Plan locked 2026-08-27 for post5, and it posts 2026-08-28.** Caption, music, the
+  servo cue list and a posting rule for the format are all set and written down under
+  Socials. **No voice line, which is a first** — the eye turns carry the clip. Einz's
+  decisions, not something measured here, except the cue timings, which were checked
+  against the render and **do not mean what the number list looks like it means.** See
+  the timing note under Socials before the mix. **Hashtags are still unwritten.**
 - **Built, resized and pushed 2026-08-26: `demo/post4.mjs`, a fourth social clip,
   `3 free ai tools for your business`.** `f01e0a7` built it, `6817c4b` resized it.
   Nineteen seconds, 60fps, vertical only, out to `demo/out/post4-1080x1920.mp4`.
@@ -228,6 +233,60 @@ tag doing the platform: `#techtok` for reach, `#automation` for the feed we want
   starts over the bubble by about half a second. Either it is deliberate overlap or 4.4
   wants to be 4.9. Not changed here; the render was not touched for it.
 
+#### post5 — built 2026-08-26, plan locked 2026-08-27, posts 2026-08-28
+
+The clip is rendered. Everything below is the plan Einz set, not something measured
+here, except the cue timings, which were checked against the render and carry a
+correction.
+
+- **Caption:** `what is the most boring part of your business? tell us in comments. we
+  will tell you if ai can fix it.`
+
+  One caption, not one per platform. It is the first of these clips that asks the
+  viewer a question, so the comments are the point rather than the watch time, and the
+  caption is written to earn a reply rather than a view. No dashes, no exclamation
+  marks, lowercase throughout.
+- **Hashtags: not written yet, on any platform.** The house rule below still stands —
+  exactly three lowercase per platform — so this is three tags times three platforms
+  still owed, not a decision to skip them.
+- **Music: classical, low, under everything.** Not named the way post4 named Vivaldi's
+  Spring. That is the base recipe unchanged, so anything classical and quiet fits.
+- **No voice line, and that is deliberate.** post4 planned three voice marks and a
+  logo per beat. This clip has none: the mascot searching the room is the performance,
+  and a narrator over it would explain a joke that works by being silent. It also
+  makes post4's "one timing to check" moot here, and it means the TTS shortlist below
+  is not needed for this post.
+- **Servo cues, locked:** `1.00 1.85 2.60 3.40 4.05 4.85 6.45 7.25 9.75 10.50`
+
+  Ten cues for ten eye turns, and they match the render exactly — this is the list
+  `node post5.mjs` prints, not a hand transcription.
+
+- **Read the cue list before you cut to it.** Those ten numbers are the times each
+  turn **finishes**, not the times it starts. The eyes ease from the previous key to
+  the listed one, so the movement runs for 0.30 to 0.50s *before* each number. A servo
+  `zzt` placed on the timestamp lands as the eyes stop moving, about half a second
+  late. The windows, start to end:
+
+  ```
+  0.55→1.00   1.35→1.85   2.15→2.60   2.95→3.40   3.60→4.05
+  4.35→4.85   6.10→6.45   6.75→7.25   9.30→9.75   10.20→10.50
+  ```
+
+  Two consequences. The sound wants to sit at the **start** of each window, or ride
+  it. And **the tenth turn never completes**: the last frame is 10.4833 and the turn
+  ends at 10.50, so the clip cuts mid movement, by design, for the loop. A servo there
+  gets cut off by the end of the file, which is either fine or a reason to drop that
+  cue to nine.
+
+  `post5.mjs` prints this list under the label "servo cues", which is what would
+  mislead. The label is wrong, the numbers are right, and nothing about the render
+  changes either way.
+- **Posting rule for this format, new and house wide:** a clip that asks the viewer a
+  question gets **a reply to every comment, same day**, and the replies are **dry
+  mascot one liners** — the bubble's voice, not a brand account's. This is the first
+  posting rule this file has carried that is about what happens after the post rather
+  than about the post. It applies to the question format, not to every clip.
+
 #### Free text to speech, researched 2026-08-26
 
 Two options, both checked as commercial safe, in preference order.
@@ -246,10 +305,12 @@ record. This closes the open question the file has carried since post1.
 
 #### Sound recipe — both posts
 
-The clip's audio signature. Same recipe on post1 and post2, and it carries to post3
-and post4 unless something in the scene changes. post4 names the music — Vivaldi,
+The clip's audio signature. Same recipe on post1 and post2, and it carries to post3,
+post4 and post5 unless something in the scene changes. post4 names the music — Vivaldi,
 Spring — where the line below only said "classical"; that is a choice inside the
-recipe, not a change to it.
+recipe, not a change to it. post5 stays unnamed and adds one subtraction: **no voice
+line at all**, so the servo on the eye turns is the loudest thing in the mix. Nothing
+else in the recipe moves.
 
 - **classical restaurant music, low volume, under everything** — the brand sound, and
   the only thing that runs for the whole clip
@@ -1060,13 +1121,13 @@ of them.
   **post3, "missed calls", is still unbuilt** and still wants building. Caption,
   tweet, tags, music and the voice plan are all decided and written down under
   Socials. Not posted yet.
-- **post5, "what is the most boring part of your business?", is built** —
-  2026-08-26, `demo/post5.mjs`, rendered. It jumped post3 too, so **post3,
-  "missed calls", is now two clips behind and still unbuilt.** post5 has no
-  caption, no tags, no music and no voice plan yet, and it has not gone to the
-  editor. It is the first of these clips that asks the viewer a question, which
-  makes the comments the point rather than the watch time; whoever writes the
-  caption should say so.
+- **post5, "what is the most boring part of your business?", is built and its plan
+  is locked** — built 2026-08-26 (`demo/post5.mjs`, `990b206`), plan locked
+  2026-08-27, **posts 2026-08-28.** Caption, music, the servo cues and a posting
+  rule are all under Socials. It jumped post3 too, so **post3, "missed calls", is
+  now two clips behind and still unbuilt.** Two things still owed before it goes
+  out: **the three hashtags per platform**, and **the mix, which must read the cue
+  timing note** — the locked numbers are turn ends, not turn starts.
 - Beyond post3, still no cadence and no pillars. Two clips is a format, three is a
   habit; what is missing is a reason to post, not another asset.
 
