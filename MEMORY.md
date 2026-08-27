@@ -6,13 +6,34 @@ names in here either.
 
 ## Status
 
+- **Studied 2026-08-27, not built, and not to be built without a conversation
+  first: a new format direction, off `unterberg.ai`'s reels.** Three separate
+  ideas, and only two of them are ours to start. Written down under Socials with
+  what each one would actually cost.
+  1. **Animated fake ui mockups in the paper style** — a chat ui, a dashboard, a
+     command palette, drawn the way the pictograms are drawn. The scene engine
+     already does most of this; what it does not have is a type vocabulary, and
+     a ui without text is not a ui.
+  2. **Big type end cards.** The smallest of the three and the one with no
+     dependency.
+  3. **The comment magnet loop** — a viewer comments a word, we dm them a useful
+     file. **It is blocked on a thing that does not exist: the file.** There is
+     no lead magnet, and there is no point building the loop that delivers one.
+     It is also the first idea in this file that would collect a stranger's
+     handle, which is a decision rather than a feature.
+  **None of it is queued and none of it is approved.** Einz asked for it to be
+  studied and said discuss before building. This entry is the study.
+
 - **Built 2026-08-27: `demo/post7.mjs`, the seventh clip, `one tip for your
   business`.** **10.22s, 60fps, 1080x1920, 0.68 MB**, voice and 16 effects in the
   file. post6 is the template and this is the first clip built on the whole stack
-  at once rather than on one that grew under it. **The live site did not
-  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
-  stubs and `assets/` were all untouched. **Not posted:** no caption, no tags, no
-  posting decision yet.
+  at once rather than on one that grew under it. **Pushed in `3874b6c`.** **The
+  live site did not change** — `index.html`, `CNAME`, `robots.txt`,
+  `sitemap.xml`, the language stubs and `assets/` were all untouched.
+  **The posting pack is written down and the clip is not posted.** Caption,
+  tweet and three tags per platform are all decided and under Socials; there is
+  no report that any of it went out. Whoever reads this next: the gap is
+  posting, not deciding.
   - **One scene, evolving, no handoffs.** Five squares arrive, four dim to 18%,
     the one left gets a check cut into it, a second lights up in accent. Every
     change is keyed to the word being said, and `not five` lands with exactly
@@ -517,6 +538,104 @@ the edit. Everything about the render was measured here; the posting is Einz's r
 - **The beats land at 3.14, 7.53 and 12.81s** and are drawn at 44px against the
   ordinary cards' 28.3. **The mascot comes to the viewer once, at 17.95**, and stays
   there to the end.
+
+#### post7 — built and pushed 2026-08-27, not posted
+
+`one tip for your business`, 10.22s, vertical, voice and 16 sound effects inside the
+mp4. Everything about the render was measured here; everything below is the pack Einz
+set, and **nothing here is a report that it went out.**
+
+- **Voice: `en-US-AndrewNeural`**, the `calm` default, rate `-8%`, pitch `-2Hz` — the
+  same voice and the same two overrides post6 uses. 22 words, 9.12s of speech in a
+  10.22s clip.
+- **The pack.**
+
+  ```
+  caption (tiktok, instagram, youtube)
+    start with one boring task. not five. save this tip.
+
+  x           tweet text: automate one boring task first. not five. one.
+
+  tiktok      #ai #aitips #techtok
+  instagram   #ai #aitips #automation
+  youtube     #ai #aitips #business
+  ```
+
+  - **The tags are post6's, unchanged on all three platforms.** `#ai #aitips` is the
+    constant pair and the third does the platform's own register. Two clips in a row on
+    the same spine is the first sign of a set rather than a series of one offs, and it
+    is worth keeping deliberately rather than by habit.
+  - **The caption is the script, cut down.** `start with one boring task. not five.` is
+    lifted from the middle of the narration, which means the caption and the voice
+    agree without anybody having to keep them in step. `save this tip.` is the call to
+    action and it is post6's `save this.` with a word on it.
+  - **The tweet is a different sentence, not the caption with the tags removed.**
+    `automate one boring task first. not five. one.` It ends on the beat the clip ends
+    on. X carries no tags, which is the rule post6 set and is deliberate rather than an
+    omission.
+  - Three lowercase tags per platform, no dashes, no exclamation marks, lowercase
+    throughout. All of it holds.
+- **The script, verbatim**, because the captions are cut from it and regenerating the
+  voice from a reworded copy would move every caption:
+
+  ```
+  one tip for your business.
+  start with one boring task. not five. one.
+  automate it. see it work. then take the next.
+  ```
+
+- **The beat lands once, at 4.99s**, on the `one` that is a sentence of its own, drawn
+  at 44px against the ordinary cards' 30. The brief asked for both times it lands
+  alone; the copy only lands it alone once, and the copy was not changed to make the
+  number come out right. See Decisions.
+- **No separate sound plan**, for post6's reason: the voice and the effects are already
+  in the file, mixed and measured. Nothing is owed to an editor.
+
+#### A direction studied 2026-08-27, off `unterberg.ai`'s reels — not built
+
+Einz watched a reference account and asked for the direction to be studied and written
+down rather than started. **Nothing below is queued, approved or begun, and the
+instruction is to discuss before building.** It is three ideas that arrived together
+and they are not one job.
+
+- **1. Animated fake ui mockups, in our paper style.** Chat interfaces, dashboards,
+  command palettes, built the way the pictograms are: solid ink, cut details, one soft
+  shadow, springs with weight. The scene engine already does most of it — a dashboard
+  is rectangles and a command palette is a rectangle with a bar in it.
+
+  **What it does not have is type.** `lib/pictograms.mjs` says out loud that there is no
+  text in a pictogram, and it says it because the vocabulary was built without one. A
+  chat ui with no words is a diagram of a chat ui. So this is not "draw some mockups",
+  it is "decide whether the scene layer gets a type vocabulary", and that is a real
+  design decision with a real cost: text needs a font, a fit, a safe area of its own and
+  a dash check, all of which `lib/captions.mjs` already solved once for captions and
+  none of which is reusable as it stands.
+
+- **2. Big type end cards.** The smallest of the three by a distance and the only one
+  with no dependency. `lib/captions.mjs` already fits and springs caps type inside a
+  box, and the brand already has a 44px hero cap and a wordmark treatment. An end card
+  is a caption that does not move and holds for a second and a half.
+
+- **3. The comment magnet loop.** A viewer comments a word, we dm them a useful file.
+  **It is blocked on the file.** There is no lead magnet and there never has been, and
+  a loop that delivers nothing is worse than no loop: it is a promise made to everybody
+  who comments.
+
+  Two things to settle before any of it, and neither is a build task:
+  - **What the file actually is.** It has to be worth a stranger's attention and it has
+    to be something we can stand behind, which for a shop that sells ai probably means
+    a checklist or a short honest guide rather than a template pack. It is also the
+    first thing this business would publish that is not a website or a clip.
+  - **Whether we want to collect handles at all.** The loop means a dm to a stranger who
+    replied to a video. That is not a feature, it is a decision, and it is the first one
+    in this file that touches somebody else's inbox rather than ours. CLAUDE.md's rules
+    on personal contact details are about the repo; this is about conduct.
+
+**How they rank if they are ever started**, and this is a suggestion rather than a
+plan: 2, then 1, then 3. The end card is a day and improves every clip already built.
+The mockups are a genuine engine decision. The comment loop cannot start until a file
+exists, so it is not third because it is least valuable, it is third because it is not
+startable.
 
 #### House rule — the voice is english, and only english. Settled 2026-08-27
 
@@ -2108,6 +2227,15 @@ of them.
   now two clips behind and still unbuilt.** Two things still owed before it goes
   out: **the three hashtags per platform**, and **the mix, which must read the cue
   timing note** — the locked numbers are turn ends, not turn starts.
+- **post7, "one tip for your business", is built and pushed** — 2026-08-27,
+  `demo/post7.mjs`, `3874b6c`. 10.22s, voice and effects in the file. Caption, tweet
+  and three tags per platform are written down under Socials. **Not posted.** It
+  jumped post3 as well, so **post3, "missed calls", is now four clips behind and
+  still unbuilt.**
+- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
+  paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
+  written up under Socials, **discuss before building.** The third one cannot start
+  at all until a lead magnet file exists.
 - Beyond post3, still no cadence and no pillars. Two clips is a format, three is a
   habit; what is missing is a reason to post, not another asset.
 
@@ -2121,6 +2249,18 @@ Not scheduled, parked:
 
 ## Open questions
 
+- **Does the scene layer get a type vocabulary?** Raised 2026-08-27 by the
+  `unterberg.ai` direction. `lib/pictograms.mjs` has no text in it on purpose, and a
+  fake chat ui or a command palette is not a fake chat ui without words. It is the one
+  real engine decision in that direction and nothing about the mockups can be estimated
+  before it is answered. See Socials.
+- **Is there a lead magnet, and do we want to dm strangers?** Raised 2026-08-27, same
+  direction. The comment magnet loop is blocked on a file that does not exist, and the
+  loop itself means dming somebody who replied to a video. Both are decisions rather
+  than build tasks. See Socials.
+- **post7 has a pack and has not been posted.** Written down 2026-08-27. Unlike post6's
+  gap this is not a missing decision — caption, tweet and tags are all recorded. The
+  open part is whether and when it goes out.
 - Business email to publish — still not decided. The form is now the contact route, so
   this is no longer blocking, but a real address is still worth having.
 - Whether the full site stays single-file as it grows past v1. Default: stays
