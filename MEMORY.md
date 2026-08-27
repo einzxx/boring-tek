@@ -6,6 +6,33 @@ names in here either.
 
 ## Status
 
+- **Built 2026-08-27, third pass on the clip: the captions lost their full stops,
+  the zone came down another 70 device px, and the clip has sound.**
+  `demo/lib/sfx.mjs` is new; `demo/lib/captions.mjs`, `demo/lib/pictograms.mjs`,
+  `demo/post6.mjs` and `demo/scenes-test.mjs` changed. **The live site did not
+  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
+  stubs and `assets/` were all untouched. **Not re-posted:** what is live on the
+  platforms is still the outline clip from `dd5a79f`.
+  - **Captions carry words and nothing else.** `punctuation: 'drop'` is now the
+    engine default and a brand rule, not a clip's preference. 34 marks came off
+    this script. **The punctuation stays in the script**, where the synthesiser
+    reads it as the pause it is there for, so no timing moved. A question mark
+    survives. It strips at the edges only, and it runs *after* the cards are cut
+    — see Decisions.
+  - **The scene zone is at `y 175`**, 70 device px lower and the third move for
+    that block. Clearances all green: **112px from the lowest shadow to the
+    caption ceiling and 139px from the ink** (floor 40), **284 and 253 device px
+    to a border** (floors 96 and 72), caption to head 104px (floor 60).
+  - **`demo/lib/sfx.mjs`: eight sounds, synthesised in javascript, no audio file
+    in the repo.** 46 effects in post6, every cue derived from a plan that
+    already existed rather than typed. **The mix is measured, not claimed:**
+    voice on top, bus ducked 8dB under speech, closest an effect gets to the
+    voice is 15.3dB under, delivered at **-14.4 LUFS / -1.0 dBTP** on the
+    finished mp4. The strip carries the scene effects only at -20 LUFS.
+  - **Two of the three sound decisions were made by a measurement failing**, and
+    both are worth keeping: the under-the-voice check was wrong twice before it
+    was right, and gain alone cannot reach a loudness target. See Decisions.
+
 - **Built 2026-08-27, after the scene layer shipped: the pictograms are solid ink
   with real depth, the zone came down another 46 device px, and there is a
   standalone strip for judging them.** `demo/lib/pictograms.mjs` and
@@ -558,13 +585,14 @@ Still no posting cadence or content pillars. See Next steps.
   are all cut from its word timestamps. No statement and no bubble — the captions
   are the copy. **Since 2026-08-27 it also carries an animated pictogram scene
   layer in the top third** — five scenes from `demo/lib/pictograms.mjs`, keyed to
-  the voice's word timestamps, at `115,140` and `310x186` css px. Nothing else in
-  the frame moved to make room. **The block has come down twice, both on
+  the voice's word timestamps, at `115,175` and `310x186` css px. Nothing else in
+  the frame moved to make room. **The block has come down three times, all on
   2026-08-27**: 70 device px from `y 82` to `y 117`, which put it past the caption
-  box's top edge and found a real bug in the clearance guard, and then another 46
-  to `y 140` with the solid ink pass. At the lower position it clears the measured
-  caption ceiling by **147px on the shadow and 174px on the ink**, floor 40, and a
-  border by 250 and 232 device px, floors 96 and 72. See Decisions. 
+  box's top edge and found a real bug in the clearance guard, another 46 to
+  `y 140` with the solid ink pass, and 70 more to `y 175`. At the lowest position
+  it clears the measured caption ceiling by **112px on the shadow and 139px on the
+  ink**, floor 40, and a border by 284 and 253 device px, floors 96 and 72. See
+  Decisions. 
 - **`demo/lib/pictograms.mjs`**, added 2026-08-27: solid ink svg pictogram scenes
   drawn in code and animated per frame, built the same way `lib/captions.mjs` is
   so one clip drives both from one loop. **Rebuilt the same day from outline
@@ -591,8 +619,9 @@ Still no posting cadence or content pillars. See Next steps.
   `SCENES` and `SCENE_BOX` from `post6.mjs` rather than copying them, which is why
   post6's run block now sits behind a `main()` guard — importing it must not
   render a clip. The compression is on the gaps only and never on a step's own
-  duration. `cd demo && node scenes-test.mjs`, about a minute and a half. See
-  Decisions.
+  duration. `cd demo && node scenes-test.mjs`, about a minute and a half. Since
+  2026-08-27 it also carries the scene layer's own sound effects, at -20 LUFS.
+  See Decisions.
 - **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
   `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
@@ -614,7 +643,8 @@ Still no posting cadence or content pillars. See Next steps.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
   `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
   `demo/scenes-test.mjs`, `demo/lib/captions.mjs`, `demo/lib/voice.mjs`,
-  `demo/lib/pictograms.mjs`, `demo/README.md`, `demo/package.json`.
+  `demo/lib/pictograms.mjs`, `demo/lib/sfx.mjs`, `demo/README.md`,
+  `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
   text, no secrets, no endpoint that is not already in `index.html`. Not in
@@ -801,6 +831,77 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### 2026-08-27 — words on the card, punctuation in the script
+
+**A caption card carries words and nothing else, and that is the engine's
+default rather than a clip's option.** A caption is one or two words at a time,
+on screen for half a second, in caps. A full stop on the end of one is
+punctuating a sentence the viewer cannot see, and at 44px in Michroma it is a
+large black dot doing no work. The marks stay in the script, where the
+synthesiser reads them and turns them into the pauses that are the actual reason
+they are there — **so nothing about the timing changed**, and the voice is the
+same file it was.
+
+A question mark survives, because it is not punctuating a sentence, it is
+changing what the word means. `sure` and `sure?` are two different cards.
+
+**It strips at the edges only and never inside a word**, which is what makes it
+safe to run over anything: `1,000`, `don't` and `e-pasts` are untouched, because
+an apostrophe and a hyphen are spelling and a figure keeps its own separators.
+
+**And it runs after the grouping, not before.** `toCards` and `toLines` break a
+card at a sentence end and they need the full stop to find one. Strip first and
+every sentence in a script runs into the next. This is the sort of ordering that
+is invisible until it is wrong, so it is written into the file next to the code.
+
+### 2026-08-27 — the clip has sound, and it is synthesised
+
+**No audio files in the repo, ever.** Eight sounds written in javascript sample
+by sample, for the same reason the pictograms are drawn in code and the mascot is
+an inline svg: a sample pack is a dependency with a licence, a download and a
+folder of binaries in a public repo, and it sounds like everybody else's clip
+because it is everybody else's clip. It is also the only way the sounds can be
+*derived* — a pop generated from the caption plan cannot drift out of sync with
+the caption, because there is nothing to drift.
+
+**No cue is a hand written time.** A caption pop is the card's own entrance, a
+beat is one of the three cards `emphasise` already marked, a coin landing is its
+own move step plus the same `IMPACT` constant the animation uses to decide the
+coin has touched down. Change a word in the script and the voice, the captions,
+the scenes and the sounds all move together.
+
+**Three sound decisions came out of a measurement failing rather than out of a
+plan**, and all three are the useful kind:
+
+1. **Gain alone cannot hit a loudness target.** The first loudness pass raised
+   the mix and scaled it back down whenever the peak went over, which is not
+   limiting, it is turning the clip down. A synthesiser's speech has about 17dB
+   of crest, so -14 LUFS under a -1 dBTP ceiling is arithmetically impossible
+   that way, and the mix came out 4.5dB under target. It needed a real look
+   ahead peak limiter, which is now in the file and pulls 6.1dB on the loudest
+   syllables and nothing between them.
+2. **A check that trusts the thing it is checking is not a check.** The first
+   version of "nothing louder than the voice" gated on the ducking envelope and
+   reported 96 failures, none real: the envelope has a 220ms release and stays
+   open through the gap after every word, so it was comparing an effect playing
+   in silence against silence.
+3. **Speech is not continuous, so an instantaneous rule is unsatisfiable.** The
+   second version compared instant by instant and found two windows where the
+   coin was 3dB over. Both were inside the /l/ closure in the middle of the word
+   `alone`. Every stop consonant is 30 to 80ms of near silence, so that rule says
+   no audible effect may ever overlap a word **at all** — not that it must be
+   quieter than the speech, but that it must not exist, and no amount of turning
+   the effects down satisfies it. The check now gates on the voice being present
+   in that window and compares against the speech level around it, and it still
+   bites: it takes +24dB on the whole bus before it fails. The stricter number is
+   printed next to the result rather than dropped.
+
+**The strip is louder than the clip on purpose.** Played at their real levels
+with no voice over them there would be nothing to judge, so it is normalised to
+-20 LUFS. What is being judged is the relationship between the effects, which is
+fixed in `GAINS` and survives any master gain, and the log says so rather than
+letting the strip be mistaken for the mix.
 
 ### 2026-08-27 — the pictograms are solid ink, and they cast shadows
 

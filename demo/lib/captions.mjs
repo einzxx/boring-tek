@@ -145,6 +145,41 @@ export function checkCopy(words) {
   return line;
 }
 
+/* ---------- what actually reaches the screen ----------
+   **words, and nothing else.** a caption is not prose: it is one or two words at
+   a time, on screen for half a second, in caps. a full stop at the end of a card
+   is punctuating a sentence the viewer cannot see, and at 44px in michroma it is
+   a large black dot doing no work. so the card carries the word and the voice
+   carries the sentence — **the punctuation stays in the script**, where the
+   synthesiser reads it and turns it into the pause that is the actual reason it
+   is there. nothing about the timing changes, because nothing about the voice
+   changes.
+
+   the one mark that survives is the question mark, because it is not
+   punctuating a sentence, it is changing what the word means. `sure` and `sure?`
+   are two different cards.
+
+   it strips at the **edges only** and never inside a word, which is what makes
+   it safe to run over anything:
+
+     business.  ->  business        1,000   ->  1,000
+     alone."    ->  alone           don't   ->  don't
+     really?    ->  really?         e-pasts ->  e-pasts
+
+   an apostrophe and a hyphen are spelling rather than punctuation, so neither is
+   in either class, and a figure keeps its own separators — which matters,
+   because the `count` style parses numbers out of these words.
+
+   it runs *after* the grouping, deliberately. `toCards` and `toLines` break at a
+   sentence end and they need the full stop to find one, so the cards are cut on
+   the copy as written and only then does the copy lose its punctuation. strip
+   first and every sentence in a script would run into the next. */
+const PUNCT_HEAD = /^["'“‘(\[]+/;
+const PUNCT_TAIL = /[,.;:!…"”)\]]+$/;
+export function bareWord(word) {
+  return word.replace(PUNCT_HEAD, '').replace(PUNCT_TAIL, '');
+}
+
 /* ---------- defaults ----------
    every number here is seconds unless it says px, and every one of them is
    overridable per clip. the two that matter most:
@@ -170,6 +205,14 @@ const DEFAULTS = {
   bodySize: 26,        /* px. type style, before the fit divides it down */
   numberSize: 96,      /* px. count style. the number is the whole point of it */
   align: 'center',
+  /* `drop` is the default and it is a brand rule rather than a clip's
+     preference: a caption card carries words, and the sentence it belongs to is
+     carried by the voice. `keep` is there for anything that genuinely wants the
+     marks on screen, and an unrecognised value throws rather than falling back,
+     because a silent fallback here would answer a typo by putting the full stops
+     back and nobody would think to look. see `bareWord` above for what it strips
+     and what it will not touch. */
+  punctuation: 'drop',
   /* pop only, and off unless a clip asks for it. a regexp or a predicate over a
      card's words; a card that matches is drawn bigger and in the accent, and
      gets fitted on its own instead of sharing the size every other card shares.
@@ -307,6 +350,9 @@ export function planCaptions(words, opts = {}) {
   if (o.fill !== 'card' && o.fill !== 'word') {
     throw new Error('fill is "card" or "word", not "' + o.fill + '"');
   }
+  if (o.punctuation !== 'drop' && o.punctuation !== 'keep') {
+    throw new Error('punctuation is "drop" or "keep", not "' + o.punctuation + '"');
+  }
   if (!Array.isArray(words) || !words.length) throw new Error('captions need a word list');
   for (const w of words) {
     if (typeof w.word !== 'string' || !(w.end > w.start) || !(w.start >= 0)) {
@@ -315,10 +361,25 @@ export function planCaptions(words, opts = {}) {
   }
   checkCopy(words);
 
-  const raw = o.style === 'pop' ? toCards(words, o)
+  const cut = o.style === 'pop' ? toCards(words, o)
     : o.style === 'type' ? toLines(words, o)
       : toItems(words).map(i => i.words);
   const meta = o.style === 'count' ? toItems(words) : null;
+
+  /* the copy as it will be drawn. the timings are untouched: a word that loses
+     a full stop is still said at exactly the second it was said at, so this
+     changes what is on the card and nothing else in the file. */
+  const bared = [];
+  const raw = o.punctuation === 'keep' ? cut : cut.map(ws => ws.map(w => {
+    const bare = bareWord(w.word);
+    /* a token that is punctuation and nothing else would leave an empty cell:
+       a word shaped hole in a card, measured and laid out and drawing nothing.
+       it has never happened on a synthesiser's word list and it would be
+       invisible if it did, which is exactly why it throws. */
+    if (!bare) throw new Error('"' + w.word + '" is punctuation and nothing else, so it would draw an empty cell');
+    if (bare !== w.word) bared.push({ from: w.word, to: bare });
+    return { ...w, word: bare };
+  }));
 
   /* the emphasis test runs here, in node, against the card's words as one
      string. only the answer reaches the plan, so a predicate never has to be
@@ -387,6 +448,10 @@ export function planCaptions(words, opts = {}) {
     maxScale: o.style === 'pop' ? POP_MAX_SCALE : 1,
     bigSize: o.bigSize,
     fill: o.fill,
+    /* what the screen lost, so a run can print it and a guard can check that it
+       actually happened rather than trusting that it did. */
+    punctuation: o.punctuation,
+    bared: { count: bared.length, examples: bared.slice(0, 6) },
     wordGap: o.wordGap, bodyGap: o.bodyGap,
     /* the short cards, for a render to print.
 

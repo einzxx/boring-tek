@@ -42,7 +42,17 @@
       viewer once, at 17.95, for `good ai has a human behind it`, and stays there
       for the rest of the clip. that one move is the whole performance.
 
-   6. **there is a pictogram scene layer in the top third.** added after the
+   6. **the clip has sound effects, and they are synthesised rather than
+      sampled.** `lib/sfx.mjs` renders eight short, low, quiet sounds in
+      javascript and places every one of them from a time that is already in a
+      plan: a caption card's own entrance, a coin's own landing frame, a lock's
+      own seat. no cue in this file is a typed number, so a change to the script
+      moves the voice, the captions, the scenes and the sounds together. the
+      voice is on top, the effects are ducked 8dB under it while a word is being
+      said, and the mix is measured against a broadcast loudness target and a
+      true peak ceiling rather than being called quiet. see The mix below.
+
+   7. **there is a pictogram scene layer in the top third.** added after the
       clip was first cut, and it is the one thing in here that changed what the
       frame is. the empty upper half used to be the point; it is now five svg
       scenes, drawn in code by `lib/pictograms.mjs`, one per beat of the voice,
@@ -80,8 +90,12 @@ import {
 } from './lib/captions.mjs';
 import {
   planScenes, sceneFrame, sceneMotion, pictogramCss, pictogramMarkup,
-  pictogramPage, pictogramPagePlan, describeScenes, WEIGHTS,
+  pictogramPage, pictogramPagePlan, describeScenes, WEIGHTS, IMPACT,
 } from './lib/pictograms.mjs';
+import {
+  cuesFromCaptions, cuesFromScenes, renderSfx, voiceEnvelope, decode,
+  checkUnderVoice, mixdown, applyGain, limit, writeWav, loudness, describeMix, dbfs,
+} from './lib/sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -116,8 +130,13 @@ const SCRIPT = '3 things ai should not do in your business. '
 
 /* the cards that get the bigger moment. tested against the card's words as one
    string, so it is the whole card that has to be the beat rather than a word
-   inside a longer one. */
-const BEAT = /^(one|two|three)\.$/i;
+   inside a longer one.
+
+   no full stop in it any more, because there is no full stop on the card any
+   more: `planCaptions` strips the punctuation off the copy before the emphasis
+   test runs, so the test sees exactly what a viewer sees. the script still says
+   `one.` and the voice still reads the pause that the full stop is there for. */
+const BEAT = /^(one|two|three)$/i;
 const BEATS_EXPECTED = 3;
 
 /* ---------- the cut ----------
@@ -125,7 +144,7 @@ const BEATS_EXPECTED = 3;
    96 device px nothing is allowed inside.
 
    the vertical budget, top to bottom:
-      140..326   the pictogram scenes, 310 wide and centred
+      175..361   the pictogram scenes, 310 wide and centred
      ~496..550   the caption, one card at a time, bottom anchored on 550
       654..750   the mascot, 96px, centred
      ~846..862   the wordmark
@@ -139,9 +158,10 @@ const BEATS_EXPECTED = 3;
    rather than deleting: the page is mostly air and the clip was too. the scene
    layer spends it.
 
-   the block has come down twice. it sat at 82..268 when it was first drawn,
-   came down 70 device px to 117..303 on a marked frame, and is now at 140..326,
-   another 46 device px lower. both moves take it past the caption box's top
+   the block has come down three times, all of them on marked frames. it sat at
+   82..268 when it was first drawn, came down 70 device px to 117..303, then 46
+   more to 140..326 with the solid ink pass, and is now at 175..361, another 70
+   lower. every one of those moves takes it further past the caption box's top
    edge, which sounds like a collision and is not: the box is 300..550 and the
    caption is anchored to the *bottom* of it, so no card ever draws above about
    496. the box's top edge was never where the caption is, and the clearance
@@ -154,7 +174,7 @@ const BOX = { x: SAFE, y: 300, w: VW - SAFE * 2, h: 250 };
    the caption, the head and the wordmark. one viewBox unit is 3.1 css px and
    6.2 device px, which is what makes a 1.4 unit stroke a confident 9px line at
    1080 rather than a hairline. */
-export const SCENE_BOX = { x: 115, y: 140, w: 310, h: 186 };
+export const SCENE_BOX = { x: 115, y: 175, w: 310, h: 186 };
 /* how much clear air the scene layer owes the caption below it. measured on the
    lowest pictogram *shadow* against the highest a caption can ever reach, on
    every frame a part is moving, rather than worked out from the two boxes. the
@@ -174,6 +194,20 @@ const HEAD_CLEARANCE = 60;
 /* the clip runs on past the last word, so it does not cut on a full stop. the
    mascot is still moving and still blinking through all of it. */
 const TAIL = 0.65;
+
+/* ---------- the mix ----------
+   -14 LUFS is where every platform this posts to normalises to, so delivering
+   at it means nothing is turned up or down on the way in, and -1 dBTP is the
+   headroom a lossy codec needs to not clip on the far side of its own
+   reconstruction. neither is a house preference: they are the numbers the
+   players use.
+
+   DUCK is how far the effects bus is pulled down while a word is being spoken.
+   0.60 is about 8dB, which is enough that no effect competes with a syllable and
+   little enough that a coin landing under a word is still a coin landing. */
+const TARGET_LUFS = -14;
+const PEAK_CEILING = -1.0;
+const DUCK = 0.60;
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -1287,19 +1321,22 @@ async function render(plan, pic, seconds, blinks, picMotion) {
 }
 
 /* ---------- encode ----------
-   the clips' settings, plus the voice. no -shortest: the video is the longer
-   stream and the output should run to it, so the clip keeps its tail and ends
-   on the mascot rather than on the last syllable. */
+   the clips' settings, plus the finished mix. no -shortest: the mix is rendered
+   to the clip's own length rather than the voice's, so both streams end
+   together and the clip keeps its tail and ends on the mascot rather than on
+   the last syllable. 192k rather than 160 because the closing hum is two
+   octaves below anything else in the file and a lossy codec spends its bits at
+   the top. */
 function ff(args) { return execFileSync(ffmpeg, args, { stdio: ['ignore', 'pipe', 'pipe'] }).toString(); }
 
-function encode(voiceFile) {
+function encode(audioFile) {
   const out = path.join(OUT, 'post6-1080x1920.mp4');
   console.log('  encoding ...');
   ff(['-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'),
-    '-i', voiceFile,
+    '-i', audioFile,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
-    '-r', String(FPS), '-c:a', 'aac', '-b:a', '160k',
+    '-r', String(FPS), '-c:a', 'aac', '-b:a', '192k',
     '-movflags', '+faststart', out]);
   return out;
 }
@@ -1435,11 +1472,90 @@ async function main() {
     }
   }
 
+  /* ---------- the sound ----------
+     built here, before a single jpeg is written, for the same reason the scene
+     layer's preflight is here: an audio fault costs two seconds to find at this
+     point and three minutes of rendering at any later one.
+
+     every cue comes out of a plan that already exists. the caption pops are the
+     33 cards' own entrance times, the beats are the three cards `emphasise`
+     already marked, and everything else is read off the scene layer by shape and
+     step kind — a coin landing is its own move step plus IMPACT of its duration,
+     which is the same constant `sceneFrame` uses to decide the coin has touched
+     down. nothing below is a time typed by hand. */
+  const cues = [
+    ...cuesFromCaptions(plan),
+    ...cuesFromScenes(pic, { impact: IMPACT, seconds: SECONDS }),
+  ].sort((a, b) => a.t - b.t);
+
+  const voicePcm = decode(ffmpeg, v.file);
+  const env = voiceEnvelope(v.words, SECONDS);
+  const sfx = renderSfx(cues, SECONDS);
+  const mix = mixdown(voicePcm, sfx.buf, env, { duck: DUCK });
+  /* the rule, measured on the two buffers that are about to be summed rather
+     than argued from the gain table: wherever a word is actually being said,
+     the bus is quieter than the voice. it runs here, before the loudness pass,
+     because that pass moves both of them by the same amount and cannot change
+     the answer. */
+  const under = checkUnderVoice(voicePcm, mix.bus);
+
+  /* ---------- the loudness pass ----------
+     one gain for the voice and the bus together, so the balance decided in
+     GAINS survives it, then a look ahead limiter to hold the true peak, then a
+     measurement of what that actually delivered.
+
+     it iterates rather than calculating, because limiting costs loudness and how
+     much it costs depends on the material. each pass starts from the same summed
+     mix rather than from the last pass's output, so the file is only ever
+     gained and limited once and nothing accumulates. four passes is a ceiling,
+     not a plan: it converges in two on this material and the log prints every
+     one of them. */
+  const wav = path.join(OUT, 'post6-mix.wav');
+  const base = mix.out.slice();
+  const passes = [];
+  let lift = 0, after = null, lim = null;
+  for (let i = 0; i < 4; i++) {
+    mix.out.set(base);
+    if (lift) applyGain(mix.out, lift);
+    lim = limit(mix.out, PEAK_CEILING);
+    writeWav(wav, mix.out);
+    after = loudness(ffmpeg, wav);
+    passes.push({ lift, lufs: after.lufs, tp: after.truePeak, gr: lim.reduction });
+    if (!after.ok || Math.abs(after.lufs - TARGET_LUFS) <= 0.3) break;
+    lift = +(lift + TARGET_LUFS - after.lufs).toFixed(2);
+  }
+  const before = passes[0];
+
+  console.log('  the mix:');
+  console.log(describeMix(sfx.report, {
+    'voice': v.seconds.toFixed(2) + 's, peak ' + dbfs(mix.voicePeak).toFixed(1)
+      + ' dB, ' + v.words.length + ' words',
+    'effects bus': 'peak ' + dbfs(mix.busPeak).toFixed(1) + ' dB after ducking, '
+      + (20 * Math.log10(1 - DUCK)).toFixed(1) + ' dB down while a word is being said',
+    'under the voice': under.over.length
+      ? under.over.length + ' window(s) where an effect is louder than the voice'
+      : 'yes, in all ' + under.windows + ' windows a word is being spoken in. the closest is '
+        + (-under.worst.db).toFixed(1) + ' dB under at ' + under.worst.at.toFixed(2)
+        + 's (' + under.worst.sfx.toFixed(1) + ' dB against ' + under.worst.voice.toFixed(1) + ' dB)',
+    'the strict reading': 'instant for instant, the bus goes ' + under.instant.db.toFixed(1)
+      + ' dB over the voice at ' + under.instant.at.toFixed(2)
+      + 's, inside a consonant closure — see checkUnderVoice for why that is not the test',
+    'loudness': after.ok
+      ? before.lufs.toFixed(1) + ' LUFS at unity, ' + (lift >= 0 ? '+' : '') + lift
+        + ' dB and a limiter applied over ' + passes.length + ' pass(es), '
+        + after.lufs.toFixed(1) + ' LUFS delivered (target ' + TARGET_LUFS + ')'
+      : 'ebur128 is not in this ffmpeg build, so the mix was left at unity',
+    'limiter': lim.reduction.toFixed(1) + ' dB of gain reduction at its hardest, peak '
+      + lim.peak.toFixed(2) + ' dBFS',
+    'true peak': (after.truePeak == null ? '?' : after.truePeak.toFixed(1))
+      + ' dBTP (ceiling ' + PEAK_CEILING + ')',
+  }));
+
   const state = ONLY_ENCODE
     ? JSON.parse(fs.readFileSync(path.join(OUT, 'post6-1080x1920.json'), 'utf8'))
     : await render(plan, pic, SECONDS, BLINKS, picMotion);
 
-  const file = encode(v.file);
+  const file = encode(wav);
   const p = probe(file);
   const mb = (fs.statSync(file).size / 1e6).toFixed(2) + ' MB';
   console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps ' + p.seconds.toFixed(2) + 's  '
@@ -1614,6 +1730,69 @@ async function main() {
       fail.push('the page has ' + state.picBuilt.knocks + ' knocked parts, the plan has '
         + pic.parts.filter(p => p.knock).length);
     }
+  }
+
+  /* the sound. the same shape as every other guard in here: the thing must have
+     happened, it must have happened everywhere it was supposed to, and the
+     claims made about it in the log must be measurements. */
+  if (!cues.length) fail.push('no sound cues were derived at all');
+  if (sfx.report.length !== cues.length) {
+    fail.push('rendered ' + sfx.report.length + ' effects for ' + cues.length + ' cues');
+  }
+  /* one per card, plus one per scene arriving, plus the close's hum. anything
+     else means a cue rule stopped matching a shape it used to match, which is
+     silent and would otherwise only show up as a clip that went quiet. */
+  {
+    const want = plan.groups.length + pic.scenes.length + 1;
+    const got = sfx.report.filter(r => ['pop', 'popDeep', 'whoosh', 'hum'].includes(r.kind)).length;
+    if (got !== want) fail.push('found ' + got + ' card and scene cues, wanted ' + want);
+    const beats = sfx.report.filter(r => r.kind === 'popDeep').length;
+    if (beats !== BEATS_EXPECTED) fail.push(beats + ' deep pops for ' + BEATS_EXPECTED + ' beat cards');
+    for (const k of ['coin', 'click', 'sweep', 'ding']) {
+      if (!sfx.report.some(r => r.kind === k)) fail.push('nothing in the scene layer cued a "' + k + '"');
+    }
+  }
+  if (sfx.report.some(r => r.cut)) {
+    fail.push(sfx.report.filter(r => r.cut).map(r => r.kind + ' at ' + r.t).join(', ')
+      + ' ran off the end of the clip');
+  }
+  if (!(mix.busPeak > 1e-5)) fail.push('the effects bus is silent');
+  if (mix.busPeak >= mix.voicePeak) {
+    fail.push('the effects bus peaks at ' + dbfs(mix.busPeak).toFixed(1)
+      + ' dB and the voice at ' + dbfs(mix.voicePeak).toFixed(1) + ' — it is not under the voice');
+  }
+  if (under.over.length) {
+    fail.push(under.over.length + ' window(s) where an effect is louder than the voice, first at '
+      + under.over[0].t + 's (' + under.over[0].sfx + ' dB against ' + under.over[0].voice + ' dB)');
+  }
+  if (!after || !after.ok) {
+    fail.push('the loudness meter did not run, so the mix is unmeasured and cannot be called safe');
+  } else {
+    if (Math.abs(after.lufs - TARGET_LUFS) > 1.0) {
+      fail.push('the mix delivered at ' + after.lufs.toFixed(1) + ' LUFS after '
+        + passes.length + ' pass(es), wanted ' + TARGET_LUFS);
+    }
+    if (after.truePeak > PEAK_CEILING + 0.1) {
+      fail.push('true peak is ' + after.truePeak.toFixed(1) + ' dBTP, ceiling is ' + PEAK_CEILING);
+    }
+    /* a limiter working this hard is not a mix, it is a fault upstream. it has
+       never gone past 6dB on this material and if it does the level table is
+       what changed, not the material. */
+    if (lim.reduction > 9) {
+      fail.push('the limiter pulled ' + lim.reduction.toFixed(1) + ' dB — the mix is being squashed, not limited');
+    }
+  }
+
+  /* the captions. the full stops come off the cards and stay in the script, so
+     both halves of that are checked: nothing punctuating on screen, and the
+     voice still reading the copy that has it. */
+  if (plan.punctuation !== 'drop') fail.push('the caption plan kept its punctuation');
+  if (!plan.bared.count) {
+    fail.push('no card lost any punctuation, and this script is full of full stops — the strip is not running');
+  }
+  {
+    const bad = plan.cells.filter(c => /[,.;:!]$/.test(c.word));
+    if (bad.length) fail.push(bad.length + ' card word(s) still end in punctuation, first "' + bad[0].word + '"');
   }
 
   if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }

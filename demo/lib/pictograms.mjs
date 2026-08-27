@@ -182,7 +182,7 @@ const EASES = { io: EASE_IO, spring: SPRING, weight: WEIGHT, fall: FALL, land: L
    tightens over exactly this window rather than over the whole step, so a coin
    that is still in the air still has a big soft shadow and one that has landed
    does not. */
-const IMPACT = 0.72;
+export const IMPACT = 0.72;
 const lerp = (a, b, p) => a + (b - a) * p;
 const span = (t, a, b) => (b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a))));
 const n = v => Math.round(v * 1000) / 1000;

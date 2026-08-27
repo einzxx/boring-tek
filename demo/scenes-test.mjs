@@ -34,6 +34,22 @@
    the strip is therefore whatever length the moves themselves add up to. the
    run prints it. K below is the gap compression and it is the one knob.
 
+   ---------- the sound ----------
+
+   it carries the scene layer's own effects and nothing else: no voice, no
+   caption pops, because there are no captions in it. the cues come from the
+   same `cuesFromScenes` post6 calls, so a whoosh, a coin, a click, a sweep, a
+   ding and the closing hum are the same sounds at the same points in the same
+   scenes, and the balance between them is the balance that ships.
+
+   **it is louder than the effects are in the clip, and that is deliberate.** in
+   post6 these sit twenty five decibels down under a voice; played on their own
+   at that level there would be nothing to judge. the strip is normalised to -20
+   LUFS, six under the clip, so the set is audible while still reading as
+   background. what is being judged here is the relationship between them, which
+   is fixed in `GAINS` and survives any amount of master gain. the absolute level
+   an effect reaches in the finished clip is in post6's own mix table.
+
      node scenes-test.mjs                 the strip
      DEMO_FPS=12 node scenes-test.mjs     the fast preview pass
 */
@@ -48,8 +64,11 @@ import { execFileSync } from 'node:child_process';
 import { brandTokens } from './lib/captions.mjs';
 import {
   planScenes, sceneFrame, sceneMotion, pictogramCss, pictogramMarkup,
-  pictogramPage, pictogramPagePlan, describeScenes, SCENE_ENTER, SCENE_EXITS,
+  pictogramPage, pictogramPagePlan, describeScenes, SCENE_ENTER, SCENE_EXITS, IMPACT,
 } from './lib/pictograms.mjs';
+import {
+  cuesFromScenes, renderSfx, applyGain, limit, writeWav, loudness, describeMix, dbfs,
+} from './lib/sfx.mjs';
 import { SCENES, SCENE_BOX } from './post6.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -65,10 +84,18 @@ const VW = 540, VH = 960, SAFE = 48;
    device px and a large blur at low opacity is allowed to sit closer. */
 const SOFT_SAFE = 36;
 const WORDMARK_CY = 854, WORDMARK_W = 250;
-/* the label sits under the block, in the air the captions use in the real clip,
-   so it never collides with a scene and never covers one. */
-const LABEL_Y = 400;
+/* the label sits on the caption ceiling: y=495 is the highest any card in post6
+   can ever draw, so the gap this strip measures between the lowest scene shadow
+   and the top of this line is the same gap the clip has between the scenes and
+   its captions. it is a reference mark that happens to be readable, rather than
+   a caption that happens to be somewhere. */
+const LABEL_Y = 495;
 const TAIL = 0.55;
+/* six decibels under the clip's own target, for the reason in the header: these
+   are background effects being auditioned in the foreground. the peak ceiling is
+   the clip's, unchanged — a strip that clipped would be judging a distortion. */
+const TARGET_LUFS = -20;
+const PEAK_CEILING = -1.0;
 
 /* ---------- the retiming ----------
    K is how much of each scene's own dead air survives. every step keeps its
@@ -240,9 +267,9 @@ function stripPage() {
       return out;
     },
     /* how much clear air there is between the lowest pictogram shadow and the
-       top of the label. the label is the only thing under the block here, and
-       a scene that reached it would be a scene that reaches a caption in the
-       real clip. */
+       top of the label. the label is sitting on post6's own caption ceiling, so
+       a scene that reached it here is a scene that reaches a caption there, and
+       the number this prints is the number that clip prints. */
     clearance() {
       const pic = window.__pic.safe(window.__ST.VW, window.__ST.VH);
       if (!pic) return null;
@@ -429,13 +456,15 @@ async function render(pic, labels, seconds, motion) {
 
 function ff(args) { return execFileSync(ffmpeg, args, { stdio: ['ignore', 'pipe', 'pipe'] }).toString(); }
 
-function encode() {
+function encode(audioFile) {
   const out = path.join(OUT, 'scenes-test.mp4');
   console.log('  encoding ...');
   ff(['-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'),
+    '-i', audioFile,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
-    '-r', String(FPS), '-an', '-movflags', '+faststart', out]);
+    '-r', String(FPS), '-c:a', 'aac', '-b:a', '192k',
+    '-movflags', '+faststart', out]);
   return out;
 }
 
@@ -450,6 +479,7 @@ function probe(file) {
     seconds: dur ? (+dur[1] * 3600 + +dur[2] * 60 + parseFloat(dur[3])) : null,
     w: res ? +res[1] : null, h: res ? +res[2] : null,
     fps: fps ? parseFloat(fps[1]) : null,
+    audio: /Audio:\s*aac/.test(out),
   };
 }
 
@@ -493,12 +523,47 @@ const motion = sceneMotion(pic, FPS, SECONDS);
   }
 }
 
+/* ---------- the sound ----------
+   before a frame is written, for the same reason post6 builds its mix there. no
+   voice means no ducking and nothing to be under, so what is left is the cue
+   derivation, one gain and the same limiter and ceiling the clip uses. */
+const cues = cuesFromScenes(pic, { impact: IMPACT, seconds: SECONDS });
+const sfx = renderSfx(cues, SECONDS);
+const wav = path.join(OUT, 'scenes-test-mix.wav');
+const base = sfx.buf.slice();
+const passes = [];
+let lift = 0, level = null, lim = null;
+for (let i = 0; i < 4; i++) {
+  sfx.buf.set(base);
+  if (lift) applyGain(sfx.buf, lift);
+  lim = limit(sfx.buf, PEAK_CEILING);
+  writeWav(wav, sfx.buf);
+  level = loudness(ffmpeg, wav);
+  passes.push({ lift, lufs: level.lufs, tp: level.truePeak });
+  if (!level.ok || Math.abs(level.lufs - TARGET_LUFS) <= 0.3) break;
+  lift = +(lift + TARGET_LUFS - level.lufs).toFixed(2);
+}
+let busPeak = 0;
+for (const v of base) busPeak = Math.max(busPeak, Math.abs(v));
+console.log('  the sound, scene effects only:');
+console.log(describeMix(sfx.report, {
+  'bus at the clip\'s own levels': 'peak ' + dbfs(busPeak).toFixed(1) + ' dB',
+  'loudness': level.ok
+    ? passes[0].lufs.toFixed(1) + ' LUFS at those levels, ' + (lift >= 0 ? '+' : '') + lift
+      + ' dB applied over ' + passes.length + ' pass(es), ' + level.lufs.toFixed(1)
+      + ' LUFS delivered (target ' + TARGET_LUFS + ', six under the clip on purpose)'
+    : 'ebur128 is not in this ffmpeg build, so the strip was left at unity',
+  'true peak': (level.truePeak == null ? '?' : level.truePeak.toFixed(1))
+    + ' dBTP (ceiling ' + PEAK_CEILING + ')',
+}));
+
 const state = await render(pic, labels, SECONDS, motion);
-const file = encode();
+const file = encode(wav);
 const p = probe(file);
 const mb = (fs.statSync(file).size / 1e6).toFixed(2) + ' MB';
 console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps ' + p.seconds.toFixed(2)
-  + 's  silent  ' + mb + '  ' + path.relative(ROOT, file));
+  + 's  ' + (p.audio ? 'with the scene effects' : 'SILENT') + '  ' + mb + '  '
+  + path.relative(ROOT, file));
 
 /* one frame per scene, on the frame it has finished building, pulled back out
    of the finished mp4 rather than out of the render. */
@@ -522,6 +587,33 @@ const fail = [];
 if (p.w !== VW * DSF || p.h !== VH * DSF) fail.push('not ' + VW * DSF + 'x' + VH * DSF);
 if (Math.abs(p.fps - FPS) > 0.5) fail.push('not ' + FPS + 'fps');
 if (Math.abs(p.seconds - SECONDS) > 0.2) fail.push(p.seconds + 's, wanted ' + SECONDS);
+if (!p.audio) fail.push('no audio track — the effects did not mux and the strip is the wrong deliverable');
+/* the strip's whole job is the scene layer, so every scene sound has to be in
+   it. a caption pop must not be: there are no captions here to pop. */
+for (const k of ['whoosh', 'coin', 'click', 'sweep', 'ding', 'hum']) {
+  if (!sfx.report.some(r => r.kind === k)) fail.push('nothing cued a "' + k + '"');
+}
+if (sfx.report.some(r => r.kind === 'pop' || r.kind === 'popDeep')) {
+  fail.push('a caption pop reached a strip that has no captions in it');
+}
+if (sfx.report.filter(r => r.kind === 'whoosh').length !== pic.scenes.length) {
+  fail.push('the strip has ' + pic.scenes.length + ' scenes and '
+    + sfx.report.filter(r => r.kind === 'whoosh').length + ' arrivals');
+}
+if (sfx.report.some(r => r.cut)) {
+  fail.push(sfx.report.filter(r => r.cut).map(r => r.kind + ' at ' + r.t).join(', ')
+    + ' ran off the end of the strip');
+}
+if (!level || !level.ok) {
+  fail.push('the loudness meter did not run, so the strip is unmeasured');
+} else {
+  if (Math.abs(level.lufs - TARGET_LUFS) > 1.0) {
+    fail.push('the strip delivered at ' + level.lufs.toFixed(1) + ' LUFS, wanted ' + TARGET_LUFS);
+  }
+  if (level.truePeak > PEAK_CEILING + 0.1) {
+    fail.push('true peak is ' + level.truePeak.toFixed(1) + ' dBTP, ceiling is ' + PEAK_CEILING);
+  }
+}
 if (state.faults.length) {
   fail.push(state.faults.length + ' scene fault(s), first at '
     + state.faults[0].t.toFixed(2) + 's (' + state.faults[0].what + ')');

@@ -29,6 +29,9 @@ Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
 - **`lib/pictograms.mjs`** draws solid svg pictogram scenes in code and animates
   them per frame against the same timestamps, with a soft drop shadow under
   every shape and a damped spring under every pop.
+- **`lib/sfx.mjs`** synthesises the sound effects, sample by sample, and places
+  every one of them from a time that is already in a caption or scene plan.
+  There is no audio file in the repo.
 - **`analyze.mjs`** reads a reference video and writes down how it is built.
 - **`captions-test.mjs`** renders the three caption styles as five second clips
   so they can be judged.
@@ -458,11 +461,24 @@ and the voice already leaves about seven tenths of a second of air around each
 of them. Those three cards are marked `emphasise` in the plan, which fits them
 on their own and draws them accent all the way through. They land at 44px
 against the ordinary cards' 28.3 — a 1.55x jump, and 44 is the brand's hero cap,
-not raised for a video.
+not raised for a video. On screen they read `ONE` `TWO` `THREE`, because the
+cards carry no punctuation — see Words, not sentences below.
 
-**The audio is in the mp4.** Every other clip renders `-an` because sound is
-added in the edit. This one carries its own voice, because the voice is what the
-clip is cut against and a silent file cannot be checked for sync.
+**Words, not sentences.** The cards lost their full stops. A caption is one or
+two words at a time for half a second in caps, so a full stop on the end of one
+is punctuating a sentence the viewer cannot see, and at 44px in Michroma it is a
+large black dot doing no work. **The punctuation stays in the script**, where
+the synthesiser reads it and turns it into the pause that is the actual reason
+it is there, so nothing about the timing changes — `planCaptions` strips the
+marks after it has cut the cards, not before. A question mark survives, because
+it changes what a word means rather than punctuating a sentence. 34 marks came
+off this script and the guard checks that they did.
+
+**The audio is in the mp4, and it is a mix.** Every other clip renders `-an`
+because sound is added in the edit. This one carries its own voice, because the
+voice is what the clip is cut against and a silent file cannot be checked for
+sync — and since the sound layer was built it carries 46 synthesised effects
+under that voice as well. See The mix.
 
 **The mascot is smaller, lower and calmer.** 96px against post5's 136, in the
 lower third rather than the middle, gaze up at the captions for most of the run.
@@ -574,14 +590,14 @@ what anybody can see.
 
 ### The scene layer
 
-Five scenes in the block above the caption, at `115,140` and `310x186` css px —
-57.4% of the frame width, centred, 92px below the top safe line. One viewBox unit
+Five scenes in the block above the caption, at `115,175` and `310x186` css px —
+57.4% of the frame width, centred, 127px below the top safe line. One viewBox unit
 is 3.1 css px and 6.2 device px, which is what makes a 1.4 unit stroke a
 confident 9px line at 1080 rather than a hairline.
 
-**The block has come down twice.** It started at `115,82`, came down 70 device px
-to `115,117` on a marked frame, and is now at `115,140`, another 46 device px
-lower. Both moves take it past the caption box's top edge, which sounds like a
+**The block has come down three times**, all of them on marked frames. It started
+at `115,82`, came down 70 device px to `115,117`, then 46 more to `115,140` with
+the solid ink pass, and is now at `115,175`, another 70 lower. Both moves take it past the caption box's top edge, which sounds like a
 collision and is not — **the box is 300..550 and the caption is anchored to the
 bottom of it**, so no card in this clip draws above y=495. The clearance check
 used to floor at the box's top edge whenever no card was on screen, which guarded
@@ -591,8 +607,10 @@ that does not exist the moment it came down. It now floors at a measured
 the biggest scale the entrance spring reaches. That does not depend on which card
 is up, so the layer is checked against the worst caption in the clip on every
 frame, including frames with no caption at all. Measured on the render at the
-lower position: **147px** from the lowest pictogram shadow to that ceiling and
-**174px** from the lowest ink, against a floor of 40.
+lowest position: **112px** from the lowest pictogram shadow to that ceiling and
+**139px** from the lowest ink, against a floor of 40. The ceiling itself did not
+move when the cards lost their full stops: the beat cards were already at the
+brand's 44px cap and it is the tallest card that sets it.
 
 **The scenes are solid ink, not outlines.** They shipped as hairline strokes and
 were rebuilt as filled silhouettes with the detail cut out to the page, one soft
@@ -679,6 +697,74 @@ flush per captured frame applies it, and the run checks afterwards that exactly
 one tick happened and that the frame which landed is the frame for that time.
 Nothing in the layer is a css transition.
 
+### The mix
+
+46 effects under the voice, every one of them synthesised in `lib/sfx.mjs` and
+placed from a time that already existed. **Nothing in the clip is a hand written
+cue.** A caption pop is the card's own `in`; a beat is one of the three cards
+`emphasise` already marked; a coin landing is its own move step plus `IMPACT` of
+its duration, the same constant `sceneFrame` uses to decide the coin has touched
+down, so the sound is on the frame the shadow tightens on. Change a word in the
+script and the voice, the captions, the scenes and the sounds all move together.
+
+| sound | what cues it | level |
+|---|---|---|
+| `pop` | every caption card entrance (30) | -30 dB |
+| `popDeep` | the three beat cards (3) | -24 dB |
+| `whoosh` | each scene arriving (5) | -33 dB |
+| `coin` | a `coin` part landing (1) | -22 dB |
+| `click` | a `shackle` seating (1) | -25 dB |
+| `sweep` | a `magnifier` moving (1) | -36 dB |
+| `ding` | a `check` being drawn (4) | -27 dB |
+| `hum` | the closing scene holding (1) | -34 dB |
+
+The levels are a *relationship*, not a mix: one master gain moves the voice and
+the bus together afterwards, so the table above is the only place the balance
+between a coin and a word is decided. The coin is loudest because it is the one
+physical event the clip shows landing; the sweep is quietest because a magnifier
+over paper is nearly nothing.
+
+Three rules, all measured rather than asserted:
+
+- **The voice is on top.** The bus is ducked 8dB while a word is being spoken,
+  off an envelope built from the word timings with a fast attack and a slow
+  release. Bus peak after ducking is -25.1 dB against the voice's -2.7.
+- **Nothing is louder than the voice while a word is being spoken.** Checked
+  window by window on the two buffers about to be summed. In all 699 windows a
+  word is being spoken in, the closest an effect gets is **15.3 dB under**.
+- **It does not clip and it is not too loud.** Gained and limited to **-14.4
+  LUFS at -1.0 dBTP**, measured with `ebur128` on the written file, iterating
+  until it converges.
+
+That third one needed a real limiter. The first version raised the mix and
+scaled it back down whenever the peak went over, which is not limiting, it is
+turning the clip down: a synthesiser's speech has about 17 dB of crest, so
+hitting -14 LUFS under a -1 dBTP ceiling by gain alone is arithmetically
+impossible, and the mix came out 4.5 dB under target. `limit()` is a look ahead
+peak limiter — a monotonic deque for the sliding minimum of the required gain,
+5ms of look ahead, a 1ms slew down and 80ms back up — and it pulls 6.1 dB on the
+loudest syllables and nothing between them.
+
+**The under-the-voice check was wrong twice before it was right**, and both
+wrong versions looked correct:
+
+1. It gated on the *ducking envelope* and reported 96 failures, none real. The
+   envelope has a 220ms release and stays open through the gap after every word,
+   so it was comparing an effect playing in silence against silence.
+2. It compared *instant by instant* and found two windows where the coin was
+   3 dB over. Those were real measurements and a wrong test. Both windows are
+   inside the /l/ closure in the middle of the word `alone`: speech is not
+   continuous, every stop consonant is 30 to 80ms of near silence, so an
+   instantaneous rule says no audible effect may ever overlap a word **at all**.
+   That is not satisfiable by getting quieter, only by getting silent.
+
+What it does now is gate on the voice being genuinely present *in that window*
+and compare the effect against the speech level *around* it — the loudest 20ms
+of voice within 150ms either side, which is what a listener hears as "the voice,
+right now". It still bites: it takes +24 dB on the whole bus before it fails.
+The stricter instantaneous number is printed next to the result rather than
+dropped.
+
 ### The guards
 
 The clips' guards, plus the ones this format needs: an audio track actually
@@ -718,6 +804,25 @@ reason: every smoothness check passes on a layer that never drew anything.
   a part is moving, sampled at the midpoint of every step of every part, the
   middle of every handoff and each scene once settled, because a sweeping glass
   or a falling coin is furthest from where its own box said it would be.
+The sound carries the same shape of guard, for the same reason:
+
+- **Every cue rule must still match.** One effect per card, one per scene
+  arriving, one hum, three deep pops for three beat cards, and at least one each
+  of `coin`, `click`, `sweep` and `ding`. A rule that stopped matching a shape it
+  used to match is silent, and would otherwise only show up as a clip that went
+  quiet.
+- **Nothing runs off the end.** A sound the clip's end cut in half is faded as a
+  backstop and reported as a fault, because the fade in `ends` cannot help with
+  a fade that was never rendered.
+- **Liveness and balance:** the bus must not be silent and must peak below the
+  voice.
+- **The mix:** no window over the voice, loudness within 1 dB of -14 LUFS, true
+  peak at or under -1.0 dBTP, and the limiter never pulling more than 9 dB —
+  past that it is squashing rather than limiting, and the level table is what
+  changed, not the material.
+- **The captions:** the plan must say it dropped punctuation, it must actually
+  have dropped some, and no card word may end in a mark.
+
 - **The depth is guarded twice over.** Every border and clearance number comes in
   two forms, the ink alone and the ink plus the shadow it is throwing on that
   frame, grown from the same three numbers the frame was drawn with and scaled by
@@ -727,8 +832,9 @@ reason: every smoothness check passes on a layer that never drew anything.
   A third guard fails if the two ever come back equal, since that is what a
   silently broken expansion looks like. And because the depth is markup rather
   than css, the page's count of shadow filters and knocked parts is checked
-  against the plan's, 22 and 1. Measured on the render: **250 device px** from
-  the ink to a border and **232** from the shadow.
+  against the plan's, 22 and 1. Measured on the render at the lowest zone
+  position: **284 device px** from the ink to a border and **253** from the
+  shadow.
 
 ## The og card
 
@@ -771,6 +877,17 @@ talks a websocket protocol by hand rather than adding `ws` or `edge-tts`, and
 the caption engine is plain javascript and css.
 
 ### `lib/captions.mjs` — animated captions
+
+**Cards carry words and nothing else.** `punctuation: 'drop'` is the default and
+it is a brand rule rather than a clip's preference: the sentence a card belongs
+to is carried by the voice, so the marks stay in the script where the synthesiser
+reads them as pauses. `bareWord` strips at the **edges only** and never inside a
+word, which is what makes it safe to run over anything — `business.` becomes
+`business`, `1,000` and `don't` and `e-pasts` are untouched, and `really?` keeps
+its question mark because that changes what the word means rather than
+punctuating a sentence. It runs *after* the grouping: `toCards` breaks at a
+sentence end and needs the full stop to find one, so strip first and every
+sentence runs into the next.
 
 Takes `[{word, start, end}, ...]` and draws it word by word. Three styles:
 
@@ -884,9 +1001,11 @@ Five things that cost time, written down so they only cost it once:
 - **The engine strips punctuation off the word it hands back, and sometimes
   sends `40 hours` as one event.** Both are put back: the punctuation from the
   copy we sent, and a multi word event split by length inside the box the engine
-  already agreed with. Without the first the caption loses every full stop, and
-  the brand's rhythm is mostly full stops; without the second the counter style
-  has nothing to count.
+  already agreed with. The punctuation still has to come back even though the
+  captions now drop it again — `toCards` breaks a card at a sentence end and
+  needs the full stop to find one, and the `count` style parses figures out of
+  these words. Losing it here would run every sentence into the next; losing it
+  later is a deliberate choice made after the cards are cut.
 
 Long scripts are split on sentence ends and the chunks' offsets are pushed along
 by the audio already written, measured as exact arithmetic on the byte count
@@ -1054,6 +1173,52 @@ as the real mascot does. Its lids are driven by the caller: `post6.mjs` passes
 the same lid it passes the real mascot, because two faces on one screen must not
 disagree about blinking.
 
+### `lib/sfx.mjs` — synthesised sound
+
+Eight sounds, written in JavaScript sample by sample. **There is not one audio
+file in the repo**, for the same reason the pictograms are drawn in code and the
+mascot is an inline SVG: a sample pack is a dependency with a licence, a
+download and a folder of binaries in a public repo, and it sounds like everybody
+else's clip because it *is* everybody else's clip. Eighty lines of oscillator
+and envelope is smaller than one wav, it is diffable, and every number in it is
+a number somebody can argue with.
+
+It is also the only way the sounds can be *derived*. A pop generated from the
+caption plan cannot drift out of sync with the caption, because there is nothing
+to drift.
+
+A voice in `VOICES` is a pure function of its own options returning one mono
+`Float32Array` peak normalised to 1.0. It knows nothing about when it plays or
+how loud it is: `renderSfx` places it and `GAINS` sets its level, so the design
+of a sound and the balance of a mix stay two separate arguments.
+
+The whole set is deliberately dull — short, low and quiet, standing in for paper
+and ink rather than for a user interface. A caption card gets a body thump with
+no top end at all, because what it is announcing is a word appearing, not a
+notification. The coin is the only sound in the clip with any metal in it,
+because it is the only thing in the clip made of metal: a thud and two
+*inharmonic* partials struck together, because a disc is not a string. The lock's
+click is 7ms of band passed noise over a 190 Hz pulse, gone inside a twentieth of
+a second — solid comes from how fast it stops, not how loud it starts.
+
+The DSP is one pole filters and nothing else. At these durations a steeper
+filter has nothing to do and a resonant one would ring, which is the opposite of
+what any of this is for. Two milliseconds are taken off each end of every sound,
+always: a buffer that starts or stops at a non zero sample is a click, and a
+click is the one artefact that survives every codec between here and a phone
+speaker. The noise source is a seeded xorshift, so a render produces the same
+file twice.
+
+`cuesFromScenes` reads the scene plan **by shape and step kind, never by a part's
+name**, so a clip that draws a coin gets a coin landing without telling this file
+anything, and a clip that draws two gets two.
+
+Output is 24 bit PCM — the plainest thing every tool in the chain reads without
+an opinion, with enough headroom that the quietest sound in the set is still 60
+dB above the last bit. `loudness()` reads `ebur128` off the written file, so the
+number in the report is the same meter a broadcaster uses rather than an RMS
+with a nice name.
+
 ### `analyze.mjs` — the reference analyzer
 
 Point it at a video somebody else made and it writes down how that video is
@@ -1153,9 +1318,19 @@ DEMO_FPS=12 node scenes-test.mjs     the fast preview pass
 
 `post6.mjs`'s five pictogram scenes, back to back with the dead air taken out,
 into `demo/out/scenes-test.mp4`, plus one settled still per scene into
-`demo/out/verify-scenes-test/`. **10.18s and about a minute and a half.** It
+`demo/out/verify-scenes-test/`. **10.19s and about a minute and a half.** It
 exists so the scene layer can be judged without scrubbing a twenty two second
 clip with a voice on it.
+
+**It carries the scene layer's own sound and nothing else** — the same
+`cuesFromScenes` post6 calls, so the whoosh, coin, click, sweep, ding and closing
+hum are the same sounds at the same points in the same scenes. No voice, and no
+caption pops, because there are no captions in it. It is normalised to **-20
+LUFS**, six under the clip, and that is deliberate: in post6 these sit 25 dB down
+under a voice and there would be nothing to judge at that level on their own.
+What is being judged is the relationship between them, which is fixed in `GAINS`
+and survives any master gain; the absolute level an effect reaches in the
+finished clip is in post6's own mix table.
 
 **It is post6's own scenes, imported, not copied.** `SCENES` and `SCENE_BOX` come
 out of `post6.mjs` rather than being duplicated here, because a second copy of a
@@ -1166,9 +1341,14 @@ behind a `main()` guard: importing it must not render a clip.
 **The frame is production's frame, exactly** — 1080x1920, light theme, the same
 vignette, the block at the same place and size, the wordmark where it always is.
 What is missing is the voice, the captions and the mascot, because those are the
-three things this is not for. In their place is one line of system mono under the
-block naming the scene and the seconds it holds in the real clip, so a judgement
-made here can be taken straight back to the table in `post6.mjs`.
+three things this is not for. In their place is one line of system mono naming
+the scene and the seconds it holds in the real clip, so a judgement made here can
+be taken straight back to the table in `post6.mjs`. **It sits on y=495**, which
+is the caption ceiling — the highest any card in post6 can ever draw — so the gap
+this strip measures between the lowest scene shadow and the top of that line is
+the same gap the clip has between the scenes and its captions. It is a reference
+mark that happens to be readable rather than a caption that happens to be
+somewhere.
 
 **The compression is on the gaps only.** The five scenes run 23.3s end to end at
 their own speed. Every step keeps its own duration — a coin still falls in 0.58s
