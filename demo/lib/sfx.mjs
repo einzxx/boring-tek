@@ -293,18 +293,38 @@ export function cuesFromCaptions(plan) {
 
    the closing hum is the exception and it is keyed to the last scene rather than
    to a shape, because it is scoring a scene rather than an object. */
-export function cuesFromScenes(pic, { impact = 0.72, hum = true, seconds = null, humLen = 3.2 } = {}) {
+export function cuesFromScenes(pic, { impact = 0.72, hum = true, seconds = null, humLen = 3.2, humAt = 'settle' } = {}) {
+  if (humAt !== 'settle' && humAt !== 'lastStep') {
+    throw new Error('humAt is "settle" or "lastStep", not "' + humAt + '"');
+  }
   const out = [];
   pic.scenes.forEach((sc, i) => {
     out.push({ t: sc.in, kind: 'whoosh', from: 'scene "' + sc.id + '" arriving' });
     if (hum && i === pic.scenes.length - 1) {
-      /* it is sized to the room it has rather than cut to fit it. a swell whose
-         tail is chopped off by the end of the clip is a click, and the fade in
+      /* where the swell starts, and it is a real choice rather than a default.
+
+         `settle` puts it under the whole of the last scene, which is right when
+         that scene *is* the close: post6 hands off into a four second closing
+         beat and the hum scores all of it.
+
+         `lastStep` puts it on the last thing the last scene does. a clip built
+         out of one scene that runs the whole length has no closing scene to
+         score — `settle` would start the hum in the first half second and hold
+         a drone under the entire film, which is a different and much worse
+         idea. the last part to start moving is the close of a single scene
+         clip, and that is what this finds. it is still derived: no clip using
+         it types a time. */
+      let at = sc.settled;
+      if (humAt === 'lastStep') {
+        for (const pi of sc.parts) for (const st of pic.parts[pi].steps) at = Math.max(at, st.t);
+      }
+      /* sized to the room it has rather than cut to fit it. a swell whose tail
+         is chopped off by the end of the clip is a click, and the fade in
          `ends` cannot help with a fade that was never rendered. */
-      const room = seconds == null ? humLen : Math.max(0.8, seconds - sc.settled - 0.06);
+      const room = seconds == null ? humLen : Math.max(0.8, seconds - at - 0.06);
       out.push({
-        t: sc.settled, kind: 'hum', opts: { len: +Math.min(humLen, room).toFixed(3) },
-        from: 'scene "' + sc.id + '" holding',
+        t: at, kind: 'hum', opts: { len: +Math.min(humLen, room).toFixed(3) },
+        from: 'scene "' + sc.id + '" ' + (humAt === 'lastStep' ? 'closing' : 'holding'),
       });
     }
   });

@@ -6,6 +6,35 @@ names in here either.
 
 ## Status
 
+- **Built 2026-08-27: `demo/post7.mjs`, the seventh clip, `one tip for your
+  business`.** **10.22s, 60fps, 1080x1920, 0.68 MB**, voice and 16 effects in the
+  file. post6 is the template and this is the first clip built on the whole stack
+  at once rather than on one that grew under it. **The live site did not
+  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
+  stubs and `assets/` were all untouched. **Not posted:** no caption, no tags, no
+  posting decision yet.
+  - **One scene, evolving, no handoffs.** Five squares arrive, four dim to 18%,
+    the one left gets a check cut into it, a second lights up in accent. Every
+    change is keyed to the word being said, and `not five` lands with exactly
+    five squares up.
+  - **The beat lands once, not twice.** The brief asked for both times `one`
+    lands alone; the copy only lands it alone once, at 4.87s. `one` is also said
+    inside `one tip` and `one boring task` and neither gets a card of its own.
+    Written up in Decisions — it is a copy fact, not an engine limit.
+  - **`capSize` is 30 here against the engine's 40**, because on short copy the
+    beat is what sets the caption size. At 40 the ordinary cards fitted at 39.6px
+    against a 44px beat, an 11% jump that reads as a wobble. At 30 the beat is
+    1.47x, post6's 1.55 within a fraction.
+  - **It cost the engine three fixes**, one of them a real latent bug: `fade`
+    could not go to a level rather than a switch, a step was overwriting the
+    opacity of the step in front of it, and the closing hum had nowhere sensible
+    to sit in a one scene clip. All three are in Decisions. **post6 is
+    unaffected and was re-checked frame by frame to prove it.**
+  - Delivered at **-14.5 LUFS / -1.0 dBTP**, effects 22.1dB under the voice at
+    their closest. Zone at post6's position, all clearances green.
+  - **post3, "missed calls", is still unbuilt.** post7 jumped it as post4, post5
+    and post6 all did. It is still queued.
+
 - **Built 2026-08-27, third pass on the clip: the captions lost their full stops,
   the zone came down another 70 device px, and the clip has sound.**
   `demo/lib/sfx.mjs` is new; `demo/lib/captions.mjs`, `demo/lib/pictograms.mjs`,
@@ -648,9 +677,9 @@ Still no posting cadence or content pillars. See Next steps.
   needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
   `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
-  `demo/scenes-test.mjs`, `demo/lib/captions.mjs`, `demo/lib/voice.mjs`,
-  `demo/lib/pictograms.mjs`, `demo/lib/sfx.mjs`, `demo/README.md`,
-  `demo/package.json`.
+  `demo/post7.mjs`, `demo/scenes-test.mjs`, `demo/lib/captions.mjs`,
+  `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`, `demo/lib/sfx.mjs`,
+  `demo/README.md`, `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
   text, no secrets, no endpoint that is not already in `index.html`. Not in
@@ -837,6 +866,52 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### 2026-08-27 — post7, and what a one scene clip costs
+
+**The beat lands once because the copy lands it once.** The brief asked for the
+word `one` to get the beat treatment both times it lands alone. It lands alone
+once, at 4.87s, on `not five. one.` — `one` is also said at 0.12 and 2.20, but
+inside `one tip` and `one boring task`, and a card is cut at a sentence end or
+at two words, so neither ever gets a card of its own. That is the copy, not the
+emphasis rule being narrow: a second beat needs the script to say `one.` alone a
+second time. **The copy was not changed to make the number come out right.** The
+guard finds the standalone `one` cards without using the regexp that marks them,
+so if the copy ever gains a second the file will treat it as a beat with no edit.
+
+**On short copy, the beat is what sets the caption size.** post7's widest
+ordinary card is `automate it`, so the fit never runs out of box and every card
+lands on `capSize`. At the engine's 40 that put the ordinary cards at 39.6px
+against a beat capped at the brand's 44 — an 11% jump, which reads as a wobble
+rather than as emphasis. `capSize: 30` makes it 1.47x, which is post6's 1.55
+within a fraction. Worth knowing before the next script is written.
+
+**Three engine fixes, one of them a latent bug that had never fired.**
+
+1. **`fade` now goes to a level rather than to a switch.** It read `to` as zero
+   or not-zero and always ramped the whole way. Four squares dimming to 18%
+   needed somewhere in between.
+2. **A step no longer writes an opacity before its own start time** unless
+   nothing else has. A part that popped in and faded later had its pop's fade-in
+   silently overwritten by the later step. `flip` with `dir: out` has always done
+   this correctly and for the same reason; the two are now in line. `planScenes`
+   also refuses a `fade` that starts while the step in front of it is still
+   running unless it names its own `from`.
+3. **`humAt`.** `settle` puts the closing swell under the whole of the last
+   scene, which is right when that scene is the close. A clip made of one scene
+   that runs the whole length has no closing scene, and `settle` would have held
+   a drone under the entire film. `lastStep` finds the last part to start moving.
+   post6 keeps `settle` and its mix is unchanged.
+
+**post6 was re-checked rather than assumed.** Its scene layer's worst one frame
+step in every channel is identical to six decimal places after all three fixes,
+which is what makes it safe to say the engine moved and the clip did not.
+
+**A liveness guard that says "did it move" is wrong for a scene that does not
+move.** Nothing in post7's scene translates: squares spring, four dim, a check
+draws, one lights up, and every one of those is a channel other than dx and dy.
+The guard now asks whether any channel changed, and prints the translation
+number next to it as a statistic.
 
 ### 2026-08-27 — words on the card, punctuation in the script
 

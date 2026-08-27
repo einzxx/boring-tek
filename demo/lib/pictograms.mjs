@@ -53,7 +53,7 @@
      draw   stroke dashoffset line drawing, along the path
      move   a translate from an offset, with or without a fade
      flip   a rotate and a scale, in or out, for one thing becoming another
-     fade   opacity alone
+     fade   opacity alone, from anything to anything
 
    steps are a list rather than a single animation because real objects do more
    than one thing: a lock's shackle is drawn and *then* seats, which is two
@@ -201,6 +201,10 @@ export const STEP_DEFAULTS = {
   draw: { for: 0.50, fade: 0.22 },
   move: { for: 0.44, fade: 0.24, ease: 'io', from: [0, 0], fadeIn: true },
   flip: { for: 0.36, fade: 0.28, rot: 70, from: 0.45, dir: 'in' },
+  /* `to` is the level it arrives at and it is a level, not a switch: 0 is gone,
+     1 is solid and 0.18 is a thing that is still there and is no longer the one
+     being looked at. `from` defaults to whichever end of the range `to` is not,
+     so the two common cases stay one word each. */
   fade: { for: 0.26, to: 1 },
 };
 export const SCENE_ENTER = { for: 0.40, fade: 0.34, scale: 0.90, dx: 0, dy: 9 };
@@ -512,6 +516,7 @@ export function planScenes(scenes, opts = {}) {
           + WEIGHTS.hair + ' for detail and ' + WEIGHTS.mark + ' for a mark, and nothing else');
       }
       const shape = SHAPES[p.shape](p.at || {});
+      let prev = null;
       const steps = (Array.isArray(p.steps) ? p.steps : [p.steps]).map(raw => {
         const d = STEP_DEFAULTS[raw.kind];
         if (!d) throw new Error('"' + p.id + '" has a step of kind "' + raw.kind + '"');
@@ -537,6 +542,24 @@ export function planScenes(scenes, opts = {}) {
           notes.push('"' + p.id + '" fades in ' + s.fade.toFixed(2)
             + 's, under the 0.20s a fade needs to read as one at 60fps');
         }
+        if (s.kind === 'fade') {
+          const to = s.to == null ? 1 : s.to;
+          if (!(to >= 0 && to <= 1)) throw new Error('"' + p.id + '" fades to ' + to + ', which is not an opacity');
+          if (s.from != null && !(s.from >= 0 && s.from <= 1)) {
+            throw new Error('"' + p.id + '" fades from ' + s.from + ', which is not an opacity');
+          }
+          /* a fade that does not say where it starts assumes the step in front
+             of it has finished, because it takes that step's end as its own
+             beginning. if they overlap the two disagree about the same number on
+             the same frame, which is a flicker rather than a fade. say `from`
+             explicitly and it is allowed. */
+          if (s.from == null && prev && prev.t + prev.for > s.t + 1e-6) {
+            throw new Error('"' + p.id + '" fades at ' + s.t.toFixed(2) + 's while its own '
+              + prev.kind + ' step is still running until ' + (prev.t + prev.for).toFixed(2)
+              + 's — give the fade a `from`, or start it after');
+          }
+        }
+        prev = s;
         /* a move is airborne when it is a fall or a landing, unless it says
            otherwise: the glass sweeping across a page is not in the air and
            must not grow a shadow while it does it. */
@@ -620,6 +643,9 @@ export function sceneFrame(plan, t, env = {}) {
 
   const p = plan.parts.map(part => {
     let o = 0, sc = 1, dx = 0, dy = 0, rot = 0, lift = 0, dash = part.draw ? 0 : 1;
+    /* has an earlier step taken responsibility for opacity? it decides whether a
+       later step may write one before its own start time. see the fade branch. */
+    let ownsO = false;
     for (const st of part.steps) {
       if (st.kind === 'pop') {
         /* a pop is a thing landing, so it is in the air for the whole of it and
@@ -670,10 +696,29 @@ export function sceneFrame(plan, t, env = {}) {
           else { o = f; sc = lerp(st.from, 1, q); rot = lerp(st.rot, 0, q); }
         }
       } else {
+        /* a fade goes from a level to a level. it used to be a switch — `to` was
+           read as 0 or not-0 and the ramp was always the whole way — which is
+           fine for appearing and disappearing and cannot say "half there".
+
+           the other half of this is what it does *before* its own time, and that
+           was the real bug. it used to write an opacity in that region too,
+           which meant a part that popped in and faded later had its pop's fade
+           quietly overwritten by the later step: at 1.1s a pop was a tenth of the
+           way in, and the fade step three seconds away was already saying 1. now
+           a fade only claims the region before itself when nothing else has, so
+           the step in front of it keeps what it drew. `flip` with dir out has
+           always worked this way and for the same reason; this brings the two
+           into line. */
         const to = st.to == null ? 1 : st.to;
-        if (t < st.t) o = to === 0 ? 1 : 0;
-        else { const f = EASE_IO(span(t, st.t, st.t + st.for)); o = to === 0 ? 1 - f : f; }
+        const from = st.from == null ? (to >= 1 ? 0 : 1) : st.from;
+        if (t < st.t) { if (!ownsO) o = from; }
+        else o = lerp(from, to, EASE_IO(span(t, st.t, st.t + st.for)));
       }
+      /* every kind above writes an opacity except a flip on its way out and a
+         move that was told not to fade, and those two deliberately inherit. */
+      if (st.kind !== 'flip' && st.kind !== 'move') ownsO = true;
+      else if (st.kind === 'flip' && st.dir !== 'out') ownsO = true;
+      else if (st.kind === 'move' && st.fadeIn) ownsO = true;
     }
     return [o, sc, dx, dy, rot, dash, lift];
   });

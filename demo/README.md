@@ -17,6 +17,10 @@ All headless Chrome, all tooling. The renderers first:
   generated first and the captions, the length and the mascot's gaze are all cut
   from its word timestamps, and there is an animated pictogram scene layer in
   the top third. See The sixth clip.
+- **`post7.mjs`** renders a 10.22 second social clip, vertical only, with the
+  voice and the effects in the file. post6 is the template; it is the first clip
+  built on the whole stack at once rather than on one that grew under it. See
+  The seventh clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -846,6 +850,131 @@ The sound carries the same shape of guard, for the same reason:
   against the plan's, 22 and 1. Measured on the render at the lowest zone
   position: **284 device px** from the ink to a border and **253** from the
   shadow.
+
+## The seventh clip — one scene, one beat
+
+```
+node post7.mjs                  the clip
+DEMO_FPS=12 node post7.mjs      the fast preview pass
+```
+
+**10.22s, 60fps, 1080x1920, 0.68 MB**, voice and 16 effects in the file, into
+`demo/out/post7-1080x1920.mp4`. About a minute and a half. `post6.mjs` is the
+template and every part of the stack is the same one: voice first, captions cut
+from its word timestamps, a pictogram scene keyed to the same words, the mascot
+on the same clock, sound derived from those plans, the zone at post6's final
+position and the voice trimmed the same -1.5 dB.
+
+> one tip for your business. start with one boring task. not five. one.
+> automate it. see it work. then take the next.
+
+Four things are genuinely different from post6.
+
+**It is a third of the length and the opposite shape.** post6 counts out three
+things. This argues against counting: the script is a case for doing one thing,
+and the clip is 10.22s because that is what the case takes.
+
+**One scene, evolving, with no handoffs to hide behind.** post6 cuts between five
+scenes in the silences the reading leaves. This holds one scene for the whole
+clip and changes what is in it — five squares arrive, four dim to 18%, the one
+that is left gets a check cut into it, a second lights up. Every change is in
+plain sight, so every change has to be one the voice is making at that moment:
+
+| the line | at | the zone |
+|---|---|---|
+| `one tip for your business` | 0.12 | squares one and two arrive |
+| `start with one boring task` | 1.75 | three, four and five arrive |
+| `not five` | 3.90 | all five are up for it |
+| `one` | 4.99 | four dim, outside in; the middle stays |
+| `automate it` | 5.75 | the check is cut into it |
+| `see it work` | 6.74 | it holds, which is the point |
+| `then take the next` | 7.79 | a second square lights up, accent |
+
+**The beat is a word, and it lands once.** post6 marks three numerals; this marks
+the card that is the word `one` and nothing else. It lands alone at 4.87s. The
+brief asked for both times it lands alone and the copy only lands it alone once:
+`one` is also said at 0.12 and 2.20, inside `one tip` and `one boring task`, and
+a card is cut at a sentence end or at two words, so neither ever gets a card of
+its own. The guard finds the standalone `one` cards without the regexp and fails
+if any of them is not a beat, so if the copy ever gains a second this file will
+treat it as a beat without being edited.
+
+**The beat sets the caption size when the copy is short.** `capSize` is 30 here
+against the engine's 40. This copy never runs out of box — the widest ordinary
+card is `automate it` — so every card lands on whatever the cap is, and at 40
+that put the ordinary cards at 39.6px against a beat capped at the brand's 44.
+An 11% jump is a wobble, not emphasis. At 30 the beat is **1.47x**, which is
+post6's 1.55 within a fraction.
+
+The composition is a centred band rather than a full block, and that is what the
+brief asked for: five squares across a 100 unit board caps each at about 16 units
+with a gap worth having, so the scene is 16 units of a 60 unit box and the rest
+is air. Stretching it to fill the block would mean five *large* squares in a row,
+which is a different picture.
+
+### What post7 cost the engine
+
+Two fixes in `lib/pictograms.mjs`, both of which post6 is unaffected by because
+post6 has no `fade` steps at all.
+
+- **`fade` goes to a level, not to a switch.** It read `to` as zero or not-zero
+  and always ramped the whole way, which is fine for appearing and disappearing
+  and cannot say "half there". Four squares at 18% needed it to.
+- **A step no longer writes an opacity before its own start time** unless nothing
+  else has. This was a real latent bug: a part that popped in and faded later had
+  its pop's fade-in silently overwritten by the later step — at 1.1s the pop was
+  a tenth of the way in and the fade three seconds away was already saying 1.
+  `flip` with `dir: out` has always worked the right way and for the same reason;
+  this brings the two into line. `planScenes` now also refuses a `fade` that
+  starts while the step in front of it is still running, unless it says `from`
+  explicitly, because otherwise the two disagree about the same number on the
+  same frame.
+
+And one in `lib/sfx.mjs`: **`humAt`**. `settle` puts the closing swell under the
+whole of the last scene, which is right when that scene *is* the close — post6
+hands off into a four second closing beat. A clip built out of one scene that
+runs the whole length has no closing scene, and `settle` would have started the
+hum in the first half second and held a drone under the entire film. `lastStep`
+finds the last part to start moving, which is the close of a single scene clip.
+Still derived; no clip using it types a time. post6 keeps `settle`.
+
+### The mix
+
+16 effects. Same derivation, same levels, same balance as post6.
+
+| sound | n | from |
+|---|---|---|
+| `pop` | 12 | every ordinary caption card |
+| `popDeep` | 1 | the beat |
+| `whoosh` | 1 | the scene arriving |
+| `ding` | 1 | the check being drawn |
+| `hum` | 1 | the scene closing, 2.34s sized to the room it has |
+
+No `coin`, `click` or `sweep` — this scene has nothing that makes one, and the
+guard **fails if one shows up**, which is the useful direction for a clip whose
+cue rules are shared with a clip that does have them.
+
+Delivered at **-14.5 LUFS, -1.0 dBTP** measured on the mp4. Bus peak -25.2 dB
+against the voice's -4.7. In all 259 windows a word is being spoken in, the
+closest an effect gets is **22.1 dB under** — and this clip never breaks even the
+strict instantaneous reading, which post6 does twice inside one consonant. The
+loudness loop runs **six** passes here against post6's four: limiting is not
+linear, each pass gives back a little less than it asks for, and four left this
+one 0.7 dB short.
+
+### Clearances
+
+| | measured | floor |
+|---|---|---|
+| lowest shadow → caption ceiling (y=495) | 180px css | 40 |
+| lowest ink → caption ceiling | 201px css | 40 |
+| ink → border | 241 device px | 96 |
+| shadow → border | 211 device px | 72 |
+| caption → head | 104px css | 60 |
+
+More air than post6 has, and that is the band composition rather than a fault:
+the row sits at the zone's vertical centre and reaches y=38 of 60 where post6's
+scenes reach 57.
 
 ## The og card
 
