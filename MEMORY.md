@@ -6,6 +6,27 @@ names in here either.
 
 ## Status
 
+- **Session close 2026-08-27: the pictogram scene layer is shipped and pushed, post6
+  is out in its full production form, and factory v1 is complete.** `dd5a79f` put
+  `demo/lib/pictograms.mjs` and the re-rendered clip on `main`. **The clip that is
+  public is the full stack**: the Andrew voice inside the mp4, the `pop` captions cut
+  from its word timestamps, the five pictogram scenes in the top third, and the mascot
+  under them, all on one clock. 22.20s, 60fps, 1080x1920, 1.56 MB, every guard passing.
+  **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
+  `sitemap.xml`, the language stubs and `assets/` were all untouched by this session,
+  so the push changed nothing a visitor sees.
+  - **Posted**, and the caption and the per platform hashtags are now written down.
+    `3 things ai should not do in your business save this`, three lowercase tags each
+    on tiktok, instagram and youtube, and no tags at all on X, which gets the line as
+    tweet text instead. Einz's report, not something measured here. **The one open item
+    the last session created is closed with it** — no post in this file is unrecorded
+    any more. See Socials.
+  - **Factory v1 is complete.** A script goes in and a finished clip comes out: voice,
+    captions, scenes, mascot, guards and the mp4, in one command. What is still by hand
+    is named under Current state and has not changed.
+  - **The open list is unchanged, rechecked at this close.** Still the same six items in
+    the same order, nothing done and nothing dropped. This session built a scene engine
+    and did not touch one of them, which is worth noticing rather than explaining away.
 - **Built 2026-08-27, after the factory checkpoint: `demo/lib/pictograms.mjs`, an
   animated pictogram scene layer, and post6 re-rendered with it.** Five flat svg
   scenes in the top third of the frame, one per beat of the voice, drawn in code and
@@ -14,10 +35,10 @@ names in here either.
   the wordmark are all where they were. **22.20s, 60fps, 1080x1920, voice still inside
   the mp4, 1.56 MB, all checks passing**, including six new guards written for the
   layer. **The live site did not change**: `index.html`, `CNAME`, `robots.txt`,
-  `sitemap.xml`, the language stubs and `assets/` are all untouched. Demo only, and it
-  is not posted — the clip that is public is still the one without scenes. Two design
-  calls were made off the first render rather than in advance and both are written
-  down under Decisions. See Current state.
+  `sitemap.xml`, the language stubs and `assets/` are all untouched. Two design calls
+  were made off the first render rather than in advance and both are written down
+  under Decisions. **Pushed in `dd5a79f`, and the clip with the scenes is the one that
+  went out** — see the session close bullet above. See Current state.
 - **Checkpoint 2026-08-27: the factory is v1 and it is pushed.** `b30bee8` put the whole
   content pipeline and the sixth clip on `main`: `demo/lib/captions.mjs`,
   `demo/lib/voice.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs` and
@@ -354,11 +375,29 @@ the edit. Everything about the render was measured here; the posting is Einz's r
 - **Voice: `en-US-AndrewNeural`**, the `calm` default in `lib/voice.mjs`, rate `-8%`,
   pitch `-2Hz`. 54 words, timings from the engine rather than estimated, 21.55s of
   speech in a 22.20s clip.
-- **Caption and hashtags: posted with both, and neither is recorded here.** This is a
-  gap, not a decision — post1 through post5 all have their exact caption and their
-  three tags per platform written down, and the whole reason this section exists is
-  that the wording is the part nobody remembers a month later. **Paste them in.** The
-  house rule still applies: exactly three lowercase hashtags per platform.
+- **Caption and hashtags, recorded 2026-08-27 at the session close.** The gap this
+  clip opened is closed.
+
+  ```
+  caption (tiktok, instagram, youtube)
+    3 things ai should not do in your business save this
+
+  tiktok      #ai #aitips #techtok
+  instagram   #ai #aitips #automation
+  youtube     #ai #aitips #business
+  x           no tags
+              tweet text: 3 things ai should not do in your business
+  ```
+
+  - **Three lowercase tags on the three platforms that carry them**, which is the house
+    rule holding for the first time without having to be corrected from memory. `#ai`
+    and `#aitips` are the constant pair and the third is the platform's own register:
+    `#techtok` on tiktok, `#automation` on instagram, `#business` on youtube.
+  - **X carries no tags at all, and that is deliberate rather than an omission.** It
+    gets the line as tweet text instead, and the tweet drops `save this` — a save
+    prompt is a tiktok and instagram habit and reads as begging on X.
+  - **`save this` is the only call to action in the caption.** No link, no "dm me", no
+    "follow for more". It is also the first caption in the series to ask for anything.
 - **No separate sound plan, and that is the change.** post4 planned three voice marks
   and a logo per beat; post5 planned ten servo cues and no voice. This clip needs
   neither, because the narration is already in the file and cut against the captions to
@@ -825,11 +864,12 @@ session is now spent on the performance rather than on the plumbing. That is the
 change and it is a large one, because the plumbing was where the last five clips spent
 their afternoons.
 
-**One gap this checkpoint leaves.** post6 is posted, with a caption and hashtags, and
-neither is written down. Every other post in this file has its exact wording recorded,
-because the wording is what nobody remembers a month later, and the count of tags has
-already had to be corrected once from memory (post1 carried five, not three). This is
-the first post since then to go out unrecorded. It should not stay that way.
+**One gap this checkpoint left, closed the same day.** post6 went out with a caption and
+hashtags that were not written down. Every other post in this file has its exact wording
+recorded, because the wording is what nobody remembers a month later, and the count of
+tags had already had to be corrected once from memory (post1 carried five, not three).
+Both are now in the post6 block under Socials, recorded at the session close rather than
+reconstructed a month later, which is the whole point of the section.
 
 ### The sixth clip is driven by its own voice, and the captions are the copy — 2026-08-27
 
@@ -1683,10 +1723,14 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 ## Next steps
 
-In this order, agreed 2026-08-24. **Rechecked 2026-08-27: still six items, same order,
-nothing done and nothing dropped.** The factory session built a pipeline and two clips
-and did not touch a single one of these, which is worth noticing rather than
-explaining away. Previously rechecked 2026-08-26 with the same result. Confirmed by Einz at the end of the post4 session:
+In this order, agreed 2026-08-24. **Rechecked twice on 2026-08-27, once at the factory
+checkpoint and again at the session close: still six items, same order, nothing done and
+nothing dropped.** The factory session built a pipeline and two clips, the session after
+it built a scene engine and shipped the clip, and between them they touched none of
+these, which is worth noticing rather than explaining away. **Note for the next
+recheck:** four of the six get named from memory — sitemap, telegram pfp, the form test
+and the about section — and the two that get forgotten are the card re-scrape and the
+RU/LV descriptions. They are still open. Read the list, do not recite it. Previously rechecked 2026-08-26 with the same result. Confirmed by Einz at the end of the post4 session:
 sitemap check, telegram pfp, the real form test, the about section, the RU and LV
 descriptions and the card validators are all still open, and post4 did not touch any
 of them.
@@ -1779,10 +1823,10 @@ Not scheduled, parked:
 - ~~**Whether clips get Russian and Latvian voices, the way the site has RU and LV
   copy.**~~ Settled 2026-08-27: **no, and never.** English only, permanently. The site
   stays trilingual; the voice does not. See Decisions.
-- **post6's caption and hashtags are not written down.** It is posted and they exist;
-  they are just not in this file. Every other post has its exact wording recorded, and
-  the tag count has already had to be corrected once from memory. **This is the only
-  open item this session created.** Paste them into the post6 block under Socials.
+- ~~**post6's caption and hashtags are not written down.**~~ Closed 2026-08-27 at the
+  session close: caption, the three tags on each of tiktok, instagram and youtube, and
+  X's tagless tweet text are all in the post6 block under Socials. It was open for one
+  session and it was the only open item that session created.
 
 ## Not committed / lives elsewhere
 
