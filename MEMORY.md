@@ -6,6 +6,35 @@ names in here either.
 
 ## Status
 
+- **Built 2026-08-27, after the scene layer shipped: the pictograms are solid ink
+  with real depth, the zone came down another 46 device px, and there is a
+  standalone strip for judging them.** `demo/lib/pictograms.mjs` and
+  `demo/post6.mjs` changed; `demo/scenes-test.mjs` is new. **The live site did
+  not change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
+  stubs and `assets/` were all untouched, so the push changed nothing a visitor
+  sees. **Pushed, but not re-posted:** post6 is re-rendered at 22.20s, 60fps,
+  1080x1920, 1.60 MB, voice still in the file, all checks passing, and it is the
+  version in the repo now. **The clip that is live on the platforms is still the
+  outline one from `dd5a79f`** — the solid ink render has not gone out and
+  replacing it there is Einz's call, not something done from here.
+  - **Outline clipart became solid ink.** Filled silhouettes, detail cut out to
+    the page rather than drawn on top, one soft drop shadow per shape that grows
+    while a shape is in the air and tightens as it lands, and a real damped
+    spring under every pop. Three design calls and four geometry fixes came off
+    rendered frames rather than out of a plan and all of them are written down
+    under Decisions.
+  - **The scene zone moved 117 to 140 css px**, 46 device px lower, second move
+    for that block. Re-verified against the fixed caption ceiling at y=495:
+    **147px of clear air from the lowest shadow and 174px from the lowest ink**,
+    floor 40. Border clearance 250px on the ink and 232px on the shadow, floors
+    96 and 72.
+  - **`demo/scenes-test.mjs` renders `demo/out/scenes-test.mp4`**, the five scenes
+    back to back with the dead air cut to a third, 10.18s, silent, in
+    production's own frame. It **imports** post6's scene table rather than
+    copying it, which is why post6's run block now sits behind a `main()` guard.
+  - **The one deliberate deviation from the design system is the drop shadow.**
+    `skills/page-builder/SKILL.md` bans them and this is demo only. See
+    Decisions.
 - **Session close 2026-08-27: the pictogram scene layer is shipped and pushed, post6
   is out in its full production form, and factory v1 is complete.** `dd5a79f` put
   `demo/lib/pictograms.mjs` and the re-rendered clip on `main`. **The clip that is
@@ -529,13 +558,20 @@ Still no posting cadence or content pillars. See Next steps.
   are all cut from its word timestamps. No statement and no bubble — the captions
   are the copy. **Since 2026-08-27 it also carries an animated pictogram scene
   layer in the top third** — five scenes from `demo/lib/pictograms.mjs`, keyed to
-  the voice's word timestamps, at `115,117` and `310x186` css px. Nothing else in
-  the frame moved to make room. **The block came down 70 device px from `y 82` on
-  2026-08-27**, which put it three css px past the caption box's top edge and
-  found a real bug in the clearance guard — see Decisions. 
-- **`demo/lib/pictograms.mjs`**, added 2026-08-27: flat svg pictogram scenes drawn
-  in code and animated per frame, built the same way `lib/captions.mjs` is so one
-  clip drives both from one loop. A scene has an entrance, a hold and an exit;
+  the voice's word timestamps, at `115,140` and `310x186` css px. Nothing else in
+  the frame moved to make room. **The block has come down twice, both on
+  2026-08-27**: 70 device px from `y 82` to `y 117`, which put it past the caption
+  box's top edge and found a real bug in the clearance guard, and then another 46
+  to `y 140` with the solid ink pass. At the lower position it clears the measured
+  caption ceiling by **147px on the shadow and 174px on the ink**, floor 40, and a
+  border by 250 and 232 device px, floors 96 and 72. See Decisions. 
+- **`demo/lib/pictograms.mjs`**, added 2026-08-27: solid ink svg pictogram scenes
+  drawn in code and animated per frame, built the same way `lib/captions.mjs` is
+  so one clip drives both from one loop. **Rebuilt the same day from outline
+  clipart into solid ink**: filled silhouettes, `--bg` cutouts instead of second
+  outlines, two stroke weights and never a third, one soft drop shadow per shape
+  driven by a `lift` channel that is 1 in the air and 0 landed, and a damped
+  oscillator under every pop instead of a bezier. A scene has an entrance, a hold and an exit;
   inside it are parts, and a part is one shape plus a list of steps — `pop`,
   `draw`, `move`, `flip`, `fade`. Steps are a list because real objects do more
   than one thing: a padlock's shackle is drawn and *then* seats. `planScenes` is
@@ -543,8 +579,20 @@ Still no posting cadence or content pillars. See Next steps.
   function of time, `pictogramPage` is serialised into the page and only writes
   numbers. No css transition anywhere in it, for the reason `post2.mjs` found.
   **`sceneMotion(plan, fps, seconds)` walks every frame before a render** and
-  reports the biggest one frame step in every channel, so a snap costs a second
-  instead of two and a half minutes of jpegs. No new dependency. See Decisions.
+  reports the biggest one frame step in every channel, the shadow's `lift`
+  included, so a snap costs a second instead of two and a half minutes of jpegs.
+  No new dependency. See Decisions.
+- **`demo/scenes-test.mjs`**, added 2026-08-27: `post6.mjs`'s own five scenes back
+  to back with the dead air cut to a third, into `demo/out/scenes-test.mp4`.
+  **10.18s, 60fps, 1080x1920, silent**, in production's exact frame with one line
+  of system mono under the block naming the scene and the seconds it holds in the
+  real clip. It exists so the scene layer can be judged in ten seconds instead of
+  by scrubbing a twenty two second clip with a voice on it. It **imports**
+  `SCENES` and `SCENE_BOX` from `post6.mjs` rather than copying them, which is why
+  post6's run block now sits behind a `main()` guard — importing it must not
+  render a clip. The compression is on the gaps only and never on a step's own
+  duration. `cd demo && node scenes-test.mjs`, about a minute and a half. See
+  Decisions.
 - **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
   `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
@@ -565,8 +613,8 @@ Still no posting cadence or content pillars. See Next steps.
   needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
   `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
-  `demo/lib/captions.mjs`, `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`,
-  `demo/README.md`, `demo/package.json`.
+  `demo/scenes-test.mjs`, `demo/lib/captions.mjs`, `demo/lib/voice.mjs`,
+  `demo/lib/pictograms.mjs`, `demo/README.md`, `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
   text, no secrets, no endpoint that is not already in `index.html`. Not in
@@ -753,6 +801,61 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### 2026-08-27 — the pictograms are solid ink, and they cast shadows
+
+**Drop shadows are allowed in `demo/lib/pictograms.mjs` and nowhere else.**
+`skills/page-builder/SKILL.md` says depth on the site comes from the glow and the
+vignette and never from a drop shadow, and that still holds for `index.html`.
+The scene layer is demo only: nothing in it is loaded by, linked from or
+referenced by the site, and depth on a 1080x1920 clip that plays between two
+other people's videos is doing a different job from depth on a page. Einz asked
+for it directly. It is one shadow per shape, large blur, low opacity, and it is
+the whole depth model — no gradient, no second light, no inner shadow.
+
+**Filled shapes, holes instead of second outlines.** A shape is a filled
+silhouette in its own ink and the detail inside it is `--bg`, so a coin's face, a
+lock's keyhole, an eye's pupil and the writing on a document are all the page
+showing through. Strokes survive only where a stroke is the animation, at one of
+two weights and never a third — `planScenes` throws on any other number.
+
+**Springs have a settle, and it is paid for in duration.** A cubic bezier can
+overshoot once, which is why everything eased on one reads light. `pop` and every
+scene entrance now run on a damped oscillator: about 9% past the mark, then under
+a percent back under it, then still. The cost is a steeper start, and it is paid
+by making `pop` 0.52s where it was 0.34 rather than by raising a guard. Anything
+that falls runs on a `land` curve with a real impact in it.
+
+**Six things were decided off a rendered frame rather than in advance**, and they
+are worth keeping because each one is a rule now:
+
+1. **A horizontal bar through the middle of anything is a minus sign.** The intro
+   blocks shipped as filled chips with a white bar cut across them and read as
+   three minus signs. The coin was caught by the same thing in the first pass.
+   The shape's own default now draws no bar unless asked.
+2. **`--fg` on `--fg` is one shape.** The magnifier's rim and handle vanished
+   into the document under it and the glass read as a plain white hole. It is
+   inked `page` now, which is `--bg` and still floats — a second white ink that
+   differs from `cut` only in depth, because in a light theme nothing else could
+   tell them apart.
+3. **`--accent` on `--fg` is a smudge.** Dark green on near black. The folder
+   narrowed and the lock moved ten units right so there is page between them.
+4. **A knock is a gap, not an outline.** The lock and its shackle were knocked
+   as well and a white halo round a green lock reads as a sticker laid on the
+   frame; the scene strip then showed the same halo eating the eye it was meant
+   to separate. The lock's came off, the knock itself came down from three units
+   to 1.6, and the eye's slash is the one part still knocked, because an `--fg`
+   line across an `--fg` eye is one shape without it.
+5. **A bar with air at both ends between two figures is a punctuation dash.** The
+   brand bans those anywhere a viewer can read one, and a diagram is somewhere a
+   viewer reads. The bond reaches into both silhouettes now, which makes it a
+   join.
+6. **The judgement tool imports, it does not copy.** `scenes-test.mjs` pulls
+   `SCENES` and `SCENE_BOX` out of `post6.mjs`; a second copy of a scene table
+   drifts inside a week and then the strip is judging something that is not what
+   ships. It also compresses the gaps only and never the step durations, because
+   a strip of a layer moving three times too fast would look fine while the real
+   one did not.
 
 ### The caption box's top edge was never the caption — 2026-08-27
 

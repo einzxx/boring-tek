@@ -15,7 +15,7 @@ All headless Chrome, all tooling. The renderers first:
 - **`post6.mjs`** renders a 22.2 second social clip, vertical only, **with its
   own voice in the file**. The first one built on the new machine: the voice is
   generated first and the captions, the length and the mascot's gaze are all cut
-  from its word timestamps, and there is now an animated pictogram scene layer in
+  from its word timestamps, and there is an animated pictogram scene layer in
   the top third. See The sixth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
@@ -26,11 +26,15 @@ Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
   animated caption, in three styles. See The library below.
 - **`lib/voice.mjs`** speaks a line in a free microsoft neural voice and hands
   back the audio with the engine's own word timestamps.
-- **`lib/pictograms.mjs`** draws flat svg pictogram scenes in code and animates
-  them per frame against the same timestamps.
+- **`lib/pictograms.mjs`** draws solid svg pictogram scenes in code and animates
+  them per frame against the same timestamps, with a soft drop shadow under
+  every shape and a damped spring under every pop.
 - **`analyze.mjs`** reads a reference video and writes down how it is built.
 - **`captions-test.mjs`** renders the three caption styles as five second clips
   so they can be judged.
+- **`scenes-test.mjs`** renders `post6.mjs`'s own five scenes back to back with
+  the dead air taken out, as a ten second silent strip, so the scene layer can
+  be judged without scrubbing a twenty two second clip. See The scene strip.
 
 Everything below is about `record.mjs` unless it says otherwise.
 
@@ -467,11 +471,12 @@ thirteen slow turns in twenty two seconds, and blinks 3.0 to 4.4 seconds apart
 against post5's 1.45 to 2.60. He comes to the viewer once, at 17.95, for `good
 ai has a human behind it`, and stays there. That one move is the performance.
 
-**There is a pictogram scene layer in the top third.** Five flat SVG scenes, one
-per beat of the voice, drawn in code by `lib/pictograms.mjs` and driven per
-frame through the rAF shim. The empty upper half used to be the point of the
-frame; it is now the picture, and the caption, the mascot and the wordmark are
-unchanged underneath it. See The scene layer below.
+**There is a pictogram scene layer in the top third.** Five solid ink SVG
+scenes, one per beat of the voice, drawn in code by `lib/pictograms.mjs` and
+driven per frame through the rAF shim. The empty upper half used to be the point
+of the frame; it is now the picture, and the caption, the mascot and the wordmark
+are unchanged underneath it. See The scene layer below, and `scenes-test.mjs`
+for the ten second strip that exists to judge it.
 
 ### Two words to a card, and why
 
@@ -569,13 +574,14 @@ what anybody can see.
 
 ### The scene layer
 
-Five scenes in the block above the caption, at `115,117` and `310x186` css px —
-57.4% of the frame width, centred, 69px below the top safe line. One viewBox unit
-is 3.1 css px and 6.2 device px, which is what makes a 1.2 unit stroke a
-confident 7px line at 1080 rather than a hairline.
+Five scenes in the block above the caption, at `115,140` and `310x186` css px —
+57.4% of the frame width, centred, 92px below the top safe line. One viewBox unit
+is 3.1 css px and 6.2 device px, which is what makes a 1.4 unit stroke a
+confident 9px line at 1080 rather than a hairline.
 
-It started at `115,82` and came down 70 device px on a marked frame. That move
-takes the block three css px past the caption box's top edge, which sounds like a
+**The block has come down twice.** It started at `115,82`, came down 70 device px
+to `115,117` on a marked frame, and is now at `115,140`, another 46 device px
+lower. Both moves take it past the caption box's top edge, which sounds like a
 collision and is not — **the box is 300..550 and the caption is anchored to the
 bottom of it**, so no card in this clip draws above y=495. The clearance check
 used to floor at the box's top edge whenever no card was on screen, which guarded
@@ -584,15 +590,23 @@ that does not exist the moment it came down. It now floors at a measured
 **caption ceiling**: the tallest card there is, grown about its own baseline by
 the biggest scale the entrance spring reaches. That does not depend on which card
 is up, so the layer is checked against the worst caption in the clip on every
-frame, including frames with no caption at all.
+frame, including frames with no caption at all. Measured on the render at the
+lower position: **147px** from the lowest pictogram shadow to that ceiling and
+**174px** from the lowest ink, against a floor of 40.
+
+**The scenes are solid ink, not outlines.** They shipped as hairline strokes and
+were rebuilt as filled silhouettes with the detail cut out to the page, one soft
+drop shadow per shape, and a real damped spring under every pop. What that means
+shape by shape is under `lib/pictograms.mjs` in The library; what it changed
+about these five scenes is in the table and the notes below.
 
 | scene | window | what it is | keyed to |
 |---|---|---|---|
-| `intro` | 0.10..3.06 | three empty squares popping in one by one, a list waiting | the rhythm of the opening line |
-| `money` | 2.76..7.45 | a document, a signature drawn across it, a coin dropping onto it, a person and a check | `money` 4.14, `alone.` 5.03, `human` 5.98, `checks` 6.34 |
-| `data` | 7.15..12.73 | a folder, a lock that arrives and then shuts, an eye with a line through it | `without` 9.38, `rules.` 9.85, `decide` 10.79, `see` 11.48 |
-| `checking` | 12.43..17.80 | a page, a glass sweeping across it, a red x, the x turning into a check | `checking.` 14.10, `mistakes.` 15.49, `must` 16.86 |
-| `close` | 17.50..22.20 | the mascot and a person joined by a line, both signed off | `good` 17.94, `human` 18.68, `behind` 19.01, `whole` 20.34, `secret.` 20.60 |
+| `intro` | 0.10..3.06 | three solid blocks popping in one by one, the count | the rhythm of the opening line |
+| `money` | 2.76..7.45 | a filled document, a signature cut across it, a coin dropping onto it, a person and a check | `money` 4.14, `alone.` 5.03, `human` 5.98, `checks` 6.34 |
+| `data` | 7.15..12.73 | a folder, an accent lock that arrives and then shuts, an eye with a knocked line through it | `without` 9.38, `rules.` 9.85, `decide` 10.79, `see` 11.48 |
+| `checking` | 12.43..17.80 | a page, a white glass sweeping across it, a red x, the x turning into a check | `checking.` 14.10, `mistakes.` 15.49, `must` 16.86 |
+| `close` | 17.50..22.20 | the mascot and a person joined by a bar, both signed off | `good` 17.94, `human` 18.68, `behind` 19.01, `whole` 20.34, `secret.` 20.60 |
 
 **The handoffs are the gaps the reading already leaves.** The script counts out
 loud and the synthesiser puts about half a second of air around each numeral, so
@@ -610,8 +624,18 @@ number moves together, because they all come from the same array.
 **One accent per scene, on the one thing the scene is about.** `--red` appears
 exactly once in the clip, on the x, and it is the site's own error colour meaning
 the site's own thing — something is wrong — for eight tenths of a second before
-it becomes a check. The lines inside a sheet are `--muted` because they are
-texture, not content. Everything else is `--fg`.
+it becomes a check. Everything else is `--fg`, except the two things the solid
+ink pass had to move:
+
+- **The writing inside a shape is `cut`, which is `--bg`.** A `--muted` line on
+  top of a near black filled document is one grey shape on another. Cut, it is a
+  hole with the page showing through, and it casts no shadow, because a hole in
+  a card is not floating over it.
+- **The magnifier is `page`, which is also `--bg` but does float.** An `--fg` rim
+  and an `--fg` handle on a filled sheet are invisible: the first render of the
+  pass had a glass that read as a plain white hole with nothing holding it. The
+  two inks are the same colour and differ only in depth, which is the only thing
+  that could tell them apart in a light theme.
 
 **The composition rule was learnt off the first render rather than decided in
 advance.** The money scene first drew a document at x 14 and a person at x 76,
@@ -621,6 +645,34 @@ block's own axis and everything else hangs off it. The same render also killed a
 coin drawn as a circle with a bar across it — the bar read as a minus sign — and
 found the coin landing exactly on the sheet's border, which reads as a badge
 stuck to a corner rather than as a thing that landed.
+
+**The solid ink pass cost four more geometry changes, all of them found on a
+frame rather than reasoned about.**
+
+- **The intro blocks lost their bar.** As filled chips they carried a white bar
+  cut across the middle, which is a minus sign — the same mistake the coin made
+  in the first pass. Three plain solid blocks are the whole read and need no
+  symbol inside them. The rule is now the shape's own default: `square` draws no
+  bar unless it is asked for one.
+- **The folder narrowed and the lock moved ten units right.** Dark green on near
+  black is a smudge. They were also knocked for one render and it was one fix
+  too many: with three and a half units of page already between them, a white
+  halo round the lock read as a sticker laid on the frame rather than a shape in
+  it. The gap does the job alone; the eye's slash is the one part still knocked,
+  because an `--fg` line across an `--fg` eye is one shape without it — and the
+  knock itself came down from three units to 1.6 for the same reason the lock's
+  came off.
+- **The eye grew and moved up.** Filled, it is a much heavier shape than the
+  outline it replaced, and at 22x9 five units above the lock the right hand
+  column read as one busy stack rather than as two things. 26x11 at `cy 14`, with
+  the lock a unit lower, puts eight units of page between them.
+- **The work page widened and centred.** The glass's handle runs down and to the
+  right and finished past the old page's edge, where a white handle on a white
+  page is nothing.
+- **The bond reaches into both silhouettes.** A bar with air at both ends between
+  two figures is a punctuation dash, which is the one mark the brand does not
+  allow anywhere a viewer can read one, and a diagram is somewhere a viewer
+  reads. Touching both ends makes it a join.
 
 **It runs on the rAF shim.** Node writes the frame with `__pic.set`, the one
 flush per captured frame applies it, and the run checks afterwards that exactly
@@ -643,8 +695,14 @@ reason: every smoothness check passes on a layer that never drew anything.
 
 - **Before a frame is rendered**, `sceneMotion` walks all 1332 of them and fails
   on a one frame step past any limit: 4.5 viewBox units of movement, 0.14 of
-  scale, 0.12 of a path drawn, 0.20 of opacity, 10 degrees of turn. All five are
-  frame rate relative, so `DEMO_FPS=12` does not fail on being a preview.
+  scale, 0.12 of a path drawn, 0.20 of opacity, 10 degrees of turn, 0.22 of
+  shadow lift. All six are frame rate relative, so `DEMO_FPS=12` does not fail
+  on being a preview. **Lift is the shadow's own channel** — 1 in the air, 0
+  landed — and it is guarded next to the rest because a shadow that trebles in
+  size between two frames is exactly as wrong as a shape that does. The damped
+  spring made it the fastest channel in the layer: the worst is the lock's
+  shackle at 0.140, on the fifth of a second where its shadow collapses and the
+  lock reads as clicking shut.
 - **During the render** the same comparison runs against the same numbers the
   page is handed, unconditionally — every part holds a value at every instant of
   the clip, so there is no "it was invisible, it is allowed to have jumped" case
@@ -653,13 +711,24 @@ reason: every smoothness check passes on a layer that never drew anything.
   frame that landed must be the frame for that time, some part must have moved,
   and the page must have written a different value between two frames.
 - **The frame:** at most two scenes on screen at once and only at a handoff, at
-  least 40px of clear air between the lowest pictogram ink and the caption
+  least 40px of clear air between the lowest pictogram **shadow** and the caption
   ceiling — plus a guard that the ceiling is a measured card and not the box top,
   because a ceiling that silently fell back to the box would make the clearance
-  check pass against nothing — and the 96 device px safe area held on every frame a part is
-  moving — sampled at the midpoint of every step of every part, the middle of
-  every handoff and each scene once settled, because a sweeping glass or a
-  falling coin is furthest from where its own box said it would be.
+  check pass against nothing — and the 96 device px safe area held on every frame
+  a part is moving, sampled at the midpoint of every step of every part, the
+  middle of every handoff and each scene once settled, because a sweeping glass
+  or a falling coin is furthest from where its own box said it would be.
+- **The depth is guarded twice over.** Every border and clearance number comes in
+  two forms, the ink alone and the ink plus the shadow it is throwing on that
+  frame, grown from the same three numbers the frame was drawn with and scaled by
+  the part's own scale, because the filter sits inside the transform. The ink
+  keeps the frame's 96 device px floor; the shadow gets its own lower floor of
+  72, because a large blur at low opacity is allowed nearer an edge than ink is.
+  A third guard fails if the two ever come back equal, since that is what a
+  silently broken expansion looks like. And because the depth is markup rather
+  than css, the page's count of shadow filters and knocked parts is checked
+  against the plan's, 22 and 1. Measured on the render: **250 device px** from
+  the ink to a border and **232** from the shadow.
 
 ## The og card
 
@@ -858,8 +927,9 @@ The same split as the caption engine, and for the same reason:
 - **`planScenes(scenes, opts)` runs in node and measures nothing.** It validates,
   resolves the timings and returns plain data. `describeScenes(plan)` prints it.
 - **`sceneFrame(plan, t, env)` is the whole animation, as a pure function of
-  time.** Opacity, scale, offset, rotation and how much of each path is drawn,
-  for every scene and every part, at second `t`.
+  time.** Opacity, scale, offset, rotation, how much of each path is drawn and
+  how far off the page the part is, for every scene and every part, at second
+  `t`.
 - **`pictogramPage` is serialised into the scene** with `.toString()`. It
   measures the path lengths once and then does as it is told.
 
@@ -867,17 +937,100 @@ The same split as the caption engine, and for the same reason:
 `post2.mjs` found and `captions.mjs` repeats: one captured frame carries five or
 six BeginFrames, so a css animation resolves about five times too fast.
 
-The vocabulary is flat, minimal and stroked: `square`, `sheet`, `rule`,
-`squiggle`, `coin`, `human`, `check`, `stroke`, `folder`, `lockBody`, `shackle`,
-`eye`, `magnifier`, `mascotFace`. Geometry is a 100x60 viewBox scaled into
-whatever box the caller hands over, so a shape that reads at one size reads at
-all of them.
+The vocabulary is `square`, `sheet`, `rule`, `squiggle`, `coin`, `human`,
+`check`, `stroke`, `folder`, `lockBody`, `shackle`, `eye`, `magnifier`,
+`mascotFace`. Geometry is a 100x60 viewBox scaled into whatever box the caller
+hands over, so a shape that reads at one size reads at all of them, and every
+shape returns its own bounding box as well as its own centre — the box sizes the
+shape's shadow filter region and is what the border guard measures.
 
-Fixed and not negotiable per clip: the colours. `--fg` for ink, `--muted` for the
-secondary lines inside a sheet, `--accent` for the one thing a scene is about,
-`--red` for an error and nothing else, `--face` and `--eye` for the mascot. Every
-one is a token out of `index.html`. There is no text in a pictogram, so there is
-no dash to check and no face to load.
+#### Solid ink, not outlines
+
+It shipped as hairline strokes with no fill and no depth and was rebuilt. Three
+rules make the new look one look rather than a pile of choices.
+
+**Fill, do not outline.** A shape is a filled silhouette in the part's own ink.
+What used to be a second outline inside a first one is now a hole: `pic-cut`
+paints `--bg`, so a coin's face, a lock's keyhole, an eye's pupil and the writing
+on a document are all cut out of the ink rather than drawn next to it. The page
+shows through, which is what makes these read as paper rather than as icons.
+
+**Strokes only where a stroke is the animation.** A rule, a signature, a check, a
+slash, a shackle and a bond are line drawn, so they stay strokes; nothing else
+is. The ones that remain carry one of two weights and never a third — `hair` at
+1.4 units for detail cut into a filled shape, `mark` at 2.2 for a mark that
+stands on its own — and `planScenes` throws on any other number rather than
+letting a third weight creep in. Corners run on one radius scale carried over
+from the site's own: `panel` for a document or a folder, `chip` for a small
+block, and nothing square left in the vocabulary except the mascot, which is a
+circle.
+
+**Everything floats.** Each part casts one soft drop shadow, large blur, low
+opacity, and it grows while the part is in the air and tightens as it lands. No
+gradient, no second light, no inner shadow. A `cut` inked part casts nothing,
+because a white line cut into a black card is not floating over it.
+
+*The site has no drop shadows and `skills/page-builder/SKILL.md` says so. This is
+the one place they are allowed and it is demo only: nothing in this file reaches
+`index.html`, and depth on a 1080x1920 clip that plays between two other people's
+videos is doing a different job from depth on a page.*
+
+The shadow is an SVG `feDropShadow` per part, in a `filterUnits="userSpaceOnUse"`
+region worked out from the shape's own box rather than from the board — a region
+sized to the whole block would cost every part a full block of raster on every
+one of thirteen hundred frames. Three attributes are written per frame from the
+`lift` channel: offset, blur and flood opacity. **The blur is one of them**,
+which the site's rules forbid because it re-rasterises every frame; every frame
+in here is already being re-rasterised and written to disk, an offline renderer
+pays that in minutes rather than in dropped frames, and there is no other way to
+make a thing look like it is further off the page. The part's own opacity is
+deliberately not in the shadow's numbers: the filter sits inside the element the
+fade is written to, so a part at 30% carries a shadow at 30% of its own strength
+for free, and one number controls both rather than two that can disagree.
+
+**A `knock`ed part carries a `--bg` copy of itself 1.6 units fatter
+underneath.** That is what lets an `--fg` slash cross an `--fg` eye and still
+read as a slash. Both copies are dashed off one measurement, so the white line
+under a mark draws at exactly the speed the mark does. **It is a gap, not an
+outline** — it was three units, and the scene strip showed what that is: a white
+halo tracing a silhouette reads as a sticker laid on the frame, and on a shape as
+thin as an eye it ate the shape.
+
+#### Weight in motion
+
+`pop` and every scene entrance run on a real damped oscillator rather than a
+bezier shaped to look like one:
+
+    f(x) = 1 - e^(-damp x) cos(freq pi x)
+
+A cubic bezier can overshoot once and that is all it can do, which is why
+everything eased on one reads light. The first trough of the cosine is the
+overshoot and its size is `e^(-damp/freq)` exactly, so the two knobs mean
+something: `freq` is how many times it crosses the mark inside the step, `damp`
+is how far past it goes the first time. At 2.2 and 5.3 that is about 9% past,
+then under a percent back under, then still. The result is divided by its own
+value at x=1 so it lands on 1 to the last decimal — a spring finishing at 0.997
+would be a 0.003 snap on the frame after its step ended, which is small, real,
+and exactly what the movement guards exist to catch.
+
+The cost of a genuine settle is a steeper start, and it is paid in duration
+rather than in a raised guard: **`pop` is 0.52s where it used to be 0.34**.
+
+`move` gains a `land` curve for anything that falls: `x` squared to the floor,
+which is what falling actually is, then a small damped sine about the landing
+point — up first, because a thing that lands bounces before it settles, then a
+shallow squash past the mark, then nothing. The sine is zero at both ends so the
+step lands on 1 with no normalising, and the bounce's slope is a third of the
+fall's, which makes the moment of impact the fastest thing in the step. That is
+what makes it read as an impact rather than as a stop. The coin falls 38 units on
+it in 0.58s; the padlock's shackle seats 1.8 units on it in 0.30 and the click is
+the shadow collapsing under it as much as the travel.
+
+Fixed and not negotiable per clip: the colours. `--fg` for ink, `--bg` for a
+cutout, `--muted` for a secondary shape on the page itself, `--accent` for the
+one thing a scene is about, `--red` for an error and nothing else, `--face` and
+`--eye` for the mascot. Every one is a token out of `index.html`. There is no
+text in a pictogram, so there is no dash to check and no face to load.
 
 Two things it refuses rather than warns about, because both read as the layer
 glitching rather than as a wrong number:
@@ -889,7 +1042,8 @@ glitching rather than as a wrong number:
 
 And one it measures rather than assumes. **`sceneMotion(plan, fps, seconds)`
 walks every frame before a render** and reports the biggest one frame step in
-every channel, plus which part made it. It costs a fraction of a second and it is
+every channel — the shadow's `lift` included, because a shadow that trebles in
+size in one frame is as wrong as a shape that does — plus which part made it. It costs a fraction of a second and it is
 the difference between finding a snap now and finding it in a twenty two second
 render. `post6.mjs` turns those numbers into guards and prints both the limit and
 the truth, so the headroom is on screen rather than in a comment.
@@ -989,6 +1143,49 @@ a second against the drawn ink, never more than one group on screen at once
 except in `type` where stacking is the style, the accent painted in `pop` and
 `count` and **never** in `type`, and something actually moving between two
 frames — because a still frame passes every other check in the list.
+
+### `scenes-test.mjs` — the scene strip
+
+```
+node scenes-test.mjs                 the strip, 1080x1920, 60fps, silent
+DEMO_FPS=12 node scenes-test.mjs     the fast preview pass
+```
+
+`post6.mjs`'s five pictogram scenes, back to back with the dead air taken out,
+into `demo/out/scenes-test.mp4`, plus one settled still per scene into
+`demo/out/verify-scenes-test/`. **10.18s and about a minute and a half.** It
+exists so the scene layer can be judged without scrubbing a twenty two second
+clip with a voice on it.
+
+**It is post6's own scenes, imported, not copied.** `SCENES` and `SCENE_BOX` come
+out of `post6.mjs` rather than being duplicated here, because a second copy of a
+scene table drifts from the first inside a week and then the strip is judging
+something that is not what ships. That is why `post6.mjs`'s run block now sits
+behind a `main()` guard: importing it must not render a clip.
+
+**The frame is production's frame, exactly** — 1080x1920, light theme, the same
+vignette, the block at the same place and size, the wordmark where it always is.
+What is missing is the voice, the captions and the mascot, because those are the
+three things this is not for. In their place is one line of system mono under the
+block naming the scene and the seconds it holds in the real clip, so a judgement
+made here can be taken straight back to the table in `post6.mjs`.
+
+**The compression is on the gaps only.** The five scenes run 23.3s end to end at
+their own speed. Every step keeps its own duration — a coin still falls in 0.58s
+and a lock still seats in 0.30 — and what shrinks is the silence between them
+that the voice used to fill, to 33% of itself. Scaling the durations too would
+give a ten second strip of a layer moving at three times the speed of the one
+that ships, which is worse than useless: it would look fine and the real one
+would not. **The strip is therefore whatever length the moves add up to**, and
+the run prints it rather than promising a number.
+
+The guards are the scene layer's, not the clip's — there is no voice to be in
+sync with and no caption to clear. What is left is the same `sceneMotion`
+preflight at the same limits `post6.mjs` uses (a strip that passed on numbers the
+clip would fail on would be judging nothing), the same liveness proofs, the ink
+and the shadow each against their own border floor, nothing reaching the label,
+and the label itself legible on more than 60% of frames — a strip whose captions
+never showed up would still pass every other check in the list.
 
 ## Why demo/ is safe to have in a public repo
 
