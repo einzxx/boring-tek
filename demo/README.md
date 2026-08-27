@@ -569,11 +569,22 @@ what anybody can see.
 
 ### The scene layer
 
-Five scenes in the block above the caption, at `115,82` and `310x186` css px —
-57.4% of the frame width, centred, 34px below the top safe line and 32px above
-the caption's own box. One viewBox unit is 3.1 css px and 6.2 device px, which
-is what makes a 1.2 unit stroke a confident 7px line at 1080 rather than a
-hairline.
+Five scenes in the block above the caption, at `115,117` and `310x186` css px —
+57.4% of the frame width, centred, 69px below the top safe line. One viewBox unit
+is 3.1 css px and 6.2 device px, which is what makes a 1.2 unit stroke a
+confident 7px line at 1080 rather than a hairline.
+
+It started at `115,82` and came down 70 device px on a marked frame. That move
+takes the block three css px past the caption box's top edge, which sounds like a
+collision and is not — **the box is 300..550 and the caption is anchored to the
+bottom of it**, so no card in this clip draws above y=495. The clearance check
+used to floor at the box's top edge whenever no card was on screen, which guarded
+against nothing while the block was above it and would have failed on a collision
+that does not exist the moment it came down. It now floors at a measured
+**caption ceiling**: the tallest card there is, grown about its own baseline by
+the biggest scale the entrance spring reaches. That does not depend on which card
+is up, so the layer is checked against the worst caption in the clip on every
+frame, including frames with no caption at all.
 
 | scene | window | what it is | keyed to |
 |---|---|---|---|
@@ -642,8 +653,10 @@ reason: every smoothness check passes on a layer that never drew anything.
   frame that landed must be the frame for that time, some part must have moved,
   and the page must have written a different value between two frames.
 - **The frame:** at most two scenes on screen at once and only at a handoff, at
-  least 40px of clear air between the lowest pictogram ink and the highest
-  caption ink, and the 96 device px safe area held on every frame a part is
+  least 40px of clear air between the lowest pictogram ink and the caption
+  ceiling — plus a guard that the ceiling is a measured card and not the box top,
+  because a ceiling that silently fell back to the box would make the clearance
+  check pass against nothing — and the 96 device px safe area held on every frame a part is
   moving — sampled at the midpoint of every step of every part, the middle of
   every handoff and each scene once settled, because a sweeping glass or a
   falling coin is furthest from where its own box said it would be.

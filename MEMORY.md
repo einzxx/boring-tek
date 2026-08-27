@@ -529,8 +529,10 @@ Still no posting cadence or content pillars. See Next steps.
   are all cut from its word timestamps. No statement and no bubble — the captions
   are the copy. **Since 2026-08-27 it also carries an animated pictogram scene
   layer in the top third** — five scenes from `demo/lib/pictograms.mjs`, keyed to
-  the voice's word timestamps, at `115,82` and `310x186` css px. Nothing else in
-  the frame moved to make room. See Decisions.
+  the voice's word timestamps, at `115,117` and `310x186` css px. Nothing else in
+  the frame moved to make room. **The block came down 70 device px from `y 82` on
+  2026-08-27**, which put it three css px past the caption box's top edge and
+  found a real bug in the clearance guard — see Decisions. 
 - **`demo/lib/pictograms.mjs`**, added 2026-08-27: flat svg pictogram scenes drawn
   in code and animated per frame, built the same way `lib/captions.mjs` is so one
   clip drives both from one loop. A scene has an entrance, a hold and an exit;
@@ -751,6 +753,32 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### The caption box's top edge was never the caption — 2026-08-27
+
+The scene block came down 70 device px on a marked frame, from `y 82..268` to
+`y 117..303` css. Small move, and it exposed something that had been wrong since the
+layer was written.
+
+**The clearance guard floored at the caption box's own top edge whenever no card was on
+screen.** The box is `300..550` and the caption is anchored to the *bottom* of it, so the
+top edge is about 200px above anything that is ever drawn. While the block sat above 300
+that fallback was harmless and meaningless — it guarded against nothing. The moment the
+block came down past 300 it would have failed on a collision that does not exist.
+
+**It now floors at a measured caption ceiling:** the tallest card in the clip, grown
+about its own baseline by the biggest scale the entrance spring reaches. Measured once,
+after the caption is fitted, because it is the fitted size that decides how tall the
+tallest card is. It does not depend on which card happens to be up, which makes it the
+stricter test *and* the one that still means something on a frame with no caption at all.
+There is a guard on the guard: if the ceiling ever comes back equal to the box top, the
+measurement has silently stopped working and the run fails rather than passing against
+nothing.
+
+**The lesson generalises past this file.** A guard that floors at a container rather than
+at its contents reads as a real check and is not one, and it passes for exactly as long
+as nothing goes near it. The clearance number it printed before the move — 241px — was
+never wrong, it was just never tested.
 
 ### post6 spends its empty half, and two design calls came off the render — 2026-08-27
 

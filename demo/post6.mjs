@@ -117,8 +117,8 @@ const BEATS_EXPECTED = 3;
    96 device px nothing is allowed inside.
 
    the vertical budget, top to bottom:
-       82..268   the pictogram scenes, 310 wide and centred
-     ~510..550   the caption, one card at a time, bottom anchored on 550
+      117..303   the pictogram scenes, 310 wide and centred
+     ~496..550   the caption, one card at a time, bottom anchored on 550
       654..750   the mascot, 96px, centred
      ~846..862   the wordmark
 
@@ -129,10 +129,14 @@ const BEATS_EXPECTED = 3;
 
    the top third used to be empty on purpose, and that note is worth keeping
    rather than deleting: the page is mostly air and the clip was too. the scene
-   layer spends it. what it does not spend is the margin — the block starts 34px
-   below the safe line and stops 32px above the caption's own box, and both of
-   those are measured on drawn ink every time a part moves rather than assumed
-   from the numbers here. */
+   layer spends it.
+
+   the block sat at 82..268 first and came down 70 device px on a marked frame.
+   that move takes it three css px past the caption box's top edge, which sounds
+   like a collision and is not: the box is 300..550 and the caption is anchored
+   to the *bottom* of it, so no card ever draws above about 496. the box's top
+   edge was never where the caption is, and the clearance check used to treat it
+   as though it were — see `capCeiling` below for what replaced it. */
 const VW = 540, VH = 960, SAFE = 48;
 const BOX = { x: SAFE, y: 300, w: VW - SAFE * 2, h: 250 };
 /* the scene zone. 310 of 540 is 57.4% of the frame, inside the 55 to 60 the
@@ -140,10 +144,10 @@ const BOX = { x: SAFE, y: 300, w: VW - SAFE * 2, h: 250 };
    the caption, the head and the wordmark. one viewBox unit is 3.1 css px and
    6.2 device px, which is what makes a 1.2 unit stroke a confident 7px line at
    1080 rather than a hairline. */
-const SCENE_BOX = { x: 115, y: 82, w: 310, h: 186 };
+const SCENE_BOX = { x: 115, y: 117, w: 310, h: 186 };
 /* how much clear air the scene layer owes the caption below it. measured on the
-   lowest drawn pictogram ink against the highest drawn caption ink, on every
-   frame a part is moving, rather than worked out from the two boxes. */
+   lowest drawn pictogram ink against the highest a caption can ever reach, on
+   every frame a part is moving, rather than worked out from the two boxes. */
 const SCENE_CLEARANCE = 40;
 const MASCOT = 96, MASCOT_TOP = 654;
 const WORDMARK_CY = 854, WORDMARK_W = 250;
@@ -619,6 +623,33 @@ scenePage();
    mascot, the wordmark fit, and the measurements that are about the whole frame
    rather than about the captions alone. */
 function scenePage() {
+  /* the highest any caption in this clip can ever reach, measured once.
+
+     the clearance check used to floor at the caption box's own top edge
+     whenever no card happened to be on screen, and that was wrong in a way that
+     only showed up once the scene block came down past it. the box is 300..550
+     and the caption is anchored to the *bottom* of it, so the top edge is 200px
+     above anything that is ever drawn — as a floor it guarded against nothing,
+     and the moment the scenes crossed it, it started failing on a collision
+     that does not exist.
+
+     this is the real ceiling: the tallest card there is, grown about its own
+     baseline by the biggest scale the entrance spring takes it to. it does not
+     depend on which card is up, so the scene layer is checked against the worst
+     caption in the whole clip on every frame rather than against whichever one
+     happens to be visible — which is the stricter test, and the one that keeps
+     meaning something on a frame with no caption at all. */
+  function capCeiling() {
+    const bottom = window.__CAP_BOX.y + window.__CAP_BOX.h;
+    const scale = window.__CAP_PLAN.maxScale || 1;
+    let tallest = 0;
+    for (const el of document.querySelectorAll('.cap-card,.cap-type,.cap-count')) {
+      tallest = Math.max(tallest, el.getBoundingClientRect().height);
+    }
+    if (!tallest) throw new Error('no caption card had a height — capCeiling would be the box');
+    return +(bottom - tallest * scale).toFixed(1);
+  }
+
   function fitWordmark() {
     const el = document.getElementById('wordmark');
     const s = el.textContent.toUpperCase();
@@ -722,10 +753,13 @@ function scenePage() {
       }
       return {
         low: pic.low, lowest: pic.lowest,
-        /* with no caption on screen the floor of the zone is the caption box's
-           own top edge, which is the line the layer promised not to cross. */
-        gap: +((top === 1e9 ? window.__CAP_BOX.y : top) - pic.low).toFixed(1),
-        under: top === 1e9 ? '(the caption box)' : which,
+        /* the guard, and it does not care what is on screen: the floor is the
+           highest any card in this clip can ever draw. */
+        gap: +(window.__p6.capCeil - pic.low).toFixed(1),
+        /* and what is actually up on this frame, for the run to print. null on
+           a frame between two cards, which is a fact rather than a pass. */
+        live: top === 1e9 ? null : +(top - pic.low).toFixed(1),
+        under: top === 1e9 ? null : which,
         near: +Math.min(pic.left, pic.top, pic.right, pic.bottom).toFixed(1),
         worst: pic.worst,
       };
@@ -755,6 +789,9 @@ function scenePage() {
       /* the path lengths, measured once. no font is involved, but it is built
          here anyway so there is one ready gate rather than two. */
       window.__picBuilt = window.__pic.build();
+      /* after the caption is fitted, because it is the fitted size that decides
+         how tall the tallest card is. */
+      window.__p6.capCeil = capCeiling();
       window.__p6.ready = true;
     });
 }
@@ -882,10 +919,12 @@ async function render(plan, pic, seconds, blinks) {
 
   const built = await page.evaluate(() => window.__built);
   const picBuilt = await page.evaluate(() => window.__picBuilt);
+  const capCeil = await page.evaluate(() => window.__p6.capCeil);
   const boxes = await page.evaluate(() => window.__p6.boxes());
   console.log('  cards fitted at ' + built.size.toFixed(1) + 'px, the three beats at '
     + built.bigSize.toFixed(1) + 'px (' + (built.bigSize / built.size).toFixed(2) + 'x)');
   console.log('  scenes ' + SCENE_BOX.y + '..' + (SCENE_BOX.y + SCENE_BOX.h)
+    + ', caption ceiling ' + capCeil.toFixed(0)
     + ', head ' + boxes.mascot.top.toFixed(0) + '..' + boxes.mascot.bottom.toFixed(0)
     + ', wordmark ' + boxes.wordmark.top.toFixed(0) + '..' + boxes.wordmark.bottom.toFixed(0)
     + '  (css px of ' + VH + ')');
@@ -1013,7 +1052,7 @@ async function render(plan, pic, seconds, blinks) {
       const s = picSamples[picNext++];
       const z = await page.evaluate(() => window.__p6.zone());
       if (!z) continue;
-      zoneSamples.push({ at: s.who, t: +t.toFixed(3), gap: z.gap, near: z.near });
+      zoneSamples.push({ at: s.who, t: +t.toFixed(3), gap: z.gap, live: z.live, under: z.under, near: z.near });
       if (!zoneWorst || z.gap < zoneWorst.gap) zoneWorst = { at: s.who, t: +t.toFixed(3), ...z };
       if (!picSafeWorst || z.near < picSafeWorst.near) picSafeWorst = { at: s.who, t: +t.toFixed(3), ...z };
     }
@@ -1091,11 +1130,18 @@ async function render(plan, pic, seconds, blinks) {
     + picVisMax + ' on screen at once, biggest one-frame part move '
     + picMoved.toFixed(3) + ' units (limit ' + PART_MOVE_LIMIT.toFixed(2) + '), '
     + (picFaults.length || 'no') + ' fault(s)');
+  const liveWorst = zoneSamples.filter(z => z.live !== null)
+    .reduce((a, b) => (a === null || b.live < a.live) ? b : a, null);
   console.log('  the scenes never get closer than ' + zoneWorst.gap.toFixed(0)
-    + 'px to the caption (floor ' + SCENE_CLEARANCE + ', closest at '
-    + zoneWorst.t.toFixed(2) + 's under "' + zoneWorst.under + '", lowest ink "'
-    + zoneWorst.lowest + '"), and ' + Math.round(picSafeWorst.near * DSF)
-    + 'px to a border at ' + picSafeWorst.t.toFixed(2) + 's on ' + picSafeWorst.worst);
+    + 'px to the caption ceiling at y=' + capCeil.toFixed(0) + ' (floor '
+    + SCENE_CLEARANCE + ', closest at ' + zoneWorst.t.toFixed(2)
+    + 's on "' + zoneWorst.lowest + '")');
+  console.log('  against the caption actually on screen, the worst is '
+    + (liveWorst ? liveWorst.live.toFixed(0) + 'px at ' + liveWorst.t.toFixed(2)
+      + 's under "' + liveWorst.under + '"' : 'no sample had a caption up'));
+  console.log('  and ' + Math.round(picSafeWorst.near * DSF)
+    + 'px to a border at ' + picSafeWorst.t.toFixed(2) + 's on ' + picSafeWorst.worst
+    + ' (floor ' + SAFE * DSF + ')');
 
   await browser.close();
   srv.close();
@@ -1110,6 +1156,7 @@ async function render(plan, pic, seconds, blinks) {
       applied: +picApplied.toFixed(4), faults: picFaults.slice(0, 12),
       faultCount: picFaults.length, zone: zoneWorst, border: picSafeWorst,
       samples: zoneSamples.length, wanted: picSamples.length,
+      capCeil, box: { ...SCENE_BOX },
     },
   };
   fs.writeFileSync(path.join(OUT, 'post6-1080x1920.json'), JSON.stringify(state, null, 2));
@@ -1396,7 +1443,14 @@ else {
   }
   if (!pg.zone || pg.zone.gap < SCENE_CLEARANCE) {
     fail.push('the scenes come within ' + (pg.zone ? pg.zone.gap.toFixed(0) : '?')
-      + 'px of the caption, wanted at least ' + SCENE_CLEARANCE);
+      + 'px of the caption ceiling, wanted at least ' + SCENE_CLEARANCE);
+  }
+  /* the ceiling has to be a measured caption, not the box it lives in. if this
+     ever comes back equal to the box top the measurement silently stopped
+     working and the clearance guard above is checking nothing. */
+  if (!(pg.capCeil > BOX.y + 1)) {
+    fail.push('the caption ceiling measured ' + pg.capCeil + ', which is the box top ('
+      + BOX.y + ') rather than a card — the clearance guard is checking nothing');
   }
   /* the per card safe samples above only catch the layer where a caption
      happened to change. this is the layer measured on the frames it is actually
