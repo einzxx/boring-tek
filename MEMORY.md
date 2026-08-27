@@ -6,6 +6,18 @@ names in here either.
 
 ## Status
 
+- **Built 2026-08-27, after the factory checkpoint: `demo/lib/pictograms.mjs`, an
+  animated pictogram scene layer, and post6 re-rendered with it.** Five flat svg
+  scenes in the top third of the frame, one per beat of the voice, drawn in code and
+  driven per frame through the rAF shim. **The empty upper half of post6 is gone and
+  that is the one thing that changed about the frame** — the caption, the mascot and
+  the wordmark are all where they were. **22.20s, 60fps, 1080x1920, voice still inside
+  the mp4, 1.56 MB, all checks passing**, including six new guards written for the
+  layer. **The live site did not change**: `index.html`, `CNAME`, `robots.txt`,
+  `sitemap.xml`, the language stubs and `assets/` are all untouched. Demo only, and it
+  is not posted — the clip that is public is still the one without scenes. Two design
+  calls were made off the first render rather than in advance and both are written
+  down under Decisions. See Current state.
 - **Checkpoint 2026-08-27: the factory is v1 and it is pushed.** `b30bee8` put the whole
   content pipeline and the sixth clip on `main`: `demo/lib/captions.mjs`,
   `demo/lib/voice.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs` and
@@ -470,7 +482,22 @@ Still no posting cadence or content pillars. See Next steps.
   two and a half minutes end to end. It is the first clip built on `demo/lib/`:
   the voice is generated first and the captions, the length and the mascot's gaze
   are all cut from its word timestamps. No statement and no bubble — the captions
-  are the copy. See Decisions.
+  are the copy. **Since 2026-08-27 it also carries an animated pictogram scene
+  layer in the top third** — five scenes from `demo/lib/pictograms.mjs`, keyed to
+  the voice's word timestamps, at `115,82` and `310x186` css px. Nothing else in
+  the frame moved to make room. See Decisions.
+- **`demo/lib/pictograms.mjs`**, added 2026-08-27: flat svg pictogram scenes drawn
+  in code and animated per frame, built the same way `lib/captions.mjs` is so one
+  clip drives both from one loop. A scene has an entrance, a hold and an exit;
+  inside it are parts, and a part is one shape plus a list of steps — `pop`,
+  `draw`, `move`, `flip`, `fade`. Steps are a list because real objects do more
+  than one thing: a padlock's shackle is drawn and *then* seats. `planScenes` is
+  plain data and validates, `sceneFrame(plan, t)` is the whole animation as a pure
+  function of time, `pictogramPage` is serialised into the page and only writes
+  numbers. No css transition anywhere in it, for the reason `post2.mjs` found.
+  **`sceneMotion(plan, fps, seconds)` walks every frame before a render** and
+  reports the biggest one frame step in every channel, so a snap costs a second
+  instead of two and a half minutes of jpegs. No new dependency. See Decisions.
 - **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
   `cd demo && node og.mjs`, or `--preview` to write to the gitignored `demo/out/`
@@ -490,7 +517,9 @@ Still no posting cadence or content pillars. See Next steps.
 - **The mp4s are not in the repo** and never will be — `demo/out/` is ignored. Whoever
   needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
-  `demo/og.mjs`, `demo/README.md`, `demo/package.json`.
+  `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
+  `demo/lib/captions.mjs`, `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`,
+  `demo/README.md`, `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
   text, no secrets, no endpoint that is not already in `index.html`. Not in
@@ -677,6 +706,70 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### post6 spends its empty half, and two design calls came off the render — 2026-08-27
+
+`demo/lib/pictograms.mjs` and a re-rendered post6. Demo only: the site did not change,
+and the clip that is public is still the one without scenes.
+
+**The empty top half was a decision and it has been reversed on purpose.** post6's own
+notes defended it — "the page is mostly air and the clip should be too, and it is where
+a platform puts nothing" — and that note is kept in the file rather than deleted,
+because the reasoning was sound and it is still the reason the block does not touch a
+margin. What changed is the brief: the frame now carries a picture. The zone is 57.4% of
+the frame width, centred on the same axis as everything else, 34px below the top safe
+line and 32px above the caption's own box. The caption, the mascot and the wordmark did
+not move a pixel to make room.
+
+**Two things were decided by looking at the first render rather than in advance, and
+both are worth writing down because neither was visible in the numbers.**
+
+1. **The subject of a scene is centred and everything else is a satellite.** The money
+   scene first drew a document on the left and a person on the right, which balances
+   beautifully once both are there — and reads as broken alignment for the two and a
+   half seconds while only the document is. Every scene builds up over time, so what
+   matters is that it is centred at every moment, not that it is centred when finished.
+2. **A coin is two concentric circles, not a circle with a bar across it.** The bar read
+   as a minus sign. The same pass found the coin landing exactly on the sheet's border,
+   which reads as a badge stuck to a corner rather than as a thing that landed, and a
+   padlock whose bottom edge lined up with the folder's, which reads as a tangent.
+
+**The scene changes land in silence, because the reading already leaves it.** The script
+counts out loud and the synthesiser puts about half a second of air around each numeral,
+so the handoffs are at 2.91, 7.30, 12.58 and 17.65 — inside those gaps, never under a
+word. A scene leaves 0.15s after its handoff and the next arrives 0.15s before it, which
+is a 0.30s crossfade in the middle of the silence. `planScenes` refuses an overlap past
+0.45s and refuses three scenes at once: a handoff is a handoff, not a dissolve.
+
+**The layer runs on the rAF shim rather than beside it.** Node writes the frame with
+`__pic.set`, the one flush per captured frame applies it, and the run checks that exactly
+one tick happened and that the frame which landed is the frame for that time. That shim
+was previously installed in post6 with nothing to flush, "so a hand animated piece
+dropped in later is already on the right clock". This is that piece.
+
+**The small mascot blinks on the same lid as the big one.** `skills/page-builder/SKILL.md`
+says two faces on one screen must not disagree about blinking, so the closing scene's face
+is driven by the same value, passed in rather than recomputed. Its geometry comes from the
+ratios in the skill file rather than being drawn by eye, and it carries `--face` and
+`--eye`, so it inverts with the theme and reads as a hole punched in the page exactly as
+the real one does.
+
+**`--red` is used, once, and it means what the site means by it.** The checking scene's x
+is `--red` for eight tenths of a second before it turns into a green check. That is the
+site's own error token doing the site's own job — something is wrong — and it is the only
+non `--fg`, non `--accent`, non `--muted` ink in the whole layer. Everything else is a
+token out of `index.html` and there is no text in a pictogram at all, so there is no dash
+to check and no face to load.
+
+**The guards were written before the scenes were watched, and they are two passes.**
+`sceneMotion` walks all 1332 frames before a jpeg is written and fails on a one frame step
+past any limit; the render then runs the same comparison unconditionally against the same
+numbers the page is handed. Measured on the shipped file, against the limits: the coin
+moves 3.165 units in its worst frame against a limit of 4.5, the biggest scale step is
+0.080 against 0.14, the biggest draw step 0.089 against 0.12, the biggest fade 0.137
+against 0.20, the biggest turn 5.88 degrees against 10. The layer never gets closer than
+241px to the caption or 152px to a border, both floors comfortably clear. Every limit is
+frame rate relative, so `DEMO_FPS=12` does not fail on being a preview.
 
 ### The factory is v1, and the voice speaks english only — 2026-08-27
 

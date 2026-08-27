@@ -15,16 +15,19 @@ All headless Chrome, all tooling. The renderers first:
 - **`post6.mjs`** renders a 22.2 second social clip, vertical only, **with its
   own voice in the file**. The first one built on the new machine: the voice is
   generated first and the captions, the length and the mascot's gaze are all cut
-  from its word timestamps. See The sixth clip.
+  from its word timestamps, and there is now an animated pictogram scene layer in
+  the top third. See The sixth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
-Then the pipeline pieces, which are not clips and are not wired into any:
+Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
 
 - **`lib/captions.mjs`** turns a timestamped word list into a word by word
   animated caption, in three styles. See The library below.
 - **`lib/voice.mjs`** speaks a line in a free microsoft neural voice and hands
   back the audio with the engine's own word timestamps.
+- **`lib/pictograms.mjs`** draws flat svg pictogram scenes in code and animates
+  them per frame against the same timestamps.
 - **`analyze.mjs`** reads a reference video and writes down how it is built.
 - **`captions-test.mjs`** renders the three caption styles as five second clips
   so they can be judged.
@@ -431,7 +434,9 @@ Twenty two seconds, 60fps, 1080x1920, **with the voice in the file**. About two
 and a half minutes end to end. `3 things ai should not do in your business`, and
 it is the first clip in here where the copy is advice rather than a claim.
 
-It is built differently from post2 through post5, in five ways.
+It is built differently from post2 through post5, in six ways. The sixth was
+added after the clip was first cut and posted, and it is the one that changed
+what the frame is.
 
 **The voice comes first and everything else follows it.** `lib/voice.mjs` speaks
 the script in the default calm voice and hands back the words with the
@@ -461,6 +466,12 @@ The furthest he looks is 2.33 units of the page's 6 where post5 went to 5.04,
 thirteen slow turns in twenty two seconds, and blinks 3.0 to 4.4 seconds apart
 against post5's 1.45 to 2.60. He comes to the viewer once, at 17.95, for `good
 ai has a human behind it`, and stays there. That one move is the performance.
+
+**There is a pictogram scene layer in the top third.** Five flat SVG scenes, one
+per beat of the voice, drawn in code by `lib/pictograms.mjs` and driven per
+frame through the rAF shim. The empty upper half used to be the point of the
+frame; it is now the picture, and the caption, the mascot and the wordmark are
+unchanged underneath it. See The scene layer below.
 
 ### Two words to a card, and why
 
@@ -556,16 +567,86 @@ Forty five milliseconds, in the direction that puts the caption fractionally
 ahead of the audio, which is the correct direction for a caption and far inside
 what anybody can see.
 
+### The scene layer
+
+Five scenes in the block above the caption, at `115,82` and `310x186` css px —
+57.4% of the frame width, centred, 34px below the top safe line and 32px above
+the caption's own box. One viewBox unit is 3.1 css px and 6.2 device px, which
+is what makes a 1.2 unit stroke a confident 7px line at 1080 rather than a
+hairline.
+
+| scene | window | what it is | keyed to |
+|---|---|---|---|
+| `intro` | 0.10..3.06 | three empty squares popping in one by one, a list waiting | the rhythm of the opening line |
+| `money` | 2.76..7.45 | a document, a signature drawn across it, a coin dropping onto it, a person and a check | `money` 4.14, `alone.` 5.03, `human` 5.98, `checks` 6.34 |
+| `data` | 7.15..12.73 | a folder, a lock that arrives and then shuts, an eye with a line through it | `without` 9.38, `rules.` 9.85, `decide` 10.79, `see` 11.48 |
+| `checking` | 12.43..17.80 | a page, a glass sweeping across it, a red x, the x turning into a check | `checking.` 14.10, `mistakes.` 15.49, `must` 16.86 |
+| `close` | 17.50..22.20 | the mascot and a person joined by a line, both signed off | `good` 17.94, `human` 18.68, `behind` 19.01, `whole` 20.34, `secret.` 20.60 |
+
+**The handoffs are the gaps the reading already leaves.** The script counts out
+loud and the synthesiser puts about half a second of air around each numeral, so
+a scene change lands in silence rather than under a word: 2.91, 7.30, 12.58,
+17.65. Each scene leaves 0.15s after its handoff and the next arrives 0.15s
+before it, which is a 0.30s crossfade in the middle of the silence — the old
+scene on its way out while the new one springs in, and the zone never empty
+between two beats. Scene one springs in at 0.10 and the zone is empty for the
+first tenth of a second, on purpose.
+
+Inside a scene, every part is keyed to a word rather than to a count from the
+scene's own start. That is why it reads as synced: change the script and every
+number moves together, because they all come from the same array.
+
+**One accent per scene, on the one thing the scene is about.** `--red` appears
+exactly once in the clip, on the x, and it is the site's own error colour meaning
+the site's own thing — something is wrong — for eight tenths of a second before
+it becomes a check. The lines inside a sheet are `--muted` because they are
+texture, not content. Everything else is `--fg`.
+
+**The composition rule was learnt off the first render rather than decided in
+advance.** The money scene first drew a document at x 14 and a person at x 76,
+which balances once both are there and reads as broken alignment for the two and
+a half seconds while only the document is. So the subject of a scene sits on the
+block's own axis and everything else hangs off it. The same render also killed a
+coin drawn as a circle with a bar across it — the bar read as a minus sign — and
+found the coin landing exactly on the sheet's border, which reads as a badge
+stuck to a corner rather than as a thing that landed.
+
+**It runs on the rAF shim.** Node writes the frame with `__pic.set`, the one
+flush per captured frame applies it, and the run checks afterwards that exactly
+one tick happened and that the frame which landed is the frame for that time.
+Nothing in the layer is a css transition.
+
 ### The guards
 
 The clips' guards, plus the ones this format needs: an audio track actually
 present and the file no shorter than the voice, no card leaving before its own
 last word, one card on screen at a time, the accent painted, exactly three beat
 cards fitted at least 1.2x the ordinary ones and never past 44px, the safe area
-sampled **once per card** against the drawn ink — captions, mascot and wordmark
-unioned, not just the captions — and at least 60px of clear air between the
-lowest caption ink and the top of the head, measured on the drawn card because
-a beat card is taller than an ordinary one.
+sampled **once per card** against the drawn ink — captions, pictograms, mascot
+and wordmark unioned, not just the captions — and at least 60px of clear air
+between the lowest caption ink and the top of the head, measured on the drawn
+card because a beat card is taller than an ordinary one.
+
+The scene layer carries the same shape of guard as the mascot, and for the same
+reason: every smoothness check passes on a layer that never drew anything.
+
+- **Before a frame is rendered**, `sceneMotion` walks all 1332 of them and fails
+  on a one frame step past any limit: 4.5 viewBox units of movement, 0.14 of
+  scale, 0.12 of a path drawn, 0.20 of opacity, 10 degrees of turn. All five are
+  frame rate relative, so `DEMO_FPS=12` does not fail on being a preview.
+- **During the render** the same comparison runs against the same numbers the
+  page is handed, unconditionally — every part holds a value at every instant of
+  the clip, so there is no "it was invisible, it is allowed to have jumped" case
+  to make an exception for.
+- **Liveness:** the layer must have ticked exactly once per captured frame, the
+  frame that landed must be the frame for that time, some part must have moved,
+  and the page must have written a different value between two frames.
+- **The frame:** at most two scenes on screen at once and only at a handoff, at
+  least 40px of clear air between the lowest pictogram ink and the highest
+  caption ink, and the 96 device px safe area held on every frame a part is
+  moving — sampled at the midpoint of every step of every part, the middle of
+  every handoff and each scene once settled, because a sweeping glass or a
+  falling coin is furthest from where its own box said it would be.
 
 ## The og card
 
@@ -598,10 +679,10 @@ right, which is the worst kind of wrong to ship.
 
 ## The library — `demo/lib/`
 
-Three pieces that are not a clip. Nothing in `lib/` is imported by `record.mjs`,
-`post2.mjs`, `post4.mjs`, `post5.mjs` or `og.mjs`, and nothing in it has been
-wired into a post. It exists so the next clip can have a voice and captions
-without inventing both from scratch on the day.
+Four pieces that are not a clip. Nothing in `lib/` is imported by `record.mjs`,
+`post2.mjs`, `post4.mjs`, `post5.mjs` or `og.mjs`. `post6.mjs` imports all but
+the analyzer. It exists so the next clip can have a voice, captions and pictures
+without inventing any of them from scratch on the day.
 
 Still zero dependencies beyond the two `demo/` already had. The voice module
 talks a websocket protocol by hand rather than adding `ws` or `edge-tts`, and
@@ -734,6 +815,77 @@ own headers and do not concatenate.
 When it breaks, it will be the drm. `CHROMIUM_FULL` at the top of the file is a
 real Edge build number and is the thing to bump; the python `edge-tts` package
 carries the same constant and is the reference.
+
+### `lib/pictograms.mjs` — animated pictogram scenes
+
+SVG drawn in code, driven per frame, on the same rig as everything else in here.
+`captions.mjs` does this for words; this does it for pictures, and the two are
+built the same way on purpose so one clip can drive both from one loop.
+
+A **scene** is a group with an entrance, a hold and an exit, and inside it a list
+of **parts**. A part is one shape and a list of **steps**, and a step is one of
+five kinds:
+
+| kind | |
+|---|---|
+| `pop` | a scale spring about the shape's own centre, with a fade |
+| `draw` | stroke dashoffset line drawing, along the path |
+| `move` | a translate from an offset, with or without a fade |
+| `flip` | a rotate and a scale, in or out, for one thing becoming another |
+| `fade` | opacity alone |
+
+Steps are a list rather than one animation because real objects do more than one
+thing. A padlock's shackle is drawn and *then* seats, which is two steps on one
+part and is the whole difference between a lock appearing and a lock closing.
+Each step owns the channels it moves and leaves the rest alone, so two steps on
+one part never fight over the same number.
+
+The same split as the caption engine, and for the same reason:
+
+- **`planScenes(scenes, opts)` runs in node and measures nothing.** It validates,
+  resolves the timings and returns plain data. `describeScenes(plan)` prints it.
+- **`sceneFrame(plan, t, env)` is the whole animation, as a pure function of
+  time.** Opacity, scale, offset, rotation and how much of each path is drawn,
+  for every scene and every part, at second `t`.
+- **`pictogramPage` is serialised into the scene** with `.toString()`. It
+  measures the path lengths once and then does as it is told.
+
+**No css transition and no css animation anywhere in it**, for the reason
+`post2.mjs` found and `captions.mjs` repeats: one captured frame carries five or
+six BeginFrames, so a css animation resolves about five times too fast.
+
+The vocabulary is flat, minimal and stroked: `square`, `sheet`, `rule`,
+`squiggle`, `coin`, `human`, `check`, `stroke`, `folder`, `lockBody`, `shackle`,
+`eye`, `magnifier`, `mascotFace`. Geometry is a 100x60 viewBox scaled into
+whatever box the caller hands over, so a shape that reads at one size reads at
+all of them.
+
+Fixed and not negotiable per clip: the colours. `--fg` for ink, `--muted` for the
+secondary lines inside a sheet, `--accent` for the one thing a scene is about,
+`--red` for an error and nothing else, `--face` and `--eye` for the mascot. Every
+one is a token out of `index.html`. There is no text in a pictogram, so there is
+no dash to check and no face to load.
+
+Two things it refuses rather than warns about, because both read as the layer
+glitching rather than as a wrong number:
+
+- a part that starts before its own scene has finished arriving, or is still
+  moving after the scene has started to leave
+- three scenes on screen at once, or an overlap past 0.45s — a handoff is a
+  handoff, not a dissolve
+
+And one it measures rather than assumes. **`sceneMotion(plan, fps, seconds)`
+walks every frame before a render** and reports the biggest one frame step in
+every channel, plus which part made it. It costs a fraction of a second and it is
+the difference between finding a snap now and finding it in a twenty two second
+render. `post6.mjs` turns those numbers into guards and prints both the limit and
+the truth, so the headroom is on screen rather than in a comment.
+
+**`mascotFace` is drawn from the ratios in `skills/page-builder/SKILL.md`**, not
+by eye, and it carries `--face` and `--eye`, so it inverts with the theme exactly
+as the real mascot does. Its lids are driven by the caller: `post6.mjs` passes
+the same lid it passes the real mascot, because two faces on one screen must not
+disagree about blinking.
 
 ### `analyze.mjs` — the reference analyzer
 

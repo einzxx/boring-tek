@@ -42,6 +42,14 @@
       viewer once, at 17.95, for `good ai has a human behind it`, and stays there
       for the rest of the clip. that one move is the whole performance.
 
+   6. **there is a pictogram scene layer in the top third.** added after the
+      clip was first cut, and it is the one thing in here that changed what the
+      frame is. the empty upper half used to be the point; it is now five flat
+      svg scenes, drawn in code by `lib/pictograms.mjs`, one per beat of the
+      voice, springing in and sliding out on the word timestamps. the layer is
+      demo only: nothing about it touches the site. see the scene table below
+      for what each one is and what it is keyed to.
+
    vertical only. there is no square cut: a caption, a head and a wordmark do not
    fit inside a 1080 tall frame with the air each of them needs.
 
@@ -62,6 +70,10 @@ import {
   planCaptions, captionCss, captionMarkup, captionPage, captionFrame,
   describe, brandTokens,
 } from './lib/captions.mjs';
+import {
+  planScenes, sceneFrame, sceneMotion, pictogramCss, pictogramMarkup,
+  pictogramPage, describeScenes,
+} from './lib/pictograms.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -105,6 +117,7 @@ const BEATS_EXPECTED = 3;
    96 device px nothing is allowed inside.
 
    the vertical budget, top to bottom:
+       82..268   the pictogram scenes, 310 wide and centred
      ~510..550   the caption, one card at a time, bottom anchored on 550
       654..750   the mascot, 96px, centred
      ~846..862   the wordmark
@@ -114,11 +127,24 @@ const BEATS_EXPECTED = 3;
    baseline and grow upward. a card that changed its vertical centre between
    beats would read as the frame jumping.
 
-   the empty top half is deliberate and it is the site's own habit: the page is
-   mostly air and the clip should be too. it is also where a platform puts
-   nothing, which makes it the safest place to have nothing. */
+   the top third used to be empty on purpose, and that note is worth keeping
+   rather than deleting: the page is mostly air and the clip was too. the scene
+   layer spends it. what it does not spend is the margin — the block starts 34px
+   below the safe line and stops 32px above the caption's own box, and both of
+   those are measured on drawn ink every time a part moves rather than assumed
+   from the numbers here. */
 const VW = 540, VH = 960, SAFE = 48;
 const BOX = { x: SAFE, y: 300, w: VW - SAFE * 2, h: 250 };
+/* the scene zone. 310 of 540 is 57.4% of the frame, inside the 55 to 60 the
+   sketch asked for, and it is centred, so the block sits on the same axis as
+   the caption, the head and the wordmark. one viewBox unit is 3.1 css px and
+   6.2 device px, which is what makes a 1.2 unit stroke a confident 7px line at
+   1080 rather than a hairline. */
+const SCENE_BOX = { x: 115, y: 82, w: 310, h: 186 };
+/* how much clear air the scene layer owes the caption below it. measured on the
+   lowest drawn pictogram ink against the highest drawn caption ink, on every
+   frame a part is moving, rather than worked out from the two boxes. */
+const SCENE_CLEARANCE = 40;
 const MASCOT = 96, MASCOT_TOP = 654;
 const WORDMARK_CY = 854, WORDMARK_W = 250;
 /* how much clear air the caption owes the head. the caption is the thing that
@@ -291,6 +317,191 @@ function keyAt(keys, t, ease) {
 const BLINK_LIMIT = Math.min(0.95, 3.4 * 0.94 * STEP / 95);
 const GAZE_LIMIT = 1.2 * STEP / 16.6667;
 
+/* ---------- the pictogram scenes ----------
+   five scenes, one per beat of the voice, in the block above the caption.
+
+   the handoffs are the gaps the reading already leaves. the script counts out
+   loud and the synthesiser puts about half a second of air around each numeral,
+   so the scene changes land in silence rather than under a word:
+
+     business. ends 2.68   one. starts 3.14   handoff 2.91
+     deal.     ends 7.07   two. starts 7.53   handoff 7.30
+     first.    ends 12.34  three. starts 12.81  handoff 12.58
+     look.     ends 17.42  good starts 17.87   handoff 17.65
+
+   each scene leaves 0.15s after its handoff and the next arrives 0.15s before
+   it, so there is a 0.30s crossfade in the middle of the silence: the old scene
+   is on its way out while the new one springs in, and the zone is never empty
+   between two beats. `planScenes` refuses an overlap past 0.45s and refuses
+   three scenes at once, because both of those are dissolves rather than cuts.
+
+   inside a scene, every part is keyed to a word rather than to a count from the
+   scene's own start. that is the whole reason this reads as synced: the coin
+   lands on `alone.`, the shackle closes on `rules.`, the x turns into a check
+   on `must`, and if the script is re-read by a different voice the numbers all
+   move together because they all come from the same array.
+
+   the composition rule, and it was learnt off the first render rather than
+   decided in advance: **the subject of a scene is centred and everything else
+   is a satellite.** the money scene first drew a document at x 14 and a person
+   at x 76, which balances beautifully once both are there and reads as broken
+   alignment for the two and a half seconds while only the document is. so the
+   document, the folder and the page each sit on the block's own axis and the
+   person, the lock and the eye hang off them. the optical centre lands near 50
+   either way and no scene is ever visibly off axis while it is still building.
+
+   the ink is the page's own and it is rationed. one accent per scene, on the
+   one thing the scene is about: the check in the money scene, the lock in the
+   data scene, the check in the checking scene, the two marks in the closing
+   one. --red appears exactly once, on the x, and it is the site's own error
+   colour meaning the site's own thing — something is wrong — for eight tenths
+   of a second before it becomes a check. the lines inside a sheet are --muted
+   because they are texture, not content. everything else is --fg. */
+const SCENES = [
+  /* 1. the list waiting. three empty squares, one per thing the clip is about
+     to count out, arriving on the rhythm of the opening line rather than on the
+     three words that name them: nothing has been said yet, so nothing is in the
+     boxes yet. */
+  {
+    id: 'intro', in: 0.10, out: 3.06, exit: 'slideUp',
+    parts: [
+      { id: 'box-one', shape: 'square', at: { cx: 24, cy: 30, s: 18 }, steps: { kind: 'pop', t: 0.30 } },
+      { id: 'box-two', shape: 'square', at: { cx: 50, cy: 30, s: 18 }, steps: { kind: 'pop', t: 1.14 } },
+      { id: 'box-three', shape: 'square', at: { cx: 76, cy: 30, s: 18 }, steps: { kind: 'pop', t: 1.98 } },
+    ],
+  },
+  /* 2. the money beat. "talk money with clients alone. a human checks the
+     deal." a document, a signature drawn across it, a coin dropping onto it,
+     and then the person who has to look at it before it counts. */
+  {
+    id: 'money', in: 2.76, out: 7.45, exit: 'springOut',
+    parts: [
+      { id: 'sheet', shape: 'sheet', at: { x: 23, y: 3, w: 44, h: 54 }, steps: { kind: 'pop', t: 3.20 } },
+      { id: 'sheet-l1', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 30, x2: 61, y: 13 }, steps: { kind: 'draw', t: 3.55, for: 0.42 } },
+      { id: 'sheet-l2', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 30, x2: 56, y: 20 }, steps: { kind: 'draw', t: 3.72, for: 0.42 } },
+      /* on "money", which is the word the whole card is about. */
+      { id: 'signature', shape: 'squiggle', w: 1.1, at: { x1: 30, x2: 61, y: 30, a: 3.0 }, steps: { kind: 'draw', t: 4.14, for: 0.66 } },
+      /* on "alone." — it falls, it does not pop, and FALL lands it soft rather
+         than bouncing it. it starts inside the zone, never above it, so it is
+         never half a coin clipped on the block's top edge, and it lands inside
+         the sheet rather than across its border: a circle sitting exactly on an
+         edge reads as a badge stuck to a corner, not as a thing that landed. */
+      { id: 'coin', shape: 'coin', at: { cx: 45, cy: 46, r: 7 }, steps: { kind: 'move', t: 5.03, for: 0.52, fade: 0.22, from: [0, -38], ease: 'fall' } },
+      { id: 'person', shape: 'human', at: { cx: 82, cy: 17, r: 6, sw: 17, sh: 11 }, steps: { kind: 'pop', t: 5.98 } },
+      { id: 'person-ok', shape: 'check', ink: 'accent', w: 1.5, at: { cx: 82, cy: 45, s: 12 }, steps: { kind: 'draw', t: 6.34, for: 0.54 } },
+    ],
+  },
+  /* 3. the data beat. "touch customer data without rules. decide what it can
+     see first." a folder, a lock that arrives and then shuts, and an eye that
+     gets a line through it. the shackle is two steps on one part: it draws
+     while it is still raised, then seats. that second step is 1.8 units over
+     0.16s and it is the whole difference between a lock appearing and a lock
+     closing. */
+  {
+    id: 'data', in: 7.15, out: 12.73, exit: 'slideUp',
+    parts: [
+      { id: 'folder', shape: 'folder', at: { x: 22, y: 14, w: 44, h: 34 }, steps: { kind: 'pop', t: 7.60 } },
+      { id: 'folder-l1', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 29, x2: 56, y: 27 }, steps: { kind: 'draw', t: 8.22, for: 0.44 } },
+      { id: 'folder-l2', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 29, x2: 50, y: 35 }, steps: { kind: 'draw', t: 8.42, for: 0.44 } },
+      { id: 'lock', shape: 'lockBody', ink: 'accent', at: { cx: 66, cy: 44, w: 17, h: 14 }, steps: { kind: 'pop', t: 9.38 } },
+      {
+        id: 'shackle', shape: 'shackle', ink: 'accent',
+        at: { cx: 66, cy: 37, r: 5.4 },
+        steps: [
+          { kind: 'draw', t: 9.85, for: 0.45 },
+          { kind: 'move', t: 10.30, for: 0.16, from: [0, -1.8], fadeIn: false },
+        ],
+      },
+      { id: 'eye', shape: 'eye', at: { cx: 80, cy: 17, w: 22, h: 9, pr: 2.8 }, steps: { kind: 'pop', t: 10.79 } },
+      /* on "see". */
+      { id: 'eye-slash', shape: 'stroke', w: 1.3, at: { x1: 71, y1: 26, x2: 89, y2: 8 }, steps: { kind: 'draw', t: 11.48, for: 0.56 } },
+    ],
+  },
+  /* 4. the checking beat. "work without checking. ai makes mistakes. someone
+     must look." a page of work, a glass sweeping across it, a mistake, and then
+     the mistake corrected.
+
+     the x and the check are two moments of the same object and they are drawn
+     as three parts: the x is two strokes so each one draws in turn rather than
+     appearing as a finished cross, and the check is its own part so the two can
+     cross over. the x turns and shrinks away while the check turns in from the
+     other side, which is a flip without ever passing through zero width — a
+     shape that flattened to a line for one frame is exactly the snap the guards
+     are here to catch. */
+  {
+    id: 'checking', in: 12.43, out: 17.80, exit: 'springOut',
+    parts: [
+      { id: 'paper', shape: 'sheet', at: { x: 24, y: 3, w: 48, h: 54 }, steps: { kind: 'pop', t: 12.88 } },
+      { id: 'paper-l1', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 31, x2: 66, y: 13 }, steps: { kind: 'draw', t: 13.53, for: 0.42 } },
+      { id: 'paper-l2', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 31, x2: 60, y: 22 }, steps: { kind: 'draw', t: 13.68, for: 0.42 } },
+      { id: 'paper-l3', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 31, x2: 50, y: 31 }, steps: { kind: 'draw', t: 13.83, for: 0.42 } },
+      { id: 'paper-l4', shape: 'rule', ink: 'muted', w: 0.9, at: { x1: 31, x2: 63, y: 40 }, steps: { kind: 'draw', t: 13.98, for: 0.42 } },
+      {
+        id: 'glass', shape: 'magnifier',
+        at: { cx: 57, cy: 31, r: 13.5, hl: 9 },
+        steps: [
+          { kind: 'pop', t: 14.10 },
+          /* the sweep. 30 units over 0.90s on the calm curve, which is slow
+             enough to read as looking rather than as scanning. */
+          { kind: 'move', t: 14.30, for: 0.90, from: [-30, 0], fadeIn: false },
+        ],
+      },
+      {
+        id: 'x-down', shape: 'stroke', ink: 'red', w: 1.4,
+        at: { x1: 53, y1: 27, x2: 61, y2: 35 },
+        steps: [{ kind: 'draw', t: 15.49, for: 0.34 }, { kind: 'flip', t: 16.86, for: 0.36, dir: 'out', rot: -70 }],
+      },
+      {
+        id: 'x-up', shape: 'stroke', ink: 'red', w: 1.4,
+        at: { x1: 61, y1: 27, x2: 53, y2: 35 },
+        steps: [{ kind: 'draw', t: 15.66, for: 0.34 }, { kind: 'flip', t: 16.86, for: 0.36, dir: 'out', rot: -70 }],
+      },
+      { id: 'fixed', shape: 'check', ink: 'accent', w: 1.5, at: { cx: 57, cy: 31, s: 13.5 }, steps: { kind: 'flip', t: 16.94, for: 0.40, dir: 'in', rot: 70 } },
+    ],
+  },
+  /* 5. the close. "good ai has a human behind it. that is the whole secret."
+     the mascot and a person, side by side, joined, both signed off. it holds to
+     the last frame: the clip ends on it rather than cutting away from it.
+
+     the small face is drawn from the ratios in the skill file, not by eye, and
+     it blinks on the same lid as the real mascot 400px below it, because two
+     faces on one screen must not disagree about that. the real one comes to the
+     viewer at 17.95 — four hundredths after this face springs in, which was not
+     planned and is kept: he looks at you at the moment his own picture appears
+     in the diagram. */
+  {
+    id: 'close', in: 17.50, out: 22.20,
+    parts: [
+      { id: 'mascot-glyph', shape: 'mascotFace', ink: 'face', at: { cx: 28, cy: 23, r: 12 }, steps: { kind: 'pop', t: 17.94, for: 0.36 } },
+      { id: 'person', shape: 'human', at: { cx: 73, cy: 17, r: 7.5, sw: 21, sh: 12 }, steps: { kind: 'pop', t: 18.68, for: 0.36 } },
+      /* on "behind", which is the word the line turns on. */
+      { id: 'bond', shape: 'stroke', w: 1.2, at: { x1: 45.5, y1: 26, x2: 60.5, y2: 26 }, steps: { kind: 'draw', t: 19.01, for: 0.54 } },
+      { id: 'mascot-ok', shape: 'check', ink: 'accent', w: 1.5, at: { cx: 28, cy: 48, s: 13 }, steps: { kind: 'draw', t: 20.34, for: 0.50 } },
+      { id: 'person-ok', shape: 'check', ink: 'accent', w: 1.5, at: { cx: 73, cy: 48, s: 13 }, steps: { kind: 'draw', t: 20.60, for: 0.52 } },
+    ],
+  },
+];
+
+/* the scene layer's own guards, the eye guards extended to the pictograms and
+   frame rate relative for the same reason: a limit written in units per frame
+   is a different limit at 12fps and at 60, and the preview pass must not fail
+   on being a preview.
+
+   every one of these is a ceiling on a *single frame's* change, which is the
+   only kind of number that can tell a fast move from a snap. they are set with
+   real headroom over what the scenes actually do — `sceneMotion` prints both,
+   before the render, so the gap between the limit and the truth is on screen
+   rather than in a comment. */
+const R = STEP / 16.6667;
+const PART_MOVE_LIMIT = 4.5 * R;      /* viewBox units. the coin is the loudest */
+const PART_SCALE_LIMIT = 0.14 * R;
+const PART_ROT_LIMIT = 10 * R;        /* degrees. the flip is the only rotation */
+const PART_DASH_LIMIT = 0.12 * R;     /* fraction of a path, per frame */
+const PART_FADE_LIMIT = 0.20 * R;
+const SCENE_MOVE_LIMIT = 3.0 * R;
+const SCENE_SCALE_LIMIT = 0.06 * R;
+const SCENE_FADE_LIMIT = 0.20 * R;
+
 /* ---------- the scene ----------
    the site's own mascot, read from source, exactly as post5 reads it. */
 function mascotBody() {
@@ -313,7 +524,7 @@ function mascotBody() {
   return [face, '<g class="m-eyes">', ...eyes, '</g>'].join('\n      ');
 }
 
-function sceneHtml(plan) {
+function sceneHtml(plan, pic) {
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -326,6 +537,7 @@ function sceneHtml(plan) {
 html,body{margin:0;padding:0;overflow:hidden;background:var(--bg)}
 body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
 ${captionCss(plan, BOX)}
+${pictogramCss(pic, SCENE_BOX)}
 /* the vignette, at its light value, breathing on the site's own 34s loop. no
    grain: every platform recompresses a clip and grain through that is noise
    rather than texture.
@@ -377,6 +589,7 @@ ${captionCss(plan, BOX)}
       ${mascotBody()}
     </svg>
   </div>
+${pictogramMarkup(pic)}
 ${captionMarkup(plan)}
 </div>
 <script>
@@ -384,6 +597,15 @@ window.__CAP_PLAN = ${JSON.stringify(plan)};
 window.__CAP_BOX = ${JSON.stringify(BOX)};
 ${captionPage.toString()}
 captionPage();
+/* the scene layer's plan carries no svg strings: the markup is already in the
+   document and the page half only ever needs the origins, the inks and which
+   parts are line drawn. */
+window.__PIC_PLAN = ${JSON.stringify({
+    origin: pic.origin,
+    parts: pic.parts.map(p => ({ id: p.id, o: p.o, draw: p.draw })),
+  })};
+${pictogramPage.toString()}
+pictogramPage();
 window.__P6 = ${JSON.stringify({ VW, VH, WORDMARK_W })};
 ${scenePage.toString()}
 scenePage();
@@ -431,6 +653,19 @@ function scenePage() {
     safe() {
       const cap = window.__cap.safe(window.__P6.VW, window.__P6.VH);
       let out = { ...cap };
+      /* the pictograms measure their own drawn ink, part by part, exactly as
+         the caption does — the svg element is the whole block and its rect
+         would report the block back to us and prove nothing about the shapes
+         inside it. */
+      const pic = window.__pic.safe(window.__P6.VW, window.__P6.VH);
+      if (pic) {
+        if (Math.min(pic.left, pic.top, pic.right, pic.bottom)
+          < Math.min(out.left, out.top, out.right, out.bottom)) out.worst = pic.worst;
+        out.left = Math.min(out.left, pic.left);
+        out.top = Math.min(out.top, pic.top);
+        out.right = Math.min(out.right, pic.right);
+        out.bottom = Math.min(out.bottom, pic.bottom);
+      }
       for (const sel of ['.mascot', '#wordmark']) {
         const el = document.querySelector(sel);
         if (!el) continue;
@@ -467,6 +702,34 @@ function scenePage() {
       }
       return lowest === -1e9 ? null : { gap: +(head.top - lowest).toFixed(1), which };
     },
+    /* how much clear air there is between the lowest visible pictogram ink and
+       the highest visible caption ink, plus how close the layer came to a
+       border on the same frame. both are measured on drawn shapes: a part that
+       is mid sweep or mid fall is somewhere its own box never said it would be,
+       which is the only interesting case. */
+    zone() {
+      const pic = window.__pic.safe(window.__P6.VW, window.__P6.VH);
+      if (!pic) return null;
+      let top = 1e9, which = null;
+      for (const el of document.querySelectorAll('.cap-w')) {
+        const cs = getComputedStyle(el);
+        if (cs.visibility === 'hidden') continue;
+        let o = 1, node = el;
+        while (node && node !== document.body) { o *= parseFloat(getComputedStyle(node).opacity || '1'); node = node.parentElement; }
+        if (o < 0.02) continue;
+        const b = el.getBoundingClientRect();
+        if (b.top < top) { top = b.top; which = el.textContent; }
+      }
+      return {
+        low: pic.low, lowest: pic.lowest,
+        /* with no caption on screen the floor of the zone is the caption box's
+           own top edge, which is the line the layer promised not to cross. */
+        gap: +((top === 1e9 ? window.__CAP_BOX.y : top) - pic.low).toFixed(1),
+        under: top === 1e9 ? '(the caption box)' : which,
+        near: +Math.min(pic.left, pic.top, pic.right, pic.bottom).toFixed(1),
+        worst: pic.worst,
+      };
+    },
     /* what the frame drew, for the run to print. */
     boxes() {
       const r = s => {
@@ -489,15 +752,20 @@ function scenePage() {
     .then(() => {
       fitWordmark();
       window.__built = window.__cap.build();
+      /* the path lengths, measured once. no font is involved, but it is built
+         here anyway so there is one ready gate rather than two. */
+      window.__picBuilt = window.__pic.build();
       window.__p6.ready = true;
     });
 }
 
 /* ---------- what gets injected before the scene's own script ----------
-   nothing in this scene animates by hand, so the rAF shim has nothing to flush.
-   it is installed anyway and flushed once per captured frame, so the rig is the
-   same one every other clip runs under and a hand animated piece dropped in
-   later is already on the right clock. */
+   the rAF shim, flushed exactly once per captured frame, which is what makes
+   one tick one frame. it used to have nothing to flush in this clip and was
+   installed for the rig's sake; the pictogram layer is now the piece that runs
+   on it. node leaves a frame with `__pic.set`, the flush applies it, and the
+   run checks afterwards that exactly one tick happened and that the frame which
+   landed is the frame for that time. */
 function injected() {
   let seed = 0x3f9a20c5;
   Math.random = function () {
@@ -552,7 +820,7 @@ async function voice() {
 }
 
 /* ---------- render ---------- */
-async function render(plan, seconds, blinks) {
+async function render(plan, pic, seconds, blinks) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
   const N = Math.round(FPS * seconds);
   fs.rmSync(FRAMES, { recursive: true, force: true });
@@ -560,7 +828,7 @@ async function render(plan, seconds, blinks) {
   fs.mkdirSync(OUT, { recursive: true });
   console.log('  post6-1080x1920: ' + VW * DSF + 'x' + VH * DSF + ', ' + N + ' frames');
 
-  const { srv, port } = await serve(sceneHtml(plan));
+  const { srv, port } = await serve(sceneHtml(plan, pic));
   const browser = await puppeteer.launch({
     executablePath: CHROME,
     headless: true,
@@ -593,7 +861,8 @@ async function render(plan, seconds, blinks) {
   let burned = 0;
   for (let i = 0; i < 150; i++) {
     const ok = await page.evaluate(() => !!(window.__p6 && window.__p6.ready
-      && window.__cap && window.__cap.ready && document.fonts.status === 'loaded')).catch(() => false);
+      && window.__cap && window.__cap.ready && window.__pic && window.__pic.ready
+      && document.fonts.status === 'loaded')).catch(() => false);
     if (ok) break;
     await advance(STEP); burned += STEP;
   }
@@ -612,12 +881,16 @@ async function render(plan, seconds, blinks) {
   console.log('  scene ready after ' + burned.toFixed(0) + 'ms of virtual time');
 
   const built = await page.evaluate(() => window.__built);
+  const picBuilt = await page.evaluate(() => window.__picBuilt);
   const boxes = await page.evaluate(() => window.__p6.boxes());
   console.log('  cards fitted at ' + built.size.toFixed(1) + 'px, the three beats at '
     + built.bigSize.toFixed(1) + 'px (' + (built.bigSize / built.size).toFixed(2) + 'x)');
-  console.log('  head ' + boxes.mascot.top.toFixed(0) + '..' + boxes.mascot.bottom.toFixed(0)
+  console.log('  scenes ' + SCENE_BOX.y + '..' + (SCENE_BOX.y + SCENE_BOX.h)
+    + ', head ' + boxes.mascot.top.toFixed(0) + '..' + boxes.mascot.bottom.toFixed(0)
     + ', wordmark ' + boxes.wordmark.top.toFixed(0) + '..' + boxes.wordmark.bottom.toFixed(0)
     + '  (css px of ' + VH + ')');
+  console.log('  scene layer built: ' + picBuilt.scenes + ' groups, ' + picBuilt.parts
+    + ' parts, ' + picBuilt.drawn + ' path lengths measured, ' + picBuilt.lids + ' lids');
 
   /* one sample per card, on the frame it is fully sprung. every card is a
      different width and the three beats are a different size, so one sample
@@ -636,14 +909,40 @@ async function render(plan, seconds, blinks) {
   const blinkSteps = [];
   let sawAccent = false, maxVisible = 0, capMoved = 0, prevSum = null;
 
+  /* the scene layer, sampled where it is actually moving: the midpoint of every
+     step of every part, the middle of every handoff, and each scene once it has
+     settled. a sample on a resting frame proves nothing about a coin that is
+     halfway down or a glass that is halfway across. */
+  const picSamples = [];
+  for (const p of pic.parts) {
+    for (const st of p.steps) picSamples.push({ t: st.t + st.for / 2, who: p.id + ' ' + st.kind });
+  }
+  for (const h of picMotion.handoffs) picSamples.push({ t: (h[0] + h[1]) / 2, who: 'handoff' });
+  for (const sc of pic.scenes) {
+    picSamples.push({ t: Math.min(sc.leaving - 0.05, sc.settled + 0.20), who: sc.id + ' settled' });
+  }
+  picSamples.sort((a, b) => a.t - b.t);
+  let picNext = 0;
+  const zoneSamples = [];
+  let zoneWorst = null, picSafeWorst = null;
+  let picTicks = 0, picVisMax = 0, picMoved = 0, picApplied = 0, picPrevSum = null;
+  const picFaults = [];
+  let picPrev = null;
+
   const wall = Date.now();
   for (let f = 0; f < N; f++) {
     const t = f / FPS;
 
-    /* the captions, from the plan, eased in node. */
+    /* the captions and the scenes, both from their plans, both eased in node.
+       the caption is written straight to the dom; the scene layer is left for
+       the rAF flush below, so it runs on the shim's clock rather than beside
+       it. the small face blinks on the same lid as the big one, passed in
+       rather than recomputed, so the two can never drift apart. */
     const frame = captionFrame(plan, t);
-    const seen = await page.evaluate(fr => {
+    const picF = sceneFrame(pic, t, { blink: blinkFrom(blinks, t) });
+    const seen = await page.evaluate((fr, pf) => {
       window.__cap.apply(fr);
+      window.__pic.set(pf);
       const accent = window.__p6.accent();
       const vis = [...document.querySelectorAll('.cap-card')]
         .filter(el => getComputedStyle(el).visibility !== 'hidden'
@@ -653,19 +952,71 @@ async function render(plan, seconds, blinks) {
       const acc = vis.some(g => [...g.querySelectorAll('*')]
         .some(el => getComputedStyle(el).color === accent));
       return { vis: vis.length, acc };
-    }, frame);
+    }, frame, picF);
     if (seen.acc) sawAccent = true;
     maxVisible = Math.max(maxVisible, seen.vis);
     const sum = frame.w.reduce((a, w) => a + w[0] + w[1], 0);
     if (prevSum !== null) capMoved = Math.max(capMoved, Math.abs(sum - prevSum));
     prevSum = sum;
 
-    /* one rAF tick for the scene, exactly one frame's worth. */
+    /* the scene layer's one frame movement guards, run in node against the same
+       numbers the page is about to be handed. every part holds a value at every
+       instant of the clip, including long before and long after its own steps,
+       so these compare unconditionally: there is no "it was invisible, it is
+       allowed to have jumped" case to make an exception for, which is exactly
+       the exception a snap would have hidden in. */
+    if (picPrev) {
+      for (let i = 0; i < picF.s.length; i++) {
+        const a = picPrev.s[i], b = picF.s[i], who = pic.scenes[i].id;
+        if (Math.abs(b[0] - a[0]) > SCENE_FADE_LIMIT) picFaults.push({ t, what: 'scene fade', who });
+        if (Math.abs(b[1] - a[1]) > SCENE_SCALE_LIMIT) picFaults.push({ t, what: 'scene scale', who });
+        if (Math.hypot(b[2] - a[2], b[3] - a[3]) > SCENE_MOVE_LIMIT) picFaults.push({ t, what: 'scene move', who });
+      }
+      for (let i = 0; i < picF.p.length; i++) {
+        const a = picPrev.p[i], b = picF.p[i], who = pic.parts[i].id;
+        const d = Math.hypot(b[2] - a[2], b[3] - a[3]);
+        if (d > picMoved) picMoved = d;
+        if (Math.abs(b[0] - a[0]) > PART_FADE_LIMIT) picFaults.push({ t, what: 'fade', who });
+        if (Math.abs(b[1] - a[1]) > PART_SCALE_LIMIT) picFaults.push({ t, what: 'scale', who });
+        if (d > PART_MOVE_LIMIT) picFaults.push({ t, what: 'move', who });
+        if (Math.abs(b[4] - a[4]) > PART_ROT_LIMIT) picFaults.push({ t, what: 'turn', who });
+        if (Math.abs(b[5] - a[5]) > PART_DASH_LIMIT) picFaults.push({ t, what: 'draw', who });
+      }
+    }
+    picPrev = picF;
+
+    /* one rAF tick for the scene, exactly one frame's worth. this is where the
+       pictogram frame set above actually lands. */
     await page.evaluate(now => window.__dmRaf(now), (f + 1) * STEP);
 
-    /* the mascot, written last so it is what renders, and checked. */
-    const eye = await page.evaluate((ex, ey, bl) => window.__p6.life(ex, ey, bl),
+    /* the mascot, written last so it is what renders, and checked. the scene
+       layer's readback rides along: `ticks` proves the flush ran exactly once,
+       and `t` proves the frame that landed is this frame and not the last one. */
+    const [eye, picLast] = await page.evaluate((ex, ey, bl) =>
+      [window.__p6.life(ex, ey, bl), window.__pic.last],
       keyAt(EYE_KEYS, t, EASE_IO), keyAt(EYE_Y_KEYS, t, EASE_IO), blinkFrom(blinks, t));
+    if (!picLast) picFaults.push({ t, what: 'never ticked', who: 'the rAF shim' });
+    else {
+      picTicks = picLast.ticks;
+      picVisMax = Math.max(picVisMax, picLast.vis);
+      if (picLast.t !== picF.t) picFaults.push({ t, what: 'stale frame', who: 'applied ' + picLast.t });
+      if (picLast.ticks !== f + 1) picFaults.push({ t, what: 'tick count', who: picLast.ticks + ' of ' + (f + 1) });
+      /* the same liveness proof the caption gets, read off what the page
+         actually wrote: the smoothness guards above pass trivially on a layer
+         that never draws at all, which is exactly what a missing markup block
+         would produce. */
+      if (picPrevSum !== null) picApplied = Math.max(picApplied, Math.abs(picLast.sum - picPrevSum));
+      picPrevSum = picLast.sum;
+    }
+
+    while (picNext < picSamples.length && t >= picSamples[picNext].t) {
+      const s = picSamples[picNext++];
+      const z = await page.evaluate(() => window.__p6.zone());
+      if (!z) continue;
+      zoneSamples.push({ at: s.who, t: +t.toFixed(3), gap: z.gap, near: z.near });
+      if (!zoneWorst || z.gap < zoneWorst.gap) zoneWorst = { at: s.who, t: +t.toFixed(3), ...z };
+      if (!picSafeWorst || z.near < picSafeWorst.near) picSafeWorst = { at: s.who, t: +t.toFixed(3), ...z };
+    }
 
     /* matrix(a,b,c,d,e,f): e is the x translation, f the y. both are read and
        the step is the length of the vector between two frames, so a snap on
@@ -736,15 +1087,30 @@ async function render(plan, seconds, blinks) {
   console.log('  the caption never gets closer than ' + clearWorst.gap.toFixed(0)
     + 'px to the head (floor ' + HEAD_CLEARANCE + ', closest at ' + clearWorst.t.toFixed(2)
     + 's on "' + clearWorst.which + '")');
+  console.log('  scenes: ' + picTicks + ' rAF ticks for ' + N + ' frames, at most '
+    + picVisMax + ' on screen at once, biggest one-frame part move '
+    + picMoved.toFixed(3) + ' units (limit ' + PART_MOVE_LIMIT.toFixed(2) + '), '
+    + (picFaults.length || 'no') + ' fault(s)');
+  console.log('  the scenes never get closer than ' + zoneWorst.gap.toFixed(0)
+    + 'px to the caption (floor ' + SCENE_CLEARANCE + ', closest at '
+    + zoneWorst.t.toFixed(2) + 's under "' + zoneWorst.under + '", lowest ink "'
+    + zoneWorst.lowest + '"), and ' + Math.round(picSafeWorst.near * DSF)
+    + 'px to a border at ' + picSafeWorst.t.toFixed(2) + 's on ' + picSafeWorst.worst);
 
   await browser.close();
   srv.close();
 
   const state = {
-    seconds, frames: N, built, boxes, safe: safeWorst, safeSamples: safeSamples.length,
+    seconds, frames: N, built, picBuilt, boxes, safe: safeWorst, safeSamples: safeSamples.length,
     clearance: clearWorst, eyeFaults, blinkSteps, blinkJump, gazeJump, wide: wideSeen,
     blinks: blinks.length, turns, holds, eyeMax: EYE_MAX,
     sawAccent, maxVisible, capMoved,
+    pic: {
+      ticks: picTicks, visMax: picVisMax, moved: +picMoved.toFixed(4),
+      applied: +picApplied.toFixed(4), faults: picFaults.slice(0, 12),
+      faultCount: picFaults.length, zone: zoneWorst, border: picSafeWorst,
+      samples: zoneSamples.length, wanted: picSamples.length,
+    },
   };
   fs.writeFileSync(path.join(OUT, 'post6-1080x1920.json'), JSON.stringify(state, null, 2));
   return state;
@@ -849,9 +1215,55 @@ console.log('  ' + SECONDS.toFixed(2) + 's = ' + v.seconds.toFixed(2)
   + 's of voice plus a ' + TAIL.toFixed(2) + 's tail, and the caption clears at '
   + plan.seconds.toFixed(2) + 's');
 
+/* the scene layer, planned and then walked frame by frame before a single jpeg
+   is written. planScenes throws on a scene that never holds still, a part that
+   moves before its own scene has arrived or after it has started leaving, and
+   three scenes at once; sceneMotion measures what is left. between them, a snap
+   costs a second here instead of four minutes of rendering. */
+const pic = planScenes(SCENES);
+console.log(describeScenes(pic));
+const picMotion = sceneMotion(pic, FPS, SECONDS);
+{
+  const w = picMotion.worst;
+  console.log('  the scene layer, walked at ' + FPS + 'fps before rendering:');
+  console.log('    biggest one-frame move  ' + w.partM.d.toFixed(3) + ' units on '
+    + w.partM.who + ' at ' + w.partM.t.toFixed(2) + 's   limit ' + PART_MOVE_LIMIT.toFixed(2));
+  console.log('    biggest one-frame scale ' + w.partS.d.toFixed(3) + ' on '
+    + w.partS.who + ' at ' + w.partS.t.toFixed(2) + 's   limit ' + PART_SCALE_LIMIT.toFixed(2));
+  console.log('    biggest one-frame draw  ' + w.partD.d.toFixed(3) + ' on '
+    + w.partD.who + ' at ' + w.partD.t.toFixed(2) + 's   limit ' + PART_DASH_LIMIT.toFixed(2));
+  console.log('    biggest one-frame fade  ' + w.partO.d.toFixed(3) + ' on '
+    + w.partO.who + ', ' + w.sceneO.d.toFixed(3) + ' on a whole scene   limit '
+    + PART_FADE_LIMIT.toFixed(2));
+  console.log('    biggest one-frame turn  ' + w.partR.d.toFixed(3) + ' deg on '
+    + w.partR.who + '   limit ' + PART_ROT_LIMIT.toFixed(2));
+  console.log('    ' + picMotion.handoffs.length + ' handoffs ('
+    + picMotion.handoffs.map(h => h[0].toFixed(2) + '..' + h[1].toFixed(2)).join(', ')
+    + '), at most ' + picMotion.visMax + ' scenes at once, '
+    + picMotion.dark.toFixed(2) + 's with the zone empty');
+}
+/* the preflight is the fast half of the same guard the render runs frame by
+   frame, so it fails here rather than after twenty two seconds of jpegs. */
+{
+  const w = picMotion.worst, bad = [];
+  if (w.partM.d > PART_MOVE_LIMIT) bad.push(w.partM.who + ' moves ' + w.partM.d.toFixed(3) + ' units in a frame');
+  if (w.partS.d > PART_SCALE_LIMIT) bad.push(w.partS.who + ' scales ' + w.partS.d.toFixed(3) + ' in a frame');
+  if (w.partD.d > PART_DASH_LIMIT) bad.push(w.partD.who + ' draws ' + w.partD.d.toFixed(3) + ' of itself in a frame');
+  if (w.partO.d > PART_FADE_LIMIT) bad.push(w.partO.who + ' fades ' + w.partO.d.toFixed(3) + ' in a frame');
+  if (w.partR.d > PART_ROT_LIMIT) bad.push(w.partR.who + ' turns ' + w.partR.d.toFixed(2) + ' deg in a frame');
+  if (w.sceneO.d > SCENE_FADE_LIMIT) bad.push('scene ' + w.sceneO.who + ' fades ' + w.sceneO.d.toFixed(3) + ' in a frame');
+  if (w.sceneS.d > SCENE_SCALE_LIMIT) bad.push('scene ' + w.sceneS.who + ' scales ' + w.sceneS.d.toFixed(3) + ' in a frame');
+  if (w.sceneM.d > SCENE_MOVE_LIMIT) bad.push('scene ' + w.sceneM.who + ' moves ' + w.sceneM.d.toFixed(3) + ' in a frame');
+  if (picMotion.visMax > 2) bad.push(picMotion.visMax + ' scenes on screen at once');
+  if (bad.length) {
+    console.error(['', 'FAILED before rendering — the scene layer snaps', ...bad].join('\n  '));
+    process.exit(1);
+  }
+}
+
 const state = ONLY_ENCODE
   ? JSON.parse(fs.readFileSync(path.join(OUT, 'post6-1080x1920.json'), 'utf8'))
-  : await render(plan, SECONDS, BLINKS);
+  : await render(plan, pic, SECONDS, BLINKS);
 
 const file = encode(v.file);
 const p = probe(file);
@@ -860,6 +1272,12 @@ console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps ' + p.seconds.toFixed(2
   + (p.audio ? 'with voice' : 'SILENT') + '  ' + mb + '  ' + path.relative(ROOT, file));
 
 const dir = sampleFrames(file, [
+  [1.30, 'a0-three-boxes'],
+  [5.30, 'b0-the-coin-lands'],
+  [10.45, 'c0-the-lock-shuts'],
+  [14.75, 'd0-the-glass-sweeps'],
+  [17.10, 'e0-x-becomes-check'],
+  [21.30, 'f0-both-signed-off'],
   [0.60, 'a-opening-card'],
   [3.40, 'b-beat-one'],
   [4.90, 'c-advice-one'],
@@ -884,6 +1302,9 @@ console.log('  the three beats land at '
 console.log('  the mascot comes to the viewer at 17.95 and stays');
 console.log('  caption clears ' + plan.seconds.toFixed(2) + ', tail '
   + (SECONDS - plan.seconds).toFixed(2) + 's');
+console.log('  scenes: ' + pic.scenes.map(s => s.id + ' ' + s.in.toFixed(2)).join(', ')
+  + ' — the zone is ' + SCENE_BOX.w * DSF + 'x' + SCENE_BOX.h * DSF + ' device px, '
+  + (SCENE_BOX.w / VW * 100).toFixed(1) + '% of the frame');
 
 if (!KEEP && !ONLY_ENCODE) fs.rmSync(FRAMES, { recursive: true, force: true });
 
@@ -948,6 +1369,48 @@ if (state.safeSamples !== plan.groups.length) {
 if (!state.clearance || state.clearance.gap < HEAD_CLEARANCE) {
   fail.push('the caption comes within ' + (state.clearance ? state.clearance.gap.toFixed(0) : '?')
     + 'px of the head, wanted at least ' + HEAD_CLEARANCE);
+}
+
+/* the scene layer. same shape as the mascot's guards and for the same reason:
+   the smoothness checks all pass on a layer that never drew anything, so
+   liveness is checked next to them rather than assumed from them. */
+const pg = state.pic;
+if (!pg) fail.push('the render wrote no scene layer state at all');
+else {
+  if (pg.faultCount) {
+    fail.push(pg.faultCount + ' scene fault(s), first at ' + pg.faults[0].t.toFixed(2)
+      + 's (' + pg.faults[0].what + ' on ' + pg.faults[0].who + ')');
+  }
+  if (pg.ticks !== state.frames) {
+    fail.push('the scene layer ticked ' + pg.ticks + ' times for ' + state.frames
+      + ' frames — it is not on the rAF shim\'s clock');
+  }
+  if (!(pg.moved > 0.0001)) fail.push('no part of the scene layer ever moved');
+  if (!(pg.applied > 0.0001)) {
+    fail.push('the page never wrote a different scene value between two frames — is the markup there?');
+  }
+  if (pg.visMax > 2) fail.push(pg.visMax + ' scenes were on screen at once, wanted at most two and only at a handoff');
+  if (pg.samples !== pg.wanted) {
+    fail.push('the scene zone was sampled ' + pg.samples + ' times, wanted one per moving step ('
+      + pg.wanted + ')');
+  }
+  if (!pg.zone || pg.zone.gap < SCENE_CLEARANCE) {
+    fail.push('the scenes come within ' + (pg.zone ? pg.zone.gap.toFixed(0) : '?')
+      + 'px of the caption, wanted at least ' + SCENE_CLEARANCE);
+  }
+  /* the per card safe samples above only catch the layer where a caption
+     happened to change. this is the layer measured on the frames it is actually
+     moving on, which is where a sweeping glass or a falling coin is furthest
+     from where its own box said it would be. */
+  if (!pg.border || pg.border.near * DSF < SAFE * DSF - 0.5) {
+    fail.push('the scene layer comes within '
+      + (pg.border ? Math.round(pg.border.near * DSF) : '?')
+      + 'px of a border, floor is ' + SAFE * DSF);
+  }
+  if (state.picBuilt && state.picBuilt.drawn !== pic.parts.filter(p => p.draw).length) {
+    fail.push('the page measured ' + state.picBuilt.drawn + ' path lengths, the plan has '
+      + pic.parts.filter(p => p.draw).length + ' line drawn parts');
+  }
 }
 
 if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
