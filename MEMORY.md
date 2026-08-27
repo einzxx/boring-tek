@@ -16,7 +16,7 @@ names in here either.
   `sitemap.xml`, the language stubs and `assets/` were all untouched by this session,
   so the push changed nothing a visitor sees.
   - **Posted**, and the caption and the per platform hashtags are now written down.
-    `3 things ai should not do in your business save this`, three lowercase tags each
+    `3 things ai should not do in your business. save this.`, three lowercase tags each
     on tiktok, instagram and youtube, and no tags at all on X, which gets the line as
     tweet text instead. Einz's report, not something measured here. **The one open item
     the last session created is closed with it** — no post in this file is unrecorded
@@ -380,7 +380,7 @@ the edit. Everything about the render was measured here; the posting is Einz's r
 
   ```
   caption (tiktok, instagram, youtube)
-    3 things ai should not do in your business save this
+    3 things ai should not do in your business. save this.
 
   tiktok      #ai #aitips #techtok
   instagram   #ai #aitips #automation
@@ -398,6 +398,12 @@ the edit. Everything about the render was measured here; the posting is Einz's r
     prompt is a tiktok and instagram habit and reads as begging on X.
   - **`save this` is the only call to action in the caption.** No link, no "dm me", no
     "follow for more". It is also the first caption in the series to ask for anything.
+  - **Two full stops, and they were corrected once.** The caption first went into this
+    file as `... in your business save this`, unpunctuated, because it was dictated
+    rather than pasted. It is two sentences and the brand writes in short lines with
+    full stops, so it is `business. save this.` **The lesson is the same one this
+    section exists for:** a caption reconstructed from speech loses exactly the part
+    nobody notices is missing. Paste captions, do not retype them.
 - **No separate sound plan, and that is the change.** post4 planned three voice marks
   and a logo per beat; post5 planned ten servo cues and no voice. This clip needs
   neither, because the narration is already in the file and cut against the captions to
