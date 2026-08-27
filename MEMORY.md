@@ -27,8 +27,14 @@ names in here either.
     in the repo.** 46 effects in post6, every cue derived from a plan that
     already existed rather than typed. **The mix is measured, not claimed:**
     voice on top, bus ducked 8dB under speech, closest an effect gets to the
-    voice is 15.3dB under, delivered at **-14.4 LUFS / -1.0 dBTP** on the
+    voice is 13.8dB under, delivered at **-14.4 LUFS / -1.0 dBTP** on the
     finished mp4. The strip carries the scene effects only at -20 LUFS.
+  - **The balance between the two tracks is one number, and it is -1.5dB on the
+    voice** (84% of decoded), set 2026-08-27 after listening. It does not make
+    the clip quieter: the loudness pass scales both tracks together to the same
+    target, so trimming the voice moves the effects up against it and the eight
+    numbers in `GAINS` never move. **There is no music track** — voice and
+    effects only, and the guards count both.
   - **Two of the three sound decisions were made by a measurement failing**, and
     both are worth keeping: the under-the-voice check was wrong twice before it
     was right, and gain alone cannot reach a loudness target. See Decisions.

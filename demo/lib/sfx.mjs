@@ -525,21 +525,37 @@ export function checkUnderVoice(voice, sfx, { window = 0.02, near = 0.15, speech
    clip that is a decibel quiet is a clip and a clip that clips is a mistake. */
 export function mixdown(voice, sfx, env, opts = {}) {
   const duck = opts.duck == null ? 0.60 : opts.duck;
+  /* the one balance knob between the two tracks. it is applied here rather than
+     to the decoded voice, because this is the function that decides what the
+     mix is, and because the loudness pass afterwards scales both tracks
+     together — so trimming the voice by a decibel and a half does not make the
+     clip quieter, it moves the effects a decibel and a half up relative to it,
+     which is the whole point of turning it. the trimmed voice comes back out
+     with the mix, so the check that the bus is under the voice is run against
+     the voice that is actually in the file. */
+  const g = Math.pow(10, (opts.voiceGain || 0) / 20);
   const len = Math.max(voice.length, sfx.length);
   const out = new Float32Array(len);
   const bus = new Float32Array(len);
-  let busPeak = 0, voicePeak = 0;
+  const voiceOut = new Float32Array(len);
+  let busPeak = 0, voicePeak = 0, voiceRawPeak = 0;
   for (let i = 0; i < len; i++) {
     const d = 1 - duck * (env[i] || 0);
     const s = (sfx[i] || 0) * d;
+    const v = (voice[i] || 0) * g;
     bus[i] = s;
+    voiceOut[i] = v;
     busPeak = Math.max(busPeak, Math.abs(s));
-    voicePeak = Math.max(voicePeak, Math.abs(voice[i] || 0));
-    out[i] = (voice[i] || 0) + s;
+    voicePeak = Math.max(voicePeak, Math.abs(v));
+    voiceRawPeak = Math.max(voiceRawPeak, Math.abs(voice[i] || 0));
+    out[i] = v + s;
   }
   let peak = 0;
   for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(out[i]));
-  return { out, bus, peak, busPeak, voicePeak, duck };
+  return {
+    out, bus, voiceOut, peak, busPeak, voicePeak, voiceRawPeak,
+    duck, voiceGain: opts.voiceGain || 0,
+  };
 }
 
 /* apply one gain to a buffer, in place. no ceiling here on purpose: raising the

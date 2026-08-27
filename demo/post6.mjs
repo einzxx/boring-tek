@@ -204,10 +204,22 @@ const TAIL = 0.65;
 
    DUCK is how far the effects bus is pulled down while a word is being spoken.
    0.60 is about 8dB, which is enough that no effect competes with a syllable and
-   little enough that a coin landing under a word is still a coin landing. */
+   little enough that a coin landing under a word is still a coin landing.
+
+   VOICE_TRIM is the balance between the two tracks and it is the only number in
+   the file that decides it. -1.5dB is the voice at 84% of where it was, and it
+   does **not** make the clip quieter: the loudness pass afterwards scales the
+   voice and the bus together to hit the same target, so what trimming the voice
+   actually does is move the effects a decibel and a half up against it. the
+   effects' own levels in GAINS are untouched, which is the point — one number
+   moves the balance and the eight that shape the set stay where they were.
+
+   there is no music track. the mix is the voice and the effects and nothing
+   else, and the guards below count both. */
 const TARGET_LUFS = -14;
 const PEAK_CEILING = -1.0;
 const DUCK = 0.60;
+const VOICE_TRIM = -1.5;
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -1491,13 +1503,13 @@ async function main() {
   const voicePcm = decode(ffmpeg, v.file);
   const env = voiceEnvelope(v.words, SECONDS);
   const sfx = renderSfx(cues, SECONDS);
-  const mix = mixdown(voicePcm, sfx.buf, env, { duck: DUCK });
+  const mix = mixdown(voicePcm, sfx.buf, env, { duck: DUCK, voiceGain: VOICE_TRIM });
   /* the rule, measured on the two buffers that are about to be summed rather
      than argued from the gain table: wherever a word is actually being said,
      the bus is quieter than the voice. it runs here, before the loudness pass,
      because that pass moves both of them by the same amount and cannot change
      the answer. */
-  const under = checkUnderVoice(voicePcm, mix.bus);
+  const under = checkUnderVoice(mix.voiceOut, mix.bus);
 
   /* ---------- the loudness pass ----------
      one gain for the voice and the bus together, so the balance decided in
@@ -1528,8 +1540,12 @@ async function main() {
 
   console.log('  the mix:');
   console.log(describeMix(sfx.report, {
-    'voice': v.seconds.toFixed(2) + 's, peak ' + dbfs(mix.voicePeak).toFixed(1)
-      + ' dB, ' + v.words.length + ' words',
+    'voice': v.seconds.toFixed(2) + 's, ' + v.words.length + ' words, peak '
+      + dbfs(mix.voiceRawPeak).toFixed(1) + ' dB as decoded and '
+      + dbfs(mix.voicePeak).toFixed(1) + ' dB in the mix',
+    'balance': VOICE_TRIM.toFixed(1) + ' dB on the voice ('
+      + (Math.pow(10, VOICE_TRIM / 20) * 100).toFixed(0)
+      + '% of where it was), effects at their own levels, no music track',
     'effects bus': 'peak ' + dbfs(mix.busPeak).toFixed(1) + ' dB after ducking, '
       + (20 * Math.log10(1 - DUCK)).toFixed(1) + ' dB down while a word is being said',
     'under the voice': under.over.length
@@ -1757,6 +1773,14 @@ async function main() {
       + ' ran off the end of the clip');
   }
   if (!(mix.busPeak > 1e-5)) fail.push('the effects bus is silent');
+  /* the balance knob has to have actually turned. a trim that silently did
+     nothing would leave every other number in the report looking right. */
+  {
+    const moved = dbfs(mix.voicePeak) - dbfs(mix.voiceRawPeak);
+    if (Math.abs(moved - VOICE_TRIM) > 0.05) {
+      fail.push('the voice trim measured ' + moved.toFixed(2) + ' dB, wanted ' + VOICE_TRIM);
+    }
+  }
   if (mix.busPeak >= mix.voicePeak) {
     fail.push('the effects bus peaks at ' + dbfs(mix.busPeak).toFixed(1)
       + ' dB and the voice at ' + dbfs(mix.voicePeak).toFixed(1) + ' — it is not under the voice');

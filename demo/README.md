@@ -720,18 +720,27 @@ script and the voice, the captions, the scenes and the sounds all move together.
 
 The levels are a *relationship*, not a mix: one master gain moves the voice and
 the bus together afterwards, so the table above is the only place the balance
-between a coin and a word is decided. The coin is loudest because it is the one
-physical event the clip shows landing; the sweep is quietest because a magnifier
-over paper is nearly nothing.
+between one effect and another is decided. The coin is loudest because it is the
+one physical event the clip shows landing; the sweep is quietest because a
+magnifier over paper is nearly nothing.
+
+The balance between the two **tracks** is one number, `VOICE_TRIM`, and it is
+**-1.5 dB** — the voice at 84% of where it was decoded. That does not make the
+clip quieter: the loudness pass scales the voice and the bus together to hit the
+same target, so trimming the voice moves the effects a decibel and a half up
+against it, and the eight numbers that shape the set never move. **There is no
+music track.** The mix is the voice and the effects and nothing else.
 
 Three rules, all measured rather than asserted:
 
 - **The voice is on top.** The bus is ducked 8dB while a word is being spoken,
   off an envelope built from the word timings with a fast attack and a slow
-  release. Bus peak after ducking is -25.1 dB against the voice's -2.7.
+  release. Bus peak after ducking is -25.1 dB against the voice's -4.2 in the
+  mix (-2.7 as decoded, before the trim).
 - **Nothing is louder than the voice while a word is being spoken.** Checked
-  window by window on the two buffers about to be summed. In all 699 windows a
-  word is being spoken in, the closest an effect gets is **15.3 dB under**.
+  window by window on the two buffers about to be summed, against the trimmed
+  voice that is actually in the file. In all 699 windows a word is being spoken
+  in, the closest an effect gets is **13.8 dB under**.
 - **It does not clip and it is not too loud.** Gained and limited to **-14.4
   LUFS at -1.0 dBTP**, measured with `ebur128` on the written file, iterating
   until it converges.
@@ -815,7 +824,9 @@ The sound carries the same shape of guard, for the same reason:
   backstop and reported as a fault, because the fade in `ends` cannot help with
   a fade that was never rendered.
 - **Liveness and balance:** the bus must not be silent and must peak below the
-  voice.
+  voice, and the voice trim must have measurably moved the voice — a balance
+  knob that silently did nothing would leave every other number in the report
+  looking right.
 - **The mix:** no window over the voice, loudness within 1 dB of -14 LUFS, true
   peak at or under -1.0 dBTP, and the limiter never pulling more than 9 dB —
   past that it is squashing rather than limiting, and the level table is what
