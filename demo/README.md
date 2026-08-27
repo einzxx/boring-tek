@@ -1,6 +1,6 @@
 # demo/ — the recorders
 
-Four scripts, all headless Chrome, all tooling.
+All headless Chrome, all tooling. The renderers first:
 
 - **`record.mjs`** renders a 24.1 second demo of the live site to mp4. It drives
   the real `index.html` from this repo, served on localhost. It never touches
@@ -9,8 +9,25 @@ Four scripts, all headless Chrome, all tooling.
   composes a scene out of the site's parts. See The social clip below.
 - **`post4.mjs`** renders a 19 second social clip, vertical only. Same composer
   rig as `post2.mjs`, four bubble beats instead of two. See The fourth clip.
+- **`post5.mjs`** renders a 10.5 second social clip, vertical only. `post4.mjs`
+  is its template; the mascot searches the room on two axes and the bubble
+  swaps in place instead of leaving.
+- **`post6.mjs`** renders a 22.2 second social clip, vertical only, **with its
+  own voice in the file**. The first one built on the new machine: the voice is
+  generated first and the captions, the length and the mascot's gaze are all cut
+  from its word timestamps. See The sixth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
+
+Then the pipeline pieces, which are not clips and are not wired into any:
+
+- **`lib/captions.mjs`** turns a timestamped word list into a word by word
+  animated caption, in three styles. See The library below.
+- **`lib/voice.mjs`** speaks a line in a free microsoft neural voice and hands
+  back the audio with the engine's own word timestamps.
+- **`analyze.mjs`** reads a reference video and writes down how it is built.
+- **`captions-test.mjs`** renders the three caption styles as five second clips
+  so they can be judged.
 
 Everything below is about `record.mjs` unless it says otherwise.
 
@@ -401,6 +418,155 @@ post2's replayed under new words, and the eye keys are new: he looks up at the
 bubble on each of the four beats and away between them, by a different amount
 each time so it never turns into a metronome.
 
+## The sixth clip — the first one built on the new machine
+
+```
+cd demo
+node post6.mjs                  vertical only, out/post6-1080x1920.mp4
+DEMO_FPS=12 node post6.mjs      the fast preview pass, same 22.2 seconds
+node post6.mjs --encode-only    re-encode from kept frames
+```
+
+Twenty two seconds, 60fps, 1080x1920, **with the voice in the file**. About two
+and a half minutes end to end. `3 things ai should not do in your business`, and
+it is the first clip in here where the copy is advice rather than a claim.
+
+It is built differently from post2 through post5, in five ways.
+
+**The voice comes first and everything else follows it.** `lib/voice.mjs` speaks
+the script in the default calm voice and hands back the words with the
+synthesiser's own timestamps. Those timestamps are the timeline: the captions
+are cut from them, the clip's length is the voice's length plus a tail, and the
+mascot's gaze is keyed against the beats in them. Nothing in the file is a
+caption time typed by hand, and changing the script changes the length.
+
+**The captions are the copy.** Every clip before this holds a statement at the
+top for the whole run and puts its beats in the bubble. There is no statement
+here and there is no bubble: `lib/captions.mjs` in its `pop` style is the text.
+
+**The numbers are beats.** `one.` `two.` `three.` are the spine of the script,
+and the voice already leaves about seven tenths of a second of air around each
+of them. Those three cards are marked `emphasise` in the plan, which fits them
+on their own and draws them accent all the way through. They land at 44px
+against the ordinary cards' 28.3 — a 1.55x jump, and 44 is the brand's hero cap,
+not raised for a video.
+
+**The audio is in the mp4.** Every other clip renders `-an` because sound is
+added in the edit. This one carries its own voice, because the voice is what the
+clip is cut against and a silent file cannot be checked for sync.
+
+**The mascot is smaller, lower and calmer.** 96px against post5's 136, in the
+lower third rather than the middle, gaze up at the captions for most of the run.
+The furthest he looks is 2.33 units of the page's 6 where post5 went to 5.04,
+thirteen slow turns in twenty two seconds, and blinks 3.0 to 4.4 seconds apart
+against post5's 1.45 to 2.60. He comes to the viewer once, at 17.95, for `good
+ai has a human behind it`, and stays there. That one move is the performance.
+
+### Two words to a card, and why
+
+The `pop` fit sizes every ordinary card off the widest one, so a single long
+card sets the size for all of them. Measured against this script and this box:
+
+| words | widest card | size | cards | compressed |
+|---|---|---|---|---|
+| 1 | `customer` | 40.0px | 54 | 24 |
+| 2 | `touch customer` | 28.3px | 33 | 3 |
+| 3 | `work without checking.` | 19.8px | 22 | 0 |
+| 4 | `touch customer data without` | 15.6px | 21 | 0 |
+
+Three is the safest cut and it is too small: the captions are the copy here, and
+19.8px reads as a subtitle under something else rather than as the thing being
+said. One is the real hormozi cut and this script cannot carry it — `a` and
+`human` are sixty milliseconds apart, so a card a word would be a strobe.
+
+Two, at 28.3px, is 44% bigger type for the cost of three cards that go past
+quickly. Those three are `in your`, `it can` and `has a`: function word pairs in
+the gaps between the words the sentences lean on. Their entrances are compressed
+to fit rather than left unfinished — see `popTiming` in the engine — and the run
+prints them by name every time, so a card that should not be in that list is
+visible immediately.
+
+### Two engine fixes this clip paid for
+
+Both live in `lib/captions.mjs` and both improve every style.
+
+- **A card no longer arrives before the previous card's last word is said.**
+  `lead` pulls an entrance forward so the spring is finished by the time the word
+  is, and on sparse speech that is free. On dense speech it is not: adjacent
+  cards can be twenty milliseconds apart, so a 120ms lead reached back over the
+  previous card's final word and clamped it away. `decide what it` and `that is
+  the` both had a last word that was never on screen at all. The word being said
+  wins and whatever is left of the lead is the lead. `plan.tight.late` is the
+  list that has to stay empty, and the render fails on it.
+- **A short card gets a short entrance rather than an unfinished one.** Natural
+  speech does not hand out even cards. An entrance that always takes 200ms never
+  finishes on a 200ms card: it appears at two thirds scale, holds nothing, and
+  leaves. `popTiming` scales the entrance, the emphasis and the exit to the
+  card's own window, so a fast card feels fast instead of flinching.
+
+### `fill: 'card'`, which this clip made the default
+
+`pop` originally revealed a word at a time and held the place of the words that
+had not arrived — because a card that reflowed as it filled would slide the
+words already on screen sideways while somebody is reading them. At three words
+that is a lean. **At two words it is a card sitting visibly off centre for half
+its life**, the first word alone in a box the width of two, and it reads as
+broken rather than as filling.
+
+`fill: 'card'` springs the whole card in at once and lets the accent walk across
+it as the words are said. The pop is still there twice over: the card springs,
+and every word kicks as it is spoken. What is lost is the reveal; what is gained
+is a card that is centred in every frame of its life. It is also what most
+caption tools actually do, and being able to read one word ahead is a feature of
+a caption rather than a leak.
+
+It went in as an opt in, so that the three judged style clips would keep
+describing what they rendered while both were watched side by side. **`card` won
+and is now the default for every style clip and every post**, the style clips
+were re-rendered against it, and `post6.mjs` no longer overrides anything — the
+override came out rather than being left behind to look like an opinion this one
+clip still holds on its own. `fill: 'word'` is still there for anything that
+specifically wants the reveal, and an unrecognised value throws rather than
+quietly falling back to the behaviour that is no longer the default.
+
+### Sync, measured on the finished file
+
+The captions cannot drift from the voice by construction — both come from the
+same array — but the mux can, so it is checked on the mp4 rather than assumed.
+Running `silencedetect` over the shipped file and comparing every sentence onset
+against the timestamps the captions were cut from:
+
+```
+threshold   mean offset   spread over 12 onsets
+  -30dB        57ms          20ms
+  -34dB        54ms          22ms
+  -40dB        50ms          24ms
+  -50dB        46ms          36ms
+```
+
+**Constant, not cumulative.** The offset does not grow across twenty two
+seconds, which is what a real drift would do. It also shrinks as the detector's
+threshold drops, which is what a threshold artefact does: the detector reports
+the moment the signal crosses a level, and a word beginning with a stop
+consonant — `talk`, `two`, `touch`, `three` — is silent for its first few
+milliseconds. What is left is the synthesiser marking the boundary at the start
+of the phoneme rather than at the start of the sound.
+
+Forty five milliseconds, in the direction that puts the caption fractionally
+ahead of the audio, which is the correct direction for a caption and far inside
+what anybody can see.
+
+### The guards
+
+The clips' guards, plus the ones this format needs: an audio track actually
+present and the file no shorter than the voice, no card leaving before its own
+last word, one card on screen at a time, the accent painted, exactly three beat
+cards fitted at least 1.2x the ordinary ones and never past 44px, the safe area
+sampled **once per card** against the drawn ink — captions, mascot and wordmark
+unioned, not just the captions — and at least 60px of clear air between the
+lowest caption ink and the top of the head, measured on the drawn card because
+a beat card is taller than an ordinary one.
+
 ## The og card
 
 ```
@@ -430,17 +596,262 @@ the wordmark, margins under 60px, a png over 300KB, and **Michroma not having
 loaded** — offline, the card renders in the mono fallback and looks almost
 right, which is the worst kind of wrong to ship.
 
+## The library — `demo/lib/`
+
+Three pieces that are not a clip. Nothing in `lib/` is imported by `record.mjs`,
+`post2.mjs`, `post4.mjs`, `post5.mjs` or `og.mjs`, and nothing in it has been
+wired into a post. It exists so the next clip can have a voice and captions
+without inventing both from scratch on the day.
+
+Still zero dependencies beyond the two `demo/` already had. The voice module
+talks a websocket protocol by hand rather than adding `ws` or `edge-tts`, and
+the caption engine is plain javascript and css.
+
+### `lib/captions.mjs` — animated captions
+
+Takes `[{word, start, end}, ...]` and draws it word by word. Three styles:
+
+| | |
+|---|---|
+| `pop` | big Michroma caps, one short card at a time. The card springs in whole and the accent then walks across it, landing on whichever word is being said and kicking it as it arrives. The hormozi cut in our type. `emphasise` marks a card as a beat and fits it on its own in the accent, off unless asked for; `fill: 'word'` goes back to the older reveal, where a word is invisible until it is said. See The sixth clip for why `card` is the default. |
+| `type` | Space Grotesk, lines arriving from below and dimming as they are overtaken, the word being said at weight 500. Calm, closest to how the site reads, and it never touches the accent. |
+| `count` | a rolling number and a label under it. The digits sit on a fixed cell grid so a 6 becoming an 8 cannot change the width of the line. |
+
+The shape of it, and it is deliberately split in two:
+
+- **`planCaptions(words, opts)` runs in node and measures nothing.** It groups
+  the words into cards, lines or items and gives every group the window it is on
+  screen for. A plan is plain data: printable, diffable, and readable before a
+  browser is ever opened. `describe(plan)` prints it as a card.
+- **`captionFrame(plan, t)` is the whole animation, as a pure function of
+  time.** It returns the opacity, scale, offset and role of every group and
+  every word at second `t`, and nothing else.
+- **`captionPage` is serialised into the scene** with `.toString()`, the way
+  `post5.mjs` serialises its own. It measures, fits, and then does as it is
+  told: `apply()` writes numbers, it never computes one.
+
+**No css transition and no css animation on anything that has to hit a mark.**
+This is the rule `post2.mjs` learned the hard way and it is why the split above
+exists. One captured frame carries five or six BeginFrames, so the animation
+timeline advances about 5x per captured frame and a `.4s` spring resolves in
+five frames. The rAF shim fixes rAF; nothing fixes transitions.
+
+Four things the engine does on its own, so a caller cannot forget them:
+
+- **The colours are the page's.** `brandTokens()` lifts both the `:root` block
+  and the `html[data-theme=dark]` block out of `index.html` at run time, and
+  throws if a token it paints with has gone missing. Light and dark come from
+  the same place, which is what makes "it respects both themes" a fact rather
+  than a claim.
+- **Every style lays out inside a box the caller gives it**, and `safe()`
+  measures the drawn ink against all four borders afterwards rather than
+  trusting the box. Cells and words, never the flex row that centres them: a
+  full width row reports the box back to you and proves nothing about what is
+  inside it.
+- **The `pop` fit divides by the largest scale a word ever reaches.** A word
+  springs about its own centre and overshoots past 1, so a card fitted to
+  exactly the box width puts its outer words over the safe line on the frame
+  they arrive. Measured at 1.125 here, and it is solved from the easing rather
+  than typed, so changing the bounce moves it.
+- **A group's exit runs inside its window, not after it.** One group's `out` is
+  clamped against the next group's `in`, so "never two cards on screen at once"
+  is something the maths guarantees and the render then checks.
+
+Michroma ships one weight and it is never faked here: no `font-weight: 700`, no
+`-webkit-text-stroke`, no shadow. Space Grotesk is 400 and 500 and nothing else.
+`pop` caps at 40px against the brand's 44px hero cap, deliberately: a caption
+must not out shout the statement above it.
+
+### `lib/voice.mjs` — free voice
+
+Edge's read aloud voices, over the unauthenticated websocket the python
+`edge-tts` package uses. No account, no key, no cost.
+
+```
+node lib/voice.mjs test              a sample line in all three voices
+node lib/voice.mjs test "some copy"  the same for your own line
+node lib/voice.mjs voices            the three we picked, and why
+node lib/voice.mjs say "copy" --voice=dry --format=wav --name=post6
+```
+
+Audio and a json sidecar land in `demo/out/voice/`, which is inside `out/` and
+therefore already gitignored.
+
+Three voices, chosen because they can read our copy without selling it:
+
+| | | |
+|---|---|---|
+| `calm` | `en-US-AndrewNeural` | the default. Warm, unhurried, reads a statement as a statement rather than as an offer. |
+| `dry` | `en-US-EricNeural` | flatter and older. The closest thing in the list to deadpan. |
+| `uk` | `en-GB-RyanNeural` | the same register in a different accent. We are in Riga, not California. |
+
+All three run at a negative rate, because the neural default is a shade faster
+than a person reading a short line to camera.
+
+**The sidecar is the interesting half.** The service emits a `WordBoundary`
+event per word, an offset and a duration in 100ns ticks, so what comes back is a
+real timestamped transcript of a line we wrote, straight out of the synthesiser.
+That is exactly what `captions.mjs` eats: no alignment pass, no whisper, no
+guessing. The result says `timing: "engine"` when the timestamps are the
+engine's and `"estimated"` when they had to be spread over the measured duration
+by syllable count, so the caller is never left wondering which it got.
+
+Measured on the default voice: **2.3 words a second**, which puts a three word
+caption card at about 1.3 seconds. That number is what the `pop` style is cut
+against and it is printed by `node lib/voice.mjs test`.
+
+Five things that cost time, written down so they only cost it once:
+
+- **It is hand rolled because the global `WebSocket` cannot set request
+  headers**, and this endpoint wants an `Origin` and a `User-Agent` that say
+  Edge. So the handshake is written against a tls socket and the frames are
+  masked by hand. About a hundred lines, and the alternative was a dependency.
+- **`Sec-MS-GEC` is sha256 of the windows file time rounded down to five
+  minutes, in 100ns ticks, with the public trusted client token appended.** Two
+  traps in that sentence: the ticks are past 2^53 so they have to be computed in
+  `BigInt` or javascript quietly rounds them and every hash is wrong, and the
+  clock is the *server's*, so a machine a few minutes out is refused. A 403
+  therefore retries once against the `Date` header the refusal itself carries.
+- **A missing `Cookie: muid=…` is refused with the same blank 403 a bad token
+  gets**, so a missing cookie looks exactly like broken drm.
+- **Word boundaries and sentence boundaries are one choice, not two.** Asking
+  for both is how you get neither. Sentences are derived from the words and
+  their punctuation afterwards, which costs nothing and cannot disagree with the
+  word timings the captions are cut against.
+- **The engine strips punctuation off the word it hands back, and sometimes
+  sends `40 hours` as one event.** Both are put back: the punctuation from the
+  copy we sent, and a multi word event split by length inside the box the engine
+  already agreed with. Without the first the caption loses every full stop, and
+  the brand's rhythm is mostly full stops; without the second the counter style
+  has nothing to count.
+
+Long scripts are split on sentence ends and the chunks' offsets are pushed along
+by the audio already written, measured as exact arithmetic on the byte count
+because the wire format is constant bitrate. `wav` is a transcode of the
+finished mp3 rather than a second wire format, because riff chunks carry their
+own headers and do not concatenate.
+
+When it breaks, it will be the drm. `CHROMIUM_FULL` at the top of the file is a
+real Edge build number and is the thing to bump; the python `edge-tts` package
+carries the same constant and is the reference.
+
+### `analyze.mjs` — the reference analyzer
+
+Point it at a video somebody else made and it writes down how that video is
+built, into `demo/out/analysis/<name>.md`.
+
+```
+node analyze.mjs path/to/reference.mp4
+node analyze.mjs ref.mp4 --model=small --scene=0.24
+node analyze.mjs ref.mp4 --words=out/voice/line.json   a word list you already have
+node analyze.mjs ref.mp4 --no-whisper                  skip the transcript
+node analyze.mjs --install-whisper                     set the transcriber up, once
+```
+
+It reads. It never writes to the file you give it and it never uploads it.
+
+Four passes, and the report says at the top which of them it managed:
+
+1. **The file.** Duration, resolution, frame rate, whether there is sound.
+2. **The cuts.** ffmpeg's own scene score, thresholded at `--scene`, 0.28 by
+   default. Every shot length is printed as a bar, and the scores that nearly
+   made the threshold are printed too, so the threshold can be argued with
+   rather than trusted.
+3. **The words.** faster-whisper with word timestamps, in a virtualenv under
+   `out/`. `--install-whisper` builds it, in one command, into a folder that
+   deleting `out/` undoes.
+4. **The frame.** Stills at every cut and on a cadence, written next to the
+   report, then read with tesseract if it happens to be on the machine.
+
+Then two sections that are the point of the exercise: **the caption cut**, which
+is the same transcript put through `lib/captions.mjs` so the reference's cadence
+and ours can be read in the same units, and **what to build to**, which is the
+skeleton as numbers — length, cut rate, when the first word lands, and words per
+second against the 2.3 our own voices run at.
+
+**Both passes that can be missing have a real fallback, and the report says
+which one it used.**
+
+- No transcriber, no model, or `--no-whisper`: ffmpeg's `silencedetect` splits
+  the audio into speech and pause, which gives the rhythm of the delivery —
+  phrase lengths, breath lengths, when the talking starts — without any of the
+  words. That is most of what a skeleton needs.
+- No tesseract: an edge density reading of the top, middle and bottom third of
+  each still. It does not read text and does not pretend to. It says which band
+  of the frame is carrying the detail, which is enough to tell a talking head
+  from a full screen caption.
+
+`--words` is the normal case for anything we scripted ourselves: hand it the
+sidecar `lib/voice.mjs` wrote and it skips transcription entirely.
+
+**The transcriber's weights are not in the package.** The first run downloads
+them from huggingface into `out/whisper-models`. A machine that cannot reach it
+gets a sentence saying so, and the phrase rhythm, rather than a python stack.
+
+One ffmpeg trap worth keeping: the scene pass uses `-vf`, not `-filter_complex`.
+A complex graph needs an explicit `-map`, and without one nothing reaches the
+null muxer, so the pass runs, prints nothing, and reports a video with no cuts
+in it. That failure looks exactly like a correct answer.
+
+### `captions-test.mjs` — the three styles, judged
+
+```
+node captions-test.mjs                 all three, 1080x1920, 60fps, 5s each
+node captions-test.mjs pop             just one of them
+DEMO_FPS=12 node captions-test.mjs     the fast preview pass
+```
+
+Three five second clips into `demo/out/`, plus a still of each style in **both
+themes** into `demo/out/verify-captions/`. About a minute for all three, and the
+voice is cached in `out/voice/` so a second run does not go near the endpoint.
+
+Two things it does that no other script in here does, both on purpose:
+
+- **The voice is muxed into the file.** Every other clip renders `-an` because
+  sound is added in the edit. A caption test is the one case where the sound is
+  the thing being tested: the claim is that the words land on the frames they
+  are said on, and a silent clip cannot show that.
+- **The copy is different per style**, because the styles are not
+  interchangeable. `pop` wants short declarative beats, `type` wants a sentence
+  that reads, `count` wants figures. One line for all three would flatter one of
+  them and libel the other two.
+
+There is no mascot in it. He would be the thing being looked at, and the caption
+is the thing being judged.
+
+The guards are the clips' guards plus four of its own: the safe area four times
+a second against the drawn ink, never more than one group on screen at once
+except in `type` where stacking is the style, the accent painted in `pop` and
+`count` and **never** in `type`, and something actually moving between two
+frames — because a still frame passes every other check in the list.
+
 ## Why demo/ is safe to have in a public repo
 
-`record.mjs`, `post2.mjs`, `og.mjs`, `README.md` and `package.json` are tracked.
-`node_modules/`, `frames/`, `out/` and `package-lock.json` are in `.gitignore`,
-and `post2.mjs` keeps its frames under `out/` so a `record.mjs` run cannot wipe
-them mid flight.
+Tracked: `record.mjs`, `post2.mjs`, `post4.mjs`, `post5.mjs`, `post6.mjs`,
+`og.mjs`, `analyze.mjs`, `captions-test.mjs`, `lib/captions.mjs`,
+`lib/voice.mjs`, `README.md` and `package.json`. Ignored: `node_modules/`, `frames/`, `out/` and
+`package-lock.json`. Every clip keeps its frames under `out/` in its own folder,
+so one run cannot wipe another's mid flight.
+
+**Everything the new pieces produce is inside `out/`, which is already
+gitignored whole** — the voice audio and its sidecars in `out/voice/`, the
+analyzer's reports and stills in `out/analysis/`, the caption test's clips and
+its both-theme stills in `out/verify-captions/`, and the transcriber's
+virtualenv and model cache in `out/whisper-venv/` and `out/whisper-models/`. The
+last two are about half a gigabyte, which is exactly why they live somewhere
+deleting one folder undoes.
+
+**Nothing in here holds a secret, and the two endpoints it does name are not
+ours.** `lib/voice.mjs` carries Microsoft's public trusted client token, which is
+compiled into Edge and printed in every article about that api; it is not a
+credential and it is not ours to leak. The analyzer reaches huggingface for
+model weights and nothing else. Neither module has an api key, an account, or a
+line of ours in it.
 
 GitHub Pages serves the whole repo root, so `theboringtek.com/demo/record.mjs`,
-`/demo/post2.mjs`, `/demo/og.mjs` and `/demo/README.md` are fetchable. That is
-harmless: they are static text, nothing executes them, they hold no secrets and
-no endpoint that is not already in `index.html` — the urls named here are named
-in order to **block** them. `demo/` is in neither `sitemap.xml` nor any link on
-the site. If you would
-rather it were not crawled at all, add `Disallow: /demo/` to `robots.txt`.
+`/demo/lib/voice.mjs`, `/demo/analyze.mjs` and `/demo/README.md` are fetchable.
+That is harmless: they are static text, nothing executes them, they hold no
+secrets and no endpoint that is not already in `index.html` — the urls named
+there are named in order to **block** them. `demo/` is in neither `sitemap.xml`
+nor any link on the site. If you would rather it were not crawled at all, add
+`Disallow: /demo/` to `robots.txt`.
