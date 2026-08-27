@@ -6,6 +6,26 @@ names in here either.
 
 ## Status
 
+- **Checkpoint 2026-08-27: the factory is v1 and it is pushed.** `b30bee8` put the whole
+  content pipeline and the sixth clip on `main`: `demo/lib/captions.mjs`,
+  `demo/lib/voice.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs` and
+  `demo/post6.mjs`. **The live site did not change** — no visitor sees anything new, and
+  `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language stubs and `assets/`
+  were all untouched. Four things were settled with it:
+  1. **The `pop` caption style defaults to `fill: 'card'`.** The card springs in whole
+     and the accent walks across it. `fill: 'word'` is still there for anything that
+     wants the older reveal, and an unrecognised value throws.
+  2. **post6 is rendered and posted**, with the **Andrew voice embedded in the mp4** —
+     the first clip in the series that ships its own sound rather than handing the
+     editor a plan. Posted with a caption and hashtags. **Neither is written down here
+     yet**, and that is the one gap this checkpoint leaves; see Socials.
+  3. **English is the only voice language, permanently.** No Russian and no Latvian
+     voice, on any clip, ever. Einz's decision, locked. See Decisions.
+  4. **The next clip is a script away.** Feed a script in, get a video out, in minutes
+     rather than in a session. The measured part of that is real; the part that is still
+     by hand is named under Current state.
+- **The open list is unchanged, rechecked 2026-08-27.** Still six items in Next steps,
+  same order, nothing done and nothing dropped. The factory did not touch any of them.
 - **Built 2026-08-27: `demo/post6.mjs`, the sixth clip, and the first one built on the
   new machine.** `3 things ai should not do in your business`, the honest advice angle.
   **22.20s, 60fps, vertical only, and the voice is inside the mp4** at
@@ -313,15 +333,79 @@ correction.
   posting rule this file has carried that is about what happens after the post rather
   than about the post. It applies to the question format, not to every clip.
 
+#### post6 — built and posted 2026-08-27
+
+The first clip that shipped with its own sound. `3 things ai should not do in your
+business`, 22.20s, vertical, and the voice is **inside the mp4** rather than added in
+the edit. Everything about the render was measured here; the posting is Einz's report.
+
+- **Voice: `en-US-AndrewNeural`**, the `calm` default in `lib/voice.mjs`, rate `-8%`,
+  pitch `-2Hz`. 54 words, timings from the engine rather than estimated, 21.55s of
+  speech in a 22.20s clip.
+- **Caption and hashtags: posted with both, and neither is recorded here.** This is a
+  gap, not a decision — post1 through post5 all have their exact caption and their
+  three tags per platform written down, and the whole reason this section exists is
+  that the wording is the part nobody remembers a month later. **Paste them in.** The
+  house rule still applies: exactly three lowercase hashtags per platform.
+- **No separate sound plan, and that is the change.** post4 planned three voice marks
+  and a logo per beat; post5 planned ten servo cues and no voice. This clip needs
+  neither, because the narration is already in the file and cut against the captions to
+  within about 45ms. The rest of the sound recipe below still applies if the editor
+  wants music under it, but the clip stands up with nothing added.
+- **The script, verbatim**, because it is the thing the captions are cut from and
+  regenerating the voice from a reworded copy would move every caption:
+
+  ```
+  3 things ai should not do in your business.
+  one. talk money with clients alone. a human checks the deal.
+  two. touch customer data without rules. decide what it can see first.
+  three. work without checking. ai makes mistakes. someone must look.
+  good ai has a human behind it. that is the whole secret.
+  ```
+
+  Honest advice rather than a claim, which is the angle: the only kind of ai post worth
+  anything from a shop that sells ai. No dashes, no exclamation marks, lowercase apart
+  from the opening numeral.
+- **The beats land at 3.14, 7.53 and 12.81s** and are drawn at 44px against the
+  ordinary cards' 28.3. **The mascot comes to the viewer once, at 17.95**, and stays
+  there to the end.
+
+#### House rule — the voice is english, and only english. Settled 2026-08-27
+
+**No Russian voice and no Latvian voice, on any clip, ever.** Einz's decision and it is
+locked, not a shortlist.
+
+- It is a choice rather than a limitation. The endpoint `lib/voice.mjs` talks to offers
+  Russian and Latvian neural voices, and the module could add them in an afternoon. It
+  will not.
+- **The site stays trilingual and the clips do not.** `index.html` serves EN, RU and LV
+  and that is untouched by this. What is settled is the voice on a video.
+- The type already pointed the same way, which is worth knowing but is not the reason:
+  Michroma is latin only and Space Grotesk ships no Cyrillic, so a Russian caption in
+  the `pop` or `count` style would have to fall back to the mono stack and stop looking
+  like our clips at all. A Latvian one would set, being latin-ext.
+- Practical consequence for `lib/voice.mjs`: the three voices it ships — `calm`, `dry`,
+  `uk` — are the whole list, and the list is closed by decision rather than by taste.
+
 #### Free text to speech, researched 2026-08-26
 
-Two options, both checked as commercial safe, in preference order.
+**Superseded 2026-08-27, and the answer was neither of them.** Kept because the
+reasoning is still the reasoning, and because a shortlist that was overtaken is worth
+being able to see.
+
+Two options were checked as commercial safe, in preference order.
 
 1. **CapCut's built in TTS.** First choice. In the editor already, so no extra step and
    no extra account.
 2. **Gemini in AI Studio, TTS.** Second choice.
 
-Neither is committed to yet. This is the shortlist, not a decision about voice.
+The line under them read "neither is committed to yet". What shipped is `demo/lib/
+voice.mjs`: Edge's read aloud voices over the unauthenticated websocket, free, no
+account, no key, in our own pipeline. It won on the one thing neither of the two above
+can do — **it hands back a timestamp per word**, so the captions are cut from the
+synthesiser's own timings rather than aligned to the audio afterwards. Both of the
+shortlisted options would have meant exporting audio from somebody else's editor and
+then guessing where the words were.
 
 #### House rule — hashtags, settled 2026-08-26
 
@@ -569,6 +653,18 @@ it went from 0.30em to 0.42em, because michroma's side bearings made 0.30 read a
 at all), and `maxLines` on the calm style is a real option now instead of one nothing
 read. **The three style test clips were re-rendered** against the changed engine.
 
+**Factory v1 as of 2026-08-27, complete and pushed in `b30bee8`.** The pipeline and the
+first clip built on it are both on `main`. What a new clip now costs, measured: the
+voice and its word timestamps in under a second for a line, the caption cut for free
+because it is a pure function of those timestamps, the length following the voice rather
+than being typed, and about two and a half minutes of render for twenty two seconds at
+60fps with every guard. **What is still by hand: the mascot's performance and the
+layout.** post6's thirteen gaze keys were placed against the beats in that script, and a
+new script has its beats somewhere else. post6's layout numbers are a template for the
+next clip rather than something derived automatically. So a script is a rough clip in
+minutes and a finished one in a session, and the session goes on the performance instead
+of on the plumbing.
+
 **Everything these produce lives under `demo/out/`, which is gitignored whole** — the
 audio in `out/voice/`, reports and stills in `out/analysis/`, test clips and both theme
 stills in `out/verify-captions/`, and the transcriber's virtualenv and model cache in
@@ -581,6 +677,66 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### The factory is v1, and the voice speaks english only — 2026-08-27
+
+End of the session that built the pipeline and the first clip on it. Two things are
+settled and one is a capability claim worth writing down precisely so it can be checked
+against later.
+
+**Factory v1 is complete and on `main`** (`b30bee8`). A caption engine, a free voice, a
+reference reader, a style test and post6, five files and about four and a half thousand
+lines, all of it tooling and none of it loaded by the site. `package.json` did not gain
+a dependency: the websocket protocol the voice needs is written out by hand rather than
+pulled in. **The `pop` style's card fill is the default** as of the same day, decided by
+watching both against each other rather than by argument, and the style clips and post6
+were re-rendered against it.
+
+**English is the only voice language, and that is permanent.** No Russian and no Latvian
+voice on any clip, ever. Einz's decision.
+
+Worth being exact about what it is and is not. It is **not** a limitation: the endpoint
+`lib/voice.mjs` talks to offers Russian and Latvian neural voices and adding them would
+be a morning's work. It is **not** a change to the site either — `index.html` still
+serves EN, RU and LV and nothing about the language urls, the dictionaries or the
+detection moves. What is closed is the voice on a video, and with it the shortlist under
+Socials: the file used to carry CapCut's TTS and Gemini as two options with "neither is
+committed to yet" against them, and the answer turned out to be neither of them and our
+own module instead.
+
+The type had already been pointing the same way, which is worth knowing and is not the
+reason. Michroma is latin only and Space Grotesk ships no Cyrillic, so a Russian caption
+in the `pop` or `count` style falls back to the mono stack and stops looking like one of
+our clips. Latvian would set, being latin-ext. So the decision costs a Latvian voice that
+would have worked, which is the honest way to describe it.
+
+**"Any script to video in minutes" is the claim, and here is the measured version of
+it.** The parts that are genuinely a script away:
+
+- the voice, including its word timestamps, in **under a second** for a line and about
+  three for a paragraph
+- the caption cut, which is a pure function of those timestamps and takes no time at all
+- the clip's length, which follows the voice rather than being typed
+- the render, at about **two and a half minutes for twenty two seconds** at 60fps, plus
+  every guard
+
+The part that is **not** automatic, and should not be claimed as such: **the mascot's
+performance is still hand authored per clip.** post6's thirteen gaze keys and their
+holds were placed against the beats in that particular script, by hand, and a new script
+gets new beats in new places. The layout — where the caption box sits, how big the head
+is, what clears what — is also per clip, though post6's numbers are a template that the
+next one can start from rather than rederive.
+
+So: a script becomes a rough clip in minutes and a finished one in a session, and the
+session is now spent on the performance rather than on the plumbing. That is the real
+change and it is a large one, because the plumbing was where the last five clips spent
+their afternoons.
+
+**One gap this checkpoint leaves.** post6 is posted, with a caption and hashtags, and
+neither is written down. Every other post in this file has its exact wording recorded,
+because the wording is what nobody remembers a month later, and the count of tags has
+already had to be corrected once from memory (post1 carried five, not three). This is
+the first post since then to go out unrecorded. It should not stay that way.
 
 ### The sixth clip is driven by its own voice, and the captions are the copy — 2026-08-27
 
@@ -1434,8 +1590,10 @@ in `skills/page-builder/SKILL.md` → Mascot. That file is the source of truth.
 
 ## Next steps
 
-In this order, agreed 2026-08-24. **Rechecked 2026-08-26: still six items, same order,
-nothing done and nothing dropped.** Confirmed by Einz at the end of the post4 session:
+In this order, agreed 2026-08-24. **Rechecked 2026-08-27: still six items, same order,
+nothing done and nothing dropped.** The factory session built a pipeline and two clips
+and did not touch a single one of these, which is worth noticing rather than
+explaining away. Previously rechecked 2026-08-26 with the same result. Confirmed by Einz at the end of the post4 session:
 sitemap check, telegram pfp, the real form test, the about section, the RU and LV
 descriptions and the card validators are all still open, and post4 did not touch any
 of them.
@@ -1522,6 +1680,16 @@ Not scheduled, parked:
 - ~~Whether to register the site in Google Search Console and submit the sitemap.~~
   Decided: yes. It is Next steps item 3, as a recheck rather than a first setup.
 - Whether the light or the dark screenshot is the one that goes on the socials.
+- ~~**Which free TTS to use, and whether a clip gets a voice at all.**~~ Settled
+  2026-08-27: `demo/lib/voice.mjs`, Edge's read aloud voices, `en-US-AndrewNeural` as
+  the default. Neither of the two shortlisted options. See Decisions and Socials.
+- ~~**Whether clips get Russian and Latvian voices, the way the site has RU and LV
+  copy.**~~ Settled 2026-08-27: **no, and never.** English only, permanently. The site
+  stays trilingual; the voice does not. See Decisions.
+- **post6's caption and hashtags are not written down.** It is posted and they exist;
+  they are just not in this file. Every other post has its exact wording recorded, and
+  the tag count has already had to be corrected once from memory. **This is the only
+  open item this session created.** Paste them into the post6 block under Socials.
 
 ## Not committed / lives elsewhere
 
