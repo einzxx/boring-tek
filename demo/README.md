@@ -27,7 +27,7 @@ All headless Chrome, all tooling. The renderers first:
 Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
 
 - **`lib/captions.mjs`** turns a timestamped word list into a word by word
-  animated caption, in three styles. See The library below.
+  animated caption, in four styles. See The library below.
 - **`lib/voice.mjs`** speaks a line in a free microsoft neural voice and hands
   back the audio with the engine's own word timestamps.
 - **`lib/pictograms.mjs`** draws solid svg pictogram scenes in code and animates
@@ -981,6 +981,152 @@ More air than post6 has, and that is the band composition rather than a fault:
 the row sits at the zone's vertical centre and reaches y=38 of 60 where post6's
 scenes reach 57.
 
+## The ninth clip — the pitch reel, and the first one that films the site
+
+`post9.mjs`. Seven beats, **four render passes, one clock, one encode**, and the
+first clip in here that is a cut film rather than one composed frame.
+
+A composed page and the live `index.html` are different documents, so they cannot
+be one browser page. Each pass renders a contiguous range of the same
+`f%06d.jpg` sequence over the same global clock and the whole thing is encoded
+once. The seams are hard cuts and every one lands on the first word of a beat.
+
+| pass | beats | page | shot |
+|---|---|---|---|
+| A | 1..2 | composed | pictograms, and the first shipped stagger |
+| B | 3..5 | the live site | the hero, the form, the cards |
+| C | 6 | the live site, loaded fresh | the glitch cta, pressed |
+| D | 7 | composed | the end card |
+
+**Pass C is a second load of the same page, and that is the page own behaviour
+rather than a cheat.** `openForm()` puts `.gone` on `.cta-zone`, and the only route
+back to the button is submitting and pressing start again. Beat four opens the
+form; beat six needs the button. So beat six gets a fresh page.
+
+**Beat four is a real interaction and it fits inside 1.9 seconds because of how
+the page routes.** The cta is pressed 0.72s before the beat, so the card is open
+and settled before the snap zoom measures it — and that number is index.html own:
+`.card` grows a grid row from 0fr over .44s and `.cardin` springs over .52s, and
+while that runs `.pad` is a full height box clipped inside a short one, so it
+measures as ending below `.below` and the gap comes back negative. A first pass at
+0.55s rendered it at -111.8px and a guard caught it. Then one press on the
+fourth path option, "i just have a question", and the page does the rest: a
+single pick chip marks itself pressed, waits 240ms and advances itself, and that
+answer routes to a two step path whose second step is a textarea. One press
+shows the ui answering and puts a field on screen.
+
+**The camera is gsap in node, on the house curves.** A leg is a paused tween over
+`{cx, cy, z}`, seeked per frame, built when the leg starts because where it is
+going is a live element rect. `btk.pop` for a zoom stop, so it overshoots and
+settles; `btk.drift` for a long move across a page; `btk.glide` for a push.
+Nothing is ever a still frame: a seeded drift of under one percent of scale
+rides on every frame, on the composed passes too.
+
+**The page sets a zoom ceiling, and it is lower than anyone expects.**
+`index.html` is laid out edge to edge at 540 css px: the h1 is 470 wide, the
+subline 494, the info cards 508. A frame at zoom z is 540/z wide, so past **1.15
+the h1 crops, 1.09 the subline, 1.06 the info cards**. The fix pass tried the
+hero at 1.33 to 1.50 and rendered THE BORING TEK as SHE / 7/RING / MEK, which is
+a worse defect than the shy zoom it was fixing. So every site shot now lives
+between **1.06 and 1.14**, each taking the deepest zoom that leaves its own
+subject whole, and the depth comes from travel instead — about 700 page px
+across the film, with the two snaps covering 230 and 400 of it in eight frames
+each. Which is what `record.mjs` concluded the first time anyone pointed a camera
+at this page: the language here is vertical, not scale.
+
+The other two framing rules still hold. Zoom never goes under 1.0 or the fixed
+layers show their own boxes in the margin. And the subline is still the widest
+line the page sets, so `clipCheck()` still measures whether it is in frame and
+cut — but it **reports** now rather than failing, because the caption band has to
+sit on empty page and the framings that do that crop it by about ten px a side.
+It earned its keep before that: an early pass C framed the button at a base 1.09,
+the drift took it to 1.103, and fourteen frames came back clipped.
+
+**The captions are the `float` style and they are measured against the footage.**
+At every card settled frame the caption goes to opacity zero for one extra
+screenshot of its own band, the ink is put back, and the frame that ships is
+captured afterwards. The band comes back as a png, because a jpeg would be
+measuring its own ringing, and node inflates it with `zlib`, which is already in
+node. No dependency was added for it. Two numbers come out and they answer
+different questions: the mean says whether a card can be read, and the darkest
+pixel says whether any of the page own ink is directly behind a word.
+
+That probe had a real bug worth keeping. It hid the caption with
+`visibility: hidden` on the container, and `apply()` writes `visibility` onto
+every card on every frame, so a card that was up set itself back to visible and
+the container hiding itself did nothing. The probe was photographing its own ink
+and reporting the darkest pixel behind the caption as the caption, which came
+back as a flat 1.00:1 on a blank white page. Opacity multiplies down the tree
+and a descendant cannot override it. Visibility is inherited and can be.
+
+**The rig wordmark is off for the two site passes**, and the render settled it.
+`index.html` has its own wordmark in the footer with a row of social icons under
+it, and a second wordmark at 89% of the frame lands on top of both. The brand is
+not missing while it is off: beats three and six are filmed on the hero, whose
+h1 is the wordmark at full size, and the composed passes carry the small one
+where it has always been.
+
+**Weight 700.** `index.html` asks for Michroma and Space Grotesk at 400 and 500 in
+one request and that budget has not moved. The render pages ask for 700 as well,
+because what leaves a render page is pixels rather than a font request. It is
+the only place in the repo where that reasoning applies and it applies only
+there.
+
+### The fix pass, and the five things watching it on a phone found
+
+The first cut passed every guard it had and was wrong in five ways that only a
+phone shows. All five are fixed and four of them changed a rule rather than a
+number.
+
+**1. The safe area was the frame own, not a platform own.** 96 device px is what
+a phone needs; tiktok stacks a button column down the right and a caption across
+the bottom, instagram takes chrome top and bottom, youtube shorts eats the bottom
+for the title and the subscribe row. The floors are per edge now — **180 top, 220
+bottom, 140 left and right** — and the single `SAFE` is gone rather than kept
+alongside, because two floors is one floor nobody reads. The wordmark moved up to
+86.0% of the frame and **the 88 to 90% band is retired**: it sits inside the
+platform bottom strip.
+
+**2. The captions had no fixed home and landed on the site own text.** They have
+one now, and it does not move for any beat in any pass: ink band **710..763 css**,
+394 device px off the bottom edge. What moves instead is the camera. Every site
+shot is expressed as **a gap between two elements, centred on the caption band at
+a given zoom**, measured live and never typed as a page coordinate. The page has
+exactly two bands with no writing in them and both were measured off the real
+document: `.cta-zone` ends 576 and `.cards` begins 634 with the form shut,
+`.pad` ends 807 and `.cards` begins 865 with it open. `bandClash()` checks every
+frame and the run reports held frames separately from frames where the camera or
+the page is moving — a clash mid move is a transient, a clash on a held frame is
+a shot somebody reads.
+
+**3. There was green that was not a money word.** The pictogram scene lit its
+core with a solid accent square for two and a half seconds, which is a green card
+by another name and exactly what the brief says the accent may not be. It is a
+check cut into the ink now, and a guard fails the render if any part of any scene
+is inked `accent`. The green touches five words in the whole film and nothing else.
+
+**4. The moves were shy, and one of them could be fixed.** Snaps are **eight
+frames** on `btk.pop`, which overshoots ten percent past the mark and settles back
+through a dip, and they are **pre rolled so they land on their beat first word**
+rather than leaving on it. The run prints every move with its landing error in
+frames. The zooms could not go deeper — see the ceiling above.
+
+**5. The typing was a machine.** Every gap is now its own number between 40 and
+140ms, one gap is a 200ms hesitation, and one letter is got wrong, noticed,
+deleted and typed again — a real keystroke and a real Backspace through the page
+own `input` listener, so the site state goes wrong and comes right the way it
+would for a visitor. The wrong letter is a keyboard neighbour, because a typo is
+a finger landing next door. It is seeded, so the rhythm is uneven and identical
+on every run. The caret is driven too: Chrome draws and blinks its own on a clock
+virtual time does not reach, so the rig writes `caret-color` per frame — solid for
+half a second after a keystroke, then a 530ms blink.
+
+One more the fix pass found on its own: pass B loaded the page fresh at the cut,
+so index.html own wordmark decode scrambled the brand name on camera for two
+seconds. The page now gets four seconds of its own clock before frame zero. The
+decode still happens; it happens off camera, which is where a page load belongs
+in a film.
+
 ## The og card
 
 ```
@@ -1023,6 +1169,16 @@ the caption engine is plain javascript and css.
 
 ### `lib/captions.mjs` — animated captions
 
+**Two options went in for the ninth clip and neither changes an existing
+style.** `flash` is a predicate over one word, `float` only, and it is how a money
+word goes green for the quarter of a second it is being said. `cardBreak` is the
+regexp a card may end on: the default is a sentence end, which is what `pop` has
+always cut on, and `float` passes one that includes the comma. The second is not
+cosmetic. With sentence breaks only, "if ai can do it, we build it" cuts a card
+reading "do it we", which is three words that were never a phrase. Read aloud it
+is fine, because the voice puts the clause boundary in. Read on a card it is
+nonsense, and a caption is read.
+
 **Cards carry words and nothing else.** `punctuation: 'drop'` is the default and
 it is a brand rule rather than a clip's preference: the sentence a card belongs
 to is carried by the voice, so the marks stay in the script where the synthesiser
@@ -1034,13 +1190,14 @@ punctuating a sentence. It runs *after* the grouping: `toCards` breaks at a
 sentence end and needs the full stop to find one, so strip first and every
 sentence runs into the next.
 
-Takes `[{word, start, end}, ...]` and draws it word by word. Three styles:
+Takes `[{word, start, end}, ...]` and draws it word by word. Four styles:
 
 | | |
 |---|---|
 | `pop` | big Michroma caps, one short card at a time. The card springs in whole and the accent then walks across it, landing on whichever word is being said and kicking it as it arrives. The hormozi cut in our type. `emphasise` marks a card as a beat and fits it on its own in the accent, off unless asked for; `fill: 'word'` goes back to the older reveal, where a word is invisible until it is said. See The sixth clip for why `card` is the default. |
 | `type` | Space Grotesk, lines arriving from below and dimming as they are overtaken, the word being said at weight 500. Calm, closest to how the site reads, and it never touches the accent. |
 | `count` | a rolling number and a label under it. The digits sit on a fixed cell grid so a 6 becoming an 8 cannot change the width of the line. |
+| `float` | Space Grotesk at 700, lowercase, one short card at a time, no card behind it and no fill of any kind. Built for footage rather than for a composed frame, which is the one thing the other three are not: `pop` over a screen recording is a Michroma headline arguing with a page that already has type on it. The ink is `--fg` and only `--fg`, which is what makes the paper version free: over the dark theme the same token is the paper tone, so a clip that films a dark page gets light captions with no second code path. `flash` names the handful of words the accent may touch, and it touches them only on the frames they are being said on. Added for the ninth clip. `pop` is still the default and post6 and post7 render exactly as they did. |
 
 The shape of it, and it is deliberately split in two:
 

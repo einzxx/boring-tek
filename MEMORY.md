@@ -6,7 +6,49 @@ names in here either.
 
 ## Status
 
-- **Studied 2026-08-27, not built, and not to be built without a conversation
+- **Built 2026-08-28 and fixed the same day: `demo/post9.mjs`, the ninth clip,
+  "the pitch reel", and the first one that films the live site.**
+  **23.89s, 60fps, 1080x1920, 1433 frames, 6.00 MB**, voice and 54 effects in the
+  file, rendered with the shutter open at four subframes in about twelve minutes.
+  **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
+  `sitemap.xml`, the language stubs and `assets/` were all untouched, and the page
+  was filmed exactly as it is in git. **Committed, not pushed, not posted.**
+  **post9 is parked.** No more work on it until Einz says so. The three things
+  the review found are a backlog under Decisions and none of them is done.
+  - **One number is pending and it is named rather than guessed.** The figures
+    above are measured off the 60fps blurred render of 2026-08-28, which passed
+    everything except a single frame of bookkeeping: pass C's frame zero landed a
+    hair before its own camera leg started, so the cut frame was counted as a
+    held shot with site text behind the caption. **It appeared only at 60fps** —
+    at 12 the rounding went the other way — and it is fixed. **A corrected
+    re-render was still running when this was written.** Nothing visible changes:
+    the fix moves one frame's camera value, so duration, resolution, frame count,
+    margins, camera landing errors and the mix all stand. **What to confirm off
+    that run when it lands: the file size, the render time, and that the held
+    clash count is 0 rather than 1.**
+  - **It is a cut film, not a composed frame.** Four render passes into one
+    `f%06d.jpg` sequence over one clock, encoded once: pictograms for beats one
+    and two, the live site for three to five, the live site loaded fresh for beat
+    six, the end card for beat seven. 505, 523, 158 and 247 frames. Three hard
+    cuts, at **8.41s, 17.13s and 19.77s**.
+  - **The first cut passed every guard it had and was wrong in five ways a phone
+    showed.** That is the thing worth carrying forward, not the clip. The fix
+    pass is written up under Decisions; the short version is that the safe area
+    was the frame's rather than a platform's, the captions had no fixed home,
+    there was green that was not a money word, the moves were shy, and the typing
+    was a machine.
+  - **The numbers it ships on.** Platform safe margins clear on every edge:
+    **779 top, 244 bottom, 191 left and right** against floors of 180, 220, 140
+    and 140. Caption zone fixed at **710..763 css** for all four passes, 394
+    device px off the bottom edge. Every camera move lands on its beat's first
+    word to the frame, **0 frames of error on all five**. Delivered at **-14.2
+    LUFS / -1.0 dBTP**.
+  - **It cost two engine additions and both are reusable**: the `float` caption
+    style with `flash` and `cardBreak` in `lib/captions.mjs`, and `servo` in
+    `lib/sfx.mjs`. The green card default is untouched and post6 and post7 re-plan
+    identically, which was checked rather than assumed.
+
+- **Studied 2026-08-27,- **Studied 2026-08-27, not built, and not to be built without a conversation
   first: a new format direction, off `unterberg.ai`'s reels.** Three separate
   ideas, and only two of them are ours to start. Written down under Socials with
   what each one would actually cost.
@@ -758,7 +800,31 @@ Still no posting cadence or content pillars. See Next steps.
   it clears the measured caption ceiling by **112px on the shadow and 139px on the
   ink**, floor 40, and a border by 284 and 253 device px, floors 96 and 72. See
   Decisions. 
-- **`demo/lib/pictograms.mjs`**, added 2026-08-27: solid ink svg pictogram scenes
+- **`demo/post9.mjs`**, added 2026-08-28: the ninth clip, `the pitch reel`.
+  **23.89s at 60fps, vertical only, voice and effects inside the mp4**, out to
+  `demo/out/post9-1080x1920.mp4`. `--blur` opens the shutter for the final and is
+  off for the timing pass, `DEMO_FPS=12` previews it, `--encode-only` re-encodes
+  from kept frames. Frames under `out/frames-post9`, subframes under
+  `out/subframes-post9`, state under `out/post9-1080x1920.json`, verify stills
+  under `out/verify-post9`. **About twelve minutes with the shutter open at four
+  subframes, about three without.**
+  **It is the first clip that is not one composed frame.** Four render passes
+  write contiguous ranges of one frame sequence over one clock and the whole
+  thing is encoded once: **A** beats 1..2, composed pictograms; **B** beats 3..5,
+  the live `index.html` under a camera; **C** beat 6, the same page loaded fresh;
+  **D** beat 7, the end card. 505, 523, 158 and 247 frames, cutting at 8.41s,
+  17.13s and 19.77s.
+  **It films the real page and does not edit it.** The rig adds a camera, a
+  cursor and a caption layer on top of the file as it is in git, exactly as
+  `record.mjs` has since it was written, and the two runtime endpoints are
+  stubbed so nothing leaves the browser. The camera is **gsap in node on the
+  house curves** — a leg is a paused tween over `{cx, cy, z}` seeked per frame and
+  built when the leg starts, because where it is going is a live element rect.
+  **Every site shot is a gap between two elements, centred on the caption band**,
+  measured live and never typed as a page coordinate. Nothing is ever a still
+  frame: a seeded drift of under one percent of scale rides on every frame,
+  composed passes included. See Decisions.
+- **`demo/lib/pictograms.mjs`**, added 2026-08-27:- **`demo/lib/pictograms.mjs`**, added 2026-08-27: solid ink svg pictogram scenes
   drawn in code and animated per frame, built the same way `lib/captions.mjs` is
   so one clip drives both from one loop. **Rebuilt the same day from outline
   clipart into solid ink**: filled silhouettes, `--bg` cutouts instead of second
@@ -822,7 +888,7 @@ Still no posting cadence or content pillars. See Next steps.
   needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
   `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
-  `demo/post7.mjs`, `demo/scenes-test.mjs`, `demo/lib/captions.mjs`,
+  `demo/post7.mjs`, `demo/post9.mjs`, `demo/scenes-test.mjs`, `demo/lib/captions.mjs`,
   `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`, `demo/lib/sfx.mjs`,
   `demo/README.md`, `demo/package.json`.
   **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
@@ -918,6 +984,26 @@ motion engine and is the only dependency any of this has gained since. Full deta
   same rule post2 learned, because one captured frame carries five or six BeginFrames.
   Colours come from `index.html` at run time, **both** the `:root` block and the
   `html[data-theme=dark]` block, and it throws if a token it paints with has gone.
+- **`lib/captions.mjs` grew a fourth style on 2026-08-28, and the first three did
+  not change.** **`float`**: Space Grotesk at **700**, lowercase, one short card at
+  a time, no card behind it and no fill of any kind, built for footage rather
+  than for a composed frame. The ink is `--fg` and only `--fg`, which is what
+  makes the paper version free — over the dark theme the same token *is* the
+  paper tone, so a clip that films a dark page gets light captions with no
+  second code path. Two options came with it: **`flash`**, a predicate over one
+  word that lets the accent land only on the frames that word is being said, and
+  **`cardBreak`**, the regexp a card may end on. The second is not cosmetic — with
+  sentence breaks only, "if ai can do it, we build it" cut a card reading
+  `do it we`, three words that were never a phrase. **`pop` is still the default
+  and post6 and post7 re-plan identically**, which was checked rather than
+  assumed. See Decisions.
+- **`lib/sfx.mjs` has nine sounds since 2026-08-28, not eight.** `servo` is a small
+  geared motor: a pitch that slides up while it accelerates, amplitude modulated
+  at the tooth rate so it buzzes rather than tones, and a body of band passed
+  noise underneath. 90ms, which is five frames at 60fps, because a snap zoom is
+  over in eight and a sound that outlasts its own move is a sound the viewer
+  starts listening to. It sits at -26dB, with the click rather than with the
+  coin: it is a mechanism acknowledging an instruction, not an object landing.
 - **`demo/lib/voice.mjs` — free voice, no key, no account, no dependency.** Edge's read
   aloud neural voices over the unauthenticated websocket the python `edge-tts` package
   uses, with the handshake and the frame masking written out against a tls socket
@@ -1012,108 +1098,242 @@ Microsoft's, compiled into Edge and printed in every article about that api; it 
 credential and not ours. The only hosts named are Microsoft's speech endpoint and
 huggingface, neither of them ours, and neither module has a key or an account.
 
+### Skills — `skills/`
+
+- **Two skills, and one of them ships code.** `skills/SKILL.md` is the index and
+  each skill is `skills/<name>/SKILL.md`.
+- **`page-builder`** — the design system and the build rules for pages. The source
+  of truth for colours, type and layout. Instructions only.
+- **`video-review`**, added 2026-08-28 — watches a finished clip and writes down
+  what is on the screen second by second, then judges it against the house
+  checklist. **It is the eyes, and it exists because the guards are not.**
+  `demo/`'s checks measure geometry and sound and they passed post9's first cut,
+  which a phone then showed had captions inside tiktok's chrome, a green card
+  the brief bans, and a wordmark decoding into `SHE / 7/RING / MEK`.
+  - **Invoke it in two steps.** First
+    `node skills/video-review/frames.mjs demo/out/<clip>.mp4`, which writes one
+    jpeg per sample into `demo/out/frames-review-<name>/` with the second it came
+    from in its own filename, plus `index.json` and `index.txt`. Then read the
+    frames **in batches of eight to ten, in order**, and write the review to
+    `demo/out/review-<name>.md`. The reading and the judging happen in the
+    conversation; the script is the extraction half only.
+  - Flags: `--every=0.5` for density, `--from` and `--to` for one stretch,
+    `--width`, `--max`, and **`--guides`**, which draws the platform safe area on
+    every frame as a magenta rectangle for the margin pass.
+  - **The checklist is seven items** and an item that does not apply is marked
+    n/a rather than left out: platform safe margins, caption readability and
+    placement, no green where the float style bans it, camera moves landing on
+    their beats, nothing colliding with the site's own text, the wordmark, and
+    pacing. Every claim in a review carries the second that proves it.
+  - **Local files only.** No urls, no yt-dlp, no downloads, and **no
+    transcription**: our clips are made here and the script is written down in
+    the post file before the voice is synthesised, so the words are already
+    known. It adds no dependency — frame extraction uses `demo/node_modules`'
+    `ffmpeg-static`, which the render pipeline already carries, and that binary
+    ships no ffprobe so the metadata is parsed off ffmpeg's own stderr exactly
+    as `post9.mjs` parses it.
+  - **Adapted from `fabriqaai/ffmpeg-analyse-video-skill`**, which is two markdown
+    files and no code. What was taken is the shape — sample, batch, read,
+    synthesise — and the sampling ladder, with the short end made denser because
+    our clips are twenty odd seconds and a frame every two would miss whole
+    shots. What was dropped is everything that reaches the network. Its trick of
+    handing batches to disposable sub agents to keep images out of the main
+    context is written down as an option, **off by default**, because nothing
+    here spawns agents unless asked.
+  - **Frames and reviews land under `demo/out/`, which is gitignored whole.**
+    Nothing it produces is committed unless somebody asks for it to be.
+
 ## Decisions
 
-### 2026-08-28 — the pictogram motion engine is gsap, and the clock is ours
+### 2026-08-28 — post9, the pitch reel: four passes, one clock, and what the render decided
 
-`demo/lib/pictograms.mjs` rebuilt from the motion out. Demo only: `index.html` did
-not change, no scene's content changed, and every scene table in `post6.mjs` and
-`post7.mjs` drives the new engine **unedited**. Einz asked for after effects quality
-motion and this is what that turned out to mean in this rig.
+The ninth clip, and the first that puts the live site on screen. `index.html` did
+not change and was not read from anywhere but disk: the rig adds a camera, a
+cursor and a caption layer in the browser on top of the file as it is in git.
 
-**`gsap` is a dependency now, in `demo/` only, and it is the first one added since
-the pipeline was built.** `demo/package.json` is `puppeteer-core`, `ffmpeg-static`
-and `gsap`. It is free in full as of 3.13 — DrawSVG, MorphSVG and CustomEase all
-ship in the public package. The site's zero dependency rule is untouched: nothing in
-`demo/` is loaded by, linked from or referenced by `index.html`, which is still one
-file. The library is **inlined into the rendered page off `node_modules` at render
-time, never fetched**, so no clip depends on a cdn being up and the site's budget of
-exactly one external request is not spent by tooling.
+**A composed page and the live site cannot be one browser page, so the film is
+four passes into one frame sequence.** Each pass renders a contiguous range of
+`f%06d.jpg` over the same global clock and the whole thing is encoded once. The
+seams are hard cuts and each one lands on the first word of a beat, at 8.41s,
+17.27s and 19.77s. **Motion blur is blended per pass**, deliberately: a rolling
+mean that reached across a cut would average the end of one shot into the start
+of the next, which is a dissolve, and a dissolve is not a cut.
 
-**One motion core, two readers, and a parity check between them.** `buildTimeline`
-is one function that tweens plain javascript objects and touches no dom. Node runs
-it to feed the preflight guards; the same function, serialised, runs in the page and
-its numbers are written to elements. They are not two implementations that match,
-they are one function run twice — and the page compares its own output against the
-frame node sent, on every captured frame, and faults past a rounding error.
-**Measured: 0.**
+**Beat six is a second load of the same page, and that is the page's behaviour
+rather than a shortcut.** `openForm()` puts `.gone` on `.cta-zone` and the only
+route back to the button is submitting and pressing start again. Beat four opens
+the form; beat six needs the button. The alternative was filming a send button
+instead of the glitch cta, and a cut is the cheaper lie.
 
-**Five house curves, named in one place, referenced by name.** `pop` is the snappy
-overshoot, 10% past the mark and a dip 1.5% under; `drift` is soft, for a thing
-sliding across a page; `glide` is the calm in-out that carries every opacity ramp
-and every line draw; `heavy` is weight; `land` is gravity then impact. Four are
-CustomEase paths and `land` stays a function, because an impact is not a cubic and
-approximating it would cost the thing that makes it work. **Every old name is an
-alias and still works** — `io` is glide, `spring` and `weight` are pop, `fall` is
-heavy — which is the whole reason no scene table needed touching. One default moved:
-`move` drifts now where it glided, because a glass sweeping a page is a drift.
+**Beat four is 1.93 seconds and the interaction fits inside it because of how
+the page routes, not because it was rushed.** The cta is pressed on the word
+`that` in beat three, so the card is open and settled before the snap zoom lands
+— timing it to the pause after the sentence would have framed a card that was
+still unfolding. Then one press on the fourth path option, `i just have a
+question`: a single pick chip marks itself pressed, waits 240ms and advances
+itself, and that answer routes to a two step path whose second step is a
+textarea. One press shows the ui answering and puts a field on screen.
 
-**Squash and stretch is one channel, so it cannot get the volume wrong.** `sq`, with
-x scaled `1+sq` and y `1/(1+sq)`. 6% on a pop, 8% on a landing, never more.
-Anticipation, then a snap into the squash over two and a half frames landing exactly
-on contact, one frame of contact deformation, then out on the pop curve whose own
-dip is the counter stretch for free. **Contact is measured off the pop curve at load
-rather than typed** — 0.2525 — so changing the curve moves the squash with it. The
-guards gained no new limit: `sceneMotion` measures scale *effective*, the part's
-scale times its squash per axis, which is what a viewer sees.
+**Four things the render decided and no plan would have.**
 
-**Stagger exists and is deliberately unused.** A part can lag its own sub shapes two
-to four frames behind the body. It is opt in, unit tested, and applied to no shipped
-scene, because turning it on for post6 would be a scene edit and the brief was motion
-quality only.
+1. **The subline clip guard fired, on its first outing.** The page's widest line
+   is the subline, and a zoom that puts it in frame and cuts its first and last
+   letter reads as a bug. `record.mjs` answered that with a flat cap of 1.09;
+   this file answers it by measuring, and the measurement failed the render:
+   pass C framed the button at a base 1.09, the drift took it to **1.103**, and
+   fourteen frames came back clipped. The base zoom now leaves the drift its
+   room. **The ceiling the rule is about is still 1.09.**
+2. **The rig's wordmark came off the two site passes.** `index.html` has its own
+   wordmark in the footer with a row of social icons under it, and a second one
+   at 89% of the frame lands on top of both — and on the info cards' copy during
+   beat five. The brand is not missing while it is off: beats three and six are
+   filmed on the hero, whose h1 *is* the wordmark at full size, and the composed
+   passes carry the small one where it has always been.
+3. **The contrast probe had a bug and it is the useful kind.** It hid the
+   caption with `visibility: hidden` on the container — and `apply()` writes
+   `visibility` onto every card on every frame, so a card that was up set itself
+   back to visible and the container hiding itself did nothing. The probe was
+   photographing its own ink and reporting the darkest pixel behind the caption
+   as the caption, which came back as a flat **1.00:1 on a blank white page**.
+   Opacity multiplies down the tree and a descendant cannot override it;
+   visibility is inherited and can be.
+4. **`.card` is a full bleed section, so fitting it framed the whole page.** The
+   first render of beat four was the hero, the form and the info cards all at
+   once, at zoom 1.05. `.cardin` is the rounded box a visitor actually sees.
 
-**Four things went wrong and all four are worth keeping.** Every one of them was
-caught by a guard rather than by watching a render, which is the argument for the
-guards.
+**A guard was wrong once and it is worth writing down which way.** The scene
+layer's tick check read `ticks === frames`, which is only right with the shutter
+shut. The 60fps final came back with **2017 ticks for 505 frames** and failed a
+picture that was correct: the count is read on each frame's *first* subframe, so
+504 x 4 + 1 is exactly the invariant holding. The guard now states the arithmetic
+and still fails on a layer that missed a capture.
 
-1. **A gsap `set` at position zero does not render when the playhead is put at
-   exactly zero.** It renders in its *from* state and only takes when time moves
-   past it. Frame nought carried the constructed value and frame one carried the
-   set: a 26 unit teleport on a coin the frame before it fell, and on one plan the
-   seed never landed at all and the coin simply did not drop. There are no sets now.
-   Resting values are written straight onto the plain object and every tween is a
-   `fromTo` that states its own start.
-2. **`fromTo` renders its from state at creation, so building an entrance and then
-   an exit leaves the channel holding the exit's start.** The intro group sat fully
-   opaque for the six frames before it was meant to arrive. `immediateRender: false`
-   on every tween, and the seeds are then the only thing that speaks before a
-   tween's own time.
-3. **`gsap.ticker.sleep()` is not a brake, it is a trigger.** `updateRoot` is a
-   ticker listener registered at load, and `ticker.wake()` dispatches a tick
-   *synchronously* — so the next tween render calls `_wake`, which calls `_tick`,
-   which hands the global timeline wall clock time. The clock check caught it on
-   capture two of sixteen: wanted 0.166667, got 0.073. The fix is
-   `gsap.ticker.remove(gsap.updateRoot)`, after which the only thing that can move
-   the root is the `updateRoot` the rAF flush calls itself. A filter that stops the
-   shim running anything but our own loop is also in, **installed before gsap's
-   script**, because gsap reads `requestAnimationFrame` into a private when it loads
-   and a wrapper added afterwards is one it never sees.
-4. **In node, gsap's ticker falls back to `setTimeout` and that handle keeps the
-   process alive.** Scripts rendered their clip, printed their checks and then sat
-   there forever; two were found idle at 2.4 seconds of cpu. Node's gsap has its
-   `wake` stubbed at module load, which costs nothing because this half never plays
-   an animation — it seeks a paused timeline and reads numbers off it.
+**Weight 700 is a demo render page exception and it is narrow.** `index.html`
+asks for Michroma and Space Grotesk at 400 and 500 in one request and **that
+budget has not moved.** The render pages ask for 700 as well, because what leaves
+a render page is pixels rather than a font request, so the weight the float
+captions are set in costs a visitor nothing and costs the site's one request
+nothing. **It applies to `demo/` render pages only.** Nothing in `demo/` is loaded
+by, linked from or referenced by `index.html`, which is still one file with one
+external request.
 
-**post6 was re-rendered whole on the new engine and passed every guard it has.**
-22.20s, 1332 frames, 1332 rAF ticks, **no faults**, biggest one frame part move 2.869
-units against a limit of 4.50. The clearances came out where they have always been:
-115px from the lowest scene shadow to the caption ceiling and 143px on the ink
-(floor 40), 284px and 253px to a border (floors 96 and 72), the caption 104px off
-the head. `post7.mjs`'s scene table was walked through the preflight at 60 and at
-12fps as well and every channel is inside the limits. **Nothing in either scene
-table was edited.**
+**The stagger is used for the first time.** It has been in the engine since the
+gsap rebuild, opt in, unit tested and applied to no shipped scene, because
+turning it on for post6 would have been a scene edit. post9's four system nodes
+are folders and each lags its own tab by three frames. A folder's tab is the
+first element of its shape, so the tab leads rather than trails; at 50ms that
+reads as the folder arriving with a flick rather than as two objects.
 
-**The clock check is the load bearing one and it runs before a jpeg is written.**
-`__pic.sync(fps, count, sub)` walks the shim and fails the render unless gsap's own
-time is the capture index over the capture rate. Worst measured error at 60fps and
-at 240 captures a second: **3.3e-8s**, which is floating point on `1/60` and not a
-clock. It also found a mistake of mine that nothing else would have: `sceneFrame`
-used to round its reported `t` to four decimals, which was harmless while node
-computed the picture, and stopped being harmless the moment the page started
-stepping its own timeline off that number. 62 of 64 captures disagreed. `t` is
-carried at full precision now.
+**What the finished file measures.** 23.89s, 60fps, 1080x1920, 1433 frames,
+7.13 MB, rendered in 10.6 minutes with four subframes to a frame. Passes of 505,
+531, 150 and 247 frames. Safe margins, device px against a floor of 96: worst
+**184** anywhere, on a caption word at 9.42s. The caption box is **404 of 540
+css px, 74.8%**, against the brief's 75% content cap — the first render measured
+82.2% because it had been sized to the safe area rather than to the cap, and the
+guard caught it. The wordmark sits at **89.0%**, inside the 88 to 90 band. The
+pictogram zone is 57.4% and never gets closer than **166px** to the caption
+ceiling on the shadow or **188px** on the ink, floor 40, and **286px** to a
+border on the ink and 256 on the shadow, floors 96 and 72. gsap's clock error
+was **3.3e-8s**, and node and the page agreed on every frame. Zoom stayed inside
+1.007 to 1.085 with no clip faults. The mascot's biggest one frame gaze move was
+0.097 against a limit of 1.20.
 
-### 2026-08-28 — motion blur is a shutter, not a filter
+**Captions over footage, measured rather than claimed.** Every card clears
+**3.0:1 on the mean** and the worst mean is 17.37:1, because the site is a white
+page. **Six of the 24 cards have some of the page's own ink directly behind
+them**, worst 1.35:1 at 13.20s on `does` and 1.52:1 at 12.85s on
+`what your business`, both over the form. That is the caption zone meeting the
+footage and it is reported per card with its second rather than smoothed away.
+It is not a failure and it was not designed out: a bold glyph crossing a form
+label is what a captioned screen recording looks like, and the alternative is a
+fill behind the caption, which is the thing this style exists not to have. **If
+it ever needs solving, solve it in the framing, not with a scrim.**
+
+### 2026-08-28 — post9's fix pass, and the backlog it did not clear
+
+**The first cut passed every guard it had.** Then it was watched on a phone and
+it was wrong in five ways, four of which changed a rule rather than a number.
+That is the lesson worth keeping: **the guards measure, they do not see.** It is
+why `skills/video-review` now exists.
+
+1. **The safe area was the frame's, not a platform's.** 96 device px is what a
+   phone needs; tiktok stacks a button column down the right and a caption across
+   the bottom, instagram takes chrome top and bottom, youtube shorts eats the
+   bottom for the title and the subscribe row. **The floors are per edge now —
+   180 top, 220 bottom, 140 left and right** — and the single `SAFE` is gone
+   rather than kept alongside, because two floors is one floor nobody reads.
+   **The wordmark moved to 86.0% of the frame and the 88 to 90% band is
+   retired**: that band sits inside the platform's bottom strip. A format rule we
+   wrote lost to a platform rule we did not.
+2. **The captions had no fixed home and landed on the site's own text.** They
+   have one now and it does not move for any beat in any pass. What moves is the
+   camera: **every site shot is a gap between two elements, centred on the
+   caption band at a given zoom**, measured live. The page has exactly two bands
+   with no writing in them and both were measured off the real document —
+   `.cta-zone` ends 576 and `.cards` begins 634 with the form shut, `.pad` ends 807
+   and `.cards` begins 865 with it open.
+3. **There was green that was not a money word.** The pictogram scene lit its
+   core with a solid accent square for two and a half seconds, which is a green
+   card by another name. It is a check cut into the ink now, and a guard fails
+   the render if any part of any scene is inked `accent`.
+4. **The moves were shy, and only one half of that could be fixed.** Snaps are
+   **eight frames** on `btk.pop` and are **pre rolled so they land on their beat's
+   first word** rather than leaving on it. The zooms could not go deeper.
+   `index.html` is laid out edge to edge at 540 css px, so a frame at zoom z is
+   540/z wide and past **1.15 the h1 crops, 1.09 the subline, 1.06 the info
+   cards**. The fix pass tried the hero at 1.33 to 1.50 and **rendered THE BORING
+   TEK as SHE / 7/RING / MEK**, which is a worse defect than the shy zoom it was
+   fixing. Every site shot now lives between **1.06 and 1.14** and the depth comes
+   from travel: about 700 page px across the film, with the two snaps covering
+   230 and 400 of it in eight frames each. Which is what `record.mjs` concluded
+   the first time anyone pointed a camera at this page.
+5. **The typing was a machine.** Every gap is its own number between 40 and
+   140ms, one is a 200ms hesitation, and one letter is got wrong, deleted and
+   typed again through the page's own `input` listener. Measured on the final:
+   **41 to 134ms, mean 94ms**. The caret is driven too, because Chrome blinks its
+   own on a clock virtual time does not reach.
+
+**Three things the fix pass found on its own**, all of the kind nothing would
+have caught by reading the file:
+
+- **A card that is still springing measures wrong.** `.card` grows a grid row from
+  0fr over .44s and `.cardin` springs over .52s, and while that runs `.pad` is a
+  full height box clipped inside a short one, so it measures as ending below
+  `.below` and the gap comes back **negative, -111.8px**. Every press is now timed
+  against the page's own transition length rather than against a guess.
+- **Pass B was loading the page fresh at the cut**, so index.html's own wordmark
+  decode scrambled the brand name on camera for two seconds. The page gets four
+  seconds of its own clock before frame zero now. The decode still happens; it
+  happens off camera, which is where a page load belongs in a film.
+- **A leg could start a hair after its own pass did.** A pass begins on the frame
+  nearest its start, which can round to just before the leg that opens it, so
+  frame zero of pass C found no active leg, sat on the shot it was cutting from,
+  and was counted as a held frame with site text behind the caption. **It only
+  appeared at 60fps** — at 12 the rounding went the other way, so the preview was
+  green and the final was not. Legs now activate within half a frame of their own
+  start.
+
+**The backlog, and post9 is parked with it open.** `skills/video-review` was run
+on the finished file and found three things. **None is fixed and none should be
+started until Einz says so.** The full review is at `demo/out/review-post9.md`,
+which is gitignored, so the findings are written out here as well.
+
+1. **The end card is 4.12s and reads as a still frame.** 21.00s and 22.50s are
+   the same picture to the eye. The mascot is blinking and drifting underneath,
+   but at that scale nothing is happening, and it is the longest hold in the film
+   and the last thing before the loop. **Cut it to about 3s, or give it one small
+   arrival.**
+2. **The first 0.26s is a dead frame.** The core pops at 0.26 and the caption is
+   still arriving at 0.00, so the film opens on blank white with a wordmark — the
+   frame doing the least work in the clip, and the one that has to stop a scroll.
+   **It needs a hook frame.**
+3. **The top bar crops at zoom 1.14 and reads as a fault.** At 9.00s and 10.50s
+   the `EN` of the language row loses its first letter at the left edge. It is
+   the site's own chrome and the same crop the run already reports on the
+   subline, but `EN` is two letters, so losing one of them reads as a rendering
+   fault rather than as a crop.
+
+### 2026-08-28 — the pictogram motion engine is gsap### 2026-08-28 — motion blur is a shutter, not a filter
 
 `demo/scenes-test.mjs` grew two flags, `--scene=<id>` and `--blur[=N]`.
 
@@ -2401,7 +2621,15 @@ of them.
   and three tags per platform are written down under Socials. **Not posted.** It
   jumped post3 as well, so **post3, "missed calls", is now four clips behind and
   still unbuilt.**
-- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
+- **post9, "the pitch reel", is built, committed and parked** — 2026-08-28,
+  `demo/post9.mjs`. 23.89s, 60fps, voice and effects in the file, every check
+  passing. **Not pushed and not posted.** Two things it owes before it can go
+  out: **the posting pack** — caption, tweet and three tags per platform, none of
+  them decided — and **a call on the three review findings** under Decisions,
+  which are written down and deliberately not done. **No more post9 work until
+  Einz asks.** It jumped post3 as well, so **post3, "missed calls", is now five
+  clips behind and still unbuilt.**
+- **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
   written up under Socials, **discuss before building.** The third one cannot start
   at all until a lead magnet file exists.

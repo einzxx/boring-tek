@@ -37,6 +37,18 @@
       anywhere in this style, deliberately: it is the one that has to be able to
       run under a talking head without competing with it.
 
+   d. `float`. space grotesk, lowercase, one short card at a time, no card
+      behind it and no fill of any kind: the words sit straight on whatever is
+      under them. built for footage rather than for a composed frame, which is
+      the one thing the other three are not — `pop` over a screen recording is
+      a michroma headline arguing with a page that already has type on it.
+      the ink is `--fg` and only `--fg`, which is what makes the paper version
+      free: over the dark theme the same token is the paper tone, so a clip that
+      films a dark page gets light captions without a second code path.
+      the accent appears on nothing except the words a clip names in `flash`,
+      and then only on the frames they are actually being said on. that is a
+      flash, not a highlight, and it is the whole colour budget of the style.
+
    c. `count`. a number and a label. the digits roll on a fixed cell grid, so a
       6 becoming an 8 cannot change the width of the line under it, which is the
       same trick `index.html` uses to stop a scrambling wordmark wobbling. for
@@ -67,7 +79,11 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 
-export const STYLES = ['pop', 'type', 'count'];
+export const STYLES = ['pop', 'type', 'count', 'float'];
+/* the two that cut the word list into short cards and animate identically.
+   named once rather than tested for in six places, because the day a fifth
+   style arrives the thing that breaks is the fifth `=== 'pop' ||`. */
+const CARDED = ['pop', 'float'];
 
 /* ---------- the tokens ----------
    lifted out of index.html at run time, both blocks, exactly as og.mjs and the
@@ -203,6 +219,12 @@ const DEFAULTS = {
   capSize: 40,         /* px. under the brand's 44px hero cap, deliberately:
                           a caption must not out shout the statement above it */
   bodySize: 26,        /* px. type style, before the fit divides it down */
+  floatSize: 44,       /* px. float style, and it is the brand's own hero cap.
+                          space grotesk lowercase is much narrower than michroma
+                          caps, so the fit almost never runs out of box and this
+                          cap is what actually decides the size. it does not go
+                          past 44 for the same reason the beat does not: nothing
+                          we draw out shouts the headline. */
   numberSize: 96,      /* px. count style. the number is the whole point of it */
   align: 'center',
   /* `drop` is the default and it is a brand rule rather than a clip's
@@ -221,6 +243,18 @@ const DEFAULTS = {
      normally one size is that cards changing size read as a zoom nobody asked
      for. use it on a handful of cards, never on a third of them. */
   emphasise: null,
+  /* float only, and off unless a clip asks for it. a regexp or a predicate over
+     one word; a word that matches is painted in the accent on the frames it is
+     being said on and in the ink on every other frame.
+
+     it is deliberately per word rather than per card, because a highlight that
+     covers a whole card is a highlighted card and the point of this is that
+     three or four words in a whole clip go green. the predicate gets the word,
+     its index in the flat cell list and the list itself, so a clip can flash
+     the second `build` and not the first without writing a regexp that has to
+     know about the copy around it. count what you mark: past a handful the
+     accent stops meaning anything and the style is just a green caption. */
+  flash: null,
   /* pop only. how a card fills. `card` is the default and `word` is kept for
      anything that specifically wants the old reveal.
 
@@ -257,6 +291,20 @@ const DEFAULTS = {
      it is in the plan rather than typed into the css, because the fit has to
      divide by exactly the gap that renders. two copies of this number is a
      caption that overflows its box the day somebody changes one of them. */
+  /* where a card is allowed to end. the default is a sentence end and that is
+     what pop has always cut on; the option exists because float found the case
+     it gets wrong.
+
+     a card breaks on a full stop, on a long gap, or when it is full, and none
+     of those three is a comma. so "if ai can do it, we build it" cut as
+     "if ai can" / "do it we" / "build it" — and "do it we" is three words that
+     were never a phrase. read aloud it is fine, because the voice puts the
+     clause boundary in; read on a card it is gibberish, and a caption is read.
+
+     so a style that cares can break on a clause mark too. it is opt in rather
+     than the new default because changing where post6 and post7 cut their cards
+     would re-cut two clips that are already out. */
+  cardBreak: /[.!?]["')\]]?$/,
   wordGap: 0.42,
   /* the same idea for the two styles set in space grotesk, which needs less of
      it because the face is narrower and already has a real space in its
@@ -285,7 +333,7 @@ function toCards(words, o) {
     run.push(words[i]);
     const next = words[i + 1];
     const gap = next ? next.start - words[i].end : Infinity;
-    if (/[.!?]["')\]]?$/.test(words[i].word) || run.length >= o.perCard || gap > 0.45) flush();
+    if (o.cardBreak.test(words[i].word) || run.length >= o.perCard || gap > 0.45) flush();
   }
   flush();
   return cards;
@@ -353,6 +401,7 @@ export function planCaptions(words, opts = {}) {
   if (o.punctuation !== 'drop' && o.punctuation !== 'keep') {
     throw new Error('punctuation is "drop" or "keep", not "' + o.punctuation + '"');
   }
+  if (!(o.cardBreak instanceof RegExp)) throw new Error('cardBreak is a regexp over a word');
   if (!Array.isArray(words) || !words.length) throw new Error('captions need a word list');
   for (const w of words) {
     if (typeof w.word !== 'string' || !(w.end > w.start) || !(w.start >= 0)) {
@@ -361,7 +410,7 @@ export function planCaptions(words, opts = {}) {
   }
   checkCopy(words);
 
-  const cut = o.style === 'pop' ? toCards(words, o)
+  const cut = CARDED.includes(o.style) ? toCards(words, o)
     : o.style === 'type' ? toLines(words, o)
       : toItems(words).map(i => i.words);
   const meta = o.style === 'count' ? toItems(words) : null;
@@ -429,6 +478,24 @@ export function planCaptions(words, opts = {}) {
   const cells = [];
   groups.forEach(g => g.words.forEach((w, k) => cells.push({ g: g.i, k, ...w })));
 
+  /* the flash, resolved here rather than in the page. the predicate runs against
+     the flat cell list, which is the only place a clip can say "the second time
+     this word is said, not the first" without writing a regexp that has to know
+     the copy around it. only the answer reaches the plan, so nothing has to be
+     serialised into the browser and the count is a number a guard can read
+     before a single frame is drawn. */
+  if (o.flash && o.style !== 'float') {
+    throw new Error('flash is a float style option, not a ' + o.style + ' one');
+  }
+  const flashed = [];
+  cells.forEach((c, i) => {
+    const on = !o.flash ? false
+      : o.flash instanceof RegExp ? o.flash.test(c.word)
+        : !!o.flash(c.word, i, cells);
+    c.flash = on;
+    if (on) flashed.push({ i, word: c.word, at: +c.start.toFixed(3) });
+  });
+
   const plan = {
     style: o.style, align: o.align,
     lead: o.lead, hold: o.hold, maxLines: o.maxLines,
@@ -438,14 +505,19 @@ export function planCaptions(words, opts = {}) {
       number: g.number, big: g.big,
       words: g.words.map(w => ({ word: w.word, start: w.start, end: w.end })),
     })),
-    cells: cells.map(c => ({ g: c.g, k: c.k, word: c.word, start: c.start, end: c.end })),
+    cells: cells.map(c => ({ g: c.g, k: c.k, word: c.word, start: c.start, end: c.end, flash: !!c.flash })),
+    /* every word the clip lets the accent touch, in order, for the run to print
+       and for a guard to count. an empty list on a style that asked for a flash
+       means the predicate matched nothing, which is silent otherwise. */
+    flashed,
     /* how many rolling digit columns there are, in order, so the page can build
        them and the frame function can index them without measuring anything. */
     digits: [],
     /* the fit in the page divides by this so a card at full stretch still lands
        inside the box. it costs about a tenth of the type size and it buys the
        safe area being true of every frame rather than of the resting one. */
-    maxScale: o.style === 'pop' ? POP_MAX_SCALE : 1,
+    maxScale: CARDED.includes(o.style) ? POP_MAX_SCALE : 1,
+    floatSize: o.floatSize,
     bigSize: o.bigSize,
     fill: o.fill,
     /* what the screen lost, so a run can print it and a guard can check that it
@@ -552,7 +624,11 @@ export function captionFrame(plan, t) {
     return t >= c.start && t < c.end;
   };
 
-  if (plan.style === 'pop') {
+  /* `float` is animated by this branch and not by one of its own, and that is
+     the point of it rather than a shortcut: the two styles differ in the face,
+     the case and where the colour goes, and in nothing that moves. a second
+     copy of the timing would be a second copy to keep in agreement. */
+  if (CARDED.includes(plan.style)) {
     /* `out` is when the card is gone, not when it starts leaving. that matters
        more than it sounds: planCaptions clamps one group's out against the next
        group's in, so putting the exit inside the window is what makes "never
@@ -662,15 +738,24 @@ export function captionFrame(plan, t) {
    tokens only, both themes, and nothing that transitions. the sizes that arrive
    as numbers here are starting points: build() in the page divides them down to
    whatever actually fits the box. */
-export function captionCss(plan, box) {
+export function captionCss(plan, box, opts = {}) {
+  /* called for the check even when the blocks are not emitted: a caption laid
+     over a page that already carries the tokens still must not be able to paint
+     with one that has left index.html. */
   const { light, dark } = brandTokens();
-  return `
+  /* `tokens: false` is for a caption drawn over the live site. the page already
+     declares every one of these and re-declaring them would be a second :root
+     block holding the same values — harmless today and a real trap the day the
+     two disagree. the caption then paints whatever the host page's theme
+     resolves --fg to, which is exactly what the float style wants. */
+  const decl = opts.tokens === false ? '' : `
 :root{
 ${light}
 }
 html[data-theme=dark]{
 ${dark}
-}
+}`;
+  return `${decl}
 /* the caption box. every style lays out inside it and nothing is ever drawn
    outside it, which is what makes one safe area check enough for all three.
    the box is bottom anchored: a caption grows upward, because the bottom edge
@@ -756,6 +841,38 @@ ${dark}
 .cap-label .cap-w{display:inline-block; margin-right:${plan.bodyGap}em}
 .cap-label .cap-w:last-child{margin-right:0}
 .cap-label .cap-w[data-role="2"]{color:var(--fg); font-weight:500}
+
+/* ---- d: float ----
+   space grotesk, lowercase, no card and no fill of any kind. the words sit
+   straight on the footage, which is the whole reason the style exists: over a
+   screen recording a michroma headline is type arguing with type.
+
+   weight 700. index.html ships 400 and 500 and that budget is not moving —
+   this is a render page, and what ships off a render page is pixels rather than
+   a font request, so the demo pages carry a weight the site never will. it is
+   the one place in the repo where that is true and it is deliberate.
+
+   the colour is --fg and nothing else. over the light theme that is the ink
+   and over the dark theme the same token is the paper tone, so the light on
+   dark version is the token system doing its job rather than a second style. */
+.cap-float{
+  position:absolute; left:0; right:0; bottom:0;
+  /* it springs about its own baseline, as the pop card does, so a card arriving
+     grows up out of the line the last one sat on. */
+  transform-origin:center bottom;
+  font-family:var(--body); font-weight:700;
+  letter-spacing:-.005em; line-height:1.14;
+  display:flex; flex-wrap:wrap; gap:.10em ${plan.bodyGap}em;
+  justify-content:${plan.align === 'left' ? 'flex-start' : 'center'};
+  opacity:0; will-change:opacity,transform;
+}
+.cap-float .cap-w{display:inline-block; transform-origin:center bottom; color:var(--fg)}
+/* the accent, and it is the entire colour budget of the style. it lands only on
+   a word a clip named in flash, and only on the frames that word is actually
+   being said on — so it is gone a quarter of a second later. that is what makes
+   it a flash rather than a highlight, and it is why the rule is written against
+   the live role rather than against the mark alone. */
+.cap-float .cap-w[data-flash="1"][data-role="2"]{color:var(--accent)}
 `;
 }
 
@@ -771,6 +888,22 @@ export function captionMarkup(plan) {
     return '<div class="cap"><div class="cap-in">'
       + plan.groups.map((g, i) => '<div class="cap-card" data-group="' + i + '"'
         + (g.big ? ' data-big="1"' : '') + '>' + cellsOf(i) + '</div>').join('')
+      + '</div></div>';
+  }
+  if (plan.style === 'float') {
+    /* the same cells as pop, plus the one static attribute the accent rule
+       needs. it is markup rather than something apply() writes, because whether
+       a word is a money word is a fact about the copy and does not change from
+       one frame to the next. what does change is data-role, and the css asks
+       for both before it paints. */
+    const floatCells = gi => plan.groups[gi].words.map((w, k) => {
+      const idx = plan.cells.findIndex(c => c.g === gi && c.k === k);
+      return '<span class="cap-w" data-cell="' + idx + '" data-role="0"'
+        + (plan.cells[idx].flash ? ' data-flash="1"' : '') + '>' + esc(w.word) + '</span>';
+    }).join('');
+    return '<div class="cap"><div class="cap-in">'
+      + plan.groups.map((g, i) => '<div class="cap-float" data-group="' + i + '">'
+        + floatCells(i) + '</div>').join('')
       + '</div></div>';
   }
   if (plan.style === 'type') {
@@ -817,7 +950,7 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 export function captionPage() {
   const PLAN = window.__CAP_PLAN;
   const BOX = window.__CAP_BOX;
-  const cards = [...document.querySelectorAll('.cap-card,.cap-line,.cap-count')];
+  const cards = [...document.querySelectorAll('.cap-card,.cap-float,.cap-line,.cap-count')];
   const cells = [];
   document.querySelectorAll('.cap-w').forEach(el => { cells[+el.dataset.cell] = el; });
   const rolls = [];
@@ -875,6 +1008,27 @@ export function captionPage() {
         size, bigSize, widest: +widest.toFixed(3),
         widestBig: widestBig ? +widestBig.toFixed(3) : null, maxScale: PLAN.maxScale,
       };
+    }
+    if (PLAN.style === 'float') {
+      /* one size for every card, set by the widest, for the reason pop does it:
+         cards that each fit their own width change size between beats and read
+         as a zoom nobody asked for.
+
+         measured as written rather than in caps, because the style is lowercase,
+         and measured at the weight it draws at, because 700 is materially wider
+         than 400 and fitting against the wrong one puts the widest card over the
+         safe line. divided by maxScale for the same reason pop is: a word
+         springs about its own centre. */
+      const gapEm = PLAN.bodyGap;
+      const emOf = ws => ws.reduce((a, w, i) =>
+        a + measure(w.word, '700 100px "Space Grotesk"') / 100 + (i ? gapEm : 0), 0);
+      let widest = 0;
+      for (const g of PLAN.groups) widest = Math.max(widest, emOf(g.words));
+      const size = Math.min(PLAN.floatSize, BOX.w / (widest * PLAN.maxScale));
+      for (const el of cards) el.style.fontSize = size.toFixed(3) + 'px';
+      /* bigSize is null and stays null. float has no emphasised card: its beat
+         is the accent landing on a word, and that does not change a size. */
+      return { size, bigSize: null, widest: +widest.toFixed(3), maxScale: PLAN.maxScale };
     }
     if (PLAN.style === 'type') {
       let widest = 0;
@@ -1004,12 +1158,16 @@ export function captionPage() {
 export function describe(plan) {
   const out = [];
   out.push('  style ' + plan.style + ', ' + plan.groups.length
-    + (plan.style === 'pop' ? ' cards' : plan.style === 'type' ? ' lines' : ' items')
+    + (CARDED.includes(plan.style) ? ' cards' : plan.style === 'type' ? ' lines' : ' items')
     + ', ' + plan.cells.length + ' words, ' + plan.seconds.toFixed(2) + 's of caption');
   for (const g of plan.groups) {
     out.push('    ' + g.in.toFixed(2).padStart(5) + '..' + g.out.toFixed(2).padStart(5)
       + '  ' + (g.number ? '[' + g.number.pre + g.number.digits + g.number.post + '] ' : '')
       + g.words.map(w => w.word).join(' '));
+  }
+  if (plan.flashed && plan.flashed.length) {
+    out.push('    the accent lands on ' + plan.flashed.length + ' word(s): '
+      + plan.flashed.map(f => '"' + f.word + '" at ' + f.at.toFixed(2) + 's').join(', '));
   }
   return out.join('\n');
 }

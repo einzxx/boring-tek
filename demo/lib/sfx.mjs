@@ -217,6 +217,36 @@ export const VOICES = {
     }
     return ends(normalise(b), 8);
   },
+  /* a camera snapping to a new frame, or a theme flipping. the ninth sound and
+     the first one added since the set was written, for post9, which is the first
+     clip whose camera moves fast enough to need telling.
+
+     it is a small geared motor and it is built as one: a pitch that slides up
+     while it accelerates, amplitude modulated at the tooth rate so it buzzes
+     rather than tones, and a body of band passed noise underneath because a
+     motor moving a real mass is never clean. the modulation is what makes it a
+     servo instead of a synth sweep, and the depth is kept under 1 so the tone
+     never gates itself into a click train.
+
+     it is short on purpose: 90ms, which is five frames at 60fps. a snap zoom is
+     over in eight, and a sound that outlasts the move it belongs to is a sound
+     the viewer starts listening to. */
+  servo({ len = 0.09, f0 = 190, f1 = 340, tooth = 105, depth = 0.55, seed = 0x3ba71c } = {}) {
+    const b = n(len), rnd = noise(seed);
+    let ph = 0, mp = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = i / b.length;
+      /* the slide is eased rather than linear: a motor comes up to speed. */
+      ph += 2 * Math.PI * (f0 + (f1 - f0) * (q * q * (3 - 2 * q))) / SR;
+      mp += 2 * Math.PI * tooth / SR;
+      const am = 1 - depth * 0.5 * (1 - Math.cos(mp));
+      /* triangle rather than sine: a little more edge, none of a saw's top end,
+         which would be the one bright thing in a set that is deliberately dull. */
+      const tri = 2 / Math.PI * Math.asin(Math.sin(ph));
+      b[i] = (tri * 0.8 + rnd() * 0.35) * am * hump(q);
+    }
+    return ends(normalise(bp(b, 260, 2600)));
+  },
   /* a check being drawn. the one sound allowed above a kilohertz, and it is a
      soft one: a fundamental with a fifth over it, low passed hard enough that
      what is left is a tap with a pitch rather than a chime. */
@@ -269,6 +299,10 @@ export const VOICES = {
 export const GAINS = {
   pop: -30, popDeep: -24, whoosh: -33, coin: -22,
   click: -25, sweep: -36, ding: -27, hum: -34,
+  /* the servo sits with the click rather than with the coin. it is a mechanism
+     acknowledging an instruction, not an object hitting a surface, and at -26 it
+     is present under a word without ever being the thing you hear. */
+  servo: -26,
 };
 const db = v => Math.pow(10, v / 20);
 export const dbfs = v => (v <= 1e-9 ? -Infinity : 20 * Math.log10(v));
