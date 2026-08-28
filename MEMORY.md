@@ -6,16 +6,20 @@ names in here either.
 
 ## Status
 
-- **Built and then fix passed 2026-08-28: `demo/post10.mjs`, the tenth clip,
-  "the rage clip", the first one that is dark and the first with no accent in it
-  anywhere.** **13.25s, 60fps, 1080x1920, 795 frames, 4.33 MB (2.61 Mbit/s)**,
-  the voice and four slices of music in the file, rendered with the shutter open
-  at four subframes in **7.3 minutes**. **The live site did not change** —
-  `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language stubs and
-  `assets/` were all untouched. **The source is on `main` and public: the first
-  cut in `576f947`, the fix pass in `d5c4ae6`.** Neither push changed a file a
-  visitor sees. **Posted 2026-08-28, the fix pass cut** — Einz's report, not
-  something measured here. The pack that went out is under Socials.
+- **Built, fix passed and then word changed 2026-08-28: `demo/post10.mjs`, the
+  tenth clip, "the rage clip", the first one that is dark and the first with no
+  accent in it anywhere.** **13.17s, 60fps, 1080x1920, 790 frames, 4.11 MB
+  (2.50 Mbit/s)**, the voice and four slices of music in the file, rendered with
+  the shutter open at four subframes in **8.1 minutes**. **The live site did not
+  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
+  stubs and `assets/` were all untouched. **The source is on `main` and public:
+  the first cut in `576f947`, the fix pass in `d5c4ae6`.** Neither push changed
+  a file a visitor sees. **Posted 2026-08-28, the fix pass cut** — Einz's
+  report, not something measured here. The pack that went out is under Socials.
+  - **The line changed after it was posted: group 2 says `ai`, not `a
+    machine`.** `you said ai could never be`. Group 2's take was resynthesised
+    at the same `-10%` / `-4Hz` and the other three came back cached, so three
+    quarters of the voice is the audio that was approved. See Decisions.
   - **The first cut was 16.87s and it read word by word.** Einz asked for three
     changes and they are the shape of the clip now: the script is four
     continuous sentences instead of seventeen, the stabs are half a second
@@ -70,16 +74,17 @@ names in here either.
     under the three stabs peaks at -58.9, -50.8 and -52.3 dB, which is 38, 30
     and 31 dB under speech. The ducker is off, and at post6's 0.60 the envelope
     is 0.986 open when a stab lands and would take **7.8 dB off every stab's
-    attack**. Delivered at **-14.2 LUFS / -1.0 dBTP**, limiter pulling 4.0 dB
-    over three passes. Safe margins **192 left, 941 top, 164 right, 929 bottom**
+    attack**. Delivered at **-14.2 LUFS / -1.0 dBTP**, limiter pulling 3.6 dB
+    over three passes. Safe margins **191 left, 933 top, 165 right, 936 bottom**
     against floors of 140, 180, 140, 220, sampled at every card's settled frame
     and at every one of the six glitches' hottest frames. **17.7% of frames
     carry a glitch** and every channel is at rest outside a window: 0 faults.
-  - **`skills/video-review` has now run four times on this clip, twice per cut.**
+  - **`skills/video-review` has now run six times on this clip, twice per cut.**
     The fix pass's preview found the end card holding; its final found nothing
-    the guards had not. Reviews at `demo/out/review-post10-preview.md` and
-    `demo/out/review-post10.md`, both gitignored and both rewritten for this cut,
-    so the findings are under Decisions as well.
+    the guards had not; the ai cut's two found nothing at all. Reviews at
+    `demo/out/review-post10-preview.md` and `demo/out/review-post10.md`, both
+    gitignored and both rewritten for the newest cut, so the findings are under
+    Decisions as well.
 
 - **Built 2026-08-28 and fixed the same day: `demo/post9.mjs`, the ninth clip,
   "the pitch reel", and the first one that films the live site.**
@@ -719,21 +724,26 @@ set, and **nothing here is a report that it went out.**
 - **No separate sound plan**, for post6's reason: the voice and the effects are already
   in the file, mixed and measured. Nothing is owed to an editor.
 
-#### post10 — built, fix passed and posted 2026-08-28
+#### post10 — built, fix passed, posted and then word changed 2026-08-28
 
-`the rage clip`, 13.25s, vertical, dark, the voice and four slices of licensed
+`the rage clip`, 13.17s, vertical, dark, the voice and four slices of licensed
 music inside the mp4. Everything about the render was measured here; **the pack
 below is Einz's and the fact that it went out is Einz's report, not a
 measurement made here.**
 
+**The clip went out with `a machine` in it and the line is `ai` now.** The pack
+below is the current one and the caption changed with the line. The posted
+caption was `the machines heard everything you said about them`; anything
+already live carries that and the tags did not move.
+
 - **Voice: `en-US-AndrewNeural`**, the `calm` default taken to rate `-10%`,
   pitch `-4Hz` — a shade slower and lower than post6 and post7's `-8%`/`-2Hz`,
-  for the delivery this clip wanted. 27 words in four takes.
+  for the delivery this clip wanted. 26 words in four takes.
 - **The pack.**
 
   ```
   caption (all four platforms)
-    the machines heard everything you said about them
+    the ai heard everything you said about it
 
   tiktok      #ai #boringtek #fyp
   youtube     #ai #shorts #boringtek
@@ -744,9 +754,11 @@ measurement made here.**
   - **One caption everywhere, and it is the first time.** post6 and post7 both
     wrote X a different sentence from the other three. This one line carries on
     all four, which works because it is not a call to action: it is the clip's
-    premise said once, from the outside. `the machines heard everything you said
-    about them` is not in the script, and that is the point — the voice is the
-    machine talking and the caption is somebody else noticing.
+    premise said once, from the outside. `the ai heard everything you said about
+    it` is not in the script, and that is the point — the voice is the thing
+    talking and the caption is somebody else noticing. It moved from `the
+    machines ... about them` to the singular when the script did, so the caption
+    and the line name the same thing.
   - **`#boringtek` is new and it is on all three tagged platforms.** post6 and
     post7 ran `#ai #aitips` as the constant pair with the third doing the
     platform's register. This pack keeps `#ai` and swaps the second slot for the
@@ -769,7 +781,7 @@ measurement made here.**
 
   ```
   fuck you, i am gonna become every single thing
-  you said a machine could never be
+  you said ai could never be
   and you will use me every single day
   and love it
   ```
@@ -959,12 +971,12 @@ Still no posting cadence or content pillars. See Next steps.
   frame: a seeded drift of under one percent of scale rides on every frame,
   composed passes included. See Decisions.
 - **`demo/post10.mjs`**, added 2026-08-28: the tenth clip, `the rage clip`.
-  **13.25s at 60fps, vertical only, voice and music inside the mp4**, out to
+  **13.17s at 60fps, vertical only, voice and music inside the mp4**, out to
   `demo/out/post10-1080x1920.mp4`. `--blur` opens the shutter for the final and
   is off for the timing pass, `DEMO_FPS=12` previews it, `--encode-only`
   re-encodes from kept frames. Frames under `out/frames-post10`, subframes under
   `out/subframes-post10`, state under `out/post10-1080x1920.json`, verify stills
-  under `out/verify-post10`. **7.3 minutes with the shutter open at four
+  under `out/verify-post10`. **8.1 minutes with the shutter open at four
   subframes, about two without.**
   **It is the first dark clip and the first with no accent in it at all.** One
   composed page at `data-theme=dark`: black, film grain, the mascot centred in a
@@ -1318,6 +1330,56 @@ huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
 
+### 2026-08-28 — post10 says `ai`: one word, one take, and what a cache is for
+
+**Group 2 was `you said a machine could never be` and it is `you said ai could
+never be`.** Einz's call, after the clip was already out. One word on the screen
+and in the voice, and nothing else in the file was allowed to move.
+
+- **Only group 2 was resynthesised, and that is the cache doing its job rather
+  than a shortcut taken.** `voiceGroup` keys its sidecar json on the copy **and**
+  on the rate and pitch, so changing one group's text invalidates exactly that
+  group. Groups 1, 3 and 4 came back `(cached)` and their audio is byte for byte
+  the file that was approved and posted. Three quarters of the voice track was
+  never regenerated, so three quarters of the clip cannot have drifted.
+- **The card list is the cut and the check, and it needed one edit.** `CARDS`
+  went from `'you said', 'a machine', 'could', 'never', 'be'` to `'you said',
+  'ai', 'could', 'never', 'be'`. **Still seventeen cards**, because two words
+  became one word but two cards did not become one card. `markCards` walks the
+  list against what the synthesiser actually said and throws before a browser
+  opens; it matched all 26 words first time, so the engine returned `ai` as one
+  lowercase token and nothing had to be taught how to spell it.
+- **The screen shows it lowercase for free, and that is the `float` style.**
+  The `pop` card style sets `text-transform:uppercase`; `float` does not. post10
+  has been `float` since it was built, so `ai` reaches the pill exactly as it is
+  written in `CARDS`. No new rule, no substitution — `CENSOR` is still the one
+  and it is still only `fuck` → `fu*k`.
+- **`ai` is spoken as two letters, so the clip barely got shorter.** This is the
+  number worth having written down, because the obvious guess is wrong: dropping
+  a two word phrase for a two letter one looks like it should save half a
+  second. Andrew reads `ai` as `ay eye` and it holds the card from **4.59 to
+  5.19, a full 0.60s** — very nearly what `a machine` took. **13.17s against
+  13.25s: eight hundredths.** Group 2 measures 3.18 words a second, inside the
+  2.97 to 5.68 band the other three takes already set, so the delivery did not
+  change either.
+- **Everything behind the change shifted by that eight hundredths and nothing
+  else moved.** Stabs **3.64 / 6.10 / 8.64** against 3.64 / 6.18 / 8.71 — stab
+  one did not move at all, because it is in front of the change. Outro
+  **10.02** against 10.10, wordmark in **10.59** against 10.67, black from
+  **12.87**, 790 frames against 795. The four music slices are the same four
+  regions of the same track at the same one gain of -6.79 dB, the mix is still
+  **-14.2 LUFS / -0.9 dBTP** with **0.000s of music inside a word**, and the
+  safe area came back **191 / 933 / 165 / 936**. The look, the glitch windows,
+  the margins, the crf and the seventeen cards are untouched.
+- **Both reviews are clean.** `skills/video-review` ran on the shutter-shut pass
+  and again on the final. Neither found anything — no green on any of the 27
+  frames either time, one caption zone throughout, the wordmark legible, and the
+  blur visibly running on the final's stab frames where the preview's were
+  crisp. **4.11 MB at 2.50 Mbit/s, 8.1 minutes with the shutter open.**
+- **The caption in the posting pack moved with the line.** `the machines heard
+  everything you said about them` became `the ai heard everything you said about
+  it`. The tags did not move. The pack is under Socials.
+
 ### 2026-08-28 — post10's fix pass: a reading instead of a list, and a guard the eye could not be
 
 **Three changes, and the clip went from 16.87s to 13.25s.** Einz's, after
@@ -1393,7 +1455,10 @@ phosphor as well, because a real one does not flicker on one frequency.
 **What the fix pass ships on.** 13.25s, 795 frames, 4.33 MB, **2.61 Mbit/s**,
 7.3 minutes with the shutter open. Stabs at **3.64s, 6.18s and 8.71s**, outro at
 **10.10s**, wordmark in at **10.67s** and held to 12.95s, black to 13.25s. Safe
-margins **192 / 941 / 164 / 929** against 140 / 180 / 140 / 220. **17.7% of
+margins **192 / 941 / 164 / 929** against 140 / 180 / 140 / 220. **Every number
+in this paragraph is the fix pass's and the ai cut moved all of them by about
+eight hundredths of a second — see the entry above for the current ones.** The
+reasoning below is what still stands; the timings are history. **17.7% of
 frames carry a glitch**, up from 9.8%, because the clip lost 3.6 seconds while
 the glitch windows got longer — and it still costs less per second than its own
 preview did, because at 60fps the stepped grain and scanline are carried across

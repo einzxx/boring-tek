@@ -49,7 +49,7 @@
      0.00 .. 0.55   the bubble stages in out of a noise burst
      0.55 .. G1     "fu*k you / i am gonna / become / every / single / thing"
         0.40s       stab, voice silent, the frame comes apart
-              G2    "you said / a machine / could / never / be"
+              G2    "you said / ai / could / never / be"
         0.40s       stab
               G3    "and you / will use me / every / single / day"
         0.40s       stab
@@ -139,7 +139,7 @@ const SUBSTEP = STEP / SUB;
    the copy is the full word. the screen is not — see CENSOR below. */
 const GROUPS = [
   'fuck you, i am gonna become every single thing',
-  'you said a machine could never be',
+  'you said ai could never be',
   'and you will use me every single day',
   'and love it',
 ];
@@ -190,7 +190,7 @@ const CENSOR = { fuck: 'fu*k' };
    the guard below compares the drawn sequence against it again afterwards. */
 const CARDS = [
   'fu*k you', 'i am gonna', 'become', 'every', 'single', 'thing',
-  'you said', 'a machine', 'could', 'never', 'be',
+  'you said', 'ai', 'could', 'never', 'be',
   'and you', 'will use me', 'every', 'single', 'day',
   'and love it',
 ];

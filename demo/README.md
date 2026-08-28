@@ -21,7 +21,7 @@ All headless Chrome, all tooling. The renderers first:
   voice and the effects in the file. post6 is the template; it is the first clip
   built on the whole stack at once rather than on one that grew under it. See
   The seventh clip.
-- **`post10.mjs`** renders a 13.25 second social clip, vertical only, with the
+- **`post10.mjs`** renders a 13.17 second social clip, vertical only, with the
   voice and four slices of a licensed mp3 in the file. **The first dark one and
   the first with no accent in it at all.** See The tenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
@@ -1138,17 +1138,26 @@ node post10.mjs --blur          the final, four subframes to a frame
 DEMO_FPS=12 node post10.mjs     the fast preview pass
 ```
 
-**13.25s, 60fps, 1080x1920, 795 frames, 4.33 MB at 2.61 Mbit/s**, the voice and
-four slices of music in the file, into `demo/out/post10-1080x1920.mp4`. **7.3
+**13.17s, 60fps, 1080x1920, 790 frames, 4.11 MB at 2.50 Mbit/s**, the voice and
+four slices of music in the file, into `demo/out/post10-1080x1920.mp4`. **8.1
 minutes with the shutter open**, about two without. One composed page, one render pass,
 no site footage and no pictogram layer — this is the only clip file that does not
 import `lib/pictograms.mjs`.
 
-> fuck you, i am gonna become every single thing // you said a machine could
-> never be // and you will use me every single day // and love it
+> fuck you, i am gonna become every single thing // you said ai could never be
+> // and you will use me every single day // and love it
 
 Four sentences, one take each, and seventeen cards on screen. `//` is where the
 voice stops for half a second and the frame comes apart.
+
+**Group 2 said `a machine` until 2026-08-28 and now says `ai`.** One word, and
+only group 2 was resynthesised — the sidecar cache keys on the copy and the
+delivery, so the other three takes came back untouched and the audio under them
+is the file that was already approved. `ai` is read as two letters rather than
+as a word, so it costs 0.60s where `a machine` cost about the same: the clip
+lost eight hundredths of a second, not six tenths. Everything behind the change
+shifted by that much and nothing else moved — not the stab spacing, not the
+outro choice, not the mix, not the look.
 
 Black screen, film grain on it, the mascot in the middle in a white crt glow, the
 site's own speech bubble above him with one short card in it at a time, and the
@@ -1173,7 +1182,7 @@ The radius is set once and never animated; what moves is opacity.
 The safe area is post9's, per edge: **180 top, 220 bottom, 140 left and right**.
 The pill is 368 of a 400px safe width, which leaves the frame shake sixteen css
 px a side to spend, and the run measures the worst case rather than trusting the
-budget — **183 left, 933 top, 173 right, 937 bottom**, sampled at every card's
+budget — **191 left, 933 top, 165 right, 936 bottom**, sampled at every card's
 settled frame **and at every glitch's hottest frame**.
 
 **There is no accent anywhere in it.** The `float` caption style paints `--fg`
@@ -1282,9 +1291,9 @@ So track2 is the main and track1 is used for neither role.
 | slice | from | into the clip | why |
 |---|---|---|---|
 | stab 1 | 4.16s + 0.50 | 3.64s | attack -8.2 dBFS, +14.2 dB over the 60ms before it |
-| stab 2 | 26.30s + 0.50 | 6.18s | attack -7.7 dBFS |
-| stab 3 | 20.76s + 0.50 | 8.71s | attack -6.3 dBFS, the loudest |
-| outro | **16.60s + 2.00** | 10.10s | rises +2.5 dB, ends on its own loudest passage at -5.0 dBFS |
+| stab 2 | 26.30s + 0.50 | 6.10s | attack -7.7 dBFS |
+| stab 3 | 20.76s + 0.50 | 8.64s | attack -6.3 dBFS, the loudest |
+| outro | **16.60s + 2.00** | 10.02s | rises +2.5 dB, ends on its own loudest passage at -5.0 dBFS |
 
 **The outro moved when it doubled, and extending the old one was the wrong
 answer.** The one second slice was 49.06; over 2.00s that same region rises
