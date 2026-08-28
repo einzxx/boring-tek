@@ -12,10 +12,9 @@ names in here either.
   the voice and four slices of music in the file, rendered with the shutter open
   at four subframes in **7.3 minutes**. **The live site did not change** —
   `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language stubs and
-  `assets/` were all untouched. **The first cut is on `main` and public
-  (`576f947`); the fix pass is committed in `3e03320` and is not pushed.** So
-  what is public right now is the 16.87s clip's source, not this one's. **Not
-  posted, either cut.**
+  `assets/` were all untouched. **The source is on `main` and public: the first
+  cut in `576f947`, the fix pass in `d5c4ae6`.** Neither push changed a file a
+  visitor sees. **Not posted, either cut.**
   - **The first cut was 16.87s and it read word by word.** Einz asked for three
     changes and they are the shape of the clip now: the script is four
     continuous sentences instead of seventeen, the stabs are half a second
