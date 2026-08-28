@@ -6,26 +6,87 @@ names in here either.
 
 ## Status
 
+- **Built 2026-08-28: `demo/post10.mjs`, the tenth clip, "the rage clip", and
+  the first one that is dark.** **16.87s, 60fps, 1080x1920, 1012 frames,
+  5.03 MB**, the voice and four slices of music in the file, rendered with the
+  shutter open at four subframes in **11.2 minutes**. **The live site did not
+  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
+  stubs and `assets/` were all untouched. **Committed, not pushed, not posted.**
+  - **It is the first clip on the dark theme and the first with no accent in it
+    anywhere.** `data-theme=dark`, so `--face` is #f4f7f5 on a #06070a page and
+    the white glowing mascot is the site's own tokens rather than a recolour.
+    The `float` caption style paints `--fg` and only `--fg`, `flash` is off, and
+    **a guard fails the render if the accent colour is painted on one frame.**
+    It did not fire. post9's review ended on "if in doubt, no green at all";
+    this clip is not in doubt.
+  - **The sound is a voice and four slices of one licensed mp3, and they never
+    play at the same time.** Three 0.4s stabs in the gaps between the four
+    spoken groups and one 1s outro under the end card, all four cut out of
+    `track2.mp3` by measuring where it hits. **No synthesised effects at all** —
+    `lib/sfx.mjs` is used for its decoder, its mixer, its limiter and its meter
+    and for none of its nine sounds. **`demo/music/` is gitignored**: the mp3s
+    are licensed to us to use, not to redistribute out of a public repo.
+  - **Two mix numbers changed and a measurement changed both.** The **ducker is
+    off**, because `voiceEnvelope`'s 220ms release is still 0.987 open when
+    a stab lands and post6's 0.60 would have taken **7.8 dB off the attack
+    of every stab in the film**. And the encoder is at **crf 22 rather than
+    17**, because this frame is film grain over black and 17 cost 7.7 Mbit/s
+    against post9's 2.0 — 22 delivers **2.39 Mbit/s**, which is post9's own
+    number. **The voice trim and the loudness targets are untouched**, as asked:
+    -1.5dB on the voice, delivered at **-14.2 LUFS / -1.0 dBTP**.
+  - **The gap between two groups is measured on the waveform, not on the word
+    list, and that is the fault worth carrying forward.** The synthesiser's word
+    boundaries end a word up to **0.12s before the recording does**, so the
+    first build put each stab on top of a word that was still being said — and
+    the check written to catch exactly that **passed**, because the window it
+    looked in came from the same word list the bug came from. The run said so
+    out loud: the voice measured -21 dB under two of the three stabs against a
+    median speech level of -21. A guard that takes its window from the thing it
+    is checking is not a guard. It is now -56, -51 and -49 dB, which is 35, 30
+    and 28 dB under speech.
+  - **The glitches are quantised to the output frame grid, deliberately.** With
+    four subframes to a frame, a one frame rgb split written as a function of
+    `t` would be averaged with three clean captures and land at a quarter
+    strength. The glitch state is computed once per output frame and held across
+    all four captures of it; the caption springs, the eye drift and the phosphor
+    still ride the shutter. **9.8% of the frames carry a glitch** and every
+    channel is at rest on every frame outside a window, checked: **0 faults**.
+  - **`skills/video-review` was run twice, on the preview and on the final, and
+    it found three things.** All three are fixed and none is a backlog. A
+    seventy millisecond hole in the bubble before every one of the seventeen
+    cards, which was the engine's `lead` fighting the `word` fill; a mascot
+    whose eyes were in the same place in all thirty four sampled frames; and —
+    on the **final**, not the preview — two tenths of a second where `and love
+    it` was still on screen after its own bubble had been torn away. The last
+    one has a guard now. Reviews at `demo/out/review-post10-preview.md` and
+    `demo/out/review-post10.md`, both gitignored, so the findings are written
+    out under Decisions as well.
+  - **The numbers it ships on.** Platform safe margins clear on every edge:
+    **183 left, 933 top, 173 right and 937 bottom** against floors of 140 left,
+    180 top, 140 right and 220 bottom, sampled at every card's settled frame
+    **and at every glitch's hottest frame**, so the shake's fourteen css pixels
+    are inside the number. 0 identical frame pairs before the cut to black.
+
 - **Built 2026-08-28 and fixed the same day: `demo/post9.mjs`, the ninth clip,
   "the pitch reel", and the first one that films the live site.**
-  **23.89s, 60fps, 1080x1920, 1433 frames, 6.00 MB**, voice and 54 effects in the
-  file, rendered with the shutter open at four subframes in about twelve minutes.
+  **23.89s, 60fps, 1080x1920, 1433 frames, 5.97 MB**, voice and 54 effects in the
+  file, rendered with the shutter open at four subframes in 11.4 minutes.
   **The live site did not change** — `index.html`, `CNAME`, `robots.txt`,
   `sitemap.xml`, the language stubs and `assets/` were all untouched, and the page
   was filmed exactly as it is in git. **Committed, not pushed, not posted.**
   **post9 is parked.** No more work on it until Einz says so. The three things
   the review found are a backlog under Decisions and none of them is done.
-  - **One number is pending and it is named rather than guessed.** The figures
-    above are measured off the 60fps blurred render of 2026-08-28, which passed
-    everything except a single frame of bookkeeping: pass C's frame zero landed a
-    hair before its own camera leg started, so the cut frame was counted as a
-    held shot with site text behind the caption. **It appeared only at 60fps** —
-    at 12 the rounding went the other way — and it is fixed. **A corrected
-    re-render was still running when this was written.** Nothing visible changes:
-    the fix moves one frame's camera value, so duration, resolution, frame count,
-    margins, camera landing errors and the mix all stand. **What to confirm off
-    that run when it lands: the file size, the render time, and that the held
-    clash count is 0 rather than 1.**
+  - **The three pending numbers landed and they are the three above, confirmed
+    2026-08-28.** The clip had passed everything except a single frame of
+    bookkeeping: pass C's frame zero landed a hair before its own camera leg
+    started, so the cut frame was counted as a held shot with site text behind
+    the caption. **It appeared only at 60fps** — at 12 the rounding went the
+    other way — and it was fixed by activating a leg within half a frame of its
+    own start. The corrected re-render is the one the figures above come off:
+    **held clash count 0 rather than 1, 5.97 MB, 11.4 minutes.** Nothing visible
+    changed, which is what the fix was supposed to do: duration, resolution,
+    frame count, margins, camera landing errors and the mix are all identical to
+    the run before it. **No number in this entry is pending any more.**
   - **It is a cut film, not a composed frame.** Four render passes into one
     `f%06d.jpg` sequence over one clock, encoded once: pictograms for beats one
     and two, the live site for three to five, the live site loaded fresh for beat
@@ -806,7 +867,7 @@ Still no posting cadence or content pillars. See Next steps.
   off for the timing pass, `DEMO_FPS=12` previews it, `--encode-only` re-encodes
   from kept frames. Frames under `out/frames-post9`, subframes under
   `out/subframes-post9`, state under `out/post9-1080x1920.json`, verify stills
-  under `out/verify-post9`. **About twelve minutes with the shutter open at four
+  under `out/verify-post9`. **11.4 minutes with the shutter open at four
   subframes, about three without.**
   **It is the first clip that is not one composed frame.** Four render passes
   write contiguous ranges of one frame sequence over one clock and the whole
@@ -824,6 +885,33 @@ Still no posting cadence or content pillars. See Next steps.
   measured live and never typed as a page coordinate. Nothing is ever a still
   frame: a seeded drift of under one percent of scale rides on every frame,
   composed passes included. See Decisions.
+- **`demo/post10.mjs`**, added 2026-08-28: the tenth clip, `the rage clip`.
+  **16.87s at 60fps, vertical only, voice and music inside the mp4**, out to
+  `demo/out/post10-1080x1920.mp4`. `--blur` opens the shutter for the final and
+  is off for the timing pass, `DEMO_FPS=12` previews it, `--encode-only`
+  re-encodes from kept frames. Frames under `out/frames-post10`, subframes under
+  `out/subframes-post10`, state under `out/post10-1080x1920.json`, verify stills
+  under `out/verify-post10`. **About 11.2 minutes with the shutter open at four
+  subframes, about two and a half without.**
+  **It is the first dark clip and the first with no accent in it at all.** One
+  composed page at `data-theme=dark`: black, film grain, the mascot centred in a
+  white crt glow, the site's own speech bubble above him, and the `float`
+  captions inside the pill in `--fg` only. No pictogram scene layer — this file
+  does not import `lib/pictograms.mjs`.
+  **The voice is four takes, not one.** Each of the four spoken groups is
+  synthesised on its own and they are laid on one clock with **exactly 0.40s of
+  silence between them**, measured on the waveform rather than on the word list.
+  The stabs and the hard glitches live in those gaps.
+  **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
+  nothing else. `demo/music/` is gitignored — see the note below.
+- **`demo/music/` is licensed audio and it is never pushed.** Two pixabay mp3s
+  live there on this machine; `.gitignore` carries `demo/music/` for the same
+  reason it carries `.env`. The licence is ours to hold, not ours to
+  redistribute out of a public repo. `post10.mjs` reads both files, measures
+  both on every run, and **fails the render** if the one it names as the main
+  track is not the harder hitting of the two — so a swapped pair of files stops
+  the clip rather than quietly changing it. If the folder is missing the run
+  says so by name.
 - **`demo/lib/pictograms.mjs`**, added 2026-08-27:- **`demo/lib/pictograms.mjs`**, added 2026-08-27: solid ink svg pictogram scenes
   drawn in code and animated per frame, built the same way `lib/captions.mjs` is
   so one clip drives both from one loop. **Rebuilt the same day from outline
@@ -888,10 +976,17 @@ Still no posting cadence or content pillars. See Next steps.
   needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
   `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
-  `demo/post7.mjs`, `demo/post9.mjs`, `demo/scenes-test.mjs`, `demo/lib/captions.mjs`,
-  `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`, `demo/lib/sfx.mjs`,
-  `demo/README.md`, `demo/package.json`.
-  **Ignored:** `demo/frames/`, `demo/out/`, `demo/package-lock.json`, `node_modules/`.
+  `demo/post7.mjs`, `demo/post9.mjs`, `demo/post10.mjs`, `demo/scenes-test.mjs`,
+  `demo/lib/captions.mjs`, `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`,
+  `demo/lib/sfx.mjs`, `demo/README.md`, `demo/package.json`.
+  **`demo/README.md` carries post10** — a section of its own, an index line, and
+  a paragraph under Why demo/ is safe about `demo/music/` being licensed audio
+  that is never pushed. **Its own tracked list in that section is stale** and has
+  been since post7: it names twelve of the eighteen tracked files. It is now
+  labelled as stale and points here, because this list is the one that is kept
+  current; rewriting it was not this session's work.
+  **Ignored:** `demo/frames/`, `demo/out/`, `demo/music/`,
+  `demo/package-lock.json`, `node_modules/`.
   Pages serves the repo root, so `/demo/record.mjs` is fetchable — harmless static
   text, no secrets, no endpoint that is not already in `index.html`. Not in
   `sitemap.xml`, not linked from anywhere. Add `Disallow: /demo/` to `robots.txt` if
@@ -1145,6 +1240,117 @@ huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
 
+### 2026-08-28 — post10, the rage clip: a dark frame, no accent, and four slices of one track
+
+The tenth clip, and the first that is not the light theme. One composed page,
+one render pass, no site footage and no pictogram layer: black, grain, the
+mascot in a white crt glow, and the site's own speech bubble over him with one
+short card in it at a time.
+
+**Four things it settled.**
+
+1. **`float` is the style for a caption inside a container, and it is what a
+   clip with no accent uses.** `pop` paints the word being said in `--accent`,
+   and on cards this short that is a green word on almost every frame. `float`'s
+   ink is `--fg` and only `--fg` and its accent budget is zero unless a clip
+   names a word in `flash`. No word is named, and a guard fails the render if
+   the accent colour is painted on a single frame. **On the dark theme the same
+   token is the paper tone, so white captions on black cost no second code
+   path** — which is the property the style was built for and this is the first
+   clip to spend it.
+2. **`fill: 'word'` wants a short `lead`, and the engine's default fights it.**
+   Under the `card` fill the card springs in and `lead` (0.12s) is how long its
+   entrance gets before the first word is said. Under `word` the card does not
+   spring at all and each **word** arrives 0.05s before it is spoken, so the
+   only thing `lead` decides is how long the previous card has been gone before
+   the next word is drawn: seventy milliseconds of empty bubble, seventeen times
+   over. `lead: 0.05` makes the handoff exact. **This is a clip level option, not
+   an engine change** — post6, post7 and post9 all use `card` and are untouched.
+3. **A glitch is quantised to the output frame grid; everything else rides the
+   shutter.** With four subframes to a frame, anything that is a function of `t`
+   is averaged across a quarter of a sixtieth of a second — which is what a
+   spring or a falling coin wants and is exactly wrong for a fault. A one frame
+   rgb split written against `t` would land at a quarter strength and a violent
+   shake would come out as a blur rather than as a jump. So the glitch state is
+   computed once per **output** frame and held across all four captures of it.
+   It is structural rather than asserted: there is no path by which a subframe
+   can compute its own. The caption's springs, the mascot's eyes, the head bob
+   and the phosphor pulse are all still continuous and all still smear.
+4. **crf is a property of the frame, not a house setting.** Every clip before
+   this one is crf 17 and every one of them is ink on a white page: large flat
+   areas, a few hundred lit pixels, and 17 costs nothing. This frame is film
+   grain over black across the whole of it, which is the most expensive thing
+   this pipeline has encoded. Measured on the same 200 preview frames: **crf 17
+   = 7.68 Mbit/s, 20 = 3.57, 22 = 2.02, 24 = 1.20.** 22 was looked at rather
+   than assumed — the grain, the glow, the bubble outline and the star all
+   survive it — and **2.02 Mbit/s is what post9 delivers at 17**, so the clip
+   ships at the same bitrate as the one before it and the crf differs because
+   the picture does.
+
+**post7 says no grain and this clip has grain, and both are right.** post7's
+note is that every platform recompresses a clip and grain through that is noise
+rather than texture — which is true, and on a white frame it also costs bitrate
+for nothing. This frame is near black, where a very low opacity actually reads.
+It is held at 0.07, stepped at 8Hz rather than written per frame, and the
+scanline roll is stepped with it: **a one pixel line pattern sliding
+continuously across a 1080x1920 frame is the single most expensive thing a codec
+can be handed**, and the first preview spent most of its 7.7 Mbit/s on it.
+
+**Three things a measurement decided and no plan would have.**
+
+- **The ducker is off, and it is off because of a number.** post6 pulls the
+  effects bus 8dB down while a word is being said, and 0.60 is right for a bus
+  that plays *under* speech. This one never does: a stab opens on the frame a
+  group's last word has stopped. `voiceEnvelope` has a 220ms release — the same
+  release post6 already found could not be trusted as a check, because it stays
+  open through the gap after every word — so it is **0.987 open at the
+  instant the first stab lands**, which is **7.8 dB off the attack of every
+  stab in the film**: the one part of a stab that is the stab. The run prints
+  the counterfactual next to the zero it uses.
+- **The gap has to be measured on the waveform, and the guard that missed it
+  took its window from the same wrong place.** The synthesiser's WordBoundary
+  carries a duration shorter than the sound: `thing.` came back ending at 4.728
+  and the recording is still at speech level for **0.12s** after that. Stabs
+  placed on the reported end therefore opened on top of a word still being said
+  — and "no music inside a word's window" passed, because the window was the
+  word list's. A group now ends where its own recording falls 46 dB under its
+  own peak. The word list still drives the captions, the head bob and the micro
+  glitches, because for those a word boundary is exactly the right thing; it is
+  only the silence that has to come off the waveform.
+- **"The biggest transient rise in the file" is not a measurement until it says
+  what it rises from.** The check that picks the main track scored `track1.mp3`
+  at **+144.6 dB**, because that file opens on true digital silence: `pre` was
+  zero, dbfs of nothing is -180, and the first note in the piece came back as an
+  infinite rise off it. It would have failed the render on the wrong track. A
+  hit is a rise **from something audible to something worth calling a hit**, and
+  with both floors in place the same two files score +21.9 and +10.8, which is a
+  track with transients against a wash.
+
+**Which slices, and why those.** Both tracks are decoded and measured on every
+run and the choice is the measurement's. `track2.mp3` is 88.66s, -12.5 LUFS,
+28.0% of the file within 12dB of peak, with transient rises of 12 to 17 dB every
+1.85s; `track1.mp3` is 96.08s, -12.4 LUFS, 8.2% within 12dB of peak, and it
+never hits. **So track2 is the main and track1 is used for neither role.** The
+three stabs are at **4.16s, 26.30s and 20.76s**, each 0.40s, each with 40 to
+60ms of near silence in front of it so the attack is whole, and they are played
+in that order because their first 80ms measure **-8.2, -7.7 and -6.3 dBFS**:
+**the escalation is the source's and not three gains.** The outro is **49.06s +
+1.00s**, the one second window whose last fifth is loudest and which rises most
+across itself — **a bar level rise rather than a crescendo, because there is no
+riser anywhere in either file** and saying so is better than claiming a build
+that is not there. One gain moves all four.
+
+**What `skills/video-review` found, twice.** The preview's review found the
+seventy millisecond bubble hole above, and a mascot whose eyes were in the same
+place in all thirty four sampled frames — ±0.55 units is about a css pixel and a
+half on a 176px head, which is real, inside every guard, and invisible. It is
+1.1 now. **The final's review found a third thing the preview could not have
+shown**: the exit was hung off the voice alone, so the mascot and the bubble were
+torn away while `and love it` was still on screen, leaving two tenths of a second
+of white words floating on black with no bubble round them. The exit is now the
+**later** of "the voice has stopped" and "the last card has left", and a guard
+fails the render if the caption would outlive its own container.
+
 ### 2026-08-28 — post9, the pitch reel: four passes, one clock, and what the render decided
 
 The ninth clip, and the first that puts the live site on screen. `index.html` did
@@ -1225,7 +1431,10 @@ first element of its shape, so the tab leads rather than trails; at 50ms that
 reads as the folder arriving with a flick rather than as two objects.
 
 **What the finished file measures.** 23.89s, 60fps, 1080x1920, 1433 frames,
-7.13 MB, rendered in 10.6 minutes with four subframes to a frame. Passes of 505,
+7.13 MB, rendered in 10.6 minutes with four subframes to a frame. **Those two
+figures are the fix pass's own render and the shipping ones are 5.97 MB in 11.4
+minutes** — see Status, where the corrected re-render's numbers are recorded.
+Passes of 505,
 531, 150 and 247 frames. Safe margins, device px against a floor of 96: worst
 **184** anywhere, on a caption word at 9.42s. The caption box is **404 of 540
 css px, 74.8%**, against the brief's 75% content cap — the first render measured

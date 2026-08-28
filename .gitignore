@@ -24,3 +24,9 @@ private/
 demo/frames/
 demo/out/
 demo/package-lock.json
+
+# music beds for the clips. licensed pixabay mp3s, downloaded to this machine and
+# never pushed: the licence is ours to hold, not ours to redistribute out of a
+# public repo. the post files slice them at render time and the slices live in
+# out/, which is ignored too.
+demo/music/

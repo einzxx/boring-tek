@@ -21,6 +21,9 @@ All headless Chrome, all tooling. The renderers first:
   voice and the effects in the file. post6 is the template; it is the first clip
   built on the whole stack at once rather than on one that grew under it. See
   The seventh clip.
+- **`post10.mjs`** renders a 16.87 second social clip, vertical only, with the
+  voice and four slices of a licensed mp3 in the file. **The first dark one and
+  the first with no accent in it at all.** See The tenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -1127,6 +1130,274 @@ seconds. The page now gets four seconds of its own clock before frame zero. The
 decode still happens; it happens off camera, which is where a page load belongs
 in a film.
 
+## The tenth clip — the rage clip, and the first dark one
+
+```
+node post10.mjs                 the clip, shutter shut
+node post10.mjs --blur          the final, four subframes to a frame
+DEMO_FPS=12 node post10.mjs     the fast preview pass
+```
+
+**16.87s, 60fps, 1080x1920, 1012 frames, 5.03 MB**, the voice and four slices of
+music in the file, into `demo/out/post10-1080x1920.mp4`. **11.2 minutes with the
+shutter open**, about two and a half without. One composed page, one render pass,
+no site footage and no pictogram layer — this is the only clip file that does not
+import `lib/pictograms.mjs`.
+
+> fu\*k you / i am gonna / become / every / single / thing // you said /
+> a machine / could / never / be // and you / will use me / every / single /
+> day // and love it
+
+Black screen, film grain on it, the mascot in the middle in a white crt glow, the
+site's own speech bubble above him with one short card in it at a time, and the
+frame coming apart three times while he talks.
+
+### The frame
+
+`data-theme=dark`, and that is doing the work rather than a recolour: `--face` is
+#f4f7f5 and `--eye` is #06070a, the page background, so the white face reads as a
+hole punched in the screen exactly as it does on the site. The glow is the
+page-builder spec's three layer model done in white instead of phosphor green — a
+core, a `blur(13px)` duplicate and a `blur(34px)` one, plus a wide radial halo.
+The radius is set once and never animated; what moves is opacity.
+
+| | css px of 960 |
+|---|---|
+| the pill | 389..494, measured to the ink and capped at 368 wide |
+| the three dots | 504..572, climbing up and right out of the head |
+| the mascot | 592..768, 176px, centred |
+| the wordmark, end card only | centred on 480, fitted to 360 wide |
+
+The safe area is post9's, per edge: **180 top, 220 bottom, 140 left and right**.
+The pill is 368 of a 400px safe width, which leaves the frame shake sixteen css
+px a side to spend, and the run measures the worst case rather than trusting the
+budget — **183 left, 933 top, 173 right, 937 bottom**, sampled at every card's
+settled frame **and at every glitch's hottest frame**.
+
+**There is no accent anywhere in it.** The `float` caption style paints `--fg`
+and only `--fg`, `flash` is off, and a guard fails the render if the accent
+colour is painted on a single frame. post9's review ended on "if in doubt, no
+green at all"; this one is not in doubt.
+
+**`float` with `fill: 'word'`, and that combination wants a short `lead`.** Under
+the `card` fill the card springs in and `lead` (0.12s) buys its entrance time.
+Under `word` the card does not spring at all and each *word* arrives 0.05s before
+it is spoken, so the only thing `lead` decides is how long the card in front has
+been gone before the next word is drawn. At the default that is seventy
+milliseconds of empty pill, seventeen times over. `lead: 0.05` makes the handoff
+exact. It is a clip level option: post6, post7 and post9 all use `card` and are
+untouched.
+
+**The censored word is one substitution on the caption's copy, made after the
+synthesiser has answered.** The voice says the word; the screen says `fu*k`. The
+star gets an element of its own in the markup so it can flicker like a dead
+pixel, which is safe for one reason: `apply()` writes opacity, transform and a
+data attribute onto a cell and never touches its text, and the fit measures the
+plan's own strings on a canvas rather than reading the dom.
+
+### The voice is four takes
+
+Each of the four spoken groups is synthesised on its own and they are laid on one
+clock with **exactly 0.40s of silence between them**. Four recordings are four
+known quantities; cutting that gap out of one recording would mean finding the
+silence and hoping the synthesiser put it where the full stop was.
+
+**The gap is measured on the waveform, not on the word list, and that is a fault
+this file had and rendered a preview with.** The synthesiser's WordBoundary
+carries a duration shorter than the sound: `thing.` came back ending at 4.728 and
+the recording is still at speech level for another **0.12s** after that. Stabs
+placed on the reported end therefore opened on top of a word that was still being
+said — and the check written to catch exactly that, *no music inside a word's
+window*, **passed**, because the window came from the same word list the bug came
+from. The run said so out loud anyway: the voice measured -21 dB under two of the
+three stabs against a median speech level of -21.
+
+A group now ends where its own recording falls 46 dB under its own peak. The word
+list still drives the captions, the head bob and the micro glitches, because for
+those a word boundary is exactly the right thing; it is only the silence that has
+to come off the waveform. Under the three stabs the voice now measures **-56, -51
+and -49 dB**, which is 35, 30 and 28 dB below speech.
+
+### The music
+
+Three 0.4s stabs and one 1s outro, and nothing else. **No background bed, and no
+synthesised effects at all** — `lib/sfx.mjs` is used for its decoder, its mixer,
+its limiter and its meter and for none of its nine sounds. The silence between
+the words is the style.
+
+**Which track is measured on every run, not remembered.** `punchOf` finds the
+biggest rise anywhere in a file from the 60ms before a moment to the 80ms after
+it, and the render fails if the track named as the main is not the harder hitting
+of the two — so a swapped pair of files stops the clip rather than quietly
+changing it.
+
+| | |
+|---|---|
+| `track2.mp3` | 88.66s, 28.0% of the file within 12dB of peak, rises of 12 to 17 dB every 1.85s |
+| `track1.mp3` | 96.08s, 8.2% within 12dB of peak, **it never hits** (+10.8 against +21.9) |
+
+So track2 is the main and track1 is used for neither role.
+
+| slice | from | into the clip | why |
+|---|---|---|---|
+| stab 1 | 4.16s + 0.40 | 5.18s | attack -8.2 dBFS, +14.2 dB over the 60ms before it |
+| stab 2 | 26.30s + 0.40 | 9.36s | attack -7.7 dBFS |
+| stab 3 | 20.76s + 0.40 | 13.49s | attack -6.3 dBFS, the loudest |
+| outro | 49.06s + 1.00 | 14.72s | rises +6.1 dB across itself, last 200ms at -6.6 dBFS |
+
+**The three stabs escalate and that is the source's doing, not three gains.**
+One gain moves all four slices, exactly the way `GAINS` fixes the relationship
+between the synthesised sounds and one master moves them, and a guard fails if
+the three attacks stop getting louder in the order they are played. Every stab
+starts a hair before its hit, on 40 to 60ms of near silence, so the attack is
+whole. The outro is the one second window whose last fifth is loudest and which
+rises most across itself — **a bar level rise rather than a crescendo, because
+there is no riser anywhere in either file**, and saying so beats claiming a build
+that is not there.
+
+**`punchOf` had to be written twice and the first version is worth keeping.** It
+scored `track1.mp3` at **+144.6 dB**, because that file opens on true digital
+silence: `pre` was zero, dbfs of nothing is -180, and the first note in the piece
+came back as an infinite rise off it. It would have failed the render on the
+wrong track. A hit is a rise **from something audible to something worth calling
+a hit**, so the level it rises from is floored 60 dB under the file's own peak
+*and* a moment whose run-up is under that floor is skipped entirely — a file
+beginning is not a transient.
+
+### The mix, and the one number that changed
+
+Voice trim **-1.5 dB** and the loudness targets are post6's and are untouched.
+Delivered at **-14.2 LUFS / -1.0 dBTP**, limiter pulling 7.1 dB at its hardest.
+The music sits at -6.2 dB, set by a rule rather than by ear: a stab's rms against
+the median 20ms of actual speech, +7 dB, with a peak ceiling 2 dB over the voice
+as a cap. The run prints which of the two bound.
+
+**The ducker is off, and it is off because of a number.** post6 pulls the effects
+bus 8 dB down while a word is being said, and 0.60 is right for a bus that plays
+*under* speech. This one never does: a stab opens on the frame a group's last
+sound stops. `voiceEnvelope` has a 220ms release — the same release post6 already
+found could not be trusted as a check, because it stays open through the gap
+after every word — so it is **0.987 open at the instant the first stab lands**,
+which is **7.8 dB off the attack of every stab in the film**: the one part of a
+stab that is the stab. The run prints that counterfactual next to the zero it
+uses, and a guard checks the bus in the mix is the bus that was built.
+
+The check post6 runs is *the bus is under the voice*. This clip's is stronger and
+it is the one that matters here: **there is no bus while there is a voice.**
+Measured on the two buffers about to be summed, it is **0.000s**.
+
+### The glitches are quantised to the frame grid
+
+Three hard ones in the stab gaps, one at the open, two on the outro, and a single
+frame micro glitch on every word entry. Each is a shake, an rgb split, a noise
+burst, up to three torn bands and a dropped frame, on an envelope that is full
+for its first eighth, decays to nothing by five sixths and is **clean for the
+last sixth** — the snap back, and a fact the guards check rather than a
+description.
+
+**A glitch is computed once per output frame and held across all four captures of
+it.** With the shutter open every frame is captured four times inside its own
+sixtieth of a second and the four are averaged, which is what a spring or a
+falling coin wants and is exactly wrong for a fault: a one frame rgb split
+written as a function of `t` would land at a quarter strength and a violent shake
+would come out as a blur rather than as a jump. It is structural rather than
+asserted — there is no path by which a subframe can compute its own. The
+caption's springs, the eye drift, the head bob and the phosphor pulse are all
+still continuous and all still smear.
+
+**A tear is a band of the frame blacked out and redrawn shifted.** Three layers
+sit above everything, each painting `--bg` first so it covers what is under it,
+then drawing its own copy of the mascot, the bubble and the wordmark displaced
+sideways. The copies read the same custom properties off the stage, so there is
+nothing to keep in sync: one set of numbers, two readers. The caption is not in
+the copy, so a band across the words takes them off the screen.
+
+**9.8% of the frames carry a glitch**, 82 of them tear, and every channel is at
+rest on every frame outside a window — checked, 0 faults.
+
+### The film, and why this clip is crf 22
+
+Grain, a scanline pattern, dust and an occasional scratch. All of them stepped
+rather than eased, all of them driven per output frame from node: a speck that
+lives two frames is a speck, and a speck averaged across four subframes is a
+smudge.
+
+**post7 says no grain and this clip has grain, and both are right.** post7's note
+is that every platform recompresses a clip and grain through that is noise rather
+than texture — true, and on a white frame it also costs bitrate for nothing. This
+frame is near black, where a very low opacity actually reads. It is held at 0.07
+and stepped at 8Hz.
+
+**The scanline roll is stepped with it, and that is a bitrate decision.** A one
+pixel line pattern sliding continuously across a 1080x1920 frame is the single
+most expensive thing a codec can be handed, and the first preview spent most of
+its 7.7 Mbit/s on it. Stepped, the layer is identical on four frames out of five,
+and film jitters rather than gliding anyway.
+
+**Every clip before this one is crf 17 and this one is not.** Those are ink on a
+white page: large flat areas, a few hundred lit pixels, and 17 costs nothing.
+This is film grain over black across the whole frame. Measured on the same 200
+preview frames:
+
+| crf | | |
+|---|---|---|
+| 17 | 16.00 MB | 7.68 Mbit/s |
+| 20 | 7.45 MB | 3.57 Mbit/s |
+| **22** | **4.20 MB** | **2.02 Mbit/s** |
+| 24 | 2.51 MB | 1.20 Mbit/s |
+
+22 was looked at rather than assumed — the grain, the glow, the bubble outline
+and the star all survive it — and **2.02 Mbit/s is what post9 delivers at 17**.
+So the clip ships at the same bitrate as the one before it and the crf differs
+because the picture does. The final lands at 2.39.
+
+### What the two reviews found
+
+`skills/video-review` was run on the 12fps preview and again on the finished
+60fps file. Three findings, all fixed, none carried as a backlog.
+
+**On the preview.** A seventy millisecond hole in the bubble before every one of
+the seventeen cards — the `lead` fault above. And a mascot whose eyes were in the
+same place in all thirty four sampled frames: ±0.55 units is about a css pixel
+and a half on a 176px head, which is real, inside every guard, and invisible.
+"Calm idle animation" still has to be an animation. It is 1.1 now, still under
+half of what post7 spends on a mascot that is listening rather than staring.
+
+**On the final, and the preview could not have shown it.** The exit was hung off
+the voice alone, so the mascot and the bubble were torn away at 14.50s while
+`and love it` was still on screen until 14.72 — two tenths of a second of white
+words floating on black with no bubble round them, which reads as a mistake
+rather than as a style. **The exit is now the later of "the voice has stopped"
+and "the last card has left"**, everything in the tail hangs off that one number,
+and a guard fails the render if the caption would outlive its own container.
+
+The final's own review is a pass on all seven checklist items. It records two
+things as deliberate so a later reader does not report them as new: about a tenth
+of a second of near black between the mascot being destroyed and the wordmark
+arriving, and one frame in five of a glitch dropping to 20% brightness.
+
+### The guards
+
+The usual shape — the thing must have happened, it must have happened everywhere
+it was supposed to, and the claims in the log must be measurements — plus the
+ones this clip needed:
+
+- **no accent is painted on any frame**, and the probe still resolves to a colour
+  so the check cannot pass vacuously
+- **the seventeen cards come out as the seventeen lines**, written down, so a
+  change in the synthesiser's word list or the engine's grouping fails the render
+  rather than shipping a different clip
+- the uncensored word never reaches a card **and** the script sent to the
+  synthesiser still contains it
+- each of the three gaps measures 0.40s, and the voice is at least 24 dB under
+  speech throughout each stab
+- the three stabs still escalate, and the main track is still the harder hitter
+- every glitch channel is at rest on every frame outside a window
+- one micro glitch frame per word, at 60fps, where a frame is short enough for
+  that to be meaningful
+- **the caption never outlives its bubble**
+- no two consecutive frames are identical before the cut to black
+
 ## The og card
 
 ```
@@ -1792,9 +2063,13 @@ never showed up would still pass every other check in the list.
 
 Tracked: `record.mjs`, `post2.mjs`, `post4.mjs`, `post5.mjs`, `post6.mjs`,
 `og.mjs`, `analyze.mjs`, `captions-test.mjs`, `lib/captions.mjs`,
-`lib/voice.mjs`, `README.md` and `package.json`. Ignored: `node_modules/`, `frames/`, `out/` and
-`package-lock.json`. Every clip keeps its frames under `out/` in its own folder,
-so one run cannot wipe another's mid flight.
+`lib/voice.mjs`, `README.md` and `package.json`. Ignored: `node_modules/`,
+`frames/`, `out/`, `music/` and `package-lock.json`. Every clip keeps its frames
+under `out/` in its own folder, so one run cannot wipe another's mid flight.
+
+*(That tracked list predates `post7.mjs`, `post9.mjs`, `post10.mjs`,
+`scenes-test.mjs`, `lib/pictograms.mjs` and `lib/sfx.mjs`, all of which are
+tracked too. `MEMORY.md` carries the list that is kept current.)*
 
 **Everything the new pieces produce is inside `out/`, which is already
 gitignored whole** — the voice audio and its sidecars in `out/voice/`, the
@@ -1803,6 +2078,16 @@ its both-theme stills in `out/verify-captions/`, and the transcriber's
 virtualenv and model cache in `out/whisper-venv/` and `out/whisper-models/`. The
 last two are about half a gigabyte, which is exactly why they live somewhere
 deleting one folder undoes.
+
+**`demo/music/` is licensed audio and it is never pushed.** `post10.mjs` slices
+its stabs out of mp3s that live in `demo/music/` on the machine that renders,
+and `.gitignore` carries that folder for the same reason it carries `.env`: the
+licence is ours to hold, not ours to redistribute out of a public repo. Nothing
+in the folder is tracked, the slices it produces land inside the mix, and the mix
+lands in `out/`. If the folder is missing the run says so by name rather than
+rendering a silent clip. **`lib/sfx.mjs` still ships no audio file at all** — it
+synthesises every one of its nine sounds sample by sample, and post10 uses none
+of them.
 
 **Nothing in here holds a secret, and the two endpoints it does name are not
 ours.** `lib/voice.mjs` carries Microsoft's public trusted client token, which is
