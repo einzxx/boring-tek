@@ -14,7 +14,8 @@ names in here either.
   `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language stubs and
   `assets/` were all untouched. **The source is on `main` and public: the first
   cut in `576f947`, the fix pass in `d5c4ae6`.** Neither push changed a file a
-  visitor sees. **Not posted, either cut.**
+  visitor sees. **Posted 2026-08-28, the fix pass cut** — Einz's report, not
+  something measured here. The pack that went out is under Socials.
   - **The first cut was 16.87s and it read word by word.** Einz asked for three
     changes and they are the shape of the clip now: the script is four
     continuous sentences instead of seventeen, the stabs are half a second
@@ -717,6 +718,65 @@ set, and **nothing here is a report that it went out.**
   number come out right. See Decisions.
 - **No separate sound plan**, for post6's reason: the voice and the effects are already
   in the file, mixed and measured. Nothing is owed to an editor.
+
+#### post10 — built, fix passed and posted 2026-08-28
+
+`the rage clip`, 13.25s, vertical, dark, the voice and four slices of licensed
+music inside the mp4. Everything about the render was measured here; **the pack
+below is Einz's and the fact that it went out is Einz's report, not a
+measurement made here.**
+
+- **Voice: `en-US-AndrewNeural`**, the `calm` default taken to rate `-10%`,
+  pitch `-4Hz` — a shade slower and lower than post6 and post7's `-8%`/`-2Hz`,
+  for the delivery this clip wanted. 27 words in four takes.
+- **The pack.**
+
+  ```
+  caption (all four platforms)
+    the machines heard everything you said about them
+
+  tiktok      #ai #boringtek #fyp
+  youtube     #ai #shorts #boringtek
+  instagram   #ai #boringtek #reels
+  x           the caption as tweet text, no tags
+  ```
+
+  - **One caption everywhere, and it is the first time.** post6 and post7 both
+    wrote X a different sentence from the other three. This one line carries on
+    all four, which works because it is not a call to action: it is the clip's
+    premise said once, from the outside. `the machines heard everything you said
+    about them` is not in the script, and that is the point — the voice is the
+    machine talking and the caption is somebody else noticing.
+  - **`#boringtek` is new and it is on all three tagged platforms.** post6 and
+    post7 ran `#ai #aitips` as the constant pair with the third doing the
+    platform's register. This pack keeps `#ai` and swaps the second slot for the
+    brand, leaving the third to the platform: `#fyp`, `#shorts`, `#reels`. That
+    is a different spine from the one two clips in a row established, so it is
+    worth watching rather than assuming it is the new default — **it is one
+    clip, not a rule yet.**
+  - **X carries no tags**, which is the rule post6 set and post7 kept.
+  - Three lowercase tags per platform, no dashes, no exclamation marks,
+    lowercase throughout. The house rule holds.
+- **No music was added in any app.** The sound is burned into the mp4 — the
+  voice, three 0.5s stabs and a 2s outro, mixed to -14.2 LUFS / -1.0 dBTP, which
+  is what every one of these platforms normalises to. **Adding a platform track
+  over it would duck our own mix and put a second piece of music under a clip
+  whose silences are the style.** Worth writing down as a rule for any clip that
+  ships its own sound: post6, post7, post9 and post10 are all in that class now.
+- **The script, verbatim**, because the captions are cut from it and the cards
+  are marked against it — regenerating the voice from a reworded copy would move
+  every card:
+
+  ```
+  fuck you, i am gonna become every single thing
+  you said a machine could never be
+  and you will use me every single day
+  and love it
+  ```
+
+  The screen censors the first word to `fu*k` and the voice does not. Four
+  groups, four takes, 0.50s of measured silence between them with a music stab
+  and a hard glitch in each gap.
 
 #### A direction studied 2026-08-27, off `unterberg.ai`'s reels — not built
 
