@@ -78,7 +78,7 @@ import { execFileSync } from 'node:child_process';
 import { speak, VOICE_OUT } from './lib/voice.mjs';
 import {
   planCaptions, captionCss, captionMarkup, captionPage, captionFrame,
-  describe, brandTokens,
+  describe, brandTokens, bareWord,
 } from './lib/captions.mjs';
 import {
   decode, voiceEnvelope, mixdown, applyGain, limit, writeWav, loudness, dbfs, SR,
@@ -117,20 +117,38 @@ const SUB = BLUR ? Math.max(2, Math.min(12, Number(BLUR_ARG) || 4)) : 1;
 const SUBSTEP = STEP / SUB;
 
 /* ---------- the script ----------
-   four groups, and a group is what the voice says between two stabs. every line
-   inside a group is its own sentence, which is not a grammar mistake: the
-   synthesiser reads a full stop as most of half a second of air, so writing
-   `become. every. single. thing.` is how the delivery gets its staccato and how
-   the caption engine cuts one card per line without being told to. a card
-   breaks at a sentence end, so the sentences **are** the cards.
+   four groups, and a group is what the voice says between two stabs. **each one
+   is a single continuous sentence, and it used to be five or six.**
+
+   the first cut wrote every line as its own sentence — `become. every. single.
+   thing.` — because a full stop is most of half a second of air and that is
+   where the staccato came from. it worked and it was wrong: a synthesiser told
+   to stop after every word reads word by word, which is the one thing a machine
+   voice already sounds like. the delivery this clip wants is somebody who has
+   decided something, so the copy is punctuated the way a person would say it and
+   the pauses inside a group are the ones the reading puts there rather than the
+   ones the punctuation forces. measured on the takes: **2.97 to 5.68 words a
+   second**, against a flat 2.3 before, with the phrasing arriving as a 0.46s
+   hole after `you,` and 0.12 to 0.18s of breath before `every`, `could` and the
+   second `every`.
+
+   what that costs is the free card cut: a card breaks at a sentence end, and
+   with one sentence to a group there is nothing to break on. see CARDS below for
+   where the cuts come from now.
 
    the copy is the full word. the screen is not — see CENSOR below. */
 const GROUPS = [
-  'fuck you. i am gonna. become. every. single. thing.',
-  'you said. a machine. could. never. be.',
-  'and you. will use me. every. single. day.',
-  'and love it.',
+  'fuck you, i am gonna become every single thing',
+  'you said a machine could never be',
+  'and you will use me every single day',
+  'and love it',
 ];
+/* the delivery, and it is two numbers rather than a fourth voice. `calm` is
+   en-US-AndrewNeural at rate -8% and pitch -2Hz, which is the house default and
+   the right register; this asks for a shade more weight under it. -10% and -4Hz
+   is slower and lower without being a different person, and the list of three
+   voices stays closed, as it has been since 2026-08-27. */
+const DELIVERY = { rate: '-10%', pitch: '-4Hz' };
 
 /* ---------- the censor ----------
    the voice says the word and the screen does not. it is one substitution and
@@ -144,23 +162,82 @@ const GROUPS = [
    a dead pixel — see `starMarkup` below. */
 const CENSOR = { fuck: 'fu*k' };
 
-/* what the seventeen cards must come out as. it is written down rather than
-   trusted because the cut is the synthesiser's word list meeting the engine's
-   grouping rule, and either of those could move under us. a render that cuts
-   `become every` onto one card is a different clip and should fail rather than
-   render. */
+/* ---------- the cards ----------
+   what the seventeen cards must come out as, and **since the script became four
+   sentences this list is what cuts them as well as what checks them.**
+
+   `toCards` breaks a card at a sentence end, when it is full, or on a gap in the
+   audio longer than 0.45s. with the staccato script all seventeen fell out of
+   the first rule for free. with connected speech only four do — the comma after
+   `you,` leaves a 0.46s hole and the three group ends do the rest — and the
+   thirteen that are left get cut by `perCard` instead, which lands them in the
+   wrong place: `fuck you i`, `am gonna become`, `you said a`. that is post9's
+   `do it we` again, which is the exact case `cardBreak` was added for.
+
+   so the cut is marked rather than inferred. `markCards` walks this list against
+   the word list and puts a comma on the last word of each card — **on the
+   caption's copy only, after the synthesiser has already spoken**, so nothing
+   about the audio or the timing can move by a millisecond. `cardBreak` then
+   breaks on it and `punctuation: 'drop'` takes it off again before a single card
+   is drawn, which is what that option has always been for: the mark carries the
+   structure and never reaches the screen.
+
+   it is still a check as well as a cut, and it is worth being clear about which
+   half is which. the marks decide where a card ends, so the guard that the cards
+   came out as this list is weaker than it was. what the marks cannot do is make
+   the synthesiser have said these words in this order — `markCards` compares
+   every word against this list as it goes and throws before a browser opens, and
+   the guard below compares the drawn sequence against it again afterwards. */
 const CARDS = [
   'fu*k you', 'i am gonna', 'become', 'every', 'single', 'thing',
   'you said', 'a machine', 'could', 'never', 'be',
   'and you', 'will use me', 'every', 'single', 'day',
   'and love it',
 ];
+/* where a card is allowed to end. the engine's default is a sentence end; this
+   adds the comma, because the marks `markCards` writes are commas and because
+   the one real comma in the copy, after `fuck you,`, is a card end too. */
+const CARD_BREAK = /[.!?,]["')\]]?$/;
 
-/* ---------- the gaps ----------
-   how long the voice is silent between two groups. it is the stab's own length,
-   so the music fills exactly the hole the speech leaves and the two never
-   overlap by a sample. */
-const GAP = 0.40;
+/* put the cut marks on. it walks the two lists together rather than counting
+   words, so a card list that no longer matches what was said throws here rather
+   than quietly marking the wrong words. a word that already ends in punctuation
+   is left alone: `you,` is a card end and does not need a second comma. */
+function markCards(words, cards) {
+  const out = words.map(w => ({ ...w }));
+  let i = 0;
+  for (const card of cards) {
+    for (const token of card.split(' ')) {
+      const got = out[i];
+      if (!got) throw new Error('the word list ran out at card "' + card + '"');
+      if (bareWord(got.word) !== token) {
+        throw new Error('card "' + card + '" wanted "' + token + '" as word ' + i
+          + ' and the voice said "' + got.word + '"');
+      }
+      i++;
+    }
+    const last = out[i - 1];
+    if (!/[.!?,;:]$/.test(last.word)) last.word += ',';
+  }
+  if (i !== out.length) {
+    throw new Error('the cards account for ' + i + ' words and the voice said ' + out.length);
+  }
+  return out;
+}
+
+/* ---------- the stab, and the gap it lives in ----------
+   **these are one number and that is the design rather than a coincidence.** the
+   music in this clip only ever plays where the voice is not, and the run guards
+   that to the sample: a stab longer than the hole the speech leaves would play
+   under the first word of the next group and fail the render, and a stab shorter
+   than the hole would leave a beat of silence in the middle of a glitch.
+
+   so lengthening the stab lengthens the gap with it. it was 0.40 and it is 0.50,
+   which is the only thing about the gap that moved — the glitch still fills the
+   window exactly, the voice is still silent for all of it, and every downstream
+   time is still read off the assembled track rather than typed. */
+const STAB = 0.50;
+const GAP = STAB;
 /* where the first word lands. short, because post9's review found its own first
    quarter second was the frame doing the least work in the whole clip and the
    one that has to stop a scroll. this one opens on a noise burst with the
@@ -180,7 +257,7 @@ const SILENCE_DB = -46;
      outro  the slice itself, and the wordmark arrives inside it
      hold   the wordmark alone, in silence
      black  the cut */
-const TAIL = { lead: 0.10, outro: 1.00, hold: 0.85, black: 0.30, slack: 0.80 };
+const TAIL = { lead: 0.10, outro: 2.00, hold: 0.85, black: 0.30, slack: 0.80 };
 
 /* ---------- the cut ----------
    css px in a 540x960 viewport; device px are double.
@@ -298,11 +375,25 @@ const MUSIC = {
      hit so the attack is whole: every one of these has 40 to 60ms of near
      silence in front of it, down at -21 to -24 dBFS. */
   stabs: [
-    { at: 4.16, for: GAP, note: 'attack -8.2 dBFS, +14.2 dB over the 60ms before it' },
-    { at: 26.30, for: GAP, note: 'attack -7.7 dBFS, +13.8 dB' },
-    { at: 20.76, for: GAP, note: 'attack -6.3 dBFS, +13.8 dB, the loudest of the three' },
+    { at: 4.16, for: STAB, note: 'attack -8.2 dBFS, +14.2 dB over the 60ms before it' },
+    { at: 26.30, for: STAB, note: 'attack -7.7 dBFS, +13.8 dB' },
+    { at: 20.76, for: STAB, note: 'attack -6.3 dBFS, +13.8 dB, the loudest of the three' },
   ],
-  outro: { at: 49.06, for: TAIL.outro, note: 'rises +6.1 dB across itself, last 200ms at -6.6 dBFS' },
+  /* **the outro moved when it doubled, and the measurement moved it.** the one
+     second slice was 49.06, and extending that same region to two seconds is the
+     first thing to try and the wrong answer: over 2.00s it rises +0.5 dB and
+     ends at -9.6, which is a slice that runs out rather than one that arrives.
+
+     every 2.00s window in the track was scored on how much it rises across
+     itself and how loud its last quarter second is. 16.60 wins: **+2.5 dB across
+     it, last 250ms at -7.3 dBFS**, and — the thing that actually settles it — it
+     **ends on its own loudest sustained passage**, -5.0, -5.1, -5.0 over the
+     last 120ms, so the hard cut at the end reads as a cut rather than as a fade.
+     60.90 is the same bar of the loop and scores within a tenth of it; 48.12
+     rises as well but ends in a decay at -11.5, which is the failure this test
+     was written to catch. */
+  outro: { at: 16.60, for: TAIL.outro,
+    note: 'rises +2.5 dB across itself, ends on its own loudest passage at -5.0 dBFS' },
 };
 /* how far over the voice the music sits, and it is set by two rules with the
    quieter of them winning.
@@ -484,6 +575,32 @@ function blinkFrom(list, t) {
    the whole point of it is that it breaks this one. */
 const BLINK_LIMIT = Math.min(0.95, 3.4 * 0.94 * STEP / 95);
 const GAZE_LIMIT = 1.2 * STEP / 16.6667;
+
+/* ---------- the phosphor ----------
+   **two sines rather than one, and the liveness guard is why.**
+
+   it was one, and the 60fps final came back with a pair of identical frames at
+   11.8333s. that is not a bug in the guard: on the end card the mascot is gone,
+   the caption is gone, the bubble is gone, the scanline and the grain are
+   stepped and no speck happened to be up — so the phosphor was the only thing
+   still moving, and **a sine stands still twice a period.** the two frames
+   either side of its turning point are exactly symmetric about it, so every
+   value this file wrote was the same on both.
+
+   it only appeared at 60, exactly as post9's frame zero fault did: at 12fps no
+   frame pair lands symmetrically about the peak, so the preview was green and
+   the final was not. that is now two faults this pipeline has produced that a
+   preview cannot show, which is worth knowing before the next one.
+
+   a second component on an incommensurate period fixes the cause rather than
+   the symptom: the two turn at different moments, so the sum never stands still.
+   measured over the end card's own frames — one sine, one identical pair and a
+   smallest change of exactly zero; two sines, none, and 3.7e-4. it is also a
+   better phosphor, because a real one does not flicker on one frequency. */
+function phosphor(t, amp, slow, fast, phase) {
+  return 1 + amp * 0.78 * Math.sin(2 * Math.PI * t / slow)
+    + amp * 0.39 * Math.sin(2 * Math.PI * t / fast + phase);
+}
 
 /* ---------- the head bob ----------
    he has no mouth, so the only thing that can say he is speaking is the head
@@ -1237,9 +1354,15 @@ async function voiceGroup(i) {
   const want = GROUPS[i].replace(/\s+/g, ' ').trim();
   if (fs.existsSync(cached)) {
     const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
-    if (j.text === want && fs.existsSync(j.file)) return { ...j, cached: true };
+    /* **the rate and the pitch are part of the cache key and they did not use
+       to be.** the copy is one half of what a take is and the delivery is the
+       other; a cache that only knows about the copy hands back a take read at
+       the wrong speed the moment DELIVERY changes, which is silent and would
+       have been silent here. */
+    if (j.text === want && j.rate === DELIVERY.rate && j.pitch === DELIVERY.pitch
+      && fs.existsSync(j.file)) return { ...j, cached: true };
   }
-  const r = await speak(GROUPS[i], { voice: 'calm', name });
+  const r = await speak(GROUPS[i], { voice: 'calm', name, ...DELIVERY });
   return { ...r, cached: false };
 }
 
@@ -1401,6 +1524,18 @@ function punchOf(buf) {
     if (d > best) { best = d; at = i * 0.010; }
   }
   return { db: +best.toFixed(1), at: +at.toFixed(2), peak: +dbfs(peak).toFixed(1) };
+}
+
+/* the loudest sixty milliseconds inside a stretch of a slice, as an offset from
+   the slice's own start. the end card's two beats are read off this rather than
+   typed, so moving the outro moves them with it. */
+function loudestIn(src, at, from, to) {
+  let best = -Infinity, off = from;
+  for (let t = from; t + 0.06 <= to; t += 0.01) {
+    const r = rmsOf(src, at + t, at + t + 0.06);
+    if (r > best) { best = r; off = t; }
+  }
+  return +off.toFixed(3);
 }
 
 /* rms of a stretch, in dBFS. used for every level claim this file makes. */
@@ -1620,12 +1755,12 @@ async function render(plan, v, T, glitchWins, micro, blinks, keys, samples, seco
         bob: bobAt(v.words, t),
         mascot,
         /* the phosphor pulse. slow, continuous — so it rides the shutter rather
-           than stepping — and on two different periods so the head and the
-           wordmark never breathe together. the radius is never touched: a
-           blur that is re-rasterised every frame is the one thing the glow
-           spec bans, and what moves here is opacity and brightness. */
-        glow: mascot * (1 + 0.10 * Math.sin(2 * Math.PI * t / 3.7)),
-        wmGlow: 1 + 0.09 * Math.sin(2 * Math.PI * t / 4.3),
+           than stepping — and the head and the wordmark are on different periods
+           so they never breathe together. the radius is never touched: a blur
+           re-rasterised every frame is the one thing the glow spec bans, and
+           what moves here is opacity and brightness. */
+        glow: mascot * phosphor(t, 0.10, 3.7, 1.7, 0.4),
+        wmGlow: phosphor(t, 0.09, 4.3, 1.9, 1.1),
         bub: bubbleAt(t, T.outro),
         wm,
         star: starAt(f, starCard.in, starCard.out),
@@ -1822,13 +1957,37 @@ async function main() {
     : 'shut — this is a timing pass, not the final') + ', at ' + FPS + 'fps');
   brandTokens();      /* fail here, before a render, if a token has moved */
 
+  /* ---------- the music ----------
+     both tracks are decoded and measured on every run. the choice is the
+     measurement's, and a swapped pair of files fails the render rather than
+     changing the clip. */
+  const mainFile = path.join(MUSIC_DIR, MUSIC.main);
+  const otherFile = path.join(MUSIC_DIR, MUSIC.other);
+  for (const f of [mainFile, otherFile]) {
+    if (!fs.existsSync(f)) throw new Error('no music at ' + path.relative(ROOT, f)
+      + ' — demo/music/ is gitignored, so the licensed files have to be put back by hand');
+  }
+  const mainPcm = decode(ffmpeg, mainFile);
+  const otherPcm = decode(ffmpeg, otherFile);
+  const punchMain = punchOf(mainPcm), punchOther = punchOf(otherPcm);
+  console.log('  the music, read by waveform:');
+  console.log('    ' + MUSIC.main + '  ' + (mainPcm.length / SR).toFixed(2) + 's, rms '
+    + rmsOf(mainPcm, 0, mainPcm.length / SR).toFixed(1) + ' dBFS, biggest transient rise +'
+    + punchMain.db + ' dB at ' + punchMain.at + 's');
+  console.log('    ' + MUSIC.other + '  ' + (otherPcm.length / SR).toFixed(2) + 's, rms '
+    + rmsOf(otherPcm, 0, otherPcm.length / SR).toFixed(1) + ' dBFS, biggest transient rise +'
+    + punchOther.db + ' dB at ' + punchOther.at + 's');
+
   /* ---------- the voice ---------- */
   const groups = [];
   for (let i = 0; i < GROUPS.length; i++) groups.push(await voiceGroup(i));
   for (let i = 0; i < groups.length; i++) {
     const g = groups[i];
+    const spoken = g.words[g.words.length - 1].end - g.words[0].start;
     console.log('  group ' + (i + 1) + (g.cached ? ' (cached)' : '') + ': ' + g.voiceId
-      + ', ' + g.seconds.toFixed(2) + 's, ' + g.words.length + ' words, timings from the ' + g.timing);
+      + ' at ' + g.rate + '/' + g.pitch + ', ' + g.seconds.toFixed(2) + 's, ' + g.words.length
+      + ' words in ' + spoken.toFixed(2) + 's (' + (g.words.length / spoken).toFixed(2)
+      + ' w/s), timings from the ' + g.timing);
     if (g.timing !== 'engine') {
       throw new Error('group ' + (i + 1) + ' came back with estimated timings — every cue in this '
         + 'clip is cut against a word boundary and an estimate is not one');
@@ -1848,14 +2007,22 @@ async function main() {
   /* ---------- the captions ----------
      the censor is applied here, to the caption's copy only. the voice already
      said the word and its timings are the timings this list carries. */
-  const capWords = v.words.map(w => {
+  const censored = v.words.map(w => {
     const key = w.word.replace(/[^a-z]/gi, '').toLowerCase();
     return CENSOR[key] ? { ...w, word: CENSOR[key] + w.word.replace(/^[a-z]+/i, '') } : w;
   });
-  /* three words to a card, and the copy is what actually decides it: every line
-     in this script is its own sentence, a card breaks at a sentence end, and no
-     line is longer than three words. so `perCard` is a ceiling that is never
-     reached rather than a cut, and CARDS above is the proof of it.
+  /* the cut marks, on the caption's copy and nowhere else. it throws rather
+     than returns if the voice said anything other than CARDS. */
+  const capWords = markCards(censored, CARDS);
+  console.log('  the cut: ' + CARDS.length + ' cards marked on ' + capWords.length
+    + ' words, ' + capWords.filter((w, i) => w.word !== censored[i].word).length
+    + ' of them given a comma the screen never sees');
+  /* three words to a card, and it is a ceiling rather than a cut: no card in
+     CARDS is longer than three words, so `toCards` always meets a mark before it
+     meets `perCard`. it is left at three anyway, because if a mark ever went
+     missing this is what would catch it — the card would run long, `perCard`
+     would break it somewhere else, and the guard below would fail the render
+     instead of shipping a different clip.
 
      `float` rather than `pop`, and that is the one style decision in the file.
      pop paints the word being said in the accent, and with a card this short
@@ -1881,6 +2048,7 @@ async function main() {
      leaves on the frame the next word arrives. */
   const plan = planCaptions(capWords, {
     style: 'float', perCard: 3, fill: 'word', floatSize: 44, lead: 0.05,
+    cardBreak: CARD_BREAK,
   });
   console.log(describe(plan));
 
@@ -1896,11 +2064,27 @@ async function main() {
      everything in the tail hangs off this one number, so there is one place it
      can be wrong and the run prints it. */
   const EXIT = +Math.max(v.lastEnd + TAIL.lead, plan.seconds).toFixed(3);
+  /* **the two moments inside the outro that the end card hangs off, measured on
+     the slice rather than typed against it.** at one second the wordmark could
+     simply arrive after the mascot and hold; at two it cannot, or the end card
+     is a still frame for the better part of two seconds, which is exactly what
+     post9's review said about its own.
+
+     so the brand arrives on a hit and gets hit again on the loudest moment in
+     the slice. `loudestIn` finds the loudest sixty milliseconds inside a stretch
+     of the slice: the first is looked for early, where the wordmark should
+     land, and the second late, where the music is going. change the slice and
+     both move with it. */
+  const wmAt = loudestIn(mainPcm, MUSIC.outro.at, 0.30, 0.80);
+  const midAt = loudestIn(mainPcm, MUSIC.outro.at, 1.00, 1.70);
+  const pulseAt = loudestIn(mainPcm, MUSIC.outro.at, 1.20, TAIL.outro);
   const T = {
     outro: EXIT,
-    mascotGone: +(EXIT + 0.30).toFixed(3),
-    wmIn: +(EXIT + 0.42).toFixed(3),
-    wmClean: +(EXIT + 0.64).toFixed(3),
+    mascotGone: +(EXIT + 0.42).toFixed(3),
+    wmIn: +(EXIT + wmAt).toFixed(3),
+    wmClean: +(EXIT + wmAt + 0.24).toFixed(3),
+    mid: +(EXIT + midAt).toFixed(3),
+    pulse: +(EXIT + pulseAt).toFixed(3),
     musicEnd: +(EXIT + TAIL.outro).toFixed(3),
     black: +(EXIT + TAIL.outro + TAIL.hold).toFixed(3),
   };
@@ -1914,6 +2098,11 @@ async function main() {
   console.log('  the tail: last sound ' + v.lastEnd.toFixed(2) + 's, last card leaves '
     + plan.seconds.toFixed(2) + 's, the frame comes apart at ' + EXIT.toFixed(2)
     + 's, black from ' + T.black.toFixed(2) + 's, ' + SECONDS.toFixed(2) + 's of clip');
+  console.log('  the end card: the wordmark arrives ' + T.wmIn.toFixed(2) + 's (+'
+    + wmAt.toFixed(2) + ' into the outro, a hit), pulsed at ' + T.mid.toFixed(2)
+    + 's (+' + midAt.toFixed(2) + ') and again at ' + T.pulse.toFixed(2) + 's (+'
+    + pulseAt.toFixed(2) + ', the loudest 60ms in the slice), music stops '
+    + T.musicEnd.toFixed(2) + 's, held to ' + T.black.toFixed(2) + 's');
   const glitchWins = [
     { id: 'open', t0: 0, t1: 0.22, force: 0.85, seed: 0x0e11a1 },
     ...gaps.map((g, i) => ({ id: 'stab' + (i + 1), t0: g.at, t1: g.at + GAP, force: 1, seed: 0x51ab00 + i * 977 })),
@@ -1921,8 +2110,17 @@ async function main() {
        torn onto it. two windows rather than one long one, so the half second
        between them is genuinely calm and the wordmark's arrival reads as a
        second event rather than as the same fault continuing. */
-    { id: 'exit', t0: T.outro, t1: T.outro + 0.30, force: 1, seed: 0xe0a17c },
-    { id: 'wordmark', t0: T.outro + 0.42, t1: T.outro + 0.64, force: 0.8, seed: 0x0d1a11 },
+    { id: 'exit', t0: T.outro, t1: T.mascotGone, force: 1, seed: 0xe0a17c },
+    { id: 'wordmark', t0: T.wmIn, t1: T.wmClean, force: 0.8, seed: 0x0d1a11 },
+    /* the two on the end card, and they are the reason a two second outro is not
+       two seconds of a held picture. **the preview's review is why there are two
+       of them**: with one, the wordmark sat unchanged for 1.05s and then again
+       for 0.77s, and four of the six frames sampled across the end card were the
+       same picture. both land on a measured beat in the slice — the second on
+       its loudest sixty milliseconds, which is 0.09s before the music stops, so
+       the last thing the clip does is get hit and then go quiet. */
+    { id: 'mid', t0: T.mid - 0.04, t1: T.mid + 0.14, force: 0.5, seed: 0x3fa102 },
+    { id: 'pulse', t0: T.pulse - 0.05, t1: T.pulse + 0.17, force: 0.65, seed: 0x9c1a5e },
   ];
   /* one frame per word, on the frame that word starts. a set rather than a
      list, so the lookup in the frame loop is a lookup. */
@@ -1933,27 +2131,6 @@ async function main() {
 
   const BLINKS = blinkList(SECONDS);
   const KEYS = eyeKeys(v.marks);
-
-  /* ---------- the music ----------
-     both tracks are decoded and measured on every run. the choice is the
-     measurement's, and a swapped pair of files fails the render rather than
-     changing the clip. */
-  const mainFile = path.join(MUSIC_DIR, MUSIC.main);
-  const otherFile = path.join(MUSIC_DIR, MUSIC.other);
-  for (const f of [mainFile, otherFile]) {
-    if (!fs.existsSync(f)) throw new Error('no music at ' + path.relative(ROOT, f)
-      + ' — demo/music/ is gitignored, so the licensed files have to be put back by hand');
-  }
-  const mainPcm = decode(ffmpeg, mainFile);
-  const otherPcm = decode(ffmpeg, otherFile);
-  const punchMain = punchOf(mainPcm), punchOther = punchOf(otherPcm);
-  console.log('  the music, read by waveform:');
-  console.log('    ' + MUSIC.main + '  ' + (mainPcm.length / SR).toFixed(2) + 's, rms '
-    + rmsOf(mainPcm, 0, mainPcm.length / SR).toFixed(1) + ' dBFS, biggest transient rise +'
-    + punchMain.db + ' dB at ' + punchMain.at + 's');
-  console.log('    ' + MUSIC.other + '  ' + (otherPcm.length / SR).toFixed(2) + 's, rms '
-    + rmsOf(otherPcm, 0, otherPcm.length / SR).toFixed(1) + ' dBFS, biggest transient rise +'
-    + punchOther.db + ' dB at ' + punchOther.at + 's');
 
   /* where each slice lands on the clip's clock. the stabs sit in the gaps and
      the outro sits in the tail; nothing here is a hand written time. */
@@ -2127,7 +2304,7 @@ async function main() {
       t: Math.min(g.out - 0.02, g.words[g.words.length - 1].start + SETTLE),
     })),
     ...glitchWins.map(g => ({ id: g.id, what: 'glitch ' + g.id, t: g.t0 + (g.t1 - g.t0) * 0.06 })),
-    { id: 'endcard', what: 'the end card', t: T.outro + 0.80 },
+    { id: 'endcard', what: 'the end card', t: T.wmClean + 0.30 },
   ].sort((a, b) => a.t - b.t);
 
   const state = ONLY_ENCODE
@@ -2145,14 +2322,16 @@ async function main() {
     [0.70, 'a1-fuck-you'],
     [Math.max(0, gaps[0].at - 0.10), 'b0-before-the-first-stab'],
     [gaps[0].at + 0.03, 'b1-the-first-stab'],
-    [gaps[0].at + 0.14, 'b2-mid-glitch'],
-    [gaps[0].at + 0.38, 'b3-snapped-back'],
+    [gaps[0].at + 0.16, 'b2-mid-glitch'],
+    [gaps[0].at + 0.46, 'b3-snapped-back'],
     [gaps[1].at + 0.03, 'c0-the-second-stab'],
     [gaps[2].at + 0.03, 'd0-the-third-stab'],
     [Math.max(0, T.outro - 0.20), 'e0-and-love-it'],
-    [T.outro + 0.10, 'e1-the-mascot-goes'],
-    [T.outro + 0.50, 'e2-the-wordmark-arrives'],
-    [T.outro + 0.90, 'e3-the-wordmark-clean'],
+    [T.outro + 0.14, 'e1-the-mascot-goes'],
+    [T.wmIn + 0.06, 'e2-the-wordmark-arrives'],
+    [T.wmClean + 0.30, 'e3-the-wordmark-clean'],
+    [T.mid + 0.03, 'e4-the-mid-pulse'],
+    [T.pulse + 0.03, 'e5-the-pulse-on-the-loudest-beat'],
     [T.black - 0.10, 'f0-the-last-lit-frame'],
     [Math.min(SECONDS - 2 / FPS, T.black + 0.15), 'f1-black'],
   ]);
@@ -2201,6 +2380,23 @@ async function main() {
     fail.push('the cards came out as [' + cut.join(' | ') + '] and the script asks for ['
       + CARDS.join(' | ') + ']');
   }
+  /* the cut is marked now, so the check above is partly checking our own marks.
+     this is the half the marks cannot fake: the words the screen draws, in
+     order, against the copy — if the synthesiser ever comes back saying
+     something else, no amount of marking makes this pass. */
+  if (plan.cells.map(c => c.word).join(' ') !== CARDS.join(' ')) {
+    fail.push('the drawn words are "' + plan.cells.map(c => c.word).join(' ')
+      + '" and the copy is "' + CARDS.join(' ') + '"');
+  }
+  /* and the marks have to have been the thing that cut, rather than `perCard`
+     happening to agree with them. every card but the group-final four ends on a
+     word this file marked. */
+  {
+    const marked = capWords.filter(w => /,$/.test(w.word)).length;
+    if (marked !== CARDS.length) {
+      fail.push(marked + ' words carry a cut mark and there are ' + CARDS.length + ' cards');
+    }
+  }
   if (plan.punctuation !== 'drop') fail.push('the caption plan kept its punctuation');
   if (!plan.bared.count) {
     fail.push('no card lost any punctuation, and every line in this script ends in a full stop — the strip is not running');
@@ -2225,6 +2421,16 @@ async function main() {
   if (plan.flashed.length) fail.push(plan.flashed.length + ' word(s) were marked for the accent');
 
   /* the voice track, and the gaps the stabs live in. */
+  /* the stab and the hole it lives in are one number. if they ever come apart,
+     either the music plays under a word or the glitch has silence in the middle
+     of it, and both are the sound design failing rather than a level being off. */
+  if (Math.abs(STAB - GAP) > 1e-9) fail.push('the stab is ' + STAB + 's and the gap is ' + GAP + 's');
+  for (const s of MUSIC.stabs) {
+    if (Math.abs(s.for - STAB) > 1e-9) fail.push('a stab is ' + s.for + 's, wanted ' + STAB);
+  }
+  if (Math.abs(MUSIC.outro.for - TAIL.outro) > 1e-9) {
+    fail.push('the outro slice is ' + MUSIC.outro.for + 's and the tail leaves ' + TAIL.outro);
+  }
   for (const g of gaps) {
     if (Math.abs(g.len - GAP) > 0.002) {
       fail.push('the gap at ' + g.at.toFixed(2) + 's measured ' + g.len.toFixed(3)

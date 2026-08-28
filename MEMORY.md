@@ -6,68 +6,80 @@ names in here either.
 
 ## Status
 
-- **Built 2026-08-28: `demo/post10.mjs`, the tenth clip, "the rage clip", and
-  the first one that is dark.** **16.87s, 60fps, 1080x1920, 1012 frames,
-  5.03 MB**, the voice and four slices of music in the file, rendered with the
-  shutter open at four subframes in **11.2 minutes**. **The live site did not
-  change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
-  stubs and `assets/` were all untouched. **Pushed in `576f947`, and the push
-  changed nothing a visitor sees** — the four files in it are `.gitignore`,
-  `MEMORY.md`, `demo/README.md` and `demo/post10.mjs`. **Not posted.**
-  - **It is the first clip on the dark theme and the first with no accent in it
-    anywhere.** `data-theme=dark`, so `--face` is #f4f7f5 on a #06070a page and
-    the white glowing mascot is the site's own tokens rather than a recolour.
-    The `float` caption style paints `--fg` and only `--fg`, `flash` is off, and
-    **a guard fails the render if the accent colour is painted on one frame.**
-    It did not fire. post9's review ended on "if in doubt, no green at all";
-    this clip is not in doubt.
-  - **The sound is a voice and four slices of one licensed mp3, and they never
-    play at the same time.** Three 0.4s stabs in the gaps between the four
-    spoken groups and one 1s outro under the end card, all four cut out of
-    `track2.mp3` by measuring where it hits. **No synthesised effects at all** —
-    `lib/sfx.mjs` is used for its decoder, its mixer, its limiter and its meter
-    and for none of its nine sounds. **`demo/music/` is gitignored**: the mp3s
-    are licensed to us to use, not to redistribute out of a public repo.
-  - **Two mix numbers changed and a measurement changed both.** The **ducker is
-    off**, because `voiceEnvelope`'s 220ms release is still 0.987 open when
-    a stab lands and post6's 0.60 would have taken **7.8 dB off the attack
-    of every stab in the film**. And the encoder is at **crf 22 rather than
-    17**, because this frame is film grain over black and 17 cost 7.7 Mbit/s
-    against post9's 2.0 — 22 delivers **2.39 Mbit/s**, which is post9's own
-    number. **The voice trim and the loudness targets are untouched**, as asked:
-    -1.5dB on the voice, delivered at **-14.2 LUFS / -1.0 dBTP**.
-  - **The gap between two groups is measured on the waveform, not on the word
-    list, and that is the fault worth carrying forward.** The synthesiser's word
-    boundaries end a word up to **0.12s before the recording does**, so the
-    first build put each stab on top of a word that was still being said — and
-    the check written to catch exactly that **passed**, because the window it
-    looked in came from the same word list the bug came from. The run said so
-    out loud: the voice measured -21 dB under two of the three stabs against a
-    median speech level of -21. A guard that takes its window from the thing it
-    is checking is not a guard. It is now -56, -51 and -49 dB, which is 35, 30
-    and 28 dB under speech.
-  - **The glitches are quantised to the output frame grid, deliberately.** With
-    four subframes to a frame, a one frame rgb split written as a function of
-    `t` would be averaged with three clean captures and land at a quarter
-    strength. The glitch state is computed once per output frame and held across
-    all four captures of it; the caption springs, the eye drift and the phosphor
-    still ride the shutter. **9.8% of the frames carry a glitch** and every
-    channel is at rest on every frame outside a window, checked: **0 faults**.
-  - **`skills/video-review` was run twice, on the preview and on the final, and
-    it found three things.** All three are fixed and none is a backlog. A
-    seventy millisecond hole in the bubble before every one of the seventeen
-    cards, which was the engine's `lead` fighting the `word` fill; a mascot
-    whose eyes were in the same place in all thirty four sampled frames; and —
-    on the **final**, not the preview — two tenths of a second where `and love
-    it` was still on screen after its own bubble had been torn away. The last
-    one has a guard now. Reviews at `demo/out/review-post10-preview.md` and
-    `demo/out/review-post10.md`, both gitignored, so the findings are written
-    out under Decisions as well.
-  - **The numbers it ships on.** Platform safe margins clear on every edge:
-    **183 left, 933 top, 173 right and 937 bottom** against floors of 140 left,
-    180 top, 140 right and 220 bottom, sampled at every card's settled frame
-    **and at every glitch's hottest frame**, so the shake's fourteen css pixels
-    are inside the number. 0 identical frame pairs before the cut to black.
+- **Built and then fix passed 2026-08-28: `demo/post10.mjs`, the tenth clip,
+  "the rage clip", the first one that is dark and the first with no accent in it
+  anywhere.** **13.25s, 60fps, 1080x1920, 795 frames, 4.33 MB (2.61 Mbit/s)**,
+  the voice and four slices of music in the file, rendered with the shutter open
+  at four subframes in **7.3 minutes**. **The live site did not change** —
+  `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language stubs and
+  `assets/` were all untouched. **The first cut is on `main` and public
+  (`576f947`); the fix pass is committed in `3e03320` and is not pushed.** So
+  what is public right now is the 16.87s clip's source, not this one's. **Not
+  posted, either cut.**
+  - **The first cut was 16.87s and it read word by word.** Einz asked for three
+    changes and they are the shape of the clip now: the script is four
+    continuous sentences instead of seventeen, the stabs are half a second
+    instead of four tenths, and the outro is two seconds instead of one. What
+    did not move: the look, the glitches, the margins, the mix targets, the
+    voice trim, the crf, the seventeen cards on screen.
+  - **The delivery is a reading rather than a list.** One take per group, Andrew
+    at **-10% and -4Hz** — two numbers rather than a fourth voice, and the list
+    stays closed at three. **2.97 to 5.68 words a second** against a flat 2.3,
+    with the phrasing arriving as a 0.46s hole after `you,` and 0.12 to 0.18s of
+    breath before `every`, `could` and the second `every`: pauses the reading
+    puts there rather than ones the punctuation forces.
+  - **What that cost, and how it was paid.** A card breaks at a sentence end,
+    so with one sentence to a group there was nothing to break on and `perCard`
+    cut `fuck you i`, `am gonna become`, `you said a` — post9's `do it we`
+    again. **The cut is marked rather than inferred now**: `markCards` puts a
+    comma on the last word of each card, **on the caption's copy only, after the
+    synthesiser has spoken**, and `punctuation: 'drop'` takes it off before a
+    card is drawn. Nothing about the audio or the timing moves by a millisecond,
+    and the engine is untouched — it is the option `cardBreak` was added for.
+  - **The stab and the gap it lives in are one number, and that is now
+    guarded.** The music only ever plays where the voice is not, so a 0.5s stab
+    in a 0.4s hole would play under the next word and fail the render. The gap
+    went to 0.50 with the stab. **Stabs at 3.64s, 6.18s and 8.71s**, same three
+    sources, same escalation (-8.2, -7.7, -6.3 dBFS attacks, still checked).
+  - **The outro moved when it doubled, and a measurement moved it.** Extending
+    the old 49.06 region to two seconds is the obvious answer and the wrong one:
+    over 2.00s it rises +0.5 dB and ends at -9.6, a slice that runs out rather
+    than arrives. Every 2.00s window in the track was scored on how much it
+    rises and how loud its last quarter second is. **16.60 + 2.00 wins** — +2.5
+    dB across itself, and it **ends on its own loudest sustained passage**, so
+    the hard cut reads as a cut. It lands at **10.10s**.
+  - **The end card earns its two seconds and the preview's review is why.** With
+    one beat in it the wordmark sat unchanged for 1.05s and again for 0.77s. It
+    has three now, all read off the slice: the brand arrives on a hit at
+    **+0.57**, is hit again at **+1.45**, and once more at **+1.91** — 0.09s
+    before the music stops, so the last thing the clip does is get hit and then
+    go quiet. Longest unchanged stretch 0.60s.
+  - **The liveness guard caught a fault the eye could not, and it was 60fps
+    only.** The first final came back with one identical frame pair at 11.8333s.
+    Real: on the end card the mascot, caption and bubble are gone and the grain
+    and scanline are stepped, so the phosphor was the only thing moving — and **a
+    sine stands still twice a period**, so the two frames either side of its
+    turning point wrote exactly the same values. At 12fps no pair lands
+    symmetrically about the peak, so the preview was green. Fixed at the cause:
+    the phosphor is two sines on incommensurate periods. Measured — one sine,
+    one pair and a change of exactly zero; two, none and 3.7e-4. **That is the
+    second fault this pipeline has produced that a preview cannot show**, after
+    post9's frame zero leg.
+  - **The rest still holds, re-measured on this cut.** No accent on any frame
+    and the guard did not fire. **0.000s of music inside a word**; the voice
+    under the three stabs peaks at -58.9, -50.8 and -52.3 dB, which is 38, 30
+    and 31 dB under speech. The ducker is off, and at post6's 0.60 the envelope
+    is 0.986 open when a stab lands and would take **7.8 dB off every stab's
+    attack**. Delivered at **-14.2 LUFS / -1.0 dBTP**, limiter pulling 4.0 dB
+    over three passes. Safe margins **192 left, 941 top, 164 right, 929 bottom**
+    against floors of 140, 180, 140, 220, sampled at every card's settled frame
+    and at every one of the six glitches' hottest frames. **17.7% of frames
+    carry a glitch** and every channel is at rest outside a window: 0 faults.
+  - **`skills/video-review` has now run four times on this clip, twice per cut.**
+    The fix pass's preview found the end card holding; its final found nothing
+    the guards had not. Reviews at `demo/out/review-post10-preview.md` and
+    `demo/out/review-post10.md`, both gitignored and both rewritten for this cut,
+    so the findings are under Decisions as well.
 
 - **Built 2026-08-28 and fixed the same day: `demo/post9.mjs`, the ninth clip,
   "the pitch reel", and the first one that films the live site.**
@@ -888,22 +900,27 @@ Still no posting cadence or content pillars. See Next steps.
   frame: a seeded drift of under one percent of scale rides on every frame,
   composed passes included. See Decisions.
 - **`demo/post10.mjs`**, added 2026-08-28: the tenth clip, `the rage clip`.
-  **16.87s at 60fps, vertical only, voice and music inside the mp4**, out to
+  **13.25s at 60fps, vertical only, voice and music inside the mp4**, out to
   `demo/out/post10-1080x1920.mp4`. `--blur` opens the shutter for the final and
   is off for the timing pass, `DEMO_FPS=12` previews it, `--encode-only`
   re-encodes from kept frames. Frames under `out/frames-post10`, subframes under
   `out/subframes-post10`, state under `out/post10-1080x1920.json`, verify stills
-  under `out/verify-post10`. **About 11.2 minutes with the shutter open at four
-  subframes, about two and a half without.**
+  under `out/verify-post10`. **7.3 minutes with the shutter open at four
+  subframes, about two without.**
   **It is the first dark clip and the first with no accent in it at all.** One
   composed page at `data-theme=dark`: black, film grain, the mascot centred in a
   white crt glow, the site's own speech bubble above him, and the `float`
   captions inside the pill in `--fg` only. No pictogram scene layer — this file
   does not import `lib/pictograms.mjs`.
-  **The voice is four takes, not one.** Each of the four spoken groups is
-  synthesised on its own and they are laid on one clock with **exactly 0.40s of
-  silence between them**, measured on the waveform rather than on the word list.
-  The stabs and the hard glitches live in those gaps.
+  **The voice is four takes, not one, and each one is a continuous sentence.**
+  Each group is synthesised on its own at -10%/-4Hz and they are laid on one
+  clock with **exactly 0.50s of silence between them**, measured on the waveform
+  rather than on the word list. The stabs and the hard glitches live in those
+  gaps, and the gap is the stab's own length by design rather than by accident.
+  **The seventeen cards are marked rather than inferred**: with one sentence to
+  a group there is no sentence end to cut on, so `markCards` puts a comma on
+  each card's last word, on the caption's copy only, and `punctuation: 'drop'`
+  takes it off again before anything is drawn.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
 - **`demo/music/` is licensed audio and it is never pushed.** Two pixabay mp3s
@@ -1242,7 +1259,92 @@ huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
 
+### 2026-08-28 — post10's fix pass: a reading instead of a list, and a guard the eye could not be
+
+**Three changes, and the clip went from 16.87s to 13.25s.** Einz's, after
+watching the first cut: the voice read word by word, the stabs were short, the
+outro was short. Nothing else moved — the look, the glitches, the margins, the
+mix targets, the voice trim, the crf and the seventeen cards on screen are all
+the ones written up below.
+
+**1. The staccato script was the fault and it was our own.** Every line had been
+written as its own sentence, because a full stop is most of half a second of air
+and that is where the delivery's punch came from. It worked and it was wrong: a
+synthesiser told to stop after every word reads word by word, which is the one
+thing a machine voice already sounds like. The copy is punctuated the way a
+person would say it now — four sentences, one take each, Andrew at **-10% and
+-4Hz**, which is two numbers rather than a fourth voice and leaves the list
+closed at three. **2.97 to 5.68 words a second against a flat 2.3.**
+
+**What that cost is the free card cut, and paying for it did not touch the
+engine.** A card breaks at a sentence end, so with one sentence to a group there
+was nothing to break on and `perCard` cut `fuck you i`, `am gonna become`,
+`you said a` — post9's `do it we` again. The cut is **marked rather than
+inferred**: `markCards` walks the card list against the word list and puts a
+comma on each card's last word, **on the caption's copy only, after the
+synthesiser has already spoken**, `cardBreak` breaks on it and
+`punctuation: 'drop'` takes it off again before a card is drawn. Nothing about
+the audio or the timing can move, and it is exactly what that option is for —
+the mark carries the structure and never reaches the screen. It is worth being
+honest about which half is which: the marks decide where a card ends, so "the
+cards came out as the list" is a weaker check than it was, and what the marks
+cannot fake — that the voice said these words in this order — is checked twice,
+once as the marks go on and once against the drawn sequence.
+
+**2. The stab and the hole it lives in are one number.** The music only ever
+plays where the voice is not, and that is guarded to the sample, so a 0.5s stab
+in a 0.4s gap would play under the next word and fail the render while a 0.4s
+stab in a 0.5s gap would leave silence in the middle of a glitch. **The gap went
+to 0.50 with the stab**, and a guard now says so out loud rather than leaving it
+as a coincidence two constants happened to share.
+
+**3. Extending the outro was the obvious answer and the wrong one.** The one
+second slice was 49.06; over 2.00s that same region rises **+0.5 dB and ends at
+-9.6**, which is a slice that runs out rather than one that arrives. Every 2.00s
+window in the track was scored on how much it rises across itself and how loud
+its last quarter second is, and **16.60 + 2.00 wins**: +2.5 dB, and — the thing
+that settles it — it **ends on its own loudest sustained passage**, -5.0 dBFS
+over the last 120ms, so the hard cut reads as a cut rather than as a fade. 60.90
+is the same bar of the loop and scores within a tenth; 48.12 rises too and ends
+in a decay at -11.5, which is the failure the test was written to catch.
+
+**A two second outro cannot just be held, and the preview's review said so.**
+With one beat in it the wordmark sat unchanged for 1.05s and then 0.77s, and
+four of the six frames sampled across the end card were the same picture. It has
+three beats now and all three are read off the slice rather than typed against
+it: the brand **arrives on a hit at +0.57**, is hit again at **+1.45**, and once
+more at **+1.91**, which is 0.09s before the music stops — so the last thing the
+clip does is get hit and then go quiet. Re-slice and all three move.
+
+**The liveness guard then caught something no review could, and it was 60fps
+only.** The first final of the fix pass came back with **one identical frame
+pair at 11.8333s**. Not a false positive: on the end card the mascot, the
+caption and the bubble are gone and the grain and the scanline are stepped, so
+the phosphor was the only thing still moving — and **a sine stands still twice a
+period**, so the two frames either side of its turning point wrote exactly the
+same values. At 12fps no frame pair lands symmetrically about the peak, so the
+preview was green and the final was not, **exactly as post9's frame zero leg
+was**. Two faults now that a preview cannot show, which is worth knowing before
+the next one. It is fixed at the cause rather than at the threshold: the
+phosphor is two sines on incommensurate periods, so they never turn together.
+Measured over the end card's own frames — one sine, one identical pair and a
+smallest change of exactly zero; two sines, none, and 3.7e-4. It is a better
+phosphor as well, because a real one does not flicker on one frequency.
+
+**What the fix pass ships on.** 13.25s, 795 frames, 4.33 MB, **2.61 Mbit/s**,
+7.3 minutes with the shutter open. Stabs at **3.64s, 6.18s and 8.71s**, outro at
+**10.10s**, wordmark in at **10.67s** and held to 12.95s, black to 13.25s. Safe
+margins **192 / 941 / 164 / 929** against 140 / 180 / 140 / 220. **17.7% of
+frames carry a glitch**, up from 9.8%, because the clip lost 3.6 seconds while
+the glitch windows got longer — and it still costs less per second than its own
+preview did, because at 60fps the stepped grain and scanline are carried across
+five frames instead of one.
+
 ### 2026-08-28 — post10, the rage clip: a dark frame, no accent, and four slices of one track
+
+**The numbers in this entry are the first cut's, 16.87s, and the fix pass above
+supersedes the three it changed.** Everything else in it still describes the
+clip, which is why it is kept rather than rewritten.
 
 The tenth clip, and the first that is not the light theme. One composed page,
 one render pass, no site footage and no pictogram layer: black, grain, the
@@ -1333,7 +1435,8 @@ run and the choice is the measurement's. `track2.mp3` is 88.66s, -12.5 LUFS,
 28.0% of the file within 12dB of peak, with transient rises of 12 to 17 dB every
 1.85s; `track1.mp3` is 96.08s, -12.4 LUFS, 8.2% within 12dB of peak, and it
 never hits. **So track2 is the main and track1 is used for neither role.** The
-three stabs are at **4.16s, 26.30s and 20.76s**, each 0.40s, each with 40 to
+three stabs are at **4.16s, 26.30s and 20.76s** — the sources the fix pass kept
+— each 0.40s at this cut and 0.50 after it, each with 40 to
 60ms of near silence in front of it so the attack is whole, and they are played
 in that order because their first 80ms measure **-8.2, -7.7 and -6.3 dBFS**:
 **the escalation is the source's and not three gains.** The outro is **49.06s +
