@@ -11,7 +11,9 @@ names in here either.
   5.03 MB**, the voice and four slices of music in the file, rendered with the
   shutter open at four subframes in **11.2 minutes**. **The live site did not
   change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
-  stubs and `assets/` were all untouched. **Committed, not pushed, not posted.**
+  stubs and `assets/` were all untouched. **Pushed in `576f947`, and the push
+  changed nothing a visitor sees** — the four files in it are `.gitignore`,
+  `MEMORY.md`, `demo/README.md` and `demo/post10.mjs`. **Not posted.**
   - **It is the first clip on the dark theme and the first with no accent in it
     anywhere.** `data-theme=dark`, so `--face` is #f4f7f5 on a #06070a page and
     the white glowing mascot is the site's own tokens rather than a recolour.
