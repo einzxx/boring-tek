@@ -93,6 +93,12 @@ state or makes a decision.
   no separate scripts.
 - **Zero dependencies.** No npm, no package.json, no build step, no bundler, no
   framework, no CSS library, no icon library, no CDN scripts.
+  **This rule is about what ships. `demo/` is tooling and is allowed its own
+  `package.json` and local npm dependencies**, provided anything a rendered page
+  needs is inlined from `node_modules` at render time rather than fetched, and
+  nothing in `demo/` is loaded by, linked from or referenced by `index.html`.
+  Currently `puppeteer-core`, `ffmpeg-static` and `gsap`. Adding a fourth is a
+  conversation, not a decision to make while working.
 - **Exactly one external request at load, carrying exactly two families: Michroma
   and Space Grotesk, from Google Fonts.** One `<link>`,
   `css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap`. That is the

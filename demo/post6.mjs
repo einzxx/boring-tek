@@ -90,7 +90,7 @@ import {
 } from './lib/captions.mjs';
 import {
   planScenes, sceneFrame, sceneMotion, pictogramCss, pictogramMarkup,
-  pictogramPage, pictogramPagePlan, describeScenes, WEIGHTS, IMPACT,
+  pictogramRuntime, pictogramPagePlan, describeScenes, WEIGHTS, IMPACT,
 } from './lib/pictograms.mjs';
 import {
   cuesFromCaptions, cuesFromScenes, renderSfx, voiceEnvelope, decode,
@@ -759,11 +759,12 @@ ${captionPage.toString()}
 captionPage();
 /* the scene layer's plan carries no svg strings: the markup is already in the
    document and the page half only ever needs the origins, which parts are line
-   drawn, which cast a shadow, the shadow's own constants and how many css px a
-   viewBox unit is worth. */
+   drawn, which cast a shadow, the shadow's own constants, how many css px a
+   viewBox unit is worth, and the engine plan — the timings and the steps, so
+   the page builds the same gsap timeline node built rather than being handed
+   the numbers it produced. */
 window.__PIC_PLAN = ${JSON.stringify(pictogramPagePlan(pic, SCENE_BOX))};
-${pictogramPage.toString()}
-pictogramPage();
+${pictogramRuntime()}
 window.__P6 = ${JSON.stringify({ VW, VH, WORDMARK_W })};
 ${scenePage.toString()}
 scenePage();
@@ -950,8 +951,10 @@ function scenePage() {
     .then(() => {
       fitWordmark();
       window.__built = window.__cap.build();
-      /* the path lengths, measured once. no font is involved, but it is built
-         here anyway so there is one ready gate rather than two. */
+      /* the scene layer's own build. no font is involved, but it is built
+         here anyway so there is one ready gate rather than two. it measures
+         nothing now that DrawSVGPlugin owns the dash; what it still does is
+         refuse a part that draws and has no geometry to draw. */
       window.__picBuilt = window.__pic.build();
       /* after the caption is fitted, because it is the fitted size that decides
          how tall the tallest card is. */
@@ -1083,6 +1086,24 @@ async function render(plan, pic, seconds, blinks, picMotion) {
 
   const built = await page.evaluate(() => window.__built);
   const picBuilt = await page.evaluate(() => window.__picBuilt);
+  /* the gsap clock, checked before a frame is written. the layer runs on the
+     rAF shim and the shim is flushed once per captured frame, so gsap's own
+     time has to be the frame index over the frame rate — exactly, not nearly.
+     this walks a dozen ticks and reads the number back off the global timeline
+     and off the master, and hands the ticks it spent back so the render's own
+     "one tick per frame" count still means what it says. */
+  const picSync = await page.evaluate((fps, count) => window.__pic.sync(fps, count, 1), FPS, 12);
+  console.log('  gsap ' + picBuilt.gsap + ', ' + picBuilt.eases + ' house eases, timeline '
+    + picBuilt.tlDuration + 's: ' + picSync.steps + ' shim ticks, worst |gsap t - frame/fps| = '
+    + picSync.worst + 's');
+  for (const r of picSync.rows.slice(0, 3)) {
+    console.log('      frame ' + r.i + '  wanted ' + r.want.toFixed(6)
+      + '  root ' + r.root.toFixed(6) + '  master ' + r.master.toFixed(6));
+  }
+  if (!(Number(picSync.worst) < 1e-6)) {
+    throw new Error('the pictogram timeline is not on the capture clock — ' + picSync.worst + 's off');
+  }
+
   const capCeil = await page.evaluate(() => window.__p6.capCeil);
   const boxes = await page.evaluate(() => window.__p6.boxes());
   console.log('  cards fitted at ' + built.size.toFixed(1) + 'px, the three beats at '
@@ -1093,7 +1114,7 @@ async function render(plan, pic, seconds, blinks, picMotion) {
     + ', wordmark ' + boxes.wordmark.top.toFixed(0) + '..' + boxes.wordmark.bottom.toFixed(0)
     + '  (css px of ' + VH + ')');
   console.log('  scene layer built: ' + picBuilt.scenes + ' groups, ' + picBuilt.parts
-    + ' parts, ' + picBuilt.drawn + ' path lengths measured, ' + picBuilt.lids + ' lids');
+    + ' parts, ' + picBuilt.drawn + ' line drawn by DrawSVG, ' + picBuilt.lids + ' lids');
 
   /* one sample per card, on the frame it is fully sprung. every card is a
      different width and the three beats are a different size, so one sample
@@ -1205,6 +1226,12 @@ async function render(plan, pic, seconds, blinks, picMotion) {
       picVisMax = Math.max(picVisMax, picLast.vis);
       if (picLast.t !== picF.t) picFaults.push({ t, what: 'stale frame', who: 'applied ' + picLast.t });
       if (picLast.ticks !== f + 1) picFaults.push({ t, what: 'tick count', who: picLast.ticks + ' of ' + (f + 1) });
+      /* node and the page build the same timeline from the same plan with the
+         same builder, so the numbers gsap produced in the browser and the ones
+         the guards above ran on must be the same numbers. this is the check
+         that says so, on every frame, and it is what makes one motion core
+         with two readers honest rather than hopeful. */
+      if (picLast.drift > 1e-4) picFaults.push({ t, what: 'gsap drift', who: picLast.drift + ' off node' });
       /* the same liveness proof the caption gets, read off what the page
          actually wrote: the smoothness guards above pass trivially on a layer
          that never draws at all, which is exactly what a missing markup block

@@ -50,8 +50,28 @@
    is fixed in `GAINS` and survives any amount of master gain. the absolute level
    an effect reaches in the finished clip is in post6's own mix table.
 
-     node scenes-test.mjs                 the strip
-     DEMO_FPS=12 node scenes-test.mjs     the fast preview pass
+   ---------- one scene, and motion blur ----------
+
+   two flags, both of them for judging the motion rather than the cut.
+
+   `--scene=money` renders one of post6's scenes on its own, at post6's own
+   timing rather than the strip's compressed gaps, shifted to start at the top.
+   it is the unit under a microscope: a beat is five seconds instead of ten, so
+   a change to the engine can be looked at twice in the time one strip takes.
+
+   `--blur` turns on true motion blur, and it is a capture change rather than a
+   filter. every output frame is captured N times at N evenly spaced instants
+   inside its own 1/60th of a second — the virtual clock and the gsap timeline
+   both stepped by 1/(fps*N) — and the N stills are averaged into one frame
+   before encoding. that is what a shutter does. it costs N times the
+   screenshots and it is off by default for exactly that reason: a preview does
+   not need it and a final render is not worth shipping without it.
+
+     node scenes-test.mjs                        the strip
+     DEMO_FPS=12 node scenes-test.mjs            the fast preview pass
+     node scenes-test.mjs --scene=money          one beat, post6's own timing
+     node scenes-test.mjs --scene=money --blur   the same, with the shutter open
+     node scenes-test.mjs --blur=6               the whole strip, six subframes
 */
 
 import puppeteer from 'puppeteer-core';
@@ -64,7 +84,7 @@ import { execFileSync } from 'node:child_process';
 import { brandTokens } from './lib/captions.mjs';
 import {
   planScenes, sceneFrame, sceneMotion, pictogramCss, pictogramMarkup,
-  pictogramPage, pictogramPagePlan, describeScenes, SCENE_ENTER, SCENE_EXITS, IMPACT,
+  pictogramRuntime, pictogramPagePlan, describeScenes, SCENE_ENTER, SCENE_EXITS, IMPACT,
 } from './lib/pictograms.mjs';
 import {
   cuesFromScenes, renderSfx, applyGain, limit, writeWav, loudness, describeMix, dbfs,
@@ -75,9 +95,31 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const OUT = path.join(HERE, 'out');
 const FRAMES = path.join(OUT, 'frames-scenes-test');
+/* the subframes live in their own folder and are averaged into FRAMES, so the
+   encode below is the same encode either way and reads the same file names. */
+const SUBS = path.join(OUT, 'subframes-scenes-test');
 
 const FPS = Number(process.env.DEMO_FPS || 60);
 const STEP = 1000 / FPS;
+
+/* ---------- the flags ----------
+   `--scene=<id>` is one of post6's scenes on its own. `--blur` or `--blur=N` is
+   the shutter, N subframes to an output frame, four unless told otherwise. off
+   is the default and off is what a preview wants: blur multiplies the number of
+   screenshots by N and screenshots are the whole cost of a render. */
+const ARGS = process.argv.slice(2);
+const argOf = k => {
+  const a = ARGS.find(v => v === '--' + k || v.startsWith('--' + k + '='));
+  return a == null ? null : (a.includes('=') ? a.split('=').slice(1).join('=') : '');
+};
+const ONLY = argOf('scene');
+const BLUR_ARG = argOf('blur');
+const BLUR = BLUR_ARG !== null && BLUR_ARG !== 'off' && BLUR_ARG !== 'no';
+/* four is where a 60fps shutter stops looking like four ghosts and starts
+   looking like one smear. more is smoother and linearly more expensive. */
+const SUB = BLUR ? Math.max(2, Math.min(12, Number(BLUR_ARG) || 4)) : 1;
+const SUBSTEP = STEP / SUB;
+const SLUG = 'scenes-test' + (ONLY ? '-' + ONLY : '') + (BLUR ? '-blur' + SUB : '');
 const DSF = 2;
 const VW = 540, VH = 960, SAFE = 48;
 /* the shadow's floor, the same one post6 carries: the ink keeps the frame's 96
@@ -131,6 +173,25 @@ function restrip(scenes) {
     cursor = +(outT - LAP).toFixed(3);
   });
   return out;
+}
+
+/* ---------- one scene on its own ----------
+   post6's timing, not the strip's: no gap compression, because the point of a
+   solo render is to look at the beat the clip actually plays. it is shifted so
+   the scene starts where the strip's first one would and given the same tail.
+   nothing inside it moves relative to anything else inside it. */
+function solo(scenes, id) {
+  const sc = scenes.find(v => v.id === id);
+  if (!sc) {
+    throw new Error('no scene called "' + id + '" in post6 — it has '
+      + scenes.map(v => v.id).join(', '));
+  }
+  const shift = +(sc.in - OPEN).toFixed(3);
+  const parts = (sc.parts || []).map(p => ({
+    ...p,
+    steps: (Array.isArray(p.steps) ? p.steps : [p.steps]).map(st => ({ ...st, t: +(st.t - shift).toFixed(3) })),
+  }));
+  return [{ ...sc, in: OPEN, out: +(sc.out - shift + TAIL).toFixed(3), parts }];
 }
 
 const CHROME = [
@@ -200,8 +261,7 @@ ${pictogramMarkup(pic)}
 </div>
 <script>
 window.__PIC_PLAN = ${JSON.stringify(pictogramPagePlan(pic, SCENE_BOX))};
-${pictogramPage.toString()}
-pictogramPage();
+${pictogramRuntime()}
 window.__ST = ${JSON.stringify({ VW, VH, WORDMARK_W, labels })};
 ${stripPage.toString()}
 stripPage();
@@ -325,10 +385,14 @@ function serve(html) {
 async function render(pic, labels, seconds, motion) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
   const N = Math.round(FPS * seconds);
+  const SHOTS = N * SUB;
   fs.rmSync(FRAMES, { recursive: true, force: true });
+  fs.rmSync(SUBS, { recursive: true, force: true });
   fs.mkdirSync(FRAMES, { recursive: true });
+  fs.mkdirSync(SUBS, { recursive: true });
   fs.mkdirSync(OUT, { recursive: true });
-  console.log('  scenes-test: ' + VW * DSF + 'x' + VH * DSF + ', ' + N + ' frames');
+  console.log('  ' + SLUG + ': ' + VW * DSF + 'x' + VH * DSF + ', ' + N + ' frames'
+    + (BLUR ? ', ' + SUB + ' subframes each, ' + SHOTS + ' captures' : ', no blur'));
 
   const { srv, port } = await serve(sceneHtml(pic, labels));
   const browser = await puppeteer.launch({
@@ -338,6 +402,18 @@ async function render(pic, labels, seconds, motion) {
       '--force-color-profile=srgb', '--disable-dev-shm-usage', '--mute-audio'],
   });
   const page = await browser.newPage();
+  /* the page's own failures, out loud. a throw inside the injected runtime used
+     to surface only as "the strip never became ready", which is a symptom four
+     steps downstream of the cause. */
+  page.on('pageerror', e => console.error('  page error: ' + (e && e.message ? e.message : e)));
+  page.on('console', m => {
+    /* the favicon the server does not serve is the one 404 this page always
+       produces and the one thing here that is not worth reporting. */
+    const t = m.text();
+    if (m.type() === 'error' && !/favicon|Failed to load resource/.test(t)) {
+      console.error('  page console: ' + t);
+    }
+  });
   await page.setViewport({ width: VW, height: VH, deviceScaleFactor: DSF });
   await page.evaluateOnNewDocument(injected);
   const cdp = await page.createCDPSession();
@@ -369,8 +445,28 @@ async function render(pic, labels, seconds, motion) {
   }
   const picBuilt = await page.evaluate(() => window.__picBuilt);
   console.log('  scene layer built: ' + picBuilt.scenes + ' groups, ' + picBuilt.parts
-    + ' parts, ' + picBuilt.drawn + ' path lengths measured, ' + picBuilt.shadows
-    + ' shadow filters, ' + picBuilt.knocks + ' knocked');
+    + ' parts, ' + picBuilt.drawn + ' line drawn by DrawSVG, ' + picBuilt.shadows
+    + ' shadow filters, ' + picBuilt.knocks + ' knocked, ' + picBuilt.staggered + ' staggered');
+
+  /* the clock, before a frame is written. the layer runs on the rAF shim and
+     the shim is flushed once per capture, so gsap's own time has to be the
+     capture index over the capture rate — exactly, not nearly. with the shutter
+     open the capture rate is fps times the subframe count, and this checks the
+     rate it is actually going to run at. the ticks it burns are handed back so
+     the render's own "one tick per capture" count still means what it says. */
+  const picSync = await page.evaluate((fps, count, sub) => window.__pic.sync(fps, count, sub),
+    FPS, 16, SUB);
+  console.log('  gsap ' + picBuilt.gsap + ', ' + picBuilt.eases + ' house eases, timeline '
+    + picBuilt.tlDuration + 's');
+  console.log('  clock check: ' + picSync.steps + ' shim ticks at '
+    + (FPS * SUB) + ' captures/s, worst |gsap t - i/(fps*sub)| = ' + picSync.worst + 's');
+  for (const r of picSync.rows) {
+    console.log('      capture ' + String(r.i).padStart(2) + '  wanted ' + r.want.toFixed(6)
+      + '  root ' + r.root.toFixed(6) + '  master ' + r.master.toFixed(6));
+  }
+  if (!(Number(picSync.worst) < 1e-6)) {
+    throw new Error('the pictogram timeline is not on the capture clock — ' + picSync.worst + 's off');
+  }
 
   /* sampled where the layer is actually moving: the midpoint of every step of
      every part, the middle of every handoff, and each scene once it has
@@ -386,57 +482,84 @@ async function render(pic, labels, seconds, motion) {
   let next = 0;
 
   let safeWorst = null, softWorst = null, clearWorst = null, labelSeen = 0;
-  let ticks = 0, visMax = 0, moved = 0, applied = 0, prevSum = null, prev = null;
+  let ticks = 0, visMax = 0, moved = 0, applied = 0, prevSum = null, prev = null, drift = 0;
   const faults = [];
   const wall = Date.now();
 
+  /* the capture loop. without the shutter this is one screenshot per output
+     frame and reads exactly as it always did; with it, every output frame is
+     captured SUB times at SUB evenly spaced instants inside its own frame, with
+     the virtual clock, the rAF shim and the gsap timeline all stepping by
+     1/(fps*SUB). the guards and the samples run on the frame's own instant, the
+     k=0 one, so the numbers a blurred render prints are the same numbers an
+     unblurred one prints rather than four times as many at a quarter the
+     spacing. */
   for (let f = 0; f < N; f++) {
     const t = f / FPS;
-    const fr = sceneFrame(pic, t);
-    if (prev) {
-      for (let i = 0; i < fr.p.length; i++) {
-        const a = prev.p[i], b = fr.p[i];
-        moved = Math.max(moved, Math.hypot(b[2] - a[2], b[3] - a[3]));
+    for (let k = 0; k < SUB; k++) {
+      const idx = f * SUB + k;
+      const ts = idx / (FPS * SUB);
+      const fr = sceneFrame(pic, ts);
+      if (k === 0) {
+        if (prev) {
+          for (let i = 0; i < fr.p.length; i++) {
+            const a = prev.p[i], b = fr.p[i];
+            moved = Math.max(moved, Math.hypot(b[2] - a[2], b[3] - a[3]));
+          }
+        }
+        prev = fr;
       }
-    }
-    prev = fr;
-    const lab = await page.evaluate(fp => { window.__pic.set(fp); return window.__st.label(fp); }, fr);
-    if (lab.o > 0.5 && lab.txt) labelSeen++;
-    await page.evaluate(now => window.__dmRaf(now), (f + 1) * STEP);
-    const last = await page.evaluate(() => window.__pic.last);
-    if (!last) faults.push({ t, what: 'never ticked' });
-    else {
-      ticks = last.ticks;
-      visMax = Math.max(visMax, last.vis);
-      if (last.t !== fr.t) faults.push({ t, what: 'stale frame' });
-      if (last.ticks !== f + 1) faults.push({ t, what: 'tick count' });
-      if (prevSum !== null) applied = Math.max(applied, Math.abs(last.sum - prevSum));
-      prevSum = last.sum;
-    }
+      const lab = await page.evaluate(fp => { window.__pic.set(fp); return window.__st.label(fp); }, fr);
+      if (k === 0 && lab.o > 0.5 && lab.txt) labelSeen++;
+      await page.evaluate(now => window.__dmRaf(now), (idx + 1) * SUBSTEP);
+      const last = await page.evaluate(() => window.__pic.last);
+      if (!last) faults.push({ t: ts, what: 'never ticked' });
+      else {
+        ticks = last.ticks;
+        visMax = Math.max(visMax, last.vis);
+        drift = Math.max(drift, Number(last.drift));
+        if (last.t !== fr.t) faults.push({ t: ts, what: 'stale frame' });
+        if (last.ticks !== idx + 1) faults.push({ t: ts, what: 'tick count' });
+        /* the page's gsap and node's gsap built the same timeline from the same
+           plan with the same builder. if they ever disagree by more than a
+           rounding error, one of the two readers is reading something else. */
+        if (Number(last.drift) > 1e-4) faults.push({ t: ts, what: 'gsap drift' });
+        if (k === 0 && prevSum !== null) applied = Math.max(applied, Math.abs(last.sum - prevSum));
+        if (k === 0) prevSum = last.sum;
+      }
 
-    while (next < samples.length && t >= samples[next].t) {
-      const s = samples[next++];
-      const [sa, cl] = await page.evaluate(() => [window.__st.safe(), window.__st.clearance()]);
-      if (!sa) continue;
-      if (!safeWorst || sa.near < safeWorst.near) safeWorst = { at: s.who, t: +t.toFixed(3), ...sa };
-      if (!softWorst || sa.soft < softWorst.soft) softWorst = { at: s.who, t: +t.toFixed(3), ...sa };
-      if (cl && (!clearWorst || cl.gap < clearWorst.gap)) clearWorst = { at: s.who, t: +t.toFixed(3), ...cl };
-    }
+      if (k === 0) {
+        while (next < samples.length && t >= samples[next].t) {
+          const sm = samples[next++];
+          const [sa, cl] = await page.evaluate(() => [window.__st.safe(), window.__st.clearance()]);
+          if (!sa) continue;
+          if (!safeWorst || sa.near < safeWorst.near) safeWorst = { at: sm.who, t: +t.toFixed(3), ...sa };
+          if (!softWorst || sa.soft < softWorst.soft) softWorst = { at: sm.who, t: +t.toFixed(3), ...sa };
+          if (cl && (!clearWorst || cl.gap < clearWorst.gap)) clearWorst = { at: sm.who, t: +t.toFixed(3), ...cl };
+        }
+      }
 
-    const shot = await cdp.send('Page.captureScreenshot', {
-      format: 'jpeg', quality: 94, captureBeyondViewport: false,
-      clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
-    });
-    fs.writeFileSync(path.join(FRAMES, 'f' + String(f).padStart(5, '0') + '.jpg'),
-      Buffer.from(shot.data, 'base64'));
-    await advance(STEP);
+      const shot = await cdp.send('Page.captureScreenshot', {
+        format: 'jpeg', quality: 94, captureBeyondViewport: false,
+        clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+      });
+      fs.writeFileSync(BLUR
+        ? path.join(SUBS, 's' + String(idx).padStart(6, '0') + '.jpg')
+        : path.join(FRAMES, 'f' + String(f).padStart(5, '0') + '.jpg'),
+        Buffer.from(shot.data, 'base64'));
+      await advance(SUBSTEP);
+    }
     if (f % 180 === 0) {
       console.log('  ' + String(f).padStart(4) + '/' + N + '  t=' + t.toFixed(2) + 's  '
         + ((Date.now() - wall) / 1000).toFixed(0) + 's elapsed');
     }
   }
+  const captureMs = Date.now() - wall;
+  console.log('  captured ' + SHOTS + ' stills in ' + (captureMs / 1000).toFixed(1) + 's  ('
+    + (SHOTS / (captureMs / 1000)).toFixed(1) + ' a second)');
+  console.log('  gsap and node agreed to ' + drift.toExponential(2) + ' on every channel of every capture');
 
-  console.log('  scenes: ' + ticks + ' rAF ticks for ' + N + ' frames, at most ' + visMax
+  console.log('  scenes: ' + ticks + ' rAF ticks for ' + SHOTS + ' captures, at most ' + visMax
     + ' on screen at once, biggest one-frame part move ' + moved.toFixed(3) + ' units, '
     + (faults.length || 'no') + ' fault(s)');
   console.log('  the layer never gets closer than ' + Math.round(safeWorst.near * DSF)
@@ -450,14 +573,57 @@ async function render(pic, labels, seconds, motion) {
 
   await browser.close();
   srv.close();
-  return { frames: N, ticks, visMax, moved, applied, faults, picBuilt,
-    safe: safeWorst, soft: softWorst, clearance: clearWorst, labelSeen };
+  return { frames: N, shots: SHOTS, ticks, visMax, moved, applied, faults, picBuilt, picSync,
+    drift, captureMs, safe: safeWorst, soft: softWorst, clearance: clearWorst, labelSeen };
 }
 
 function ff(args) { return execFileSync(ffmpeg, args, { stdio: ['ignore', 'pipe', 'pipe'] }).toString(); }
 
+/* ---------- the shutter ----------
+   the N stills of an output frame, averaged into one.
+
+   `tmix` is a rolling mean of the last N frames, so the frame that is the mean
+   of a whole output frame is the last of its N: subframe 3 of 0..3, 7 of 4..7,
+   and so on. `trim` throws away the first N-1, which are means of a window that
+   reaches back before the clip, and `framestep` then keeps every Nth of what is
+   left — which is exactly that set and nothing else.
+
+   it is written that way rather than with a `select` expression on purpose:
+   `select=eq(mod(n\,4)\,3)` needs its commas escaped past three layers of
+   quoting and it silently parsed as a filter called "4)" the first time. trim
+   and framestep say the same thing with no punctuation to lose. checked
+   numerically on sixteen flat grey subframes at levels 0,16,...,240: four
+   frames out at 24, 88, 152 and 216, which are the exact means of the four
+   groups of four.
+
+   tmix's default weights are flat and they are left that way. a real shutter is
+   open for the whole of its exposure, and weighting the middle of it would be a
+   stylisation rather than a shutter.
+
+   the output is jpegs again rather than a stream, so the encode below is the
+   same encode with or without blur and the frames can be counted. */
+function blend(frames) {
+  const wall = Date.now();
+  console.log('  blending ' + frames * SUB + ' subframes into ' + frames + ' frames ...');
+  ff(['-y', '-hide_banner', '-loglevel', 'error',
+    '-framerate', String(FPS * SUB), '-i', path.join(SUBS, 's%06d.jpg'),
+    '-vf', 'tmix=frames=' + SUB + ',trim=start_frame=' + (SUB - 1)
+      + ',setpts=PTS-STARTPTS,framestep=' + SUB,
+    '-fps_mode', 'passthrough', '-q:v', '2',
+    path.join(FRAMES, 'f%05d.jpg')]);
+  const made = fs.readdirSync(FRAMES).filter(v => /^f\d{5}\.jpg$/.test(v)).length;
+  const ms = Date.now() - wall;
+  console.log('  blended in ' + (ms / 1000).toFixed(1) + 's, ' + made + ' frames out');
+  if (made !== frames) {
+    throw new Error('the shutter produced ' + made + ' frames for ' + frames
+      + ' — the subframe window is off by one and the clip would be the wrong length');
+  }
+  fs.rmSync(SUBS, { recursive: true, force: true });
+  return ms;
+}
+
 function encode(audioFile) {
-  const out = path.join(OUT, 'scenes-test.mp4');
+  const out = path.join(OUT, SLUG + '.mp4');
   console.log('  encoding ...');
   ff(['-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'),
@@ -484,20 +650,29 @@ function probe(file) {
 }
 
 /* ---------- go ---------- */
-console.log('the boring tek — the scene strip, post6\'s five scenes with the air taken out');
+console.log(ONLY
+  ? 'the boring tek — one scene from post6, "' + ONLY + '", at post6\'s own timing'
+  : 'the boring tek — the scene strip, post6\'s five scenes with the air taken out');
 brandTokens();
 
-const strip = restrip(SCENES);
+const SOURCE = ONLY ? SCENES.filter(sc => sc.id === ONLY) : SCENES;
+const strip = ONLY ? solo(SCENES, ONLY) : restrip(SCENES);
 const pic = planScenes(strip);
 const SECONDS = +(pic.seconds).toFixed(2);
-const labels = strip.map((sc, i) => sc.id + '  ·  ' + SCENES[i].in.toFixed(2)
-  + ' to ' + SCENES[i].out.toFixed(2) + ' in post6');
+const labels = strip.map((sc, i) => sc.id + '  ·  ' + SOURCE[i].in.toFixed(2)
+  + ' to ' + SOURCE[i].out.toFixed(2) + ' in post6');
 
 console.log(describeScenes(pic));
-console.log('  ' + SECONDS.toFixed(2) + 's of strip against '
-  + SCENES.reduce((a, s) => a + (s.out - s.in), 0).toFixed(2)
-  + 's of scene in post6, gaps at ' + (K * 100).toFixed(0)
-  + '% and every step at its own speed');
+console.log(ONLY
+  ? '  ' + SECONDS.toFixed(2) + 's against ' + (SOURCE[0].out - SOURCE[0].in).toFixed(2)
+    + 's in post6, every step at its own time and its own speed'
+  : '  ' + SECONDS.toFixed(2) + 's of strip against '
+    + SCENES.reduce((a, s) => a + (s.out - s.in), 0).toFixed(2)
+    + 's of scene in post6, gaps at ' + (K * 100).toFixed(0)
+    + '% and every step at its own speed');
+console.log('  the shutter is ' + (BLUR ? 'open, ' + SUB + ' subframes to a frame — '
+  + (SECONDS * FPS * SUB).toFixed(0) + ' captures' : 'shut — ' + (SECONDS * FPS).toFixed(0)
+  + ' captures, use --blur for the final'));
 
 const motion = sceneMotion(pic, FPS, SECONDS);
 {
@@ -558,16 +733,33 @@ console.log(describeMix(sfx.report, {
 }));
 
 const state = await render(pic, labels, SECONDS, motion);
+const blendMs = BLUR ? blend(state.frames) : 0;
 const file = encode(wav);
 const p = probe(file);
 const mb = (fs.statSync(file).size / 1e6).toFixed(2) + ' MB';
 console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps ' + p.seconds.toFixed(2)
   + 's  ' + (p.audio ? 'with the scene effects' : 'SILENT') + '  ' + mb + '  '
   + path.relative(ROOT, file));
+console.log('  render cost: ' + (state.captureMs / 1000).toFixed(1) + 's capturing '
+  + state.shots + ' stills'
+  + (BLUR ? ' + ' + (blendMs / 1000).toFixed(1) + 's blending' : '')
+  + ', ' + ((state.captureMs + blendMs) / 1000).toFixed(1) + 's before the encode');
+/* written down rather than printed only, so two runs can be compared without
+   scrolling back through a terminal. */
+fs.writeFileSync(path.join(OUT, SLUG + '-cost.json'), JSON.stringify({
+  slug: SLUG, scene: ONLY, blur: BLUR, sub: SUB, fps: FPS,
+  seconds: SECONDS, frames: state.frames, shots: state.shots,
+  captureSeconds: +(state.captureMs / 1000).toFixed(2),
+  blendSeconds: +(blendMs / 1000).toFixed(2),
+  totalSeconds: +((state.captureMs + blendMs) / 1000).toFixed(2),
+  perFrame: +((state.captureMs + blendMs) / state.frames).toFixed(1),
+  gsapWorstClockError: state.picSync.worst,
+  gsapNodeDrift: state.drift,
+}, null, 2) + '\n');
 
 /* one frame per scene, on the frame it has finished building, pulled back out
    of the finished mp4 rather than out of the render. */
-const dir = path.join(OUT, 'verify-scenes-test');
+const dir = path.join(OUT, 'verify-' + SLUG);
 fs.rmSync(dir, { recursive: true, force: true });
 fs.mkdirSync(dir, { recursive: true });
 pic.scenes.forEach((sc, i) => {
@@ -590,7 +782,18 @@ if (Math.abs(p.seconds - SECONDS) > 0.2) fail.push(p.seconds + 's, wanted ' + SE
 if (!p.audio) fail.push('no audio track — the effects did not mux and the strip is the wrong deliverable');
 /* the strip's whole job is the scene layer, so every scene sound has to be in
    it. a caption pop must not be: there are no captions here to pop. */
-for (const k of ['whoosh', 'coin', 'click', 'sweep', 'ding', 'hum']) {
+/* the sounds this cut must carry, derived from the shapes that are in it rather
+   than typed: a strip of all five scenes owes six kinds, and one scene owes the
+   ones its own parts imply. a hard coded list would be right for the strip and
+   wrong for every solo render. */
+const wantKinds = new Set(['whoosh', 'hum']);
+for (const p of pic.parts) {
+  if (p.shape === 'coin') wantKinds.add('coin');
+  if (p.shape === 'shackle') wantKinds.add('click');
+  if (p.shape === 'magnifier') wantKinds.add('sweep');
+  if (p.shape === 'check') wantKinds.add('ding');
+}
+for (const k of wantKinds) {
   if (!sfx.report.some(r => r.kind === k)) fail.push('nothing cued a "' + k + '"');
 }
 if (sfx.report.some(r => r.kind === 'pop' || r.kind === 'popDeep')) {
@@ -618,15 +821,21 @@ if (state.faults.length) {
   fail.push(state.faults.length + ' scene fault(s), first at '
     + state.faults[0].t.toFixed(2) + 's (' + state.faults[0].what + ')');
 }
-if (state.ticks !== state.frames) {
-  fail.push('the scene layer ticked ' + state.ticks + ' times for ' + state.frames
-    + ' frames — it is not on the rAF shim\'s clock');
+if (state.ticks !== state.shots) {
+  fail.push('the scene layer ticked ' + state.ticks + ' times for ' + state.shots
+    + ' captures — it is not on the rAF shim\'s clock');
+}
+if (!(Number(state.picSync.worst) < 1e-6)) {
+  fail.push('gsap time was ' + state.picSync.worst + 's off the capture clock');
+}
+if (!(state.drift < 1e-4)) {
+  fail.push('the page and node disagreed by ' + state.drift + ' — one motion core, two answers');
 }
 if (!(state.moved > 0.0001)) fail.push('no part of the scene layer ever moved');
 if (!(state.applied > 0.0001)) fail.push('the page never wrote a different scene value between two frames');
 if (state.visMax > 2) fail.push(state.visMax + ' scenes were on screen at once');
-if (state.picBuilt.scenes !== SCENES.length) {
-  fail.push('the strip drew ' + state.picBuilt.scenes + ' scenes, post6 has ' + SCENES.length);
+if (state.picBuilt.scenes !== strip.length) {
+  fail.push('the cut drew ' + state.picBuilt.scenes + ' scenes, it was planned with ' + strip.length);
 }
 if (state.safe.near * DSF < SAFE * DSF - 0.5) {
   fail.push(state.safe.worst + ' comes within ' + Math.round(state.safe.near * DSF)
@@ -638,6 +847,9 @@ if (state.soft.soft * DSF < SOFT_SAFE * DSF - 0.5) {
 }
 if (!state.clearance || state.clearance.gap < 0) {
   fail.push('a scene reaches the label, which means it would reach a caption in the clip');
+}
+if (BLUR && p.seconds != null && Math.abs(p.seconds - SECONDS) > 0.2) {
+  fail.push('the shutter changed the duration: ' + p.seconds + 's against ' + SECONDS);
 }
 if (!(state.labelSeen > state.frames * 0.6)) {
   fail.push('the label was legible on only ' + state.labelSeen + ' of ' + state.frames

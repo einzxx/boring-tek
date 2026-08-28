@@ -31,8 +31,10 @@ Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
 - **`lib/voice.mjs`** speaks a line in a free microsoft neural voice and hands
   back the audio with the engine's own word timestamps.
 - **`lib/pictograms.mjs`** draws solid svg pictogram scenes in code and animates
-  them per frame against the same timestamps, with a soft drop shadow under
-  every shape and a damped spring under every pop.
+  them per frame against the same timestamps, on a gsap timeline stepped by hand
+  one tick to a captured frame, with a soft drop shadow under every shape, a
+  house overshoot under every pop and volume preserving squash on every landing.
+  `node lib/pictograms.mjs test` runs the engine's own checks without a browser.
 - **`lib/sfx.mjs`** synthesises the sound effects, sample by sample, and places
   every one of them from a time that is already in a caption or scene plan.
   There is no audio file in the repo.
@@ -76,7 +78,10 @@ Flags:
 
 Requires Chrome installed (the script looks in the usual places, see `CHROME`
 at the top of `record.mjs`). `puppeteer-core` drives it and `ffmpeg-static`
-encodes; neither downloads a browser.
+encodes; neither downloads a browser. `gsap` is the third and last dev
+dependency and only the pictogram layer uses it — see The library. **All three
+are `demo/`'s, not the site's:** `index.html` is still one file with zero
+dependencies and nothing in here is loaded by it.
 
 ## How it records
 
@@ -1170,10 +1175,17 @@ five kinds:
 | kind | |
 |---|---|
 | `pop` | a scale spring about the shape's own centre, with a fade |
-| `draw` | stroke dashoffset line drawing, along the path |
+| `draw` | line drawing along the path, by DrawSVGPlugin |
 | `move` | a translate from an offset, with or without a fade |
 | `flip` | a rotate and a scale, in or out, for one thing becoming another |
 | `fade` | opacity alone |
+
+A part may also carry `stagger: 3`, which lags each of its shape's sub shapes
+three sixtieths of a second behind the one before it, so corners and details
+arrive after the body they belong to. Two to four frames is the range that reads
+as one object settling rather than as two animations. It is opt in and no shipped
+scene uses it: turning it on for an existing scene would be a scene edit rather
+than an engine change.
 
 Steps are a list rather than one animation because real objects do more than one
 thing. A padlock's shackle is drawn and *then* seats, which is two steps on one
@@ -1185,16 +1197,57 @@ The same split as the caption engine, and for the same reason:
 
 - **`planScenes(scenes, opts)` runs in node and measures nothing.** It validates,
   resolves the timings and returns plain data. `describeScenes(plan)` prints it.
-- **`sceneFrame(plan, t, env)` is the whole animation, as a pure function of
-  time.** Opacity, scale, offset, rotation, how much of each path is drawn and
-  how far off the page the part is, for every scene and every part, at second
-  `t`.
-- **`pictogramPage` is serialised into the scene** with `.toString()`. It
-  measures the path lengths once and then does as it is told.
+- **`sceneFrame(plan, t, env)` is the whole animation, as a function of time and
+  of nothing else.** Opacity, scale, offset, rotation, how much of each path is
+  drawn, how far off the page the part is and how hard it is deformed, for every
+  scene and every part, at second `t`. It seeks a paused gsap timeline and reads
+  the channels off it.
+- **`pictogramRuntime()` is what goes in the page** — gsap, CustomEase,
+  DrawSVGPlugin, the shared ease table, the shared timeline builder and
+  `pictogramPage`, inlined as one string read off `node_modules` at render time.
+  Nothing is fetched: the site's budget of exactly one external request is not
+  this file's to spend, and a clip that depended on a CDN being up would be a
+  clip that renders differently on a bad day.
+
+**One motion core, two readers.** `buildTimeline` is a single function that
+tweens plain javascript objects and touches no DOM. Node runs it to feed the
+guards; the same function, serialised, runs in the page and its numbers are
+written to elements. They are not two implementations that happen to match — they
+are one function run twice, and **the page compares its own gsap output against
+the frame node sent on every captured frame** and faults if they ever differ by
+more than a rounding error. Measured on the money beat: `0`.
 
 **No css transition and no css animation anywhere in it**, for the reason
 `post2.mjs` found and `captions.mjs` repeats: one captured frame carries five or
-six BeginFrames, so a css animation resolves about five times too fast.
+six BeginFrames, so a css animation resolves about five times too fast. gsap is
+subject to exactly the same rule, which is what the next section is about.
+
+#### The clock, and why gsap does not get to keep its own
+
+gsap's ticker rides `requestAnimationFrame`, and in here that is the recorder's
+shim: a queue drained once per captured frame. Left alone it would advance the
+global timeline by however many milliseconds the page thinks have elapsed, which
+is not the frame being captured. Three things stop it, and the third is the one
+that mattered:
+
+1. `gsap.ticker.lagSmoothing(0)` and `gsap.ticker.sleep()`.
+2. A filter installed **before gsap's script** so the shim only ever runs our own
+   loop. It has to be before: gsap reads `requestAnimationFrame` into a private
+   of its own when it loads, so a wrapper installed afterwards is one gsap never
+   sees. That was tried first and the check failed identically.
+3. **`gsap.ticker.remove(gsap.updateRoot)`.** `updateRoot` is registered as a
+   ticker listener at load, and `ticker.wake()` dispatches a tick *synchronously*
+   — so `ticker.sleep()` is not a brake, it is a trigger: the next tween render
+   calls `_wake`, which calls `_tick`, which calls `updateRoot` with wall clock
+   time. Taking the listener off means the only thing that can move the global
+   timeline is the `gsap.updateRoot(t)` the rAF flush calls itself.
+
+`__pic.sync(fps, count, sub)` proves it before a frame is written: it walks the
+shim sixteen ticks and fails the render unless gsap's own time is the capture
+index over the capture rate. It caught the ticker bug above on capture two of
+sixteen — wanted 0.166667, got 0.073 — which nothing else in a render would have
+reported. Measured worst error at 60fps: **3.3e-8s**, which is floating point on
+`1/60` and not a clock.
 
 The vocabulary is `square`, `sheet`, `rule`, `squiggle`, `coin`, `human`,
 `check`, `stroke`, `folder`, `lockBody`, `shackle`, `eye`, `magnifier`,
@@ -1255,35 +1308,62 @@ outline** — it was three units, and the scene strip showed what that is: a whi
 halo tracing a silhouette reads as a sticker laid on the frame, and on a shape as
 thin as an eye it ate the shape.
 
-#### Weight in motion
+#### The house curves
 
-`pop` and every scene entrance run on a real damped oscillator rather than a
-bezier shaped to look like one:
+Five, registered by name in `houseEases` and referenced by name from a scene, so
+a scene table never carries a bezier and two scenes can never disagree about what
+a pop is. Four are `CustomEase` paths; `land` is a function, because an impact is
+not a cubic and approximating it would cost the thing that makes it work.
 
-    f(x) = 1 - e^(-damp x) cos(freq pi x)
+| name | |
+|---|---|
+| `pop` | snappy overshoot — fast in, **10% past the mark**, one dip 1.5% under, still |
+| `drift` | the soft one, for a thing sliding across a page rather than onto it |
+| `glide` | the calm in-out. every opacity ramp and every line draw |
+| `heavy` | weight. late to start, slow to finish, for things with mass |
+| `land` | gravity then impact |
 
-A cubic bezier can overshoot once and that is all it can do, which is why
-everything eased on one reads light. The first trough of the cosine is the
-overshoot and its size is `e^(-damp/freq)` exactly, so the two knobs mean
-something: `freq` is how many times it crosses the mark inside the step, `damp`
-is how far past it goes the first time. At 2.2 and 5.3 that is about 9% past,
-then under a percent back under, then still. The result is divided by its own
-value at x=1 so it lands on 1 to the last decimal — a spring finishing at 0.997
-would be a 0.003 snap on the frame after its step ended, which is small, real,
-and exactly what the movement guards exist to catch.
+**The old names are aliases and every one of them still works**, which is why no
+post file's scene table had to be edited: `io` is `glide`, `spring` and `weight`
+are `pop`, `fall` is `heavy`. The one default that changed is `move`, which
+drifts now where it used to glide — a glass sweeping across a page is a drift.
+
+`land` is `x` squared to the floor, which is what falling actually is, then a
+small damped sine about the landing point — up first, because a thing that lands
+bounces before it settles, then a shallow squash past the mark, then nothing. The
+sine is zero at both ends so the step lands on 1 with no normalising, and the
+bounce's slope is a third of the fall's, which makes the moment of impact the
+fastest thing in the step. The coin falls 38 units on it in 0.58s; the padlock's
+shackle seats 1.8 units on it in 0.30 and the click is the shadow collapsing
+under it as much as the travel.
 
 The cost of a genuine settle is a steeper start, and it is paid in duration
 rather than in a raised guard: **`pop` is 0.52s where it used to be 0.34**.
 
-`move` gains a `land` curve for anything that falls: `x` squared to the floor,
-which is what falling actually is, then a small damped sine about the landing
-point — up first, because a thing that lands bounces before it settles, then a
-shallow squash past the mark, then nothing. The sine is zero at both ends so the
-step lands on 1 with no normalising, and the bounce's slope is a third of the
-fall's, which makes the moment of impact the fastest thing in the step. That is
-what makes it read as an impact rather than as a stop. The coin falls 38 units on
-it in 0.58s; the padlock's shackle seats 1.8 units on it in 0.30 and the click is
-the shadow collapsing under it as much as the travel.
+#### Squash and stretch
+
+There is **one** channel, `sq`, and both scales are read off it: x is `1+sq` and
+y is `1/(1+sq)`. A squash cannot get the volume wrong because there is no second
+number for the first one to disagree with. Checked in the self test at 1.1e-16.
+
+It peaks at **6% on a pop and 8% on a landing**, never more, and its shape is
+anticipation, contact, settle: a short stretch on the way in, a snap into the
+squash over two and a half frames landing exactly on contact, one frame of
+contact deformation, then out over ten frames on the `pop` curve — whose own dip
+under the mark is the counter stretch for free. A thing that squashes and comes
+straight back to rest reads as rubber; one that overshoots a little on the way
+back reads as mass.
+
+**Contact is measured, not typed.** Where the `pop` curve first crosses 1 is a
+property of that curve, so it is sampled off it at load — 0.2525 — and the squash
+is anchored there. Change the curve and the squash follows it. A landing anchors
+on `IMPACT` instead, the same 0.72 the shadow and the coin's sound already use.
+
+The guards did not gain a limit for it. `sceneMotion` measures the scale channel
+**effective** — the part's scale times its squash on each axis, which is the
+number a viewer sees — so a squash that snapped is caught by the limit scale
+already had rather than by a new one nobody set. Worst on post6's five scenes at
+60fps: **0.0914 against a limit of 0.14**.
 
 Fixed and not negotiable per clip: the colours. `--fg` for ink, `--bg` for a
 cutout, `--muted` for a secondary shape on the page itself, `--accent` for the
@@ -1452,9 +1532,53 @@ frames — because a still frame passes every other check in the list.
 ### `scenes-test.mjs` — the scene strip
 
 ```
-node scenes-test.mjs                 the strip, 1080x1920, 60fps, silent
-DEMO_FPS=12 node scenes-test.mjs     the fast preview pass
+node scenes-test.mjs                        the strip, 1080x1920, 60fps
+DEMO_FPS=12 node scenes-test.mjs            the fast preview pass
+node scenes-test.mjs --scene=money          one beat, post6's own timing
+node scenes-test.mjs --scene=money --blur   the same, with the shutter open
+node scenes-test.mjs --blur=6               the whole strip, six subframes
 ```
+
+**`--scene=<id>`** renders one of post6's scenes on its own, at post6's own
+timing rather than the strip's compressed gaps — the beat the clip actually
+plays, shifted to start at the top and given the same tail. It is the unit under
+a microscope: five seconds instead of ten, so a change to the motion engine can
+be looked at twice in the time one strip takes. The output is named after the
+scene, so a solo render never overwrites the strip.
+
+**`--blur`** is true motion blur, and it is a capture change rather than a
+filter. Every output frame is captured N times at N evenly spaced instants inside
+its own 1/60th of a second — the virtual clock, the rAF shim and the gsap
+timeline all stepping by `1/(fps*N)` — and the N stills are averaged into one
+frame before encoding. That is what a shutter does. `--blur=6` picks N; four is
+the default and is where a 60fps shutter stops looking like four ghosts and
+starts looking like one smear.
+
+It costs N times the screenshots, which are the whole cost of a render, so it is
+**off by default**: a preview does not need it and a final render is not worth
+shipping without it. Measured on the money beat at 60fps, 5.34s, this machine:
+
+| | captures | capture | blend | total | per frame |
+|---|---|---|---|---|---|
+| `--scene=money` | 320 | 37.7s | — | 37.7s | 118ms |
+| `--scene=money --blur` | 1280 | 149.6s | 14.6s | 164.2s | 513ms |
+
+**4.4x for four subframes**, of which the blend is 9%. Both are 1080x1920, 60fps
+and 5.34s — the shutter does not change the resolution, the rate or the length,
+and a run fails rather than encodes if it does. Both reported the same clearance
+and safe area numbers, because those are sampled on the frame's own instant
+rather than on every subframe.
+
+The blend is `tmix=frames=N,trim=start_frame=N-1,setpts=PTS-STARTPTS,framestep=N`
+— a rolling mean of the last N, the first N-1 thrown away because their window
+reaches back before the clip, then every Nth of what is left, which is exactly
+the set of means of whole output frames. It is written with `trim` and
+`framestep` rather than a `select` expression because `select=eq(mod(n\,4)\,3)`
+needs its commas escaped past three layers of quoting and silently parsed as a
+filter called `4)` the first time. Checked numerically on sixteen flat grey
+subframes at levels 0,16,…,240: four frames out at **24, 88, 152 and 216**, the
+exact means of the four groups. Every run also fails rather than encodes if the
+blend does not produce exactly one frame per captured frame.
 
 `post6.mjs`'s five pictogram scenes, back to back with the dead air taken out,
 into `demo/out/scenes-test.mp4`, plus one settled still per scene into

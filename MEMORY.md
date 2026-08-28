@@ -186,6 +186,17 @@ names in here either.
   them. **Then the `pop` style's card fill was approved as the default for everything**,
   and the style clips and post6 were re-rendered once more against it. See Current state
   and Decisions.
+- **Built 2026-08-28: the pictogram motion engine runs on gsap, and renders can carry
+  true motion blur.** `demo/lib/pictograms.mjs` had its motion core replaced — one
+  `buildTimeline` shared between node and the page, five house curves named in one
+  place, DrawSVGPlugin instead of hand written dashoffsets, volume preserving squash
+  and stretch on every pop and landing, per part stagger, and a clock check that
+  fails a render unless gsap's own time is the frame index over the frame rate.
+  `demo/scenes-test.mjs` gained `--scene=<id>` and `--blur`. **No scene content
+  changed and no scene table was edited**, the site did not change, and the one new
+  dependency is `gsap` in `demo/` only. Measured on post6's money beat, 5.34s at
+  1080x1920/60fps: gsap clock error 3.3e-8s, page against node 0, and the shutter
+  costs about four times the render. See Current state and Decisions.
 - **Built 2026-08-27: a content pipeline in `demo/lib/`, three capabilities, none of
   them wired into a post.** An animated caption engine in three styles, a free voice
   from edge tts with real per word timestamps, and a reference analyzer that reads a
@@ -763,7 +774,16 @@ Still no posting cadence or content pillars. See Next steps.
   **`sceneMotion(plan, fps, seconds)` walks every frame before a render** and
   reports the biggest one frame step in every channel, the shadow's `lift`
   included, so a snap costs a second instead of two and a half minutes of jpegs.
-  No new dependency. See Decisions.
+  See Decisions.
+  **Its motion core was rebuilt on gsap on 2026-08-28** and that is the only
+  dependency `demo/` has gained since it was created. The hand rolled damped
+  oscillator, the bezier solver and the dashoffset writing are gone; what
+  replaced them is one `buildTimeline` run twice, five house curves named in
+  `houseEases`, DrawSVGPlugin, volume preserving squash and stretch, per part
+  stagger, and a clock check that fails a render if gsap's time is not the frame
+  index over the frame rate. **Every scene table in `post6.mjs` and `post7.mjs`
+  drives it unedited.** `node lib/pictograms.mjs test` runs the engine's checks
+  without a browser. See Decisions.
 - **`demo/scenes-test.mjs`**, added 2026-08-27: `post6.mjs`'s own five scenes back
   to back with the dead air cut to a third, into `demo/out/scenes-test.mp4`.
   **10.18s, 60fps, 1080x1920, silent**, in production's exact frame with one line
@@ -775,6 +795,12 @@ Still no posting cadence or content pillars. See Next steps.
   render a clip. The compression is on the gaps only and never on a step's own
   duration. `cd demo && node scenes-test.mjs`, about a minute and a half. Since
   2026-08-27 it also carries the scene layer's own sound effects, at -20 LUFS.
+  **Two flags since 2026-08-28**, both for judging motion rather than the cut:
+  `--scene=<id>` renders one of post6's scenes on its own at post6's own timing
+  rather than the strip's compressed gaps, and `--blur` (or `--blur=N`) turns on
+  true subframe motion blur. Output is named after what was asked for, so a solo
+  or blurred render never overwrites the strip, and every run drops a
+  `*-cost.json` next to it with the capture and blend seconds in it.
   See Decisions.
 - **`demo/og.mjs` is the third script in here**, added 2026-08-24. It renders
   `assets/og.png`, the share card, in the same headless Chrome with the same flags.
@@ -874,8 +900,10 @@ Still no posting cadence or content pillars. See Next steps.
 
 Added 2026-08-27. Three capabilities that are not a clip. **Nothing here is imported by
 `record.mjs`, `post2.mjs`, `post4.mjs`, `post5.mjs` or `og.mjs`, and nothing has been
-wired into a post.** `package.json` is unchanged: still `puppeteer-core` and
-`ffmpeg-static` and nothing else. Full detail in `demo/README.md` under The library.
+wired into a post.** `package.json` carried `puppeteer-core` and `ffmpeg-static` and
+nothing else when this was written; **`gsap` was added on 2026-08-28** for the pictogram
+motion engine and is the only dependency any of this has gained since. Full detail in
+`demo/README.md` under The library.
 
 - **`demo/lib/captions.mjs` — animated captions, word by word.** Takes
   `[{word, start, end}]` and draws it in one of three styles: **`pop`** (michroma caps,
@@ -985,6 +1013,147 @@ credential and not ours. The only hosts named are Microsoft's speech endpoint an
 huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
+
+### 2026-08-28 — the pictogram motion engine is gsap, and the clock is ours
+
+`demo/lib/pictograms.mjs` rebuilt from the motion out. Demo only: `index.html` did
+not change, no scene's content changed, and every scene table in `post6.mjs` and
+`post7.mjs` drives the new engine **unedited**. Einz asked for after effects quality
+motion and this is what that turned out to mean in this rig.
+
+**`gsap` is a dependency now, in `demo/` only, and it is the first one added since
+the pipeline was built.** `demo/package.json` is `puppeteer-core`, `ffmpeg-static`
+and `gsap`. It is free in full as of 3.13 — DrawSVG, MorphSVG and CustomEase all
+ship in the public package. The site's zero dependency rule is untouched: nothing in
+`demo/` is loaded by, linked from or referenced by `index.html`, which is still one
+file. The library is **inlined into the rendered page off `node_modules` at render
+time, never fetched**, so no clip depends on a cdn being up and the site's budget of
+exactly one external request is not spent by tooling.
+
+**One motion core, two readers, and a parity check between them.** `buildTimeline`
+is one function that tweens plain javascript objects and touches no dom. Node runs
+it to feed the preflight guards; the same function, serialised, runs in the page and
+its numbers are written to elements. They are not two implementations that match,
+they are one function run twice — and the page compares its own output against the
+frame node sent, on every captured frame, and faults past a rounding error.
+**Measured: 0.**
+
+**Five house curves, named in one place, referenced by name.** `pop` is the snappy
+overshoot, 10% past the mark and a dip 1.5% under; `drift` is soft, for a thing
+sliding across a page; `glide` is the calm in-out that carries every opacity ramp
+and every line draw; `heavy` is weight; `land` is gravity then impact. Four are
+CustomEase paths and `land` stays a function, because an impact is not a cubic and
+approximating it would cost the thing that makes it work. **Every old name is an
+alias and still works** — `io` is glide, `spring` and `weight` are pop, `fall` is
+heavy — which is the whole reason no scene table needed touching. One default moved:
+`move` drifts now where it glided, because a glass sweeping a page is a drift.
+
+**Squash and stretch is one channel, so it cannot get the volume wrong.** `sq`, with
+x scaled `1+sq` and y `1/(1+sq)`. 6% on a pop, 8% on a landing, never more.
+Anticipation, then a snap into the squash over two and a half frames landing exactly
+on contact, one frame of contact deformation, then out on the pop curve whose own
+dip is the counter stretch for free. **Contact is measured off the pop curve at load
+rather than typed** — 0.2525 — so changing the curve moves the squash with it. The
+guards gained no new limit: `sceneMotion` measures scale *effective*, the part's
+scale times its squash per axis, which is what a viewer sees.
+
+**Stagger exists and is deliberately unused.** A part can lag its own sub shapes two
+to four frames behind the body. It is opt in, unit tested, and applied to no shipped
+scene, because turning it on for post6 would be a scene edit and the brief was motion
+quality only.
+
+**Four things went wrong and all four are worth keeping.** Every one of them was
+caught by a guard rather than by watching a render, which is the argument for the
+guards.
+
+1. **A gsap `set` at position zero does not render when the playhead is put at
+   exactly zero.** It renders in its *from* state and only takes when time moves
+   past it. Frame nought carried the constructed value and frame one carried the
+   set: a 26 unit teleport on a coin the frame before it fell, and on one plan the
+   seed never landed at all and the coin simply did not drop. There are no sets now.
+   Resting values are written straight onto the plain object and every tween is a
+   `fromTo` that states its own start.
+2. **`fromTo` renders its from state at creation, so building an entrance and then
+   an exit leaves the channel holding the exit's start.** The intro group sat fully
+   opaque for the six frames before it was meant to arrive. `immediateRender: false`
+   on every tween, and the seeds are then the only thing that speaks before a
+   tween's own time.
+3. **`gsap.ticker.sleep()` is not a brake, it is a trigger.** `updateRoot` is a
+   ticker listener registered at load, and `ticker.wake()` dispatches a tick
+   *synchronously* — so the next tween render calls `_wake`, which calls `_tick`,
+   which hands the global timeline wall clock time. The clock check caught it on
+   capture two of sixteen: wanted 0.166667, got 0.073. The fix is
+   `gsap.ticker.remove(gsap.updateRoot)`, after which the only thing that can move
+   the root is the `updateRoot` the rAF flush calls itself. A filter that stops the
+   shim running anything but our own loop is also in, **installed before gsap's
+   script**, because gsap reads `requestAnimationFrame` into a private when it loads
+   and a wrapper added afterwards is one it never sees.
+4. **In node, gsap's ticker falls back to `setTimeout` and that handle keeps the
+   process alive.** Scripts rendered their clip, printed their checks and then sat
+   there forever; two were found idle at 2.4 seconds of cpu. Node's gsap has its
+   `wake` stubbed at module load, which costs nothing because this half never plays
+   an animation — it seeks a paused timeline and reads numbers off it.
+
+**post6 was re-rendered whole on the new engine and passed every guard it has.**
+22.20s, 1332 frames, 1332 rAF ticks, **no faults**, biggest one frame part move 2.869
+units against a limit of 4.50. The clearances came out where they have always been:
+115px from the lowest scene shadow to the caption ceiling and 143px on the ink
+(floor 40), 284px and 253px to a border (floors 96 and 72), the caption 104px off
+the head. `post7.mjs`'s scene table was walked through the preflight at 60 and at
+12fps as well and every channel is inside the limits. **Nothing in either scene
+table was edited.**
+
+**The clock check is the load bearing one and it runs before a jpeg is written.**
+`__pic.sync(fps, count, sub)` walks the shim and fails the render unless gsap's own
+time is the capture index over the capture rate. Worst measured error at 60fps and
+at 240 captures a second: **3.3e-8s**, which is floating point on `1/60` and not a
+clock. It also found a mistake of mine that nothing else would have: `sceneFrame`
+used to round its reported `t` to four decimals, which was harmless while node
+computed the picture, and stopped being harmless the moment the page started
+stepping its own timeline off that number. 62 of 64 captures disagreed. `t` is
+carried at full precision now.
+
+### 2026-08-28 — motion blur is a shutter, not a filter
+
+`demo/scenes-test.mjs` grew two flags, `--scene=<id>` and `--blur[=N]`.
+
+**Blur is a capture change.** Every output frame is captured N times at N evenly
+spaced instants inside its own 1/60th of a second — the virtual clock, the rAF shim
+and the gsap timeline all stepping by `1/(fps*N)` — and the N stills are averaged
+into one frame before encoding. That is what a shutter does, and it is the reason it
+is worth N times the screenshots rather than being approximated by smearing pixels
+after the fact. N is 4 by default, which is where a 60fps shutter stops reading as
+four ghosts and starts reading as one smear.
+
+**It is off by default and that is a cost decision, not a taste one.** Screenshots
+are the whole cost of a render, so blur multiplies it by N. A preview does not need
+it; a final render is not worth shipping without it.
+
+**The blend is `tmix` then `trim` then `framestep`, and it is written that way to
+avoid punctuation.** `select=eq(mod(n\,4)\,3)` says the same thing and needs its
+commas escaped past three layers of quoting; it silently parsed as a filter called
+`4)` the first time. Checked numerically on sixteen flat grey subframes at levels
+0,16,…,240: four frames out at **24, 88, 152 and 216**, the exact means of the four
+groups. Every run also fails rather than encodes if the blend does not return
+exactly one frame per captured frame.
+
+**The guards and the samples run on the frame's own instant**, the first subframe,
+so a blurred render prints the same clearance and safe area numbers an unblurred one
+does rather than four times as many at a quarter the spacing. They did, exactly.
+
+**What it costs, measured on post6's money beat, 5.34s at 1080x1920/60fps, this
+machine.** Without: 320 captures, **37.7s**, 118ms a frame. With, at four
+subframes: 1280 captures, **149.6s capturing plus 14.6s blending, 164.2s**, 513ms a
+frame. **4.4x, of which the blend is 9%** — the cost is the screenshots and nothing
+else. Both files are 1080x1920, 60fps and 5.34s: the shutter changes no resolution,
+no rate and no duration, and the run fails rather than encodes if it does. Both
+passed every guard, gsap's clock error was 3.3e-8s in each, and the page and node
+agreed to 0.
+
+**Looked at, not just measured.** A frame pulled from mid fall out of both files:
+the coin is smeared along its travel and the sheet, the two rules and the signature
+under it are perfectly sharp. That is the difference between a shutter and a filter,
+and it is the reason this was worth four times the render.
 
 ### 2026-08-27 — post7, and what a one scene clip costs
 
