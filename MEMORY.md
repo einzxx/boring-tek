@@ -13,13 +13,16 @@ names in here either.
   the shutter open at four subframes in **8.1 minutes**. **The live site did not
   change** — `index.html`, `CNAME`, `robots.txt`, `sitemap.xml`, the language
   stubs and `assets/` were all untouched. **The source is on `main` and public:
-  the first cut in `576f947`, the fix pass in `d5c4ae6`.** Neither push changed
-  a file a visitor sees. **Posted 2026-08-28, the fix pass cut** — Einz's
-  report, not something measured here. The pack that went out is under Socials.
-  - **The line changed after it was posted: group 2 says `ai`, not `a
+  the first cut in `576f947`, the fix pass in `d5c4ae6`, the ai cut in
+  `f38553b`.** No push changed a file a visitor sees. **Not posted anywhere,
+  on any platform.** An earlier version of this file said it went out on
+  2026-08-28 and that was wrong; corrected 2026-08-28 on Einz's word. **The
+  release version is the ai cut, `f38553b`**, and the posting pack under
+  Socials is waiting for an actual posting rather than describing one.
+  - **The line changed before it ever went out: group 2 says `ai`, not `a
     machine`.** `you said ai could never be`. Group 2's take was resynthesised
     at the same `-10%` / `-4Hz` and the other three came back cached, so three
-    quarters of the voice is the audio that was approved. See Decisions.
+    quarters of the voice is the audio that was signed off. See Decisions.
   - **The first cut was 16.87s and it read word by word.** Einz asked for three
     changes and they are the shape of the clip now: the script is four
     continuous sentences instead of seventeen, the stabs are half a second
@@ -724,17 +727,17 @@ set, and **nothing here is a report that it went out.**
 - **No separate sound plan**, for post6's reason: the voice and the effects are already
   in the file, mixed and measured. Nothing is owed to an editor.
 
-#### post10 — built, fix passed, posted and then word changed 2026-08-28
+#### post10 — built, fix passed and word changed 2026-08-28, not posted
 
 `the rage clip`, 13.17s, vertical, dark, the voice and four slices of licensed
 music inside the mp4. Everything about the render was measured here; **the pack
-below is Einz's and the fact that it went out is Einz's report, not a
-measurement made here.**
+below is Einz's plan and nothing here is a report that any of it went out.**
 
-**The clip went out with `a machine` in it and the line is `ai` now.** The pack
-below is the current one and the caption changed with the line. The posted
-caption was `the machines heard everything you said about them`; anything
-already live carries that and the tags did not move.
+**Not posted, on any platform.** This entry said "posted" for part of
+2026-08-28 and it was wrong; Einz corrected it the same day. **The release
+version is the ai cut, `f38553b`** — 13.17s, with `you said ai could never be`
+in group 2. Nothing carrying `a machine` was ever published, so there is no
+older caption live anywhere and nothing to reconcile.
 
 - **Voice: `en-US-AndrewNeural`**, the `calm` default taken to rate `-10%`,
   pitch `-4Hz` — a shade slower and lower than post6 and post7's `-8%`/`-2Hz`,
@@ -1333,15 +1336,16 @@ huggingface, neither of them ours, and neither module has a key or an account.
 ### 2026-08-28 — post10 says `ai`: one word, one take, and what a cache is for
 
 **Group 2 was `you said a machine could never be` and it is `you said ai could
-never be`.** Einz's call, after the clip was already out. One word on the screen
-and in the voice, and nothing else in the file was allowed to move.
+never be`.** Einz's call, on a clip that had been rendered and signed off but
+never posted. One word on the screen and in the voice, and nothing else in the
+file was allowed to move. **This cut, `f38553b`, is the release version.**
 
 - **Only group 2 was resynthesised, and that is the cache doing its job rather
   than a shortcut taken.** `voiceGroup` keys its sidecar json on the copy **and**
   on the rate and pitch, so changing one group's text invalidates exactly that
   group. Groups 1, 3 and 4 came back `(cached)` and their audio is byte for byte
-  the file that was approved and posted. Three quarters of the voice track was
-  never regenerated, so three quarters of the clip cannot have drifted.
+  the file that was signed off. Three quarters of the voice track was never
+  regenerated, so three quarters of the clip cannot have drifted.
 - **The card list is the cut and the check, and it needed one edit.** `CARDS`
   went from `'you said', 'a machine', 'could', 'never', 'be'` to `'you said',
   'ai', 'could', 'never', 'be'`. **Still seventeen cards**, because two words
@@ -1378,7 +1382,8 @@ and in the voice, and nothing else in the file was allowed to move.
   crisp. **4.11 MB at 2.50 Mbit/s, 8.1 minutes with the shutter open.**
 - **The caption in the posting pack moved with the line.** `the machines heard
   everything you said about them` became `the ai heard everything you said about
-  it`. The tags did not move. The pack is under Socials.
+  it`. The tags did not move. Nothing had been posted, so this is a plan being
+  edited rather than a live caption being corrected. The pack is under Socials.
 
 ### 2026-08-28 — post10's fix pass: a reading instead of a list, and a guard the eye could not be
 
@@ -3067,6 +3072,16 @@ of them.
   which are written down and deliberately not done. **No more post9 work until
   Einz asks.** It jumped post3 as well, so **post3, "missed calls", is now five
   clips behind and still unbuilt.**
+- **post10, "the rage clip", is built, fix passed, word changed and pushed** —
+  2026-08-28, `demo/post10.mjs`. **The release version is the ai cut,
+  `f38553b`**: 13.17s, 60fps, dark, no accent, voice and four slices of licensed
+  music in the file, every check passing and both video-review passes clean.
+  **Not posted.** Unlike post9 it owes nothing before it can go out — the
+  posting pack is complete under Socials, caption, three tags on each of the
+  three tagged platforms, X untagged, and no app music because the sound is
+  burned in. The only open part is whether and when Einz posts it. It jumped
+  post3 as well, so **post3, "missed calls", is now six clips behind and still
+  unbuilt.**
 - **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
   written up under Socials, **discuss before building.** The third one cannot start
@@ -3096,6 +3111,12 @@ Not scheduled, parked:
 - **post7 has a pack and has not been posted.** Written down 2026-08-27. Unlike post6's
   gap this is not a missing decision — caption, tweet and tags are all recorded. The
   open part is whether and when it goes out.
+- **post10 has a pack and has not been posted either.** Same shape as post7, and
+  worth naming separately because this file claimed for part of 2026-08-28 that
+  post10 was live. It is not. The pack is complete, the release version is
+  `f38553b`, and the open part is whether and when it goes out. **Two finished
+  clips are now sitting on complete packs**, which is a cadence question rather
+  than a build one.
 - Business email to publish — still not decided. The form is now the contact route, so
   this is no longer blocking, but a real address is still worth having.
 - Whether the full site stays single-file as it grows past v1. Default: stays
