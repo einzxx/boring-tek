@@ -31,6 +31,13 @@
       measures the translation as a vector now, not just its x, so a snap on the
       vertical cannot pass a check that was only ever looking sideways.
 
+   4. it has sound, added in a later pass, and the frame did not move for it.
+      the question on screen is read by the house voice; the mascot answers in
+      beeps rather than in words, one chirp phrase per bubble; the servos sit on
+      the eye turns and the pops on the text arrivals. see The sound, below.
+      nothing in the render changed to make room for any of it, which is the
+      point: the picture was signed off and this pass only fills the silence.
+
    vertical only. there is no square cut here: a 1080 tall frame cannot hold a
    six line statement, the bubble, the head and the wordmark. */
 
@@ -41,6 +48,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { speak, VOICE_OUT } from './lib/voice.mjs';
+import {
+  SR, chirpPhrase, renderSfx, voiceEnvelope, decode, checkUnderVoice,
+  mixdown, applyGain, limit, writeWav, loudness, describeMix, dbfs,
+} from './lib/sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -51,6 +63,11 @@ const FRAMES = path.join(OUT, 'frames-post5');
 
 const FPS = Number(process.env.DEMO_FPS || 60);   /* DEMO_FPS=12 for a fast preview */
 const SECONDS = 10.50;
+/* how long the statement takes to stop scrambling. it lives up here rather than
+   inside the page's own script because the sound needs it too: the read starts
+   on this frame and so does the pop that announces it. one number, two
+   consumers, and the page gets it through __CFG the way it gets everything. */
+const DECODE_MS = 1150;
 const N = Math.round(FPS * SECONDS);
 const STEP = 1000 / FPS;
 const DSF = 2;                              /* css px at 2x, so 540 wide is 1080 */
@@ -390,7 +407,7 @@ ${STATEMENT.map(l => '    <span class="ln">' + l + '</span>').join('\n')}
 <script>
 /* the scene's script is serialised from post5.mjs, so anything it needs from
    node arrives here as data rather than as an interpolation inside it. */
-window.__CFG = ${JSON.stringify({ HERO_CAP, SAFE })};
+window.__CFG = ${JSON.stringify({ HERO_CAP, SAFE, DECODE_MS })};
 window.__CUT = ${JSON.stringify({ vw: cut.vw, vh: cut.vh, statementW: cut.statementW,
   wordmarkW: cut.wordmarkW, pillInset: cut.pillInset, pillMaxW: cut.pillMaxW })};
 ${scenePage.toString()}
@@ -407,7 +424,7 @@ scenePage();
    1150ms decode would resolve inside four captured frames. */
 function scenePage() {
   const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&$*+<>/\\|';
-  const DUR = 1150;
+  const DUR = __CFG.DECODE_MS;
   const sayEl = document.getElementById('say');
   const lines = [...sayEl.querySelectorAll('.ln')].map(el => el.textContent.toUpperCase());
   let cells = [], flat = [], at = [], t0 = null, done = false, prev = '';
@@ -835,6 +852,209 @@ function keyAt(keys, t, ease) {
   return keys[keys.length - 1][1];
 }
 
+
+/* ---------- the sound ----------
+   post5 was planned silent. MEMORY.md's recipe for it is ten servo cues,
+   classical music under everything, and deliberately no narrator, because the
+   mascot searching the room is the performance and a voice over it would
+   explain a joke that works by being quiet. this pass fills the silence without
+   touching a pixel, and it changes exactly one line of that plan.
+
+   1. **the question is read, and not by the mascot.** the house voice, andrew,
+      at the house rate and pitch, saying the words that are on the screen —
+      `SCRIPT` is `STATEMENT` joined rather than a second copy of the line, so
+      the read cannot come to disagree with the frame and the dash check above
+      covers it for free. it starts on the frame the statement stops scrambling
+      and it is finished a full second before the bubble arrives, so nothing is
+      ever said over an answer.
+
+   2. **the mascot answers in beeps.** he never says a word. one chirp phrase
+      per bubble, built by `chirpPhrase` out of that bubble's own copy, so a
+      longer reply is a longer answer. two bubbles, two phrases, and the second
+      is `confident`: it starts a tone lower and climbs in wider steps, and it
+      lands on the set's ding instead of on another boop, because "we will fix
+      it." is the clip's answer and an answer stops.
+
+   3. **no music.** the recipe's classical bed is the one line this pass drops.
+      ten and a half seconds now carry a read, ten servos, six pops and two
+      robot phrases; a bed under that is a fourth thing competing rather than a
+      floor. that is a subtraction from the recipe, in this clip only.
+
+   every time below is read off something already in this file — DECODE_MS,
+   EYE_KEYS, DOT_STAGGER, PILL_IN, BEATS. there is not one hand written cue. */
+
+/* -14 LUFS and -1 dBTP are the numbers the players use, not house preferences.
+   DUCK is about 8dB off the bus while a word is being said. VOICE_TRIM is the
+   only knob between the two tracks, and it does not make the clip quieter: the
+   loudness pass scales both together afterwards, so trimming the voice moves
+   the effects up against it. all four are post6's and post7's, unchanged. */
+const TARGET_LUFS = -14;
+const PEAK_CEILING = -1.0;
+const DUCK = 0.60;
+const VOICE_TRIM = -1.5;
+/* how far under its own peak a recording has to fall to count as silence, and
+   how much of that silence is kept at each edge. post10's numbers, and post10's
+   lesson with them: the synthesiser's word list ends before the sound does, so
+   where a take starts and stops is measured on the waveform and never on the
+   word list. the word list still drives the ducking envelope, because for that
+   a word boundary is exactly the right thing. */
+const SILENCE_DB = -46;
+const EDGE = 0.02;
+
+/* the copy on screen, said out loud. */
+const SCRIPT = STATEMENT.join(' ');
+/* the first word lands on the frame the statement goes solid. that is the whole
+   placement rule, it is one number, and it is the same number the page decodes
+   on. the engine's own lead in silence is trimmed off rather than used as a
+   breath, so "the read starts when the text is readable" is true of the sound
+   and not only of the sidecar. */
+const VOICE_AT = DECODE_MS / 1000;
+
+/* ---------- the voice, cached ----------
+   post7's loader. the sidecar json is the cache key: if it is there and it is
+   for this script the endpoint is left alone, which also means a re-render
+   cannot quietly change the timeline under a clip that was already approved. */
+async function voice() {
+  const cached = path.join(VOICE_OUT, 'post5-calm.json');
+  if (fs.existsSync(cached)) {
+    const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
+    if (j.text === SCRIPT.replace(/\s+/g, ' ').trim() && fs.existsSync(j.file)) {
+      console.log('  voice from cache: ' + j.voiceId + ' ' + j.rate + ' ' + j.pitch + ', '
+        + j.seconds.toFixed(2) + 's, ' + j.words.length + ' words, timings from the ' + j.timing);
+      return j;
+    }
+  }
+  const r = await speak(SCRIPT, { voice: 'calm', name: 'post5' });
+  console.log('  voice: ' + r.voiceId + ' ' + r.rate + ' ' + r.pitch + ', '
+    + r.seconds.toFixed(2) + 's, ' + r.words.length + ' words, timings from the ' + r.timing);
+  return r;
+}
+
+/* where a recording actually has sound in it, in 5ms hops against a gate set
+   under its own peak. copied from post10.mjs rather than reached for, the way
+   lidAt below is copied out of index.html: it is fifteen lines, and importing
+   it would mean one clip owning another clip's internals. */
+function audioEdges(pcm) {
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i++) peak = Math.max(peak, Math.abs(pcm[i]));
+  const gate = peak * Math.pow(10, SILENCE_DB / 20);
+  const H = Math.round(0.005 * SR);
+  const hops = Math.floor(pcm.length / H);
+  const loud = i => {
+    let m = 0;
+    for (let j = i * H; j < (i + 1) * H; j++) m = Math.max(m, Math.abs(pcm[j]));
+    return m > gate;
+  };
+  let a = 0, b = hops - 1;
+  while (a < hops && !loud(a)) a++;
+  while (b > a && !loud(b)) b--;
+  return { start: +(a * 0.005).toFixed(4), end: +((b + 1) * 0.005).toFixed(4), peak: +dbfs(peak).toFixed(1) };
+}
+
+/* the take, trimmed to its own sound and laid on the clip's clock so its first
+   word starts at VOICE_AT. a twelve millisecond fade at each edge, because a
+   hard cut in a waveform is a click. the word list comes back re-timed by the
+   same offset, so the duck is built against the timeline that is in the file
+   rather than against the one the synthesiser handed over. */
+function buildVoice(v) {
+  const pcm = decode(ffmpeg, v.file);
+  const srcLen = pcm.length / SR;
+  const w0 = v.words[0], wN = v.words[v.words.length - 1];
+  const e = audioEdges(pcm);
+  const soundStart = Math.min(w0.start, e.start);
+  const soundEnd = Math.max(wN.end, e.end);
+  const a = Math.max(0, soundStart - EDGE);
+  const b = Math.min(srcLen, soundEnd + EDGE);
+  if (!(b > a)) throw new Error('the take has no audio in it');
+  const off = VOICE_AT - w0.start;
+
+  const buf = new Float32Array(Math.round(SECONDS * SR));
+  const i0 = Math.round(a * SR), i1 = Math.round(b * SR), at = Math.round((a + off) * SR);
+  const len = i1 - i0;
+  const fade = Math.round(0.012 * SR);
+  let placed = 0;
+  for (let k = 0; k < len; k++) {
+    const dst = at + k;
+    if (dst < 0 || dst >= buf.length) continue;
+    let g = 1;
+    if (k < fade) g = k / fade;
+    else if (k > len - fade) g = (len - k) / fade;
+    buf[dst] += pcm[i0 + k] * g;
+    placed++;
+  }
+  return {
+    buf, off: +off.toFixed(4),
+    words: v.words.map(w => ({ word: w.word,
+      start: +(w.start + off).toFixed(4), end: +(w.end + off).toFixed(4) })),
+    /* the sound's own start and end on the clip's clock, which is what the
+       guard below is run against. `lag` is how far the recording outlasts the
+       word list, and it is the number post10 learned the hard way. */
+    start: +(soundStart + off).toFixed(3),
+    end: +(soundEnd + off).toFixed(3),
+    lead: +(w0.start - soundStart).toFixed(3),
+    lag: +(soundEnd - wN.end).toFixed(3),
+    peak: e.peak,
+    dropped: len - placed,
+  };
+}
+
+/* ---------- the cues ----------
+   the turns first, and the sound goes at the **start** of each one rather than
+   at its end. EYE_KEYS lists the values the gaze eases *to*, so key i is where
+   turn i finishes and key i-1 is where it begins: a servo placed on a listed
+   number lands as the eyes stop moving, about half a second late. MEMORY.md
+   carries that correction against this clip's original cue list, in prose. this
+   is the same correction written as code, so it cannot be got wrong twice.
+
+   it also fixes the tenth cue for free. the last turn ends at 10.50, which is
+   past the last frame, so a servo on the listed time would be cut in half by
+   the end of the file; on the window's start, 10.20, the whole 90ms fits. */
+const TURNS = EYE_KEYS.map((k, i) => i)
+  .filter(i => i > 0 && (EYE_KEYS[i][1] !== EYE_KEYS[i - 1][1]
+    || EYE_Y_KEYS[i][1] !== EYE_Y_KEYS[i - 1][1]))
+  .map(i => ({ from: EYE_KEYS[i - 1][0], to: EYE_KEYS[i][0] }));
+
+/* the pill's own entrance for a beat, and it is the same expression bubbleAt
+   springs the pill from: the first beat opens PILL_IN after the dots, and the
+   swap has no entrance of its own, it dips on its mark. */
+const pillAt = b => (b.swap ? b.on : b.on + PILL_IN);
+
+const REPLIES = BEATS.map((b, i) => ({
+  beat: i + 1, b, at: pillAt(b),
+  ph: chirpPhrase(pillAt(b), b.lines.join(' '), { confident: i > 0 }),
+}));
+
+function soundCues() {
+  const cues = [
+    /* the statement stops scrambling and becomes a sentence. it is the only
+       text in the clip that arrives without a spring under it, so it gets the
+       plain pop a caption card gets, and the read starts on the same frame. */
+    { t: VOICE_AT, kind: 'pop', from: 'the statement solid' },
+    ...TURNS.map(w => ({
+      t: w.from, kind: 'servo',
+      from: 'eyes turning ' + w.from.toFixed(2) + '..' + w.to.toFixed(2),
+    })),
+    /* three dots, three pops, on the site's own 0/70/140ms stagger. */
+    ...DOT_STAGGER.map((d, i) => ({
+      t: BUBBLE_ON + d, kind: 'pop', from: 'dot ' + (i + 1) + ' arriving',
+    })),
+  ];
+  for (const r of REPLIES) {
+    /* the swap is the pill changing its mind, and popDeep is this set's word
+       for the same gesture carrying more weight. the first beat needs no pop of
+       its own: the three dots have just landed and the chirps are the pill. */
+    if (r.b.swap) cues.push({ t: r.b.on, kind: 'popDeep', from: 'the pill swapping' });
+    cues.push(...r.ph.cues);
+    /* the last reply is the clip's answer, so it stops rather than trailing
+       off. the ding is the set's own, unchanged: after four rising boops a warm
+       low tap reads as "done", which is the deadpan version of a fanfare. */
+    if (r.beat === REPLIES.length) {
+      cues.push({ t: r.ph.end, kind: 'ding', from: 'the answer landing' });
+    }
+  }
+  return cues.sort((a, b) => a.t - b.t);
+}
+
 /* the reel's guards. the close is 1-.94p², so its last frame is its fastest: at
    60fps a legitimate close steps .302 between the final two frames. the limit
    sits above that and far below a collapse, which lands near .94. */
@@ -1068,10 +1288,14 @@ async function render(cut) {
 }
 
 /* ---------- encode ----------
-   the reel's settings, unchanged: libx264, preset slow, crf 17, yuv420p,
-   faststart, no audio. sound is added in the edit, on the recipe MEMORY.md
-   carries: restaurant music under everything, a servo on the eye turns, and a
-   pop on the bubble and on the swap. */
+   the reel's video settings, unchanged and deliberately so: libx264, preset
+   slow, crf 17, yuv420p, faststart. the frames fed in are byte for byte the
+   frames this file has always produced.
+
+   what the sound pass changed is one line of it. `-an` is gone and the mix is
+   muxed in as 192k aac, which is post7's bitrate: this set's low end is where a
+   lossy codec spends the fewest bits, and the closing sounds live down there.
+   sound is no longer added in the edit — it is in the file. */
 function ff(args) { return execFileSync(ffmpeg, args, { stdio: ['ignore', 'pipe', 'pipe'] }).toString(); }
 
 function probe(file) {
@@ -1085,16 +1309,19 @@ function probe(file) {
     seconds: dur ? (+dur[1] * 3600 + +dur[2] * 60 + parseFloat(dur[3])) : null,
     w: res ? +res[1] : null, h: res ? +res[2] : null,
     fps: fps ? parseFloat(fps[1]) : null,
+    audio: /Audio:\s*aac/.test(out),
   };
 }
 
-function encode(cut) {
+function encode(cut, audioFile) {
   const out = path.join(OUT, cut.name + '.mp4');
   console.log('  encoding ' + cut.name + ' ...');
   ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS),
     '-i', path.join(FRAMES, cut.name, 'f%05d.jpg'),
+    '-i', audioFile,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17',
-    '-pix_fmt', 'yuv420p', '-r', String(FPS), '-movflags', '+faststart', '-an', out]);
+    '-pix_fmt', 'yuv420p', '-r', String(FPS), '-c:a', 'aac', '-b:a', '192k',
+    '-movflags', '+faststart', out]);
   return out;
 }
 
@@ -1113,12 +1340,178 @@ function sampleFrames(mp4, at) {
 
 /* ---------- go ---------- */
 console.log('the boring tek — social clip #5');
+
+/* ---------- the mix, built before a single frame ----------
+   post7's order, for post7's reason: an audio fault costs two seconds to find
+   here and four minutes of rendering at any later point. it also means
+   --encode-only gets a fresh wav without re-rendering the picture. */
+const v = await voice();
+const spoken = buildVoice(v);
+const cues = soundCues();
+const env = voiceEnvelope(spoken.words, SECONDS);
+const sfx = renderSfx(cues, SECONDS);
+const mix = mixdown(spoken.buf, sfx.buf, env, { duck: DUCK, voiceGain: VOICE_TRIM });
+/* the rule, measured on the two buffers that are about to be summed rather than
+   argued from the gain table: wherever a word is actually being said, the bus
+   is under it. it runs here, before the loudness pass, because that pass moves
+   both of them by the same amount and cannot change the answer. */
+const under = checkUnderVoice(mix.voiceOut, mix.bus);
+
+/* one gain for the voice and the bus together, so the balance in GAINS survives
+   it, then a look ahead limiter to hold the peak, then a measurement of what
+   that actually delivered. it iterates rather than calculating, because
+   limiting costs loudness and how much it costs depends on the material; each
+   pass starts from the same summed mix, so the file is only ever gained and
+   limited once and nothing accumulates.
+
+   ---------- two axes, not one ----------
+
+   post6 and post7 iterate on loudness alone and their limiter's ceiling is left
+   at PEAK_CEILING. that works until the lift gets large, and on this clip it
+   does not: the read is two and a bit seconds inside ten and a half, so the mix
+   sits at -22.5 LUFS at unity and needs about fifteen decibels to reach target.
+   at that much limiting the **sample** peak is exactly on -1.0 and the **true**
+   peak — the one a resampler reconstructs between two samples, and the one
+   every platform measures — came back at -0.6, four tenths over the ceiling
+   this file says it delivers to.
+
+   `limit` is a sample peak limiter and cannot be anything else without becoming
+   an oversampler, so the ceiling handed to it is pulled down by whatever the
+   measured true peak overshot by. that is the same discipline the loudness pass
+   already uses, applied to the axis it was missing: the number is read off the
+   written file rather than argued from the buffer.
+
+   ---------- and it keeps the best pass, not the last one ----------
+
+   the second thing this clip found, and it is the more useful one. post6's and
+   post7's loop assume more gain buys more loudness and stop when it lands on
+   target. that assumption has a limit and this material reaches it: the search
+   was run out to sixteen passes by hand and it goes
+
+     lift +13.0  ->  -14.90 LUFS   8.2 dB of limiting
+     lift +13.9  ->  -14.80 LUFS   9.1 dB
+     lift +17.7  ->  -16.00 LUFS  13.4 dB
+     lift +21.5  ->  -15.50 LUFS  17.2 dB
+
+   past about fourteen decibels the limiter is flattening the syllables faster
+   than the gain is raising them, and asking for another decibel comes back a
+   decibel *quieter* with four more decibels of squash on it. a loop that only
+   ever adds gain walks straight past its own best answer and reports whatever
+   it happened to be holding when it ran out of passes.
+
+   so this one keeps the best pass rather than the last, and it stops the moment
+   a pass fails to improve on it. "best" is the closest to target **that also
+   held the true peak**, because loudness bought by going over the ceiling is
+   not loudness we get to keep. the winning pass is then rendered once more at
+   the end, so the wav on disk is the one that was measured rather than the one
+   that happened to be in the buffer.
+
+   what that reports is what this material can actually deliver, which is about
+   -14.9 LUFS, rather than what was asked for. a clip a decibel under target is
+   a clip; a clip with twelve decibels of limiting on a nine word read is a
+   pumping mess that measured well. */
+fs.mkdirSync(OUT, { recursive: true });
+const wav = path.join(OUT, 'post5-mix.wav');
+const baseMix = mix.out.slice();
+const passes = [];
+const miss = q => Math.abs(q - TARGET_LUFS);
+let lift = 0, ceiling = PEAK_CEILING, best = null;
+for (let i = 0; i < 12; i++) {
+  mix.out.set(baseMix);
+  if (lift) applyGain(mix.out, lift);
+  const l = limit(mix.out, ceiling);
+  writeWav(wav, mix.out);
+  const m = loudness(ffmpeg, wav);
+  const pass = { lift, ceiling, lufs: m.lufs, tp: m.truePeak, gr: l.reduction };
+  passes.push(pass);
+  if (!m.ok) { best = pass; break; }
+  const overTp = m.truePeak != null && m.truePeak > PEAK_CEILING;
+  if (overTp) {
+    /* the ceiling only ever comes down, and it comes down by the overshoot plus
+       a twentieth of a decibel, so a pass that was a hair over does not spend
+       the next one being a hair over again. the lift is left alone: one axis at
+       a time is what stops the two of them chasing each other. */
+    ceiling = +(ceiling - (m.truePeak - PEAK_CEILING) - 0.05).toFixed(2);
+    continue;
+  }
+  /* an improvement has to be worth a pass. the 0.05 is what stops a run of
+     passes each buying a hundredth of a decibel and calling it progress. */
+  if (best && miss(m.lufs) >= miss(best.lufs) - 0.05) break;
+  best = pass;
+  if (miss(m.lufs) <= 0.3) break;
+  lift = +(lift + TARGET_LUFS - m.lufs).toFixed(2);
+}
+/* every pass was over the ceiling, which is a real failure rather than a search
+   that needs another go. take the last one so the report can say what happened
+   and let the true peak guard at the bottom fail it. */
+if (!best) best = passes[passes.length - 1];
+
+/* the winning pass, rendered once more so the file on disk is the file that was
+   measured. */
+mix.out.set(baseMix);
+if (best.lift) applyGain(mix.out, best.lift);
+const lim = limit(mix.out, best.ceiling);
+writeWav(wav, mix.out);
+const after = loudness(ffmpeg, wav);
+const before = passes[0];
+
+console.log('  the mix:');
+console.log(describeMix(sfx.report, {
+  'the read': '"' + SCRIPT + '"',
+  'voice': v.voiceId + ' ' + v.rate + ' ' + v.pitch + ', ' + spoken.words.length
+    + ' words, sound from ' + spoken.start.toFixed(2) + ' to ' + spoken.end.toFixed(2)
+    + 's, placed so the first word lands on ' + VOICE_AT.toFixed(2)
+    + 's, the frame the statement goes solid',
+  'the recording outlasts its word list': 'by ' + spoken.lag.toFixed(3)
+    + 's, which is why the guard below is run on the waveform',
+  'the answer is clear of it': (BUBBLE_ON - spoken.end).toFixed(2)
+    + 's of silence between the last word and the bubble arriving at '
+    + BUBBLE_ON.toFixed(2) + 's',
+  'the mascot': REPLIES.map(r => 'beat ' + r.beat + ', ' + r.ph.words + ' word'
+    + (r.ph.words === 1 ? '' : 's') + ', ' + r.ph.count + ' chirps over '
+    + (r.ph.end - r.at).toFixed(2) + 's from ' + r.at.toFixed(2) + 's').join('; ')
+    + '. no words, and a ding on the last one',
+  'balance': VOICE_TRIM.toFixed(1) + ' dB on the voice ('
+    + (Math.pow(10, VOICE_TRIM / 20) * 100).toFixed(0)
+    + '% of where it was), effects at their own levels, no music track',
+  'effects bus': 'peak ' + dbfs(mix.busPeak).toFixed(1) + ' dB after ducking, '
+    + (20 * Math.log10(1 - DUCK)).toFixed(1) + ' dB down while a word is being said',
+  'under the voice': under.over.length
+    ? under.over.length + ' window(s) where an effect is louder than the voice'
+    : 'yes, in all ' + under.windows + ' windows a word is being spoken in. the closest is '
+      + (-under.worst.db).toFixed(1) + ' dB under at ' + under.worst.at.toFixed(2)
+      + 's (' + under.worst.sfx.toFixed(1) + ' dB against ' + under.worst.voice.toFixed(1) + ' dB)',
+  'the strict reading': under.instant.db > 0
+    ? 'instant for instant, the bus goes ' + under.instant.db.toFixed(1)
+      + ' dB over the voice at ' + under.instant.at.toFixed(2)
+      + 's, inside a consonant closure — see checkUnderVoice for why that is not the test'
+    : 'instant for instant it never reaches the voice either, closest '
+      + (-under.instant.db).toFixed(1) + ' dB under at ' + under.instant.at.toFixed(2) + 's',
+  'loudness': after.ok
+    ? before.lufs.toFixed(1) + ' LUFS at unity, ' + (best.lift >= 0 ? '+' : '') + best.lift
+      + ' dB and a limiter applied, best of ' + passes.length + ' pass(es), '
+      + after.lufs.toFixed(1) + ' LUFS delivered (target ' + TARGET_LUFS + ')'
+      + (miss(after.lufs) > 0.3
+        ? '. it stops there because the next decibel of gain comes back quieter — '
+          + 'see the search above the loop'
+        : '')
+    : 'ebur128 is not in this ffmpeg build, so the mix was left at unity',
+  'voice level': 'peak ' + dbfs(mix.voiceRawPeak).toFixed(1) + ' dB as decoded and '
+    + dbfs(mix.voicePeak).toFixed(1) + ' dB in the mix',
+  'limiter': lim.reduction.toFixed(1) + ' dB of gain reduction at its hardest, ceiling '
+    + best.ceiling.toFixed(2) + ' dBFS (asked for ' + PEAK_CEILING.toFixed(2)
+    + (best.ceiling < PEAK_CEILING ? ', pulled down to hold the true peak' : '')
+    + '), peak ' + lim.peak.toFixed(2) + ' dBFS',
+  'true peak': (after.truePeak == null ? '?' : after.truePeak.toFixed(1))
+    + ' dBTP (ceiling ' + PEAK_CEILING + ')',
+}));
+
 const results = [];
 for (const cut of CUTS) {
   const state = ONLY_ENCODE
     ? JSON.parse(fs.readFileSync(path.join(OUT, cut.name + '.json'), 'utf8'))
     : await render(cut);
-  results.push({ cut, state, file: encode(cut) });
+  results.push({ cut, state, file: encode(cut, wav) });
 }
 
 const mb = f => (fs.statSync(f).size / 1e6).toFixed(2) + ' MB';
@@ -1126,7 +1519,8 @@ for (const r of results) {
   const p = probe(r.file);
   r.probe = p;
   console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps ' + p.seconds.toFixed(2) + 's  '
-    + mb(r.file) + '  ' + path.relative(ROOT, r.file));
+    + (p.audio ? 'with sound' : 'SILENT') + '  ' + mb(r.file) + '  '
+    + path.relative(ROOT, r.file));
 }
 
 const dir = sampleFrames(results[0].file, [
@@ -1158,10 +1552,23 @@ for (let i = 0; i < BEATS.length; i++) {
     + '   "' + b.lines.join(' ') + '"');
 }
 console.log('  eyes: ' + results[0].state.turns + ' turns, ' + results[0].state.holds
-  + ' holds, ' + results[0].state.blinks + ' blinks. servo cues at '
-  + EYE_KEYS.filter((k, i) => i > 0
-    && (k[1] !== EYE_KEYS[i - 1][1] || EYE_Y_KEYS[i][1] !== EYE_Y_KEYS[i - 1][1]))
-    .map(k => k[0].toFixed(2)).join(', '));
+  + ' holds, ' + results[0].state.blinks + ' blinks');
+/* the turn **windows**, not a cue list. what this line used to print was the
+   time each turn finishes, under a label that said cue, which is half a second
+   of error waiting to be made. the servos are in the file now and they sit on
+   the left hand number of each pair. */
+console.log('  turns: ' + TURNS.map(w => w.from.toFixed(2) + '..' + w.to.toFixed(2)).join('  '));
+console.log('  sound: ' + sfx.report.length + ' effects and one read, no music'
+  + (after && after.ok ? ', ' + after.lufs.toFixed(1) + ' LUFS / '
+    + after.truePeak.toFixed(1) + ' dBTP' : ''));
+console.log('    read   ' + spoken.start.toFixed(2) + '..' + spoken.end.toFixed(2)
+  + '   "' + SCRIPT + '"');
+for (const r of REPLIES) {
+  console.log('    reply  ' + r.at.toFixed(2) + '..' + r.ph.end.toFixed(2)
+    + '   ' + r.ph.count + ' chirps' + (r.beat === REPLIES.length ? ' and a ding' : '')
+    + '   "' + r.b.lines.join(' ') + '"');
+}
+console.log('    servos ' + TURNS.map(w => w.from.toFixed(2)).join(', '));
 
 if (!KEEP && !ONLY_ENCODE) fs.rmSync(FRAMES, { recursive: true, force: true });
 
@@ -1171,6 +1578,7 @@ for (const { cut, state, probe: p } of results) {
   if (p.w !== cut.vw * DSF || p.h !== cut.vh * DSF) fail.push(tag + 'not ' + cut.vw * DSF + 'x' + cut.vh * DSF);
   if (Math.abs(p.fps - FPS) > 0.5) fail.push(tag + 'not ' + FPS + 'fps');
   if (Math.abs(p.seconds - SECONDS) > 0.2) fail.push(tag + p.seconds + 's, wanted ' + SECONDS);
+  if (!p.audio) fail.push(tag + 'no audio track — the mix did not mux and this is the wrong deliverable');
   if (state.eyeMoves.length) fail.push(tag + state.eyeMoves.length + ' eye fault(s), first at '
     + state.eyeMoves[0].t.toFixed(2) + 's (' + state.eyeMoves[0].what + ')');
   if (state.blinkSteps.length) fail.push(tag + state.blinkSteps.length
@@ -1213,5 +1621,53 @@ for (const { cut, state, probe: p } of results) {
   if (gap < 24) fail.push(tag + 'the pill comes within ' + gap.toFixed(0)
     + 'px of the statement, wanted at least 24');
 }
+/* ---------- the sound's own guards ----------
+   the picture guards above are untouched. these are the new ones and every one
+   of them is measured on a buffer or on the finished file. */
+
+/* the read has to be over before the answer arrives, measured on the waveform
+   and not on the word list — post10's lesson, and here it is the whole design:
+   a narrator still talking while the mascot replies is the one way this clip
+   fails as a clip rather than as a mix. */
+if (spoken.end > BUBBLE_ON) {
+  fail.push('the read runs to ' + spoken.end.toFixed(2) + 's and the bubble arrives at '
+    + BUBBLE_ON.toFixed(2) + 's — the question is still being asked over the answer');
+}
+if (spoken.start < 0) {
+  fail.push('the read starts at ' + spoken.start.toFixed(2) + 's, before the clip does');
+}
+if (spoken.dropped) fail.push(spoken.dropped + ' samples of the read fell outside the clip');
+/* a cue the end of the file cut in half. renderSfx fades whatever landed rather
+   than dropping it, so without this the tenth servo could go back to being cut
+   and nothing would say so. */
+const cutAtEnd = sfx.report.filter(r => r.cut);
+if (cutAtEnd.length) {
+  fail.push(cutAtEnd.length + ' effect(s) cut by the end of the clip, first "'
+    + cutAtEnd[0].kind + '" at ' + cutAtEnd[0].t.toFixed(2) + 's');
+}
+if (under.over.length) {
+  fail.push(under.over.length + ' window(s) where an effect is louder than the voice, first at '
+    + under.over[0].t.toFixed(2) + 's');
+}
+if (after && after.ok) {
+  if (Math.abs(after.lufs - TARGET_LUFS) > 1.0) {
+    fail.push('the mix is ' + after.lufs.toFixed(1) + ' LUFS after ' + passes.length
+      + ' pass(es), wanted ' + TARGET_LUFS);
+  }
+  if (after.truePeak > PEAK_CEILING + 0.1) {
+    fail.push('true peak is ' + after.truePeak.toFixed(1) + ' dBTP, ceiling is ' + PEAK_CEILING);
+  }
+}
+/* every bubble is answered, in beeps, and the phrases that were planned are the
+   phrases that are in the bus. a reply that silently lost its notes would leave
+   the mascot mute and every other check green. */
+const chirps = sfx.report.filter(r => r.kind === 'chirp').length;
+const wanted = REPLIES.reduce((a, r) => a + r.ph.count, 0);
+if (chirps !== wanted) fail.push(chirps + ' chirps reached the mix, the replies ask for ' + wanted);
+if (REPLIES.some(r => r.ph.count < 3)) fail.push('a reply came out under three chirps');
+if (sfx.report.filter(r => r.kind === 'servo').length !== TURNS.length) {
+  fail.push('the servo count does not match the ' + TURNS.length + ' eye turns');
+}
+
 if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
 console.log('\nall checks passed.');

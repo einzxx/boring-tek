@@ -9,9 +9,11 @@ All headless Chrome, all tooling. The renderers first:
   composes a scene out of the site's parts. See The social clip below.
 - **`post4.mjs`** renders a 19 second social clip, vertical only. Same composer
   rig as `post2.mjs`, four bubble beats instead of two. See The fourth clip.
-- **`post5.mjs`** renders a 10.5 second social clip, vertical only. `post4.mjs`
-  is its template; the mascot searches the room on two axes and the bubble
-  swaps in place instead of leaving.
+- **`post5.mjs`** renders a 10.5 second social clip, vertical only, **with the
+  read and the mascot's beeps in the file**. `post4.mjs` is its template; the
+  mascot searches the room on two axes and the bubble swaps in place instead of
+  leaving. It shipped silent and got its sound in a later pass that did not move
+  a pixel. See The fifth clip's sound.
 - **`post6.mjs`** renders a 22.2 second social clip, vertical only, **with its
   own voice in the file**. The first one built on the new machine: the voice is
   generated first and the captions, the length and the mascot's gaze are all cut
@@ -439,6 +441,120 @@ The seeds are post4's own, so the scramble order and the blink rhythm are not
 post2's replayed under new words, and the eye keys are new: he looks up at the
 bubble on each of the four beats and away between them, by a different amount
 each time so it never turns into a metronome.
+
+## The fifth clip's sound — added later, and the picture did not move
+
+```
+cd demo
+node post5.mjs                  # renders and mixes, out/post5-1080x1920.mp4
+node post5.mjs --encode-only    # re-mixes and re-encodes from kept frames
+```
+
+post5 was built silent on 2026-08-26 and `MEMORY.md` planned it that way: ten
+servo cues, classical music under everything and **deliberately no narrator**,
+because the mascot searching the room is the performance. The audio pass keeps
+that clip exactly as it was and fills the silence. **The frame was signed off
+and nothing in it changed** — same 10.50s, same 630 frames, same libx264 preset
+slow crf 17 yuv420p. The only edit to the encode is that `-an` left and a 192k
+aac arrived.
+
+**The question is read, and not by the mascot.** `en-US-AndrewNeural` at the
+house `-8%` / `-2Hz`, saying the words that are on the screen: the script is
+`STATEMENT.join(' ')` rather than a second copy of the line, so the read cannot
+come to disagree with the frame and the file's dash check covers it for free.
+Nine words, timings from the engine.
+
+**It is placed by one number.** The first word lands on 1.15s, which is
+`DECODE_MS`, the frame the statement stops scrambling. `DECODE_MS` used to live
+inside the page's own script and now lives at the top of the file and reaches
+the page through `__CFG`, because the sound needs it too. The read runs 1.15 to
+3.39 measured **on the waveform**, so there is 1.11s of silence before the
+bubble arrives at 4.50 and the narrator can never speak over an answer. The run
+fails if it does.
+
+**The mascot answers in beeps and says no words.** One chirp phrase per bubble,
+built by `chirpPhrase` out of that bubble's own copy: the note count is the
+reply's word count with a floor of three, so `tell us.` gets three notes over
+0.39s and `we will fix it.` gets four over 0.52s. Every note glides up inside
+itself and each starts higher than the last, which is what a friendly answer
+sounds like. The second is `confident` — a tone lower, wider steps, so it spans
+more than an octave where the first spans a fifth — and it lands on the set's
+own `ding` instead of a fifth boop, because that line is the clip's answer and
+an answer stops.
+
+**The servos sit on the start of each turn, not the end.** `EYE_KEYS` lists the
+values the gaze eases *to*, so a servo on a listed number lands as the eyes stop
+moving, half a second late. `TURNS` derives the ten windows from the key list
+and the sound goes on the left hand number of each pair. That also fixes the
+tenth cue for free: the last turn ends at 10.50, past the last frame, so a servo
+on the listed time would be cut in half; on 10.20 the whole 90ms fits and what
+reaches the last frame is a tail 46 dB down. The editor's card now prints the
+windows rather than a list labelled "servo cues", which is where the half second
+of error used to live.
+
+**Pops on the text arrivals.** One when the statement goes solid, three on the
+dots at the site's own 0/70/140ms stagger, and a `popDeep` on the swap because
+that is the set's word for the same gesture carrying more weight. The first
+beat's pill gets no pop of its own: the dots have just landed and the chirps
+are the pill.
+
+**No music, and that is the one line of the recipe this drops.** Ten and a half
+seconds already carry a read, ten servos, six pops and two robot phrases. A
+classical bed under that is a fourth thing competing rather than a floor.
+
+Twenty three effects: 10 servo, 4 pop, 7 chirp, 1 popDeep, 1 ding. **-14.9 LUFS
+at -1.0 dBTP**, 8.2 dB of limiting at its hardest, the effects 18.8 dB under the
+voice at their closest in all 96 windows a word is being spoken in.
+
+### The mix pass learned two things this clip paid for
+
+Both are in `post5.mjs` above the loop and both apply to every clip after it.
+
+**A sample peak limiter does not hold a true peak.** post6 and post7 hand
+`limit` the delivery ceiling and iterate on loudness alone, which works until
+the lift gets large. Here it does not: the read is two seconds inside ten and a
+half, so the mix is -22.5 LUFS at unity and needs about thirteen decibels. At
+that much limiting the sample peak is exactly on -1.0 and the **true** peak, the
+one a resampler reconstructs between two samples and the one every platform
+measures, came back at **-0.6** — four tenths over the ceiling this repo says it
+delivers to. So the ceiling handed to the limiter is now pulled down by whatever
+the measured true peak overshot by, read off the written file rather than argued
+from the buffer. It is the same discipline the loudness pass already used,
+applied to the axis it was missing.
+
+**More gain stops buying loudness, and then costs it.** The search was run out
+by hand and it goes:
+
+```
+  lift +13.0  ->  -14.90 LUFS,  8.2 dB of limiting
+  lift +13.9  ->  -14.80 LUFS,  9.1 dB
+  lift +17.7  ->  -16.00 LUFS, 13.4 dB
+  lift +21.5  ->  -15.50 LUFS, 17.2 dB
+```
+
+Past about fourteen decibels the limiter flattens the syllables faster than the
+gain raises them, and asking for another decibel comes back a decibel *quieter*
+with four more decibels of squash on it. A loop that only ever adds gain walks
+straight past its own best answer and reports whatever it was holding when the
+passes ran out — which is exactly what the first version of this did: **-15.0
+LUFS with 11.6 dB of limiting**, where 13.0 dB of lift had already delivered
+-14.9 with 8.2. So the loop keeps the **best** pass rather than the last, stops
+the moment a pass fails to improve on it, and re-renders the winner once at the
+end so the wav on disk is the one that was measured. What it reports is what the
+material can deliver, which here is about -14.9 LUFS, rather than what was asked
+for. A clip a decibel under target is a clip; a clip with twelve decibels of
+limiting on a nine word read is a pumping mess that measured well.
+
+### The guards the sound added
+
+The picture's guards are untouched. The new ones are all measured on a buffer or
+on the finished file: an audio track exists on the mp4; the read is over before
+the bubble arrives, on the waveform rather than on the word list; no sample of
+the read fell outside the clip; no effect was cut by the end of the file; no
+window where an effect is louder than the voice; the delivered loudness within
+1 LU of target and the true peak at or under the ceiling; the chirp count in the
+bus matches what the replies asked for, no reply under three notes, and one
+servo per eye turn.
 
 ## The sixth clip — the first one built on the new machine
 
@@ -1529,9 +1645,12 @@ right, which is the worst kind of wrong to ship.
 ## The library — `demo/lib/`
 
 Four pieces that are not a clip. Nothing in `lib/` is imported by `record.mjs`,
-`post2.mjs`, `post4.mjs`, `post5.mjs` or `og.mjs`. `post6.mjs` imports all but
-the analyzer. It exists so the next clip can have a voice, captions and pictures
-without inventing any of them from scratch on the day.
+`post2.mjs`, `post4.mjs` or `og.mjs`. `post6.mjs` imports all but the analyzer,
+and `post5.mjs` imports `lib/voice.mjs` and `lib/sfx.mjs` since its audio pass —
+it takes the voice and the sounds and none of the captions or pictograms, which
+is the point of them being four pieces. It exists so the next clip can have a
+voice, captions and pictures without inventing any of them from scratch on the
+day.
 
 Still zero dependencies beyond the two `demo/` already had. The voice module
 talks a websocket protocol by hand rather than adding `ws` or `edge-tts`, and
@@ -1922,7 +2041,7 @@ disagree about blinking.
 
 ### `lib/sfx.mjs` — synthesised sound
 
-Eight sounds, written in JavaScript sample by sample. **There is not one audio
+Ten sounds, written in JavaScript sample by sample. **There is not one audio
 file in the repo**, for the same reason the pictograms are drawn in code and the
 mascot is an inline SVG: a sample pack is a dependency with a licence, a
 download and a folder of binaries in a public repo, and it sounds like everybody
@@ -1955,6 +2074,25 @@ always: a buffer that starts or stops at a non zero sample is a click, and a
 click is the one artefact that survives every codec between here and a phone
 speaker. The noise source is a seeded xorshift, so a render produces the same
 file twice.
+
+**The tenth sound is a character rather than a thing, and it is the exception
+that proves the set.** Everything above stands in for paper, ink, metal or a
+mechanism; `chirp` stands in for a small robot deciding to say something. It is a
+sine gliding up inside its own 90ms with a third harmonic a quarter under it, low
+passed at 3.4k, so what comes out is a rounded boop rather than the piezo beep
+every other clip on the feed uses. The glide is the design: a tone that rises has
+asked a question or agreed with you, and a tone that sits still is a smoke
+detector. A character voice is allowed to be the brightest thing in a dull set
+without actually being bright.
+
+`chirpPhrase` builds a reply out of it, and it is the one function here that lays
+out a grid of its own. That exception is bounded and worth stating: the phrase's
+**start** is a bubble's own entrance, handed in by the clip from its own beat
+list, and its **length** is read off the reply's copy — the note count is the word
+count with a floor of three. Only the spacing between notes inside the phrase is
+invented, because no plan in the repo knows it. `confident` is the second reply
+from the same mascot: a tone lower and wider steps, so it spans more than an
+octave where the first spans a fifth. Same voice, more of an opinion in it.
 
 `cuesFromScenes` reads the scene plan **by shape and step kind, never by a part's
 name**, so a clip that draws a coin gets a coin landing without telling this file

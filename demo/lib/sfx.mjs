@@ -120,7 +120,7 @@ function ends(buf, ms = 2) {
 }
 
 /* ---------- the sounds ----------
-   eight of them, and each one is two or three lines of physics.
+   ten of them, and each one is two or three lines of physics.
 
    the whole set is deliberately dull. a caption card gets a thump with no top
    end at all, because the thing it is announcing is a word appearing, not a
@@ -247,6 +247,37 @@ export const VOICES = {
     }
     return ends(normalise(bp(b, 260, 2600)));
   },
+  /* the mascot answering. the tenth sound, and the first one in the set that
+     stands in for a character rather than for a thing: everything above is
+     paper, ink, metal or a mechanism, and this is a small robot deciding to
+     say something. it is one note; a reply is several of them and
+     `chirpPhrase` below is what builds the sequence.
+
+     the recipe is a sine that glides up inside its own ninety milliseconds
+     with a third harmonic a quarter under it. the glide is what makes it read
+     as friendly rather than as an alarm — a tone that rises has asked a
+     question or agreed with you, and a tone that sits still is a smoke
+     detector — and the third is what keeps it plastic rather than pure.
+
+     it is low passed at 3.4k on purpose. this set is dull by design and a
+     character voice is allowed to be the brightest thing in it without
+     actually being bright: what comes out is a rounded boop rather than the
+     piezo beep every other clip on the feed uses.
+
+     three milliseconds of attack rather than none. a boop that starts on the
+     sample is a click with a tone after it, and at these levels a phone
+     speaker reproduces the click better than the tone. */
+  chirp({ len = 0.09, f0 = 620, f1 = 880, tau = 0.048, glide = 0.5, third = 0.22 } = {}) {
+    const b = n(len);
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = Math.min(1, (i / b.length) / glide);
+      ph += 2 * Math.PI * (f0 + (f1 - f0) * (q * q * (3 - 2 * q))) / SR;
+      b[i] = (Math.sin(ph) + Math.sin(ph * 3) * third)
+        * decay(i, tau) * Math.min(1, i / (0.003 * SR));
+    }
+    return ends(normalise(lp(b, 3400)));
+  },
   /* a check being drawn. the one sound allowed above a kilohertz, and it is a
      soft one: a fundamental with a fifth over it, low passed hard enough that
      what is left is a tap with a pitch rather than a chime. */
@@ -303,6 +334,12 @@ export const GAINS = {
      acknowledging an instruction, not an object hitting a surface, and at -26 it
      is present under a word without ever being the thing you hear. */
   servo: -26,
+  /* the chirp sits between the caption pop and the click: it is the loudest
+     thing in the clip it belongs to, because it is the answer, and it is still
+     two decibels under the click, because it is a small robot rather than a
+     large one. it is a character speaking, so if it ever meets a narrator the
+     duck is what keeps it out of the way, not this number. */
+  chirp: -28,
 };
 const db = v => Math.pow(10, v / 20);
 export const dbfs = v => (v <= 1e-9 ? -Infinity : 20 * Math.log10(v));
@@ -317,6 +354,50 @@ export function cuesFromCaptions(plan) {
     kind: g.big ? 'popDeep' : 'pop',
     from: 'card "' + g.words.map(w => w.word).join(' ') + '"',
   }));
+}
+
+/* ---------- the mascot's reply ----------
+   a phrase of chirps for one bubble, and the only function here that lays out a
+   grid of its own. that is a real exception to this file's rule and it is worth
+   being clear about where it stops: the phrase's **start** is the bubble's own
+   entrance, handed in by the clip from its own beat list, and its **length** is
+   read off the reply's copy. what is invented is only the spacing between the
+   notes inside it, which is not a thing any plan in the repo knows.
+
+   the count is the reply's word count with a floor of three, so a longer answer
+   is a longer answer without anybody typing a number, and three is the fewest
+   notes that read as a phrase rather than as a single beep. change the copy in
+   the bubble and the mascot says more or less of it.
+
+   the intonation is the design. every note glides up inside itself and each one
+   starts higher than the last, which is what a friendly answer sounds like in
+   any language that has one. `confident` is the second reply from the same
+   mascot: it starts a tone lower and climbs in wider steps, so the phrase covers
+   more than an octave where the first covers a fifth. same voice, more of an
+   opinion in it — not a second sound.
+
+   nothing here rings. a note plus its gap is 130ms, so even a six word reply is
+   under eight tenths of a second and the pill is still springing when the last
+   boop lands. */
+export function chirpPhrase(t, text, { confident = false, note = 0.085, gap = 0.045 } = {}) {
+  const words = String(text).trim().split(/\s+/).filter(Boolean).length;
+  const count = Math.max(3, words);
+  const base = confident ? 540 : 620;
+  const step = confident ? 1.18 : 1.13;
+  const lift = confident ? 1.45 : 1.40;
+  const cues = [];
+  for (let i = 0; i < count; i++) {
+    const f0 = base * Math.pow(step, i);
+    cues.push({
+      t: +(t + i * (note + gap)).toFixed(4),
+      kind: 'chirp',
+      opts: { len: note, f0: +f0.toFixed(1), f1: +(f0 * lift).toFixed(1) },
+      from: 'reply "' + text + '", note ' + (i + 1) + ' of ' + count,
+    });
+  }
+  /* where the phrase finishes, so a clip that wants to put a full stop under it
+     has a time to put it on rather than a number to guess. */
+  return { cues, count, words, end: +(t + count * (note + gap)).toFixed(4) };
 }
 
 /* ---------- cues from the scene plan ----------

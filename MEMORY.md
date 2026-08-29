@@ -6,6 +6,32 @@ names in here either.
 
 ## Status
 
+- **Sound added 2026-08-29 to `demo/post5.mjs`, and the picture did not move.**
+  post5 shipped silent on 2026-08-26 and was planned that way. It now carries
+  **the read, ten servos, six pops, seven chirps and a ding inside the mp4** —
+  **10.50s, 60fps, 1080x1920, 630 frames, 0.57 MB**, delivered at **-14.9 LUFS /
+  -1.0 dBTP** with no music. **The live site did not change**; nothing outside
+  `demo/` was touched.
+  - **The frame is byte for byte the frame that was signed off, and that is
+    measured rather than asserted.** The run's state json — every box, every
+    fit, both safe area samples, `gazeJump` 0.582 at 2.38s, `blinkJump` 0.296 at
+    3.05s, 7 blinks, 10 turns, 10 holds, `eyeMax` 5.63 — is **identical** to the
+    silent cut's. The video encode is unchanged and provably bit deterministic.
+    Chrome's jpeg capture is *not* reproducible run to run, so decoded pixels
+    differ between any two renders: the 26 Aug silent cut against a control
+    rendered today off the **unmodified** code is 58.34 dB PSNR, and the original
+    code against the sound cut is **59.17 dB**, which is closer. The change sits
+    inside the capture noise. See Decisions.
+  - **The mascot answers in beeps and says no words**, which is the design and
+    also the only version of it that is funny. The house voice reads the
+    question on screen; the mascot replies in chirps built from the bubble's own
+    copy. The tenth sound in `lib/sfx.mjs` is `chirp` and it is the first one in
+    the set that stands in for a character rather than for a thing.
+  - **Two mix lessons came out of it and they apply to every clip after it**: a
+    sample peak limiter does not hold a true peak, and past a point more gain
+    buys *less* loudness. Both are in Decisions and both are now in the file.
+  - **`demo/README.md` carries it** as The fifth clip's sound. **Not posted
+    anywhere, on any platform.**
 - **Built, fix passed and then word changed 2026-08-28: `demo/post10.mjs`, the
   tenth clip, "the rage clip", the first one that is dark and the first with no
   accent in it anywhere.** **13.17s, 60fps, 1080x1920, 790 frames, 4.11 MB
@@ -560,11 +586,16 @@ tag doing the platform: `#techtok` for reach, `#automation` for the feed we want
   starts over the bubble by about half a second. Either it is deliberate overlap or 4.4
   wants to be 4.9. Not changed here; the render was not touched for it.
 
-#### post5 — built 2026-08-26, plan locked 2026-08-27, posts 2026-08-28
+#### post5 — built 2026-08-26, plan locked 2026-08-27, sound added 2026-08-29
 
-The clip is rendered. Everything below is the plan Einz set, not something measured
-here, except the cue timings, which were checked against the render and carry a
-correction.
+The clip is rendered and, since 2026-08-29, **it has its sound inside the mp4**.
+Everything below is the plan Einz set, not something measured here, except the
+cue timings, which were checked against the render and carry a correction, and
+the sound, which was built and measured on 2026-08-29 and is marked where it
+departs from the plan.
+
+**It has not been posted.** An earlier version of this heading said it posts
+2026-08-28; nothing went out.
 
 - **Caption:** `what is the most boring part of your business? tell us in comments. we
   will tell you if ai can fix it.`
@@ -576,17 +607,44 @@ correction.
 - **Hashtags: not written yet, on any platform.** The house rule below still stands —
   exactly three lowercase per platform — so this is three tags times three platforms
   still owed, not a decision to skip them.
-- **Music: classical, low, under everything.** Not named the way post4 named Vivaldi's
-  Spring. That is the base recipe unchanged, so anything classical and quiet fits.
-- **No voice line, and that is deliberate.** post4 planned three voice marks and a
-  logo per beat. This clip has none: the mascot searching the room is the performance,
-  and a narrator over it would explain a joke that works by being silent. It also
-  makes post4's "one timing to check" moot here, and it means the TTS shortlist below
-  is not needed for this post.
-- **Servo cues, locked:** `1.00 1.85 2.60 3.40 4.05 4.85 6.45 7.25 9.75 10.50`
-
-  Ten cues for ten eye turns, and they match the render exactly — this is the list
-  `node post5.mjs` prints, not a hand transcription.
+- **Music: none, and that reverses the plan.** The plan said classical, low, under
+  everything, unnamed. The 2026-08-29 pass dropped it: ten and a half seconds now
+  carry a read, ten servos, six pops and two chirp phrases, and a bed under that
+  is a fourth thing competing rather than a floor. **This is a subtraction from
+  the recipe in this clip only** — the recipe itself is unchanged for the clips
+  that have not been built.
+- **A voice line, and it reverses the other half of the plan.** The plan said no
+  narrator at all, because the mascot searching the room is the performance and a
+  voice over it would explain a joke that works by being silent. That reasoning
+  survives and the design honours it: **the mascot still says no words.** What
+  reads the line is the house narrator reading the **question that is already on
+  the screen**, which explains nothing the viewer cannot see, and it stops
+  1.11 seconds before the bubble arrives so it never speaks over an answer.
+  - `en-US-AndrewNeural`, the `calm` default in `lib/voice.mjs`, rate `-8%`,
+    pitch `-2Hz`. Nine words, timings from the engine.
+  - The script is `STATEMENT.join(' ')` rather than a second copy of the line, so
+    the read cannot come to disagree with the frame.
+  - **Placed by one number**: the first word lands on 1.15s, the frame the
+    statement stops scrambling. The read runs 1.15 to 3.39 **measured on the
+    waveform**, not on the word list.
+- **The mascot answers in beeps.** One chirp phrase per bubble, built from that
+  bubble's own copy: the note count is the reply's word count with a floor of
+  three. `tell us.` gets three notes over 0.39s from 4.60; `we will fix it.` gets
+  four over 0.52s from 7.00, a tone lower and in wider steps so it spans more
+  than an octave where the first spans a fifth, and it lands on the set's `ding`
+  because that line is the clip's answer and an answer stops.
+- **Twenty three effects, and the mix**: 10 servo, 4 pop, 7 chirp, 1 popDeep,
+  1 ding. **-14.9 LUFS / -1.0 dBTP**, 8.2 dB of limiting at its hardest, effects
+  18.8 dB under the voice at their closest in all 96 windows a word is being
+  spoken in. No music track.
+- **Servo cues, and this is now settled in code rather than in prose.** The list
+  this section used to carry — `1.00 1.85 2.60 3.40 4.05 4.85 6.45 7.25 9.75
+  10.50` — is the times each turn **finishes**. The servos in the file sit on the
+  **starts**: `0.55 1.35 2.15 2.95 3.60 4.35 6.10 6.75 9.30 10.20`. `post5.mjs`
+  derives both from `EYE_KEYS` and prints the windows as pairs, so the label that
+  used to say "servo cues" over a list of end times is gone. The warning below is
+  kept because it is the reasoning, and because any other clip cutting to an eye
+  track has the same trap waiting for it.
 
 - **Read the cue list before you cut to it.** Those ten numbers are the times each
   turn **finishes**, not the times it starts. The eyes ease from the previous key to
@@ -605,9 +663,11 @@ correction.
   gets cut off by the end of the file, which is either fine or a reason to drop that
   cue to nine.
 
-  `post5.mjs` prints this list under the label "servo cues", which is what would
-  mislead. The label is wrong, the numbers are right, and nothing about the render
-  changes either way.
+  **Both consequences are handled in the file as of 2026-08-29.** The servos are
+  placed on the window starts, and the tenth one at 10.20 fits its whole 90ms
+  before the last frame — what reaches 10.50 is a tail 46 dB down rather than a
+  chopped sound. The misleading label is gone: the run prints the windows as
+  pairs. The render itself never changed for any of this.
 - **Posting rule for this format, new and house wide:** a clip that asks the viewer a
   question gets **a reply to every comment, same day**, and the replies are **dry
   mascot one liners** — the bubble's voice, not a brand account's. This is the first
@@ -884,12 +944,17 @@ record. This closes the open question the file has carried since post1.
 
 #### Sound recipe — both posts
 
-The clip's audio signature. Same recipe on post1 and post2, and it carries to post3,
-post4 and post5 unless something in the scene changes. post4 names the music — Vivaldi,
+The clip's audio signature. Same recipe on post1 and post2, and it carries to post3
+and post4 unless something in the scene changes. post4 names the music — Vivaldi,
 Spring — where the line below only said "classical"; that is a choice inside the
-recipe, not a change to it. post5 stays unnamed and adds one subtraction: **no voice
-line at all**, so the servo on the eye turns is the loudest thing in the mix. Nothing
-else in the recipe moves.
+recipe, not a change to it.
+
+**post5 was built on this recipe and then departed from it on 2026-08-29, in its
+own scope only.** It dropped the music and added a read of the question, and it
+added a sound the recipe never had: **the mascot answering in chirps**. The rest
+of the recipe held — servo on the eye turns, pop on the bubbles, ding on the
+close. The recipe below is unchanged for the clips that have not been built; see
+post5 under Socials for what that clip actually carries.
 
 - **classical restaurant music, low volume, under everything** — the brand sound, and
   the only thing that runs for the whole clip
@@ -925,12 +990,16 @@ Still no posting cadence or content pillars. See Next steps.
   re-encodes. Frames under `out/frames-post4`, state under
   `out/post4-1080x1920.json`, verify stills under `out/verify-post4`. About two
   and a half minutes end to end.
-- **`demo/post5.mjs`**, added 2026-08-26: the fifth clip, `what is the most
-  boring part of your business?`. Ten and a half seconds at 60fps, **vertical
-  only**, out to `demo/out/post5-1080x1920.mp4`. `DEMO_FPS=12` previews it,
-  `--encode-only` re-encodes. Frames under `out/frames-post5`, state under
-  `out/post5-1080x1920.json`, verify stills under `out/verify-post5`. About
-  ninety seconds end to end, the fastest of the clips because it is the shortest.
+- **`demo/post5.mjs`**, added 2026-08-26, **sound added 2026-08-29**: the fifth
+  clip, `what is the most boring part of your business?`. Ten and a half seconds
+  at 60fps, **vertical only and with the read and the mascot's beeps inside the
+  mp4**, out to `demo/out/post5-1080x1920.mp4`. `DEMO_FPS=12` previews it,
+  `--encode-only` re-mixes and re-encodes. Frames under `out/frames-post5`, state
+  under `out/post5-1080x1920.json`, verify stills under `out/verify-post5`, the
+  mix at `out/post5-mix.wav`. About ninety seconds end to end, the fastest of the
+  clips because it is the shortest. It imports `lib/voice.mjs` and `lib/sfx.mjs`
+  and neither `lib/captions.mjs` nor `lib/pictograms.mjs`: it has no captions and
+  no scene layer, which is the point of the library being four pieces.
 - **`demo/post6.mjs`**, added 2026-08-27: the sixth clip, `3 things ai should not
   do in your business`. Twenty two seconds at 60fps, **vertical only and with the
   voice inside the mp4**, out to `demo/out/post6-1080x1920.mp4`. `DEMO_FPS=12`
@@ -1074,7 +1143,8 @@ Still no posting cadence or content pillars. See Next steps.
   `demo/lib/sfx.mjs`, `demo/README.md`, `demo/package.json`.
   **`demo/README.md` carries post10** — a section of its own, an index line, and
   a paragraph under Why demo/ is safe about `demo/music/` being licensed audio
-  that is never pushed. **Its own tracked list in that section is stale** and has
+  that is never pushed. **It also carries post5's audio pass** as The fifth
+  clip's sound, with the two mix lessons it paid for. **Its own tracked list in that section is stale** and has
   been since post7: it names twelve of the eighteen tracked files. It is now
   labelled as stale and points here, because this list is the one that is kept
   current; rewriting it was not this session's work.
@@ -1332,6 +1402,158 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-08-29 — post5 gets a voice it was designed not to have, and the mascot beeps
+
+**The brief was sound only: fill post5's silence and do not move a pixel.** That
+held. The frame is the frame that was signed off on 2026-08-26 and the proof is
+below. What follows is what the sound is, and the three things building it
+taught the pipeline.
+
+**The mascot does not speak, and that is the whole design.** post5's plan said no
+narrator at all, because a mascot searching a room for an answer is the
+performance and a voice over it explains a joke that works by being quiet. That
+reasoning is right and it is preserved by *inverting* who talks. The house voice
+reads **the question that is already on the screen** — it adds no information, it
+is the caption said out loud — and the mascot answers in **beeps**, which is the
+one register that can reply without explaining. He never says a word.
+
+**The read is placed by one number and the number was already in the file.**
+`DECODE_MS`, 1150, is how long the statement takes to stop scrambling. It used to
+live inside the page's own serialised script; it now lives at the top of
+`post5.mjs` and reaches the page through `__CFG`, because the sound needs it too.
+The first word lands on it. One constant, two consumers, and "the read starts
+when the text is readable" is a fact about the file rather than a caption on a
+hand typed offset. The read ends at 3.39 and the bubble arrives at 4.50, so there
+is 1.11s of silence before the answer and **the run fails if that ever inverts**.
+
+**The chirp is the tenth sound in `lib/sfx.mjs` and the first character in it.**
+Everything else in the set stands in for paper, ink, metal or a mechanism. This
+stands in for a small robot deciding to say something: a sine gliding up inside
+its own 90ms with a third harmonic a quarter under it, low passed at 3.4k so it
+is a rounded boop rather than the piezo beep every other clip on the feed uses.
+The glide is what makes it friendly — a tone that rises has asked a question or
+agreed with you, a tone that sits still is a smoke detector.
+
+**`chirpPhrase` is derived from the copy, not written.** The note count is the
+reply's word count with a floor of three. `tell us.` is two words and gets three
+notes; `we will fix it.` is four and gets four. Change the bubble's copy and the
+mascot says more or less of it. The second phrase is `confident` — starts a tone
+lower, climbs in wider steps, spans more than an octave where the first spans a
+fifth — and it lands on the set's existing `ding` rather than a fifth boop,
+because that line is the clip's answer and an answer stops. Two bubbles, two
+distinct phrases, and the difference between them is one boolean.
+
+**The servos are on the starts of the turns, and that closes an open note.** This
+file has been carrying a warning in prose since 2026-08-27 that post5's locked
+cue list is the times each eye turn *finishes*, so a servo on those numbers lands
+half a second late as the eyes stop moving. `post5.mjs` now derives the ten
+windows from `EYE_KEYS` itself and places the sound on the left hand number, and
+the editor's card prints the windows as pairs instead of a list under a label
+that said "cue". The prose warning could be got wrong twice; the code cannot.
+**It also fixed the tenth cue for free**: the last turn ends at 10.50, past the
+last frame, so a servo there would be cut in half — on 10.20 the whole 90ms fits
+and what reaches the final frame is a tail 46 dB down. The loop point has no
+click in it: frame zero is digital silence.
+
+**No music, in this clip only.** The recipe's classical bed is the one line this
+pass drops. Ten and a half seconds already carry a read, ten servos, six pops and
+two robot phrases, and a bed under that is a fourth thing competing rather than a
+floor. The recipe under Socials is unchanged for the clips that have not been
+built.
+
+### 2026-08-29 — a sample peak limiter does not hold a true peak
+
+**The first mix passed every check and delivered -0.6 dBTP against a ceiling this
+repo says is -1.0.** `limit()` in `lib/sfx.mjs` is a sample peak limiter, which is
+what it should be — the alternative is an oversampler — and it held the sample
+peak on -1.00 exactly. The **true** peak, the one a resampler reconstructs
+*between* two samples and the one every platform measures, was four tenths of a
+decibel over, because a heavily limited waveform is flat topped and flat tops
+have big intersample peaks.
+
+post6 and post7 never met this: they iterate on loudness alone and hand `limit`
+the delivery ceiling directly, and it works until the lift gets large. post5's
+lift is large — see the next entry.
+
+**The fix is the discipline this file already had, applied to the axis it was
+missing.** The ceiling handed to the limiter is pulled down by whatever the
+measured true peak overshot by, read off the written wav with `ebur128` rather
+than argued from the buffer, one axis adjusted per pass so the two do not chase
+each other. It converged on this clip with the ceiling still at -1.00, because
+the second fix below reduced the lift enough that the overshoot went away.
+
+**`lib/sfx.mjs` was not changed for it.** The loop lives in `post5.mjs` and post6
+and post7 still have their own. Whether it belongs in the library is a decision
+for whoever writes the next clip, not something to retrofit into two signed off
+mixes while working on a third.
+
+### 2026-08-29 — more gain stops buying loudness, and then costs it
+
+**The second version of the mix pass was worse than the first and measured
+better.** Both hit the target within tolerance. The one that got kept is 0.1 LU
+quieter and has **3.4 dB less limiting on it**.
+
+post6's and post7's loudness pass assumes more gain buys more loudness and stops
+when it lands on target. That assumption has a limit and this clip reaches it,
+because the read is two seconds inside ten and a half so the mix is **-22.5 LUFS
+at unity** and needs about thirteen decibels. Run out by hand, the search goes:
+
+```
+  lift +13.0  ->  -14.90 LUFS,  8.2 dB of limiting
+  lift +13.9  ->  -14.80 LUFS,  9.1 dB
+  lift +17.7  ->  -16.00 LUFS, 13.4 dB
+  lift +21.5  ->  -15.50 LUFS, 17.2 dB
+```
+
+Past about fourteen decibels the limiter flattens the syllables faster than the
+gain raises them. Asking for another decibel comes back **a decibel quieter with
+four more decibels of squash on it**, and a loop that only ever adds gain walks
+straight past its own best answer and reports whatever it happened to be holding
+when the passes ran out. That is exactly what happened: -15.0 LUFS with 11.6 dB
+of gain reduction, when +13.0 had already delivered -14.9 with 8.2.
+
+**So the loop keeps the best pass rather than the last one**, stops the moment a
+pass fails to improve on it, and re-renders the winner once at the end so the wav
+on disk is the one that was measured. "Best" means closest to target **among the
+passes that held the true peak**, because loudness bought by going over the
+ceiling is not loudness we get to keep.
+
+**What it reports is what the material can deliver**, which here is about -14.9
+LUFS, rather than what was asked for. That is the point. A clip a decibel under
+target is a clip; a clip with twelve decibels of limiting on a nine word read is
+a pumping mess that measured well.
+
+### 2026-08-29 — proving a picture did not move, when the renderer is not reproducible
+
+**Chrome's `Page.captureScreenshot` does not produce the same jpeg twice.** This
+was found trying to prove the audio pass changed nothing: the decoded pixel
+hashes of the new cut differ from the 26 August silent cut on **all 630 frames**,
+which looks alarming and means nothing.
+
+The control settles it. Rendering the **unmodified** code today, off `git stash`,
+and comparing it to the 26 August cut gives **58.34 dB PSNR**. Comparing that same
+unmodified render to the sound cut gives **59.17 dB** — the sound cut is *closer*
+to the original code's output than two runs of the original code are to each
+other. The delta is sub quantiser capture noise and it is there whether anything
+changed or not.
+
+**So a frame hash is the wrong instrument and there are two right ones.**
+
+1. **The run's own state json.** It carries every measured box to a tenth of a
+   pixel, both safe area samples, the fits, and the animation extrema as full
+   precision floats: `gazeJump` 0.582 units at 2.38s, `blinkJump` 0.296 at 3.05s,
+   7 blinks, 10 turns, 10 holds, `eyeMax` 5.63. It is **byte identical** between
+   the silent cut and the sound cut. If any layout or any eased value had moved by
+   a float, those numbers would not survive it.
+2. **A re-encode of the same frames.** Feeding the kept jpegs back through the
+   same arguments produced an md5 identical to the shipped mp4, which proves the
+   video settings did not move and that the encode itself is deterministic. Only
+   `-an` left and 192k aac arrived.
+
+**The lesson for the next audio only pass**: diff the state json and re-encode the
+frames. Do not diff the pixels, and do not panic when they differ.
+
 
 ### 2026-08-28 — post10 says `ai`: one word, one take, and what a cache is for
 
@@ -3052,13 +3274,16 @@ of them.
   **post3, "missed calls", is still unbuilt** and still wants building. Caption,
   tweet, tags, music and the voice plan are all decided and written down under
   Socials. Not posted yet.
-- **post5, "what is the most boring part of your business?", is built and its plan
-  is locked** — built 2026-08-26 (`demo/post5.mjs`, `990b206`), plan locked
-  2026-08-27, **posts 2026-08-28.** Caption, music, the servo cues and a posting
-  rule are all under Socials. It jumped post3 too, so **post3, "missed calls", is
-  now two clips behind and still unbuilt.** Two things still owed before it goes
-  out: **the three hashtags per platform**, and **the mix, which must read the cue
-  timing note** — the locked numbers are turn ends, not turn starts.
+- **post5, "what is the most boring part of your business?", is built, its plan
+  is locked and it now has its sound in the file** — built 2026-08-26
+  (`demo/post5.mjs`, `990b206`), plan locked 2026-08-27, sound added 2026-08-29.
+  **Not posted.** Caption and a posting rule are under Socials. It jumped post3
+  too, so **post3, "missed calls", is now two clips behind and still unbuilt.**
+  - **The mix is no longer owed and neither is the cue timing note.** Both are in
+    the mp4: -14.9 LUFS / -1.0 dBTP, no music, and the servos sit on the turn
+    starts because `post5.mjs` derives them rather than being told.
+  - **Still owed before it goes out: the three hashtags per platform.** That is
+    the only thing on this clip's list now.
 - **post7, "one tip for your business", is built and pushed** — 2026-08-27,
   `demo/post7.mjs`, `3874b6c`. 10.22s, voice and effects in the file. Caption, tweet
   and three tags per platform are written down under Socials. **Not posted.** It
