@@ -1,0 +1,625 @@
+/* the boring tek — the mascot state test.
+
+   twenty seconds, all seven states in order, three of them carrying a bubble,
+   over a plain background with no voice. rendered twice, light and dark, so the
+   two themes can be put side by side rather than described.
+
+     node mascot-test.mjs                    both themes, 1080x1920, 60fps
+     node mascot-test.mjs light              just one of them
+     DEMO_FPS=12 node mascot-test.mjs        the fast preview pass
+     node mascot-test.mjs --blur             60fps with the shutter open
+     node mascot-test.mjs --blur=6           a wider shutter
+     node mascot-test.mjs --encode-only      re-encode from kept frames
+
+   **there are exactly two outputs and they are always the same two paths**,
+   overwritten every run:
+
+     demo/out/mascot-light.mp4
+     demo/out/mascot-dark.mp4
+
+   nothing else is written. the resolution used to be in the name and for one
+   afternoon the chapter was too, and every time the cut changed that minted a
+   fresh pair while the old pair sat on disk looking current — which is exactly
+   how a review ends up watching a clip from an hour ago. the name says what it
+   is; the file's own timestamp says when it was made. a stale clip cannot
+   survive a render now, because the render lands on top of it.
+
+   this is not a post and it is not wired into one. it exists to answer two
+   questions, in one clip, in this order.
+
+   **the states** — do the nine read as nine different things at a glance, with
+   the sound off, at phone size.
+
+   **the turn** — does the flat three quarter turn read as a head turning rather
+   than as eyes sliding across a plate. the channel is swept from one end to the
+   other and back, so every value in between is on screen and not just the ends,
+   then three of the ordinary states are held at 0.6 to prove the turn composes
+   with them rather than replacing them. `turn-away` and `snap-back` are not
+   repeated in that half: they are already in the states run above, because they
+   are states.
+
+   the rig is captions-test.mjs's, which is post5.mjs's: a local server, headless
+   chrome under cdp virtual time, the rAF shim, `Page.captureScreenshot` with
+   `clip.scale` for device pixels, ffmpeg on the end, and a safe area measured
+   rather than assumed. three things are different.
+
+   1. **the background is deliberately nothing.** no wordmark, no captions, no
+      pictograms. the mascot is the thing being judged and anything else in the
+      frame would be the thing being looked at.
+
+   2. **there is sound, and it is not a voice.** the module emits two cues and
+      only two: a `pop` when a bubble arrives and a `ding` on the agreement
+      beat. both are in the file, because whether the ding lands on the nod is
+      one of the things this test is for.
+
+   3. **the caption band is passed in without being drawn.** a real clip
+      reserves a box for words; the bubble may not enter it. the band here is
+      where a caption box would sit above a bottom corner mascot, and the guard
+      measures the rendered bubble against it every quarter second. a clip that
+      puts its captions over the mascot's corner finds out here rather than in
+      a review. */
+
+import puppeteer from 'puppeteer-core';
+import ffmpeg from 'ffmpeg-static';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import {
+  planMascot, mascotFrame, mascotMotion, mascotCss, mascotMarkup, mascotRuntime,
+  mascotPagePlan, mascotCues, describeMascot, describeMotion, headRect, stillMoment,
+  STATE_NAMES, THEMES, STAGE, SAFE, HEAD_PX, BUBBLE, TURN,
+} from './lib/mascot.mjs';
+import { renderSfx, writeWav, limit } from './lib/sfx.mjs';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, '..');
+const OUT = path.join(HERE, 'out');
+const FRAMES = path.join(OUT, 'frames-mascot');
+const SUBS = path.join(OUT, 'subframes-mascot');
+const VERIFY = path.join(OUT, 'verify-mascot');
+
+const FPS = Number(process.env.DEMO_FPS || 60);
+const STEP = 1000 / FPS;
+const DSF = STAGE.dsf;
+const VW = STAGE.w, VH = STAGE.h;
+
+const argv = process.argv.slice(2);
+const ONLY_ENCODE = argv.includes('--encode-only');
+const KEEP = argv.includes('--keep-frames');
+const WANT = argv.filter(a => THEMES.includes(a));
+const CHAPTER_ARG = (argv.find(a => a.startsWith('--chapter=')) || '').split('=')[1];
+const BLUR_ARG = (argv.find(a => a.startsWith('--blur')) || '').split('=')[1];
+const BLUR = argv.some(a => a.startsWith('--blur'));
+/* four is where a 60fps shutter stops reading as four ghosts and starts reading
+   as one moving thing. post10's number, and the reason is the same one. */
+const SUB = BLUR ? Math.max(2, Math.min(12, Number(BLUR_ARG) || 4)) : 1;
+const SUBSTEP = STEP / SUB;
+
+/* ---------- the cut ----------
+   seven states in the order they were designed in, each given the room its own
+   entrance, hold and exit need plus a quarter second of air, and three bubbles
+   spread across them rather than bunched, then the turn put through its paces.
+   it is one plan rather than two because it is one output, and a mark is a mark
+   wherever it sits on the clock.
+
+   the copy is two words each. that is the rule; the guard's ceiling is four. */
+const BUBBLES = { curious: 'go on', agreeing: 'yes', delighted: 'shipped it', 'snap-back': 'what' };
+const HELD = 0.6;
+
+function cut() {
+  const marks = [];
+  /* every state, evenly spaced. two and three quarter seconds is the room the
+     longest of them needs plus a quarter second of air. */
+  let t = 0.55;
+  for (const state of STATE_NAMES) {
+    marks.push({ t: +t.toFixed(3), state, bubble: BUBBLES[state] || undefined });
+    t += 2.75;
+  }
+  /* the sweep, and it is the part of the second half that matters most: minus
+     one to plus one and back, each leg one tween whose window is nearly the
+     whole mark, so what is on screen is a continuous ramp through every value
+     rather than a walk between poses. the turn is the one channel no exit
+     resets, which is what lets four marks read as one move instead of four
+     fighting each other. */
+  for (const [turn, turnFor, room] of
+    [[-1, 1.50, 1.90], [1, 2.20, 2.60], [-1, 2.20, 2.60], [0.35, 1.20, 1.70]]) {
+    marks.push({ t: +t.toFixed(3), state: 'neutral', turn, turnFor });
+    t += room;
+  }
+  /* and three ordinary states held at a three quarter turn. none of them
+     mentions the turn — that is the point. if the composition works they are
+     recognisably themselves, at an angle. `thinking` carries a bubble there on
+     purpose: a bubble beside a turned head is the case where the safe area
+     guard has something to say. */
+  for (const [state, room, bubble] of
+    [['surprised', 2.50, null], ['thinking', 2.70, 'one sec'], ['delighted', 2.60, null]]) {
+    marks.push({ t: +t.toFixed(3), state, turn: HELD, bubble: bubble || undefined });
+    t += room;
+  }
+  return { marks, seconds: +t.toFixed(3) };
+}
+
+/* where a caption box would sit in a clip that also carries this mascot: above
+   the bottom corner, clear of it. the bubble may not enter it and the render
+   measures that rather than trusting this comment.
+
+   it moved up sixty px when the thought bubble replaced the filled one, and the
+   guard is what said so — thirty three hits on the first render. the old bubble
+   sat beside the head; this one climbs above it the way the site's does, so the
+   cluster now reaches to about y 672 and a band starting at 392 ran straight
+   through the pill. the band moved rather than the bubble, because climbing is
+   what the site does and what the brief asked for. what this really records is
+   the constraint a clip inherits: a mascot in the bottom corner owns the frame
+   up to about 670, and captions live above that. */
+const BAND = { x: 48, y: 330, w: VW - 96, h: 300 };
+
+const CHROME = [
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  '/usr/bin/google-chrome', '/usr/bin/chromium',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+].find(p => { try { return fs.existsSync(p); } catch { return false; } });
+
+/* ---------- the scene ----------
+   the page's own two themes as tokens, and nothing else in the frame. `--body`
+   is the caption face, because the bubble is a caption. */
+function sceneHtml(plan, theme) {
+  return `<!doctype html>
+<html lang="en" data-theme="${theme}">
+<head>
+<meta charset="utf-8">
+<title>mascot</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#ffffff; --fg:#0b0d10;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --body:"Space Grotesk",var(--mono);
+}
+[data-theme=dark]{ --bg:#06070a; --fg:#d5dbd8; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow:hidden;background:var(--bg)}
+body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
+.stage{position:relative;width:${VW}px;height:${VH}px}
+/* load bearing, not decoration. with nothing animating at all chrome stops
+   producing compositor frames and the screenshot call blocks on frame one
+   forever — post2.mjs found this and every clip in demo/ has carried something
+   like it since. the background here is meant to be nothing, so this is two
+   pixels off frame rather than the vignette the posts use. */
+.tick{position:absolute;left:-20px;top:-20px;width:2px;height:2px;background:var(--bg);
+  will-change:transform;animation:tick 34s cubic-bezier(.45,0,.55,1) infinite alternate}
+@keyframes tick{from{transform:translate3d(0,0,0)}to{transform:translate3d(1px,0,0)}}
+${mascotCss(plan)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="tick"></div>
+${mascotMarkup(plan)}
+</div>
+<script>
+window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(plan))};
+${mascotRuntime()}
+document.fonts.load('500 1em "Space Grotesk"')
+  .then(() => document.fonts.ready)
+  .then(() => { window.__built = window.__mas.build(); });
+</script>
+</body>
+</html>`;
+}
+
+/* ---------- the rAF shim ----------
+   nothing in this scene animates by hand — node holds the whole animation and
+   the page writes what it is handed. the shim is installed and flushed once per
+   capture anyway, so the layer runs under the same clock everything else in
+   demo/ runs under from the day it is dropped into a real clip. a shim that
+   only appears when it is needed is a shim nobody tests. */
+function injected() {
+  let seed = 0x51d0c3a7;
+  Math.random = function () {
+    seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; seed |= 0;
+    return (seed >>> 0) / 4294967296;
+  };
+  const rafQ = [];
+  let rafId = 1;
+  window.requestAnimationFrame = function (cb) { rafQ.push({ id: rafId, cb: cb }); return rafId++; };
+  window.cancelAnimationFrame = function (id) {
+    const k = rafQ.findIndex(function (e) { return e.id === id; });
+    if (k > -1) rafQ.splice(k, 1);
+  };
+  window.__dmRaf = function (now) {
+    const batch = rafQ.splice(0, rafQ.length);
+    for (const e of batch) { try { e.cb(now); } catch (err) { } }
+    return rafQ.length;
+  };
+}
+
+function serve(html) {
+  const srv = http.createServer((req, res) => {
+    const p = decodeURIComponent(req.url.split('?')[0]);
+    if (p === '/' || p === '/index.html') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(html);
+    }
+    res.writeHead(404); res.end('not here');
+  });
+  return new Promise(r => srv.listen(0, '127.0.0.1', () => r({ srv, port: srv.address().port })));
+}
+
+/* ---------- render ---------- */
+async function render(theme, plan) {
+  if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
+  const frames = path.join(FRAMES, theme);
+  const subs = path.join(SUBS, theme);
+  for (const d of [frames, subs]) { fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); }
+  fs.mkdirSync(OUT, { recursive: true });
+
+  const N = Math.round(FPS * plan.seconds);
+  const { srv, port } = await serve(sceneHtml(plan, theme));
+  const browser = await puppeteer.launch({
+    executablePath: CHROME,
+    headless: true,
+    args: ['--hide-scrollbars', '--disable-lcd-text', '--font-render-hinting=none',
+      '--force-color-profile=srgb', '--disable-dev-shm-usage', '--mute-audio'],
+  });
+  const page = await browser.newPage();
+  await page.setViewport({ width: VW, height: VH, deviceScaleFactor: DSF });
+  await page.evaluateOnNewDocument(injected);
+  const cdp = await page.createCDPSession();
+  await cdp.send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'prefers-reduced-motion', value: 'no-preference' },
+      { name: 'prefers-color-scheme', value: theme },
+    ],
+  });
+
+  let expired = null;
+  cdp.on('Emulation.virtualTimeBudgetExpired', () => { const f = expired; expired = null; if (f) f(); });
+  const advance = async ms => {
+    const p = new Promise(r => { expired = r; });
+    await cdp.send('Emulation.setVirtualTimePolicy', { policy: 'pauseIfNetworkFetchesPending', budget: ms });
+    await p;
+  };
+
+  await cdp.send('Emulation.setVirtualTimePolicy', { policy: 'pause' });
+  await cdp.send('Page.navigate', { url: 'http://127.0.0.1:' + port + '/' });
+  for (let i = 0; i < 160; i++) {
+    const ok = await page.evaluate(() => !!(window.__mas && window.__mas.ready
+      && document.fonts.status === 'loaded')).catch(() => false);
+    if (ok) break;
+    await advance(STEP);
+  }
+  if (!await page.evaluate(() => !!(window.__mas && window.__mas.ready))) {
+    throw new Error('the mascot scene never became ready');
+  }
+  /* offline the bubble renders in the mono fallback and looks almost right,
+     which is the worst kind of wrong to judge a caption on. */
+  if (!await page.evaluate(() => document.fonts.check('500 20px "Space Grotesk"'))) {
+    throw new Error('Space Grotesk did not load — the bubble would be judged in the mono fallback');
+  }
+  const built = await page.evaluate(() => window.__built);
+  const caps = await page.evaluate(() => window.__mas.caps());
+  console.log('  built: head ' + built.headPx + 'px, caps ' + caps.capPx + 'px, '
+    + built.eyes + ' eyes, ' + built.brows + ' brows, ' + built.glows + ' glow layers');
+
+  /* the head's clearance is computed off every frame rather than sampled off
+     four a second, because it costs nothing to do it properly when the geometry
+     is known. the page is left with the bubble, which is a dom box and is
+     measured correctly by measuring it. */
+  let headWorst = null;
+  for (let f = 0; f < N; f++) {
+    const r = headRect(plan, mascotFrame(plan, f / FPS));
+    const near = Math.min(r.left, r.top, r.right, r.bottom);
+    if (!headWorst || near < headWorst.near) headWorst = { t: +(f / FPS).toFixed(2), near, ...r };
+  }
+
+  let safeWorst = null, samples = 0, bandHits = 0, bandWorst = null;
+  const wall = Date.now();
+
+  for (let f = 0; f < N; f++) {
+    for (let k = 0; k < SUB; k++) {
+      const idx = f * SUB + k;
+      const t = f / FPS + k / (FPS * SUB);
+      const frame = mascotFrame(plan, t);
+      await page.evaluate(fr => window.__mas.apply(fr), frame);
+      await page.evaluate(now => window.__dmRaf(now), (idx + 1) * SUBSTEP);
+
+      /* the safe area and the band, four times a second, on the whole frame
+         rather than on the subframe: the mascot moves constantly and one sample
+         proves nothing about the widest state. */
+      if (k === 0 && f % Math.max(1, Math.round(FPS / 4)) === 0) {
+        const sa = await page.evaluate((vw, vh) => window.__mas.bubbleSafe(vw, vh), VW, VH);
+        if (sa) {
+          samples++;
+          if (!safeWorst || Math.min(sa.left, sa.top, sa.right, sa.bottom)
+            < Math.min(safeWorst.left, safeWorst.top, safeWorst.right, safeWorst.bottom)) {
+            safeWorst = { t: +t.toFixed(2), ...sa };
+          }
+        }
+        const bd = await page.evaluate(() => window.__mas.band());
+        if (bd && bd.hit) { bandHits++; if (!bandWorst) bandWorst = { t: +t.toFixed(2), ...bd }; }
+      }
+
+      const shot = await cdp.send('Page.captureScreenshot', {
+        format: 'jpeg', quality: 94, captureBeyondViewport: false,
+        clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+      });
+      const file = SUB > 1
+        ? path.join(subs, 's' + String(idx).padStart(6, '0') + '.jpg')
+        : path.join(frames, 'f' + String(f).padStart(5, '0') + '.jpg');
+      fs.writeFileSync(file, Buffer.from(shot.data, 'base64'));
+      await advance(SUBSTEP);
+    }
+    if (f % 120 === 0) {
+      console.log('  ' + String(f).padStart(4) + '/' + N + '  t=' + (f / FPS).toFixed(2) + 's  '
+        + ((Date.now() - wall) / 1000).toFixed(0) + 's elapsed');
+    }
+  }
+
+  /* one still per state, at its settled moment, so the seven can be laid out
+     side by side and judged as a strip rather than as a video. the frame is
+     written explicitly every time, so re-applying an earlier one after the loop
+     renders exactly as it did. */
+  fs.mkdirSync(VERIFY, { recursive: true });
+  for (const m of plan.marks) {
+    const t = stillMoment(plan, m.bubble ? m.bubble.full + 0.06 : m.settled + 0.08);
+    await page.evaluate(fr => window.__mas.apply(fr), mascotFrame(plan, t));
+    const shot = await cdp.send('Page.captureScreenshot', {
+      format: 'png', captureBeyondViewport: false,
+      clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+    });
+    /* the index is in the name because a state can appear twice in one cut now:
+       `surprised` runs once straight on and once held at a turn, and two files
+       called the same thing would be one file. */
+    fs.writeFileSync(path.join(VERIFY, theme + '-' + String(m.i).padStart(2, '0') + '-' + m.state
+      + (m.turn != null ? '@' + m.turn : '') + '.png'), Buffer.from(shot.data, 'base64'));
+  }
+
+  const bubbleNear = safeWorst
+    ? Math.min(safeWorst.left, safeWorst.top, safeWorst.right, safeWorst.bottom) : null;
+  console.log('  head, worst of ' + N + ' frames at ' + headWorst.t + 's: '
+    + headWorst.left + ' left, ' + headWorst.top + ' top, ' + headWorst.right + ' right, '
+    + headWorst.bottom + ' bottom (floor '
+    + Math.min(SAFE.left, SAFE.top, SAFE.right, SAFE.bottom) + ')');
+  console.log('  bubble, worst of ' + samples + ' samples' + (safeWorst
+    ? ' at ' + safeWorst.t.toFixed(2) + 's: ' + safeWorst.left + ' left, ' + safeWorst.top
+      + ' top, ' + safeWorst.right + ' right, ' + safeWorst.bottom + ' bottom'
+    : ': never on screen at a sample'));
+  console.log('  the shadow reaches to ' + headWorst.shadowBottom
+    + 'px of the bottom and the glow another ' + headWorst.glowReach + 'px past the ink');
+  console.log('  caption band: ' + (bandHits ? bandHits + ' HITS' : 'never entered'));
+
+  await browser.close();
+  srv.close();
+
+  if (SUB > 1) blend(subs, frames, N);
+
+  const state = { theme, built, caps, head: headWorst, bubble: safeWorst,
+    samples, bandHits, bandWorst, bubbleNear };
+  fs.writeFileSync(path.join(OUT, 'mascot-' + theme + '.json'), JSON.stringify(state, null, 2));
+  return state;
+}
+
+function ff(args) { return execFileSync(ffmpeg, args, { stdio: ['ignore', 'pipe', 'pipe'] }).toString(); }
+
+/* ---------- the shutter ----------
+   the subframes are averaged into frames, which is what a shutter is: a frame
+   is the light that arrived over its own duration, not a sample of one instant.
+   `tmix` averages a sliding window and `framestep` throws away the ones that
+   straddle two output frames. post10's chain, unchanged. */
+function blend(subs, frames, N) {
+  console.log('  blending ' + N * SUB + ' subframes into ' + N + ' frames ...');
+  ff(['-y', '-hide_banner', '-loglevel', 'error',
+    '-framerate', String(FPS * SUB), '-i', path.join(subs, 's%06d.jpg'),
+    '-vf', 'tmix=frames=' + SUB + ',trim=start_frame=' + (SUB - 1)
+      + ',setpts=PTS-STARTPTS,framestep=' + SUB,
+    '-q:v', '2', path.join(frames, 'f%05d.jpg')]);
+}
+
+/* ---------- the two files ----------
+   always these two paths, always overwritten, and the render lands on top of
+   whatever was there. see the note at the top for why the name carries nothing
+   that can change. */
+function encode(tag, wav) {
+  const out = path.join(OUT, 'mascot-' + tag + '.mp4');
+  const args = ['-y', '-hide_banner', '-loglevel', 'error',
+    '-framerate', String(FPS), '-i', path.join(FRAMES, tag, 'f%05d.jpg')];
+  if (wav) args.push('-i', wav);
+  args.push('-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
+    '-r', String(FPS));
+  if (wav) args.push('-c:a', 'aac', '-b:a', '160k', '-shortest');
+  args.push('-movflags', '+faststart', out);
+  ff(args);
+  return out;
+}
+
+function probe(file) {
+  let out = '';
+  try { execFileSync(ffmpeg, ['-hide_banner', '-i', file], { stdio: ['ignore', 'pipe', 'pipe'] }); }
+  catch (e) { out = (e.stderr || '').toString(); }
+  const dur = out.match(/Duration:\s*(\d+):(\d+):([\d.]+)/);
+  const res = out.match(/,\s*(\d{2,5})x(\d{2,5})[\s,]/);
+  const fps = out.match(/([\d.]+)\s*fps/);
+  return {
+    seconds: dur ? (+dur[1] * 3600 + +dur[2] * 60 + parseFloat(dur[3])) : null,
+    w: res ? +res[1] : null, h: res ? +res[2] : null,
+    fps: fps ? parseFloat(fps[1]) : null,
+    audio: /Audio:\s*aac/.test(out),
+  };
+}
+
+/* ---------- go ---------- */
+console.log('the boring tek — mascot state test');
+const { marks, seconds } = cut();
+const themes = WANT.length ? WANT : THEMES;
+const plans = Object.fromEntries(themes.map(th =>
+  [th, planMascot({ marks, seconds, theme: th, band: BAND })]));
+const plan0 = plans[themes[0]];
+
+console.log(describeMascot(plan0));
+/* the render's own rate, for the log, and sixty for the guards. the entry,
+   overshoot and settle numbers are properties of the animation rather than of
+   the pass it is being sampled at: at the twelve frame preview an anticipation
+   that lasts four sixtieths falls inside one frame, and judging it there would
+   say the wind up is missing when what is missing is the sampling. */
+const rep = mascotMotion(plan0, FPS, seconds);
+console.log(describeMotion(rep));
+const rep60 = FPS === 60 ? rep : mascotMotion(plan0, 60, seconds);
+if (FPS !== 60) {
+  console.log('  and at sixty, which is what the motion guards read:');
+  console.log(describeMotion(rep60));
+}
+
+/* the sound. two kinds of cue, and it is rendered once because the states are
+   the same in both themes — a theme is colour and nothing else. */
+const cues = mascotCues(plan0);
+const { buf: sfx } = renderSfx(cues, seconds);
+const peak = limit(sfx, -1.0);
+const wav = path.join(OUT, 'mascot-sfx.wav');
+writeWav(wav, sfx);
+console.log('  sound: ' + cues.length + ' cues, peak ' + peak.peak + ' dBFS, '
+  + cues.map(c => c.kind + '@' + c.t.toFixed(2)).join(' '));
+
+const results = [];
+for (const theme of themes) {
+  console.log('\n' + theme);
+  const state = ONLY_ENCODE
+    ? JSON.parse(fs.readFileSync(path.join(OUT, 'mascot-' + theme + '.json'), 'utf8'))
+    : await render(theme, plans[theme]);
+  const file = encode(theme, wav);
+  results.push({ theme, state, file, probe: probe(file) });
+}
+
+console.log('\nrendered');
+const mb = f => (fs.statSync(f).size / 1e6).toFixed(2) + ' MB';
+for (const r of results) {
+  console.log('  ' + r.theme.padEnd(6) + r.probe.w + 'x' + r.probe.h + ' @' + r.probe.fps + 'fps  '
+    + r.probe.seconds.toFixed(2) + 's  ' + (r.probe.audio ? 'with sfx' : 'SILENT')
+    + '  ' + mb(r.file) + '  ' + path.relative(ROOT, r.file));
+}
+console.log('  the shutter is ' + (BLUR ? 'open, ' + SUB + ' subframes to a frame' : 'closed'));
+console.log('  a still per mark, both themes, in ' + path.relative(ROOT, VERIFY));
+
+if (!KEEP && !ONLY_ENCODE) {
+  fs.rmSync(FRAMES, { recursive: true, force: true });
+  fs.rmSync(SUBS, { recursive: true, force: true });
+}
+
+/* ---------- the guards ---------- */
+const fail = [];
+const floor = Math.min(SAFE.left, SAFE.top, SAFE.right, SAFE.bottom);
+for (const { theme, state, probe: p } of results) {
+  const t = theme + ': ';
+  if (p.w !== VW * DSF || p.h !== VH * DSF) fail.push(t + 'not ' + VW * DSF + 'x' + VH * DSF);
+  if (Math.abs(p.fps - FPS) > 0.5) fail.push(t + 'not ' + FPS + 'fps');
+  if (Math.abs(p.seconds - seconds) > 0.25) fail.push(t + p.seconds + 's, wanted ' + seconds);
+  if (!p.audio) fail.push(t + 'no audio track — the pop and the ding did not mux');
+  /* the head and the type, measured off what painted rather than off the plan's
+     arithmetic. */
+  if (state.built.headPx < HEAD_PX.min || state.built.headPx > HEAD_PX.max) {
+    fail.push(t + 'the head rendered at ' + state.built.headPx + 'px, window is '
+      + HEAD_PX.min + ' to ' + HEAD_PX.max);
+  }
+  if (state.caps.capPx < BUBBLE.minCap) {
+    fail.push(t + 'the bubble caps rendered at ' + state.caps.capPx + 'px, floor is ' + BUBBLE.minCap);
+  }
+  /* chrome floors border-width to a whole css pixel, so a fractional stroke
+     silently halves. this is the check that catches that, off the computed
+     style rather than off what was typed. */
+  if (state.built.strokePx < 3.5) {
+    fail.push(t + 'the bubble outline rendered at ' + state.built.strokePx + 'px, wanted four');
+  }
+  if (state.built.bubbleGapPx > 20) {
+    fail.push(t + 'the bubble sits ' + state.built.bubbleGapPx + 'px off the head, wanted about ten');
+  }
+  /* the safe area, against the drawn ink rather than against the box anything
+     was told to draw in, and the head and the bubble are checked separately
+     because they are measured differently and for good reason. the glow is in
+     neither: a thirty pixel blur crossing a safe line is not ink crossing it. */
+  if (state.head.near < floor - 0.5) {
+    fail.push(t + 'the head comes within ' + Math.round(state.head.near)
+      + 'px of a border at ' + state.head.t + 's, floor is ' + floor);
+  }
+  if (state.bubbleNear != null && state.bubbleNear < floor - 0.5) {
+    fail.push(t + 'the bubble comes within ' + Math.round(state.bubbleNear)
+      + 'px of a border at ' + state.bubble.t + 's, floor is ' + floor);
+  }
+  if (!state.samples) fail.push(t + 'the bubble was never sampled on screen');
+  if (state.bandHits) {
+    fail.push(t + 'the bubble entered the caption band ' + state.bandHits + ' times, first at '
+      + state.bandWorst.t + 's');
+  }
+}
+/* the engine's own report, checked rather than printed. these are the numbers
+   the brief asks for per state and they are guards, not notes. */
+for (const st of rep60.states) {
+  if (st.entryFrames == null) fail.push(st.state + ' never reached its own mark');
+  else if (st.entryFrames < 3) fail.push(st.state + ' arrives in ' + st.entryFrames + ' frames, which is a cut');
+  /* the ones that deliberately do not wind up, and they are named rather than
+     excused by a loose threshold: `neutral` is a breath, `unimpressed` is a
+     sink, and a mark that merely holds the turn somewhere is a hold rather than
+     a gesture. */
+  const held = marks.find(m => m.state === st.state && m.t === st.at);
+  const noAnti = ['neutral', 'unimpressed'].includes(st.state) || (held && held.turn != null);
+  if (!noAnti && st.antiFrames < 2) {
+    fail.push(st.state + ' has no anticipation, only ' + st.antiFrames + ' frames back');
+  }
+  if (st.state !== 'unimpressed' && !(st.overshoot > 1)) {
+    fail.push(st.state + ' arrives with no overshoot, which is a hard stop');
+  }
+}
+/* nothing may paint outside the head. the features are clipped in the markup so
+   it cannot happen on screen; this is the check that the clip never had to do
+   it, because a clip quietly trimming a pose is still a pose that does not fit.
+   it is measured on the geometry, in grid units, positive when a feature corner
+   is past the silhouette. */
+if (rep60.outside.units > 0) {
+  fail.push('feature ink lands ' + rep60.outside.units.toFixed(2)
+    + ' units outside the head silhouette at ' + rep60.outside.at.toFixed(2)
+    + 's — the clip is hiding it, but the pose does not fit');
+}
+if (rep60.blinks.repeatsInARow) fail.push(rep60.blinks.repeatsInARow + ' blinks repeat the one before them');
+if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face is not moving at all');
+if (rep60.maxSquash > 0.08 + 1e-6) fail.push('the squash reached ' + (rep60.maxSquash * 100).toFixed(1) + '%');
+if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe * 100).toFixed(2) + '%');
+/* the turn's own claims, and they are the reason the second half exists. */
+const T = rep60.turn;
+if (T.lo > -0.99 || T.hi < 0.99) {
+  fail.push('the sweep only reached ' + T.lo.toFixed(2) + '..' + T.hi.toFixed(2)
+    + ', so the ends were never on screen');
+}
+/* a flat turn has no depth to hide a jump behind, so the ceiling is set on what
+   the step moves the far eye by rather than on the channel's own number, which
+   is a unit nobody looks at.
+
+   five units is deliberately loose and the reason is `snap-back`: it whips 0.99
+   of the range in 0.44s and peaks at 2.9 units in a frame, which is the fastest
+   turn in the file **on purpose**. the numbers either side of it decay smoothly
+   — 1.50, 2.84, 2.87, 2.48, 2.00, 1.51 — so it is a fast move rather than a
+   step. a real discontinuity is not near this line: teleporting from 0.85 to
+   zero in one frame is 11.9 units. the tight ceiling still exists where it
+   belongs, on a pure sweep with no whip in it, in the engine's own self test at
+   1.2 units. sustained turns may not step; a snap is allowed to snap. */
+const eyeStep = rep60.worst.turn.d * (TURN.shift + TURN.wrap);
+if (eyeStep > 5) {
+  fail.push('the turn teleports: one frame moves the far eye ' + eyeStep.toFixed(2)
+    + ' units at ' + rep60.worst.turn.t.toFixed(2) + 's');
+}
+if (T.squeeze < 0.05) fail.push('the card only squeezed ' + (T.squeeze * 100).toFixed(1) + '%');
+if (T.offsetPx < 30) fail.push('the eyes only travelled ' + T.offsetPx.toFixed(0) + 'px');
+if (T.gap > T.gapWas - 3) fail.push('the gap between the eyes barely closed, ' + T.gap.toFixed(1));
+/* an eye sitting on its clamp is an eye that stopped moving, and a flat spot is
+   the one thing that would give the cheat away. a handful of frames in the held
+   section is the clamp doing its job; a lot of them means a state is asking for
+   more than the face has room for. */
+if (T.clampedFrames > rep60.frames * 0.06) {
+  fail.push('an eye was on the composition clamp for ' + T.clampedFrames
+    + ' of ' + rep60.frames + ' frames');
+}
+
+if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
+console.log('\nall checks passed.');

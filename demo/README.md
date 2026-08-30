@@ -1644,7 +1644,7 @@ right, which is the worst kind of wrong to ship.
 
 ## The library — `demo/lib/`
 
-Four pieces that are not a clip. Nothing in `lib/` is imported by `record.mjs`,
+Five pieces that are not a clip. Nothing in `lib/` is imported by `record.mjs`,
 `post2.mjs`, `post4.mjs` or `og.mjs`. `post6.mjs` imports all but the analyzer,
 and `post5.mjs` imports `lib/voice.mjs` and `lib/sfx.mjs` since its audio pass —
 it takes the voice and the sounds and none of the captions or pictograms, which
@@ -2296,6 +2296,513 @@ and the shadow each against their own border floor, nothing reaching the label,
 and the label itself legible on more than 60% of frames — a strip whose captions
 never showed up would still pass every other check in the list.
 
+### `lib/mascot.mjs` — the mascot reactor
+
+**A rig, not a sprite sheet.** The face is drawn once from the geometry table in
+`skills/page-builder/SKILL.md` and every part of it — the card, each eye, each
+lid, each brow, the shadow, the glow, the bubble — is a channel on one gsap
+timeline. A state is a named piece of that timeline with an entrance, a hold that
+has its own idle, and an exit. `mascotFrame(plan, t)` is the whole animation and
+it is a function of time and of nothing else.
+
+Two things use it: our own renders import the module and drive it beside the
+captions and the pictograms, and `mascot-export.mjs` renders the same states as
+standalone 1080×1920 overlay clips with real alpha.
+
+**The motion core is `lib/pictograms.mjs`'s.** Same four house curves plus
+`land`, same volume-preserving `sq` channel, same `lift` driving the same shadow
+model, same "no css transition, no css animation, on anything that has to hit a
+mark". Two curves are added and they are not inventions: `btk.shut` and
+`btk.open` are `index.html`'s own blink — `1-(1-LID)p²` in and
+`LID+(1-LID)(1-(1-q)²)` out — written as beziers, because none of the four house
+paths is an accelerating close and a lid that overshot would open past the top of
+the eye.
+
+**gsap does not run in the page here, and that is the one real difference.**
+Pictograms serialises its timeline builder into the browser because DrawSVGPlugin
+has to own the dash — the page has to hold the real animation for the one channel
+node cannot compute. Nothing in the mascot is line drawn, so node computes every
+number and the page writes it to an element. One engine, one reader, and the
+whole clock-sync apparatus that file needed — the root-timeline pinning, the rAF
+filter, the `sync()` probe, the per-frame parity check — is not here because
+there is nothing to be out of sync with.
+
+#### The rig
+
+| | |
+|---|---|
+| card | the head. A rounded rect on the 64 grid that tilts, turns, squashes, stretches, translates, scales and throws its own shadow. |
+| eyes | two slabs, each with its own x, y, scale x and scale y, so they look, squint, widen, close and squash independently. |
+| lids | a card-coloured slab above each eye that comes down over it. A blink is the lid arriving, never the eye shrinking. |
+| brows | short strokes above the eyes, opacity 0 by default. `surprised` and `unimpressed` are the only two states that use them. |
+| turn | the flat three quarter turn, −1 to +1. Zero is straight on, +1 a full turn to the mascot's right. |
+
+**`radius` is the one number the site does not have.** At `0.5` the plate's `rx`
+is half its side and a rounded rect *is* a circle, which is the mascot as
+shipped. The rig carries the number so a card is possible without redrawing
+anything; the default draws the face. Everything else in the geometry is the
+skill file's table and the self-test checks all six ratios against it.
+
+**The brows are demo-only.** The page spec's mascot is a circle and two slabs and
+nothing else, and nothing in this file reaches `index.html` — same footing as the
+drop shadows, which that spec also bans on the page and which `lib/pictograms.mjs`
+has used since the sixth clip.
+
+**The eyes lead and the head follows.** Every pose tween is built twice: once on
+the lead channel at its own time, once on the lag channel `LAG` (three frames)
+later. The card is drawn with the lag channel, so the body is three frames behind
+the rig, and the eyes take `LEAD` (0.40) of the difference back as an offset. On
+a snap they arrive first; on a settle the offset falls to zero on its own. It is
+overlapping action written as arithmetic rather than as a second animation that
+can drift. The fraction is tuned to stay under its own cap: a lead sitting on its
+clamp would have a flat spot exactly where the motion is fastest.
+
+**Anticipation runs forward from the mark, not backward into the frames before
+it.** A state that started moving before its own mark would be animating during
+the state before it, and it makes `entryFrames` mean what it says — the frames
+from the mark to the arrival, wind-up included.
+
+**Idle life is always on and is a separate layer.** Drift on two incommensurable
+periods, breathing at 1.6% (the ceiling is 2%), micro-saccades on a seeded
+schedule, and the blinks. Pose channels rest at zero between states; idle channels
+never rest, so a state can be written as if it were the only thing happening and
+still never freeze during its own hold. The drawn value is rest plus pose plus
+idle, and the lid folds the two together — a blink during a half-lid closes the
+remaining gap rather than fighting it.
+
+#### The turn
+
+**A flat three quarter turn, cheated the way an After Effects character rig
+cheats one.** Nothing in it is 3D. `turn` runs from −1 to +1 and **every value
+between them renders** — there is no pose table and no second drawing, only
+arithmetic on the number, so 0.37 is as real a turn as 1. Five flat moves happen
+together on that one number:
+
+| | |
+|---|---|
+| the card squeezes | 7.5% of its width at a full turn. It is the one deformation in the file that is **not** volume preserving, deliberately: a turn is a projection, not a squash, and a head that got taller as it turned would read as rubber. |
+| both eyes travel the way the head turns | and the **trailing** one travels further — `shift + wrap` for it, `shift` for the leading one. |
+| the gap closes | 21 grid units to 16.5. This is the piece that does the work: an eye pair that merely slid across a circle reads as two stickers on a plate; one whose *gap closes as it slides* reads as a face turning, because that is what perspective does to two features on a curved form. |
+| the far eye foreshortens | 42% narrower and a tenth shorter at a full turn. |
+| the head tilts and the shadow slides | 3° into the turn, 4.5px across, because the mass moved. |
+
+**Which eye is which is worth being exact about, because it was wrong once.**
+Turn the head so the nose points to screen right: the cheek that comes toward
+camera is on screen *left*, and the cheek that rotates away is on screen
+*right*. So the eye carried nearest the right-hand silhouette is on the **far**
+side of the form — it foreshortens, and it travels the *smaller* distance
+because it is wrapping around the head. The eye trailing behind it is the
+**near** one: full width, and the *larger* travel, crossing the centre line as
+the broad side of the face swings into view.
+
+The first build had the scale on the wrong one of that pair — the trailing eye
+was being squeezed and the leading eye left full, which reads as a face whose
+near cheek is collapsing. The shifts were right; only the scales were swapped. A
+rendered sweep is what caught it, and the self-test now asserts the narrow eye is
+the leading one **at both ends**, because a sign error is invisible if you only
+check one. Measured across a sweep, in device px at 1080 wide:
+
+| turn | screen-left eye | screen-right eye |
+|---|---|---|
+| −1 | **29.2** | 49.7 |
+| −0.7 | **34.7** | 49.1 |
+| −0.35 | **43.9** | 51.6 |
+| 0 | 51.2 | 51.2 |
+| +0.35 | 51.6 | **44.1** |
+| +0.7 | 49.1 | **34.9** |
+| +1 | 49.8 | **29.3** |
+
+At a full turn the near eye travels **38 device px** and the far eye **56**, on a
+240px head. The brows go with their own eye at 85% of its travel, or a turned
+face would have its brows over the bridge of a nose it does not have.
+
+**Every facial feature is clipped to the head's own outline**, and that is a fix
+rather than a precaution. The lid is an oversized card-coloured slab — wider and
+twice as tall as the eye, so it covers it completely at any scale — and
+`surprised` takes the eye to 2.6× its height, which drags that slab far above the
+eye line. Put a turn on top and its top corner leaves the head; being
+card-coloured, it stops being invisible the moment it is off the card, and a
+small block of face colour appears in the background near the crown. That
+shipped. The clip path is the plate's exact geometry so the two can never
+disagree about where the head ends, and the eye clamp now measures room at the
+**narrowest point of the eye's vertical span** rather than at its centre, because
+a widened eye reaches a height where the plate is a good deal narrower.
+
+The geometric guard is the other half: `mascotMotion` reports the signed distance
+of the worst-placed feature corner from the silhouette, and the render **fails**
+if it ever goes positive. A clip quietly trimming a pose is still a pose that
+does not fit. Worst measured is 3.61 units *inside* the edge in the test clip, and
+2.46 units inside in a stress plan that puts every state through ±0.85.
+
+**At turn zero the two eyes are one shape twice.** Both measure 51.2 × 17.5 px,
+identically, on every frame — asserted on the rig rather than on a screenshot,
+because a rendered frame legitimately carries the head's own roll and breathing,
+which tilt and scale both eyes together. That is the head moving, not the eyes
+differing, and a pixel test would call it a fault: 0.55° of idle roll across a
+42px eye separation is 0.40px of vertical difference, which is exactly what the
+render shows. A companion check asserts straight-on carries no squeeze, no shift,
+no tilt and no foreshortening, so the turn maths cannot distort the neutral pose.
+
+**The eyes read the lead channel and the card reads the lag channel**, so the
+gaze arrives before the head does on every turn — with no code that is about
+turning specifically. It falls out of the same three-frame lag the rest of the
+rig already had.
+
+**`turn` is the one channel an exit does not reset.** Every other channel is a
+gesture and goes back to nothing; the turn is *where he is facing*. A head that
+snapped back to camera at the end of every state would make `turn-away` a twitch
+instead of a place he went, and it is also what lets a sweep across several marks
+read as one continuous ramp rather than as marks fighting their own exits.
+
+**The resting bias is one config value.** `TURN.bias` is `0.35` — a third of a
+turn to the mascot's right, so that standing in the bottom left corner he looks
+*into* the frame rather than out of it. `planMascot` flips the sign on its own
+when `pos` ends in `right`, and an explicit `bias` overrides both:
+
+```js
+planMascot({ ..., pos: 'bottom-left'  })   // bias  +0.35, looks right, into frame
+planMascot({ ..., pos: 'bottom-right' })   // bias  −0.35, looks left,  into frame
+planMascot({ ..., bias: -0.2 })            // say it yourself and that wins
+planMascot({ ..., bias: 0 })               // dead straight on
+```
+
+To move him to the other corner, change `pos` and nothing else — the bias follows.
+It is one number in one place precisely so a second copy of it cannot go stale.
+
+**Composition is guarded rather than hoped for.** A state may move the eyes on
+its own — `curious` puts them 2.1 units across — and a state's offset plus a full
+turn could walk an eye off the side of the face. Every eye is clamped to leave
+1.2 grid units of card outside it, measured against the plate's own width *at
+that eye's height*. A plain turn never reaches the clamp (0 frames across the
+whole sweep); `curious` held at a full turn does, which is the case it was
+written for. The preflight counts clamped frames, because an eye sitting on its
+clamp is an eye that stopped moving, and a flat spot is the one thing that would
+give the cheat away.
+
+#### The states
+
+Seven, each a different silhouette at a glance with the sound off. Every one of
+them declares the single channel it should be judged on and the value it is
+supposed to arrive at, which is what the preflight measures it against — a nod's
+read is in y and a tilt's is in rotation, and one shared metric would flatter
+both.
+
+| | | mark |
+|---|---|---|
+| `neutral` | level, centred, breathing | `sc` 0.972 → 1 |
+| `curious` | tilts in and leans into the tilt, eyes up, one eye wider than the other | `rot` → 9.5 |
+| `surprised` | pulls back and down, snaps up with a stretch, eyes nearly round, brows high and angled | `y` → −9.5 |
+| `thinking` | turns up and away, gaze off camera, one eye at half lid, a slow scan across the hold | `rot` → −8 |
+| `agreeing` | two nods, weight on the way down, contact squash at the bottom of each, warm half-blink on the beat | `y` → 8.6 |
+| `unimpressed` | sinks and drifts away, lids at half, side eye, brows low and turned out | `lid` → 0.54 |
+| `delighted` | two hops with real lift, eyes squash into arcs, a small turn on the way up | `y` → −12.5 |
+| `turn-away` | turns off to the side and holds there, still alive — the drift, saccades and blinks never stop | `turn` → ±0.85 |
+| `snap-back` | whips back to camera, overshoots past centre, settles. The reaction beat. | `turn` → 0 |
+
+`turn-away` parks at 0.85 rather than at 1 for a reason: `snap-back`'s
+anticipation is a turn *further away*, and 0.17 of a 0.85 move lands the wind-up
+at 0.995 with the channel's ceiling untouched. The pop curve then carries it
+through zero and about a tenth past, so he turns a shade beyond camera and comes
+back — which is what a head does when something catches it.
+
+Measured at 60fps, on a plan that runs every state in turn. `anti` is the wind-up
+in frames, `entry` the frames from the mark to the arrival with the wind-up
+included, `over` how far past the mark it goes as a share of the move, `settle`
+how long from the arrival until it stays inside a 2% band:
+
+| state | anti | entry | over | settle | mark |
+|---|---|---|---|---|---|
+| `neutral` | 0f | 7f | +10.7% | 150ms | `sc` → 1 |
+| `curious` | 5f | 12f | +13.1% | 167ms | `rot` → 9.5 |
+| `surprised` | 6f | 11f | +14.2% | 233ms | `y` → −9.5 |
+| `thinking` | 4f | 12f | +12.5% | 183ms | `rot` → −9.5 |
+| `agreeing` | 5f | 10f | +15.1% | 200ms | `y` → 8.6 |
+| `unimpressed` | 0f | 24f | +0.0% | 0ms | `lid` → 0.54 |
+| `delighted` | 4f | 10f | +12.7% | 317ms | `y` → −12.5 |
+| `turn-away` | 4f | 11f | +12.0% | 183ms | `turn` → 0.85 |
+| `snap-back` | 3f | 9f | +11.4% | 150ms | `turn` → 0 |
+
+Squash peaks at 7.0% against an 8% ceiling, breathing at 1.60% against 2%, and the
+worst-placed feature corner sits 4.24 grid units *inside* the head silhouette.
+
+`neutral` is the only one whose mark is not zero at rest, because the only thing
+it does is arrive at rest — the span it is measured over is its own entrance
+rather than the distance from rest, which would be nothing. `unimpressed` is the
+declared exception on the overshoot: it arrives on the heavy curve, and going
+past the mark would be the opposite of what it means.
+
+#### The marks api
+
+A mark is a second on the clip's clock and a state to be in from then, optionally
+with a bubble. Everything else is worked out from the state table and the gap to
+the next mark:
+
+```js
+planMascot({
+  seconds: 20,
+  marks: [{ t: 0.4, state: 'neutral' },
+          { t: 3.1, state: 'curious', bubble: 'go on' },
+          { t: 6.0, state: 'surprised', turn: 0.6 }],
+  theme: 'light',
+})
+```
+
+A mark may carry `turn` (where to hold the channel) and `turnFor` (how long to
+get there). `planMascot` refuses a `turn` on `turn-away` or `snap-back`, because
+those two author the channel themselves and two things writing one channel over
+the same window would resolve by build order, which is not an answer.
+
+The plan is plain json — printable, diffable, readable before a browser is
+opened. `describeMascot(plan)` prints it as a card. A state's hold is stretched
+to fill whatever room there is up to the next mark rather than leaving a gap
+where nothing is driving the pose.
+
+The shape of the module, split the same way `lib/captions.mjs` and
+`lib/pictograms.mjs` are:
+
+- **`planMascot(opts)`** runs in node, measures nothing, and refuses a plan that
+  cannot be drawn.
+- **`mascotFrame(plan, t)`** is the whole animation as a pure function of time.
+  It returns the pose (the state's own motion with no idle in it), the card (what
+  the head is actually drawn with), each eye's position, scales and lid, each
+  brow, the shadow's scale, blur and opacity for this frame's lift, the glow
+  multiplier, and the bubble.
+- **`mascotMotion(plan, fps, seconds)`** walks every frame before a render and
+  reports the biggest one-frame step in every channel, plus per state the
+  anticipation, the entry, the overshoot and the settle. `describeMotion` prints
+  it as a table.
+- **`mascotCss` / `mascotMarkup` / `mascotPagePlan` / `mascotRuntime`** are the
+  page half. `mascotPage` is serialised in with `.toString()` and installs
+  `window.__mas`: `apply(frame)`, `theme(t)`, `bubbleSafe(vw,vh)`, `band()`,
+  `caps()`.
+- **`headRect(plan, frame)`** is where the ink actually is, in device px from
+  each border, and **`stillMoment(plan, t)`** is a moment clear of every idle
+  blink, for a poster frame.
+- **`mascotCues(plan)`** gives the two sounds: a `pop` when a bubble arrives and
+  a `ding` on an agreement beat, and nothing else, so the ding keeps meaning yes.
+
+#### The thought bubble
+
+**`index.html`'s own, with one dot dropped and the whole cluster pulled in.** The
+site draws a rounded pill in the page colour with a hairline `--bub` outline, and
+three dots climbing off the top right of the head toward it. It is a thought
+rather than a caption card, and the outline is what makes it one: a filled block
+beside a filled head is two blocks.
+
+Three things differ from the page version, and all three are about phone size.
+
+**Two dots, not three.** The smallest is 5px on the page; at 1080 wide that is
+ten device px of outline and it reads as a speck of dirt rather than as a beat.
+
+**The cluster sits closer.** The site holds it 12px off `.m-zone`, and the zone is
+four px wider than the ink, so on the page the first dot is sixteen from the head.
+Here the gap is five css px, which measures **10 device px** off the rendered ink —
+the difference between attached to him and near him.
+
+**The outline is 2 css px, which measures 4 device px.** It was written as 1.5 to
+get three, and the render came back with two, because **Chrome floors
+`border-width` to a whole CSS pixel**: 1.5 resolves to 1, and at device scale 2
+that is the site's number again — the first thing h.264 eats at crf 17. The
+export guard caught it, off `getComputedStyle` rather than off what was typed,
+and both the guard and the self-test now insist on a whole pixel.
+
+The colours are the mascot's own two tokens and the site's third: `--eye` is
+defined to always equal the page background so it is the pill's fill and inverts
+with the theme for free, `--face` is the ink and so the text, `--bub` is the
+site's outline token. **Nothing on the bubble glows** — it is a sibling of the
+card rather than a child, so the glow layers cannot reach it, and it does not
+squash when the head does either.
+
+**The motion is the site's, as three tweens rather than three transition
+delays.** Small dot, larger dot, then the pill, each 70ms behind the one before
+it — the site's own interval, which is what reads as one gesture with three beats
+rather than as three things arriving. The dots spring from a fifth of their size
+and the pill from seven tenths, both of the site's numbers, and all three are on
+`btk.pop`, so each overshoots and settles rather than appearing. The exit is the
+same list backwards and quicker: a thought does not leave in the order it
+arrived.
+
+**The `pop` cue moved to the pill.** It used to fire on the first dot; the dots
+are the anticipation and the pill is the arrival, and a sound on the wind-up is
+early for the thing it is the sound of.
+
+The word ceiling, the safe area guard and the caption band guard are exactly what
+they were. The container carries visibility and the three parts carry the
+animation, so every guard downstream still asks one element whether the cluster
+is on screen — and it counts as on screen from its first dot, which is the
+conservative answer and the one a safe-area check wants.
+
+#### Phone sizing
+
+Everything is judged at 1080×1920 on a phone, not on a desktop preview. The head
+is **240 device px across the plate** at the default `size: 128` css, inside a
+220–280 window that `planMascot` checks at plan time and both scripts check again
+against what actually painted. The default position is bottom left inside the
+platform safe area — 180 top, 220 bottom, 140 sides — with a 16px margin off the
+safe lines so the states have room to move without crossing one.
+
+The bubble is Space Grotesk 500 at 26 css px, which renders **38 device px of
+cap**, over a 32px floor, and the cap is measured off the rendered glyphs rather
+than assumed from the ratio, so a font that failed to load is caught here rather
+than in a review.
+
+#### Two themes, one call
+
+`light` is ink on the site's paper with a soft grounded shadow and no glow at all
+— a glow on white is a smudge and the page spec says so. `dark` is the terminal
+look: the face is the light one, the grounded shadow is switched off because a
+soft black ellipse on `#06070a` is nothing, and the head carries two layers of
+soft blur behind it. That is post10's crt ghost with the numbers walked down —
+11px at .20 and 30px at .13, against post10's 13px at .30 and 34px at .20 —
+quiet, and around the head only, because the layers are blurred copies of the
+plate. `__mas.theme('dark')` switches it, and the self-test proves a theme
+changes colour and nothing else: the same frame at the same second is byte-for-
+byte identical between the two apart from the glow multiplier.
+
+#### The guards
+
+`planMascot` throws on: an unknown state; marks that overlap or leave a state no
+room for its own entrance, a hold and its exit; a bubble over the four-word
+ceiling (the copy rule is two or three, and a bubble at the ceiling is reported
+as a note); a punctuation dash in a bubble in any language; a head outside the
+phone window; caps under the floor; two identical blinks in a row.
+
+The renders add: the head's clearance from every border on **every** frame; the
+bubble's on a quarter-second sample; the bubble against a caption band if one is
+passed; the head and the caps as rendered; entry, anticipation and overshoot per
+state; no frozen face; the squash ceiling; the breathing ceiling.
+
+**The head is computed, not measured, and that is a fix rather than a shortcut.**
+`getBoundingClientRect` on the plate returns the axis-aligned box of the rect's
+*geometry*, so a plate turned eight degrees reports a box wider than itself by
+the corners it does not have — at radius 0.5 the ink is a circle and a circle
+does not get wider when you turn it. Sampling that number found the head half a
+pixel outside a safe line it was fifteen pixels inside, which would have moved
+the mascot inward to satisfy a measurement artefact. `headRect` works it out from
+the geometry instead: at radius 0.5 the ink is an ellipse and the axis-aligned box
+of a rotated ellipse is exact in one line, and a card falls back to the four
+transformed corners, which is conservative in the right direction. The bubble is
+still measured in the page, because it is a dom box with no rotation on it and
+measuring it is correct.
+
+**The glow and the shadow are reported beside the ink rather than folded into
+it.** A 30px blur at 13% and a soft ellipse at a fifth opacity are not ink
+crossing a safe line, and scoring them as if they were would either fail every
+dark render or excuse a real overrun.
+
+    node lib/mascot.mjs test    the engine's own checks, no browser, about a second
+
+### `mascot-test.mjs` — do the seven read as seven
+
+Twenty seconds, all seven states in order, three carrying a bubble, over a plain
+background with no voice, rendered twice — light and dark. It exists to answer
+one question: do the states read as different things at a glance, with the sound
+off, at phone size.
+
+    node mascot-test.mjs                    both themes, 1080x1920, 60fps
+    node mascot-test.mjs light              just one of them
+    DEMO_FPS=12 node mascot-test.mjs        the fast preview pass
+    node mascot-test.mjs --blur             60fps with the shutter open
+    node mascot-test.mjs --encode-only      re-encode from kept frames
+
+The rig is `captions-test.mjs`'s, which is `post5.mjs`'s. Three things differ.
+
+**The background is deliberately nothing.** No wordmark, no captions, no
+pictograms. The mascot is the thing being judged and anything else in the frame
+would be the thing being looked at. What is left is two transparent pixels off
+frame with an infinite transform on them, which is load bearing rather than
+decoration: with nothing animating at all chrome stops producing compositor
+frames and the screenshot call blocks on frame one forever. `post2.mjs` found
+that and every clip in `demo/` has carried something like it since.
+
+**There is sound and it is not a voice.** Two cues, and only two: the `pop` when
+a bubble arrives and the `ding` on the agreement beat. Both are in the file,
+because whether the ding lands on the nod is one of the things the test is for.
+
+**The caption band is passed in without being drawn.** A real clip reserves a box
+for words and the bubble may not enter it. The band here is where a caption box
+would sit above a bottom-corner mascot, and the guard measures the rendered
+bubble against it four times a second. A clip that puts its captions over the
+mascot's corner finds out here rather than in a review.
+
+**The motion guards read sixty regardless of what the pass is sampled at.** Entry,
+overshoot and settle are properties of the animation rather than of the pass: at
+the twelve-frame preview an anticipation lasting four sixtieths falls inside one
+frame, and judging it there would say the wind-up is missing when what is missing
+is the sampling. The preview prints its own numbers and the guards read the
+sixty-frame ones.
+
+It writes a still per state per theme into `out/verify-mascot/`, and each still
+is walked forward until it is clear of every idle blink. That is not cosmetic:
+the first strip caught the tail of a blink on `agreeing` and the state read as a
+face with one eye, which is a fact about the sampling rather than about the
+state.
+
+### `mascot-export.mjs` — overlay clips for canva
+
+The second deliverable. The same seven states as clips on their own, 1080×1920,
+with the mascot already in its corner, so one drops straight on top of a phone
+video with nothing to reposition.
+
+    node mascot-export.mjs                     every state, both themes
+    node mascot-export.mjs curious delighted   just those two
+    node mascot-export.mjs --theme=dark        just one theme
+    node mascot-export.mjs --no-bubble         skip the bubble variants
+    DEMO_FPS=12 node mascot-export.mjs         the fast preview pass
+
+Three and a half seconds each: a beat of rest, the entrance, the hold, the exit,
+ending on the frame the exit finishes. That shape matters more for an overlay
+than for a clip — it starts and ends at the same pose, so two butt together and a
+single one sits under a longer shot with no visible in or out.
+
+**Three flavours per clip, from one capture:**
+
+| | |
+|---|---|
+| `-alpha.webm` | vp9 with real alpha. The one to use — canva keeps the transparency and the mascot sits on the footage with nothing behind it. |
+| `-onblack.mp4` | the same clip flattened onto solid black, for an editor that will not take a webm. Screen it, or key the black. |
+| `-onwhite.mp4` | and onto solid white, for the same reason on light footage. |
+
+And a bubble variant of each, `-bubble-` in the name, so a bubble can be used or
+skipped without re-rendering. The full naming convention, in order:
+
+```
+mascot-<state>-<theme>[-turned][-bubble]-<flavour>.<ext>
+                                          alpha.webm | onblack.mp4 | onwhite.mp4
+mascot-<state>-<theme>[-turned][-bubble]-still.png     the poster frame
+cues.json                                              where the two sounds land
+```
+
+so `mascot-thinking-dark-turned-bubble-alpha.webm` is `thinking`, dark theme, held
+at a three-quarter turn, carrying its bubble, as vp9 with real alpha. Everything
+lands in `demo/out/mascot/`, which is inside the already-ignored `out/`. Files land in `out/mascot/`, which is inside the
+already-ignored `out/`, with a still per clip and a `cues.json` beside them.
+**The clips are silent** — they go over someone else's footage, which has its own
+sound — so the two cues the module would emit are written down in that sidecar
+instead of muxed in.
+
+**The flat two are made from the alpha one, not rendered again.** Compositing
+over a colour is the only way to be sure all three are the same animation.
+
+**The capture is small and the canvas is not.** The frame is 1080×1920 and the
+mascot occupies a corner of it; capturing the whole canvas would be fourteen
+times the pixels, almost all of them transparent, and png at that size is about a
+gigabyte a state. So the capture is a region — the union of every head rect in
+the clip and the bubble's own, grown by the glow's reach and the shadow's,
+rounded out to even device px — and ffmpeg pads it back to 1080×1920 at exactly
+the offset it came from. The region comes out of the same `headRect` the safe-area
+guard reads, so a region that cropped the mascot would be one the guard also
+thought was somewhere else, and it cannot be, because there is one of them. The
+guards check that neither the head nor the bubble ever touches the region's edge.
+
+**Alpha is proved, not assumed.** `-auto-alt-ref 0` is not optional: with alt
+refs on, libvpx encodes hidden frames the alpha plane has no partner for. And a
+stream tagged `yuva420p` is not proof either — the encoder reports the tag it was
+asked for whether or not the plane reached the muxer. So one clip per theme is
+composited over a colour nothing in the mascot uses and two corners are read
+back: if they are that colour the transparency is real, and if they are not the
+webm is a rectangle and would arrive in canva as one.
+
 ## Why demo/ is safe to have in a public repo
 
 Tracked: `record.mjs`, `post2.mjs`, `post4.mjs`, `post5.mjs`, `post6.mjs`,
@@ -2305,11 +2812,14 @@ Tracked: `record.mjs`, `post2.mjs`, `post4.mjs`, `post5.mjs`, `post6.mjs`,
 under `out/` in its own folder, so one run cannot wipe another's mid flight.
 
 *(That tracked list predates `post7.mjs`, `post9.mjs`, `post10.mjs`,
-`scenes-test.mjs`, `lib/pictograms.mjs` and `lib/sfx.mjs`, all of which are
+`scenes-test.mjs`, `mascot-test.mjs`, `mascot-export.mjs`,
+`lib/pictograms.mjs`, `lib/sfx.mjs` and `lib/mascot.mjs`, all of which are
 tracked too. `MEMORY.md` carries the list that is kept current.)*
 
 **Everything the new pieces produce is inside `out/`, which is already
-gitignored whole** — the voice audio and its sidecars in `out/voice/`, the
+gitignored whole** — the overlay clips, their stills and their cue sheet in
+`out/mascot/`, the mascot test's clips and its per state stills in
+`out/verify-mascot/`, — the voice audio and its sidecars in `out/voice/`, the
 analyzer's reports and stills in `out/analysis/`, the caption test's clips and
 its both-theme stills in `out/verify-captions/`, and the transcriber's
 virtualenv and model cache in `out/whisper-venv/` and `out/whisper-models/`. The

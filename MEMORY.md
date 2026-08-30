@@ -6,6 +6,75 @@ names in here either.
 
 ## Status
 
+- **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
+  been looked at is the **light theme at the twelve frame preview**, plus still
+  frames from a turn sweep and from every state. **The dark theme has not been
+  reviewed at all**, and neither theme has been watched at sixty. The 60fps pass
+  was running when this was written. Every guard in `demo/mascot-test.mjs` and
+  every check in `node lib/mascot.mjs test` is green, but green guards are not a
+  review — post9 shipped a first cut with every check passing and a phone showed
+  captions inside tiktok's chrome. **Do not treat the mascot as signed off.**
+  When the pass lands, watch both clips end to end and run
+  `skills/video-review` on each before anything goes near a post.
+- **The mascot is a rig now, 2026-08-30, and he exports himself.**
+  `demo/lib/mascot.mjs` turns a still face with a blink on it into a character:
+  a card, two eyes with independent position and both scales, two lids, two
+  brows, a shadow and a glow, every one of them a channel on one gsap timeline,
+  and **seven named states** with an entrance, a hold that has its own idle, and
+  an exit. The api is marks: a second on the clock, a state to be in from then,
+  and optionally a bubble or a turn. **He turns**, a flat three quarter turn on one
+  number from -1 to +1 with every value between them real, resting at 0.35 into the
+  frame from a single config value that flips with the corner he stands in. **The
+  bubble is the site's thought bubble**, an outlined pill with two trailing dots.
+  **Two themes pass the same guards** and one call switches them. The
+  second half is `demo/mascot-export.mjs`, which renders each state as a
+  standalone 1080x1920 overlay clip with **real alpha**, plus flat mp4s on black
+  and on white, with the mascot already in its corner so it drops onto a phone
+  video in canva with nothing to reposition. `demo/mascot-test.mjs` is the
+  twenty second strip that judges the seven against each other, rendered light
+  and dark. **The motion core is `lib/pictograms.mjs`'s** and **no dependency
+  was added** — the list stays `puppeteer-core`, `ffmpeg-static` and `gsap`.
+  **Nothing on the site changed**: `index.html`, `CNAME`, the language stubs,
+  `assets/`, `robots.txt`, `sitemap.xml` and `.gitignore` were all untouched,
+  and no existing post file was edited. **Two things want Einz's word before
+  they go anywhere near the page: the brows, which are anatomy the mascot spec
+  does not have, and the head being a rounded rect whose default radius draws
+  the circle the site ships.** See Decisions.
+- **`skills/video-review` takes a url as well as a path, 2026-08-29.** It used to
+  refuse anything that was not a file on this disk. It now fetches an
+  `http`/`https` link with **yt-dlp** into `demo/out/downloads/dl-<hash of the
+  url>/`, runs the same extraction and the same seven item checklist on the
+  downloaded file, and **deletes the media once the review is written** via
+  `--cleanup`. **Local file mode is byte for byte what it was**: nothing is
+  fetched, nothing is deleted, and it works with no yt-dlp installed at all.
+  **No npm dependency was added** — yt-dlp is a binary on PATH, `demo/`'s list
+  stays at `puppeteer-core`, `ffmpeg-static` and `gsap`, and **`.gitignore` was
+  not touched** because `demo/out/` is already ignored whole, which is why the
+  downloads live under it. **Only `skills/` changed**: `index.html`, `CNAME`,
+  `robots.txt`, `sitemap.xml`, the language stubs, `assets/` and `demo/` were
+  all untouched. **It has since run on a real link**, which found and fixed one
+  bug and added one folder. See Decisions.
+- **`skills/video-review` can hear, 2026-08-29, and the no transcription rule is
+  gone.** It was a hard non-negotiable and it was written for our own clips,
+  where the script is typed into the post file before the voice is synthesised.
+  That reasoning does not hold for a clip we did not make, so Einz lifted it.
+  **`skills/video-review/transcribe.mjs`** is the second script in the skill: it
+  extracts the audio with the same `ffmpeg-static` binary, mono 16k, and takes
+  the words from **the clip's own captions first**, then **a whisper api and only
+  if a key is already in the environment**, then **nothing at all**, which it
+  writes down as no transcript was possible and why. **It never guesses.** Output
+  is `transcript.md` and `transcript.json` beside the frames, and the md carries
+  an **aligned table, one row per sampled frame**, with an empty `on screen`
+  column the reading half fills in, so the spoken words and the card words end up
+  on one clock. The extracted audio is deleted at the end of the run. **No npm
+  dependency was added.** See Decisions.
+- **`demo/refs/` added 2026-08-29, and it is gitignored.** Format breakdowns of
+  other people's short video, written with `skills/video-review` so we can steal
+  a structure without recreating a clip. **The folder is ignored whole**: the
+  notes are ours, the thing they are about is not, and the media they were read
+  from is deleted after every review. First entry is a 43.72s youtube short on
+  ai tooling, read from 88 frames. **`.gitignore` was edited for this, on Einz's
+  direct instruction**, which is the one thing that lifts the do not touch rule.
 - **Sound added 2026-08-29 to `demo/post5.mjs`, and the picture did not move.**
   post5 shipped silent on 2026-08-26 and was planned that way. It now carries
   **the read, ten servos, six pops, seven chirps and a ding inside the mp4** —
@@ -1333,14 +1402,77 @@ it went from 0.30em to 0.42em, because michroma's side bearings made 0.30 read a
 at all), and `maxLines` on the calm style is a real option now instead of one nothing
 read. **The three style test clips were re-rendered** against the changed engine.
 
+- **`demo/lib/mascot.mjs` — the mascot reactor, added 2026-08-30.** A rig, not a sprite
+  sheet: a card, two eyes with independent x, y and both scales, two lids, two brows, a
+  shadow and a glow, all of them channels on one gsap timeline.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
+  frames from the mark to the arrival, then how far past the mark it goes, then
+  the settle: `neutral` 0f / 7f / +10.7% / 150ms, `curious` 5f / 12f / +13.1% /
+  167ms, `surprised` 6f / 11f / +14.2% / 233ms, `thinking` 4f / 12f / +12.5% /
+  183ms, `agreeing` 5f / 10f / +15.1% / 200ms, `unimpressed` 0f / 24f / +0.0% /
+  0ms (the declared exception: it arrives on the heavy curve because the read is
+  that it cannot be bothered), `delighted` 4f / 10f / +12.7% / 317ms. The two
+  turn states measure `turn-away` 4f / 11f / +12.0% / 183ms and `snap-back` 3f /
+  9f / +11.4% / 150ms. Squash peaks at 7.0% against an 8% ceiling and breathing
+  at 1.60% against 2%.
+
+**Nine states** —
+  `neutral`, `curious`, `surprised`, `thinking`, `agreeing`, `unimpressed`, `delighted`,
+  and the two the turn brought with it, `turn-away` and `snap-back` — each a named piece
+  of that timeline with an entrance, a hold that has its own idle, and an exit. The **marks api** is the whole surface: `planMascot({ seconds, marks:
+  [{ t, state, bubble }], theme })`, where a mark is a second on the clip's clock and a
+  state to be in from then, optionally with a bubble and optionally holding the **turn**
+  somewhere, and everything else is worked out from the state table and the gap to the
+  next mark. Same split as the other two: `planMascot` measures nothing
+  and makes a plan that is plain json, `mascotFrame(plan, t)` is the whole animation as
+  a pure function of time, `mascotPage` is serialised into the scene and only ever
+  writes what it is handed. The motion core is `lib/pictograms.mjs`'s — the same four
+  house curves plus `land`, the same volume preserving `sq` channel, the same `lift`
+  shadow model — plus two curves that are `index.html`'s own blink written as beziers.
+  **gsap does not run in the page here**, because nothing in the mascot is line drawn
+  and there is therefore nothing the page has to own: node holds the animation and the
+  page writes numbers to elements. **The turn is a flat three quarter turn on one number**, -1 to +1, every value in
+  between real: the card squeezes, both eyes travel to the near edge with the far one
+  going further so the gap closes, the far eye foreshortens, the head tilts and the
+  shadow slides. The resting bias is **one config value**, 0.35 into the frame, flipped
+  automatically when he stands in the other corner. **The bubble is index.html's thought
+  bubble**, an outlined pill with two trailing dots, popping in dot, dot, pill and
+  leaving in reverse. **Two themes, one call.** Light is ink on paper with a grounded
+  shadow and no glow; dark is the face on black with two quiet layers of blur and no
+  shadow, which is post10's crt ghost walked down. The guards are the
+  brief's: the head at **240 device px** inside a 220 to 280 window, the bubble's caps
+  at **38px** over a 32 floor, the head's clearance from every platform border on every
+  frame, the bubble's on a sample, the bubble against a caption band if one is passed,
+  a two or three word ceiling on bubble copy, no dash in any language, no two identical
+  blinks in a row, no frozen frame, the squash under 8% and the breathing under 2%.
+- **`demo/mascot-test.mjs`** — one clip per theme, at two fixed paths that are
+  overwritten every run: `demo/out/mascot-light.mp4` and `demo/out/mascot-dark.mp4`.
+  Nothing else is written, so a stale clip cannot survive a render. Rendered light and dark,
+  no voice. **states** is twenty seconds of all nine with three bubbles, and it answers
+  one question: do they read as different things at a glance with the sound off at phone
+  size. **turn** is twenty two seconds that sweep the channel end to end and back, play
+  the two turn states back to back, then hold three of the ordinary states at 0.6 to
+  prove the turn composes with them rather than replacing them.
+- **`demo/mascot-export.mjs`** — the same seven states as standalone 1080x1920 overlay
+  clips for canva, three and a half seconds each, **three flavours from one capture**:
+  vp9 webm with real alpha, mp4 on solid black, mp4 on solid white, plus a bubble
+  variant of each and, for the seven states that do not turn on their own, a **turned**
+  variant held at 0.6. That is 64 clips and about ninety minutes; `--no-turned` and
+  `--no-bubble` each halve it. The mascot is already in its corner so a clip drops onto a phone
+  video with nothing to reposition. Files land in `demo/out/mascot/`, which is inside
+  the already ignored `out/`. The clips are **silent** — they go over somebody else's
+  footage — and the two cues the module would emit are written to `cues.json` beside
+  them instead.
+
 **Factory v1 as of 2026-08-27, complete and pushed in `b30bee8`.** The pipeline and the
 first clip built on it are both on `main`. What a new clip now costs, measured: the
 voice and its word timestamps in under a second for a line, the caption cut for free
 because it is a pure function of those timestamps, the length following the voice rather
 than being typed, and about two and a half minutes of render for twenty two seconds at
-60fps with every guard. **What is still by hand: the mascot's performance and the
-layout.** post6's thirteen gaze keys were placed against the beats in that script, and a
-new script has its beats somewhere else. post6's layout numbers are a template for the
+60fps with every guard. **What is still by hand: the layout, and the mascot's performance
+in the clips built before 2026-08-30.** post6's thirteen gaze keys were placed against
+the beats in that script, and a new script has its beats somewhere else. `lib/mascot.mjs`
+is the answer to that half of it for anything built after: a performance is now a list
+of marks rather than a list of keys, and nothing shipped was retrofitted onto it. post6's layout numbers are a template for the
 next clip rather than something derived automatically. So a script is a rough clip in
 minutes and a finished one in a session, and the session goes on the performance instead
 of on the plumbing.
@@ -1383,13 +1515,33 @@ huggingface, neither of them ours, and neither module has a key or an account.
     placement, no green where the float style bans it, camera moves landing on
     their beats, nothing colliding with the site's own text, the wordmark, and
     pacing. Every claim in a review carries the second that proves it.
-  - **Local files only.** No urls, no yt-dlp, no downloads, and **no
-    transcription**: our clips are made here and the script is written down in
-    the post file before the voice is synthesised, so the words are already
-    known. It adds no dependency — frame extraction uses `demo/node_modules`'
-    `ffmpeg-static`, which the render pipeline already carries, and that binary
-    ships no ffprobe so the metadata is parsed off ffmpeg's own stderr exactly
-    as `post9.mjs` parses it.
+  - **Two ways in since 2026-08-29: a path on this disk, or a url.** A url is
+    fetched with **yt-dlp** into `demo/out/downloads/dl-<hash of the url>/` and
+    everything after the fetch is the local path unchanged; the frames still
+    land in `demo/out/`, never beside the download, because that folder is about
+    to go. The folder is keyed by a hash of the url, so the same link twice
+    reuses what is already down and a second pass needs no yt-dlp. `index.json`
+    records the url and the media's path, and that record is what the delete
+    reads. **A local path is never fetched and never deleted** and works with no
+    yt-dlp installed at all.
+  - **Step 4 is deleting the media**, and it is not optional on a url:
+    `node skills/video-review/frames.mjs --cleanup demo/out/frames-review-<name>`
+    once the review is written. It deletes only the download folder that
+    `index.json` names, refuses anything outside `demo/out/downloads/`, keeps
+    the frames and the review, and on a local review removes nothing and says
+    so. Two more flags came with it: `--refetch` and `--ytdlp=<path>`, the
+    latter also readable as `YTDLP` in the environment.
+  - **It transcribes, since 2026-08-29**, with `transcribe.mjs`: captions
+    first, a whisper api second and only on a key already in the environment,
+    and an explicit no transcript was possible third. **On our own clips the
+    post file's script still wins** — they are made here and the words are
+    written down before the voice is synthesised, so the transcript is a check
+    that what shipped is what was written, not the source of truth for what was
+    meant. **It adds no npm dependency** — frame extraction uses
+    `demo/node_modules`' `ffmpeg-static`, which the render pipeline already
+    carries, and that binary ships no ffprobe so the metadata is parsed off
+    ffmpeg's own stderr exactly as `post9.mjs` parses it. yt-dlp is a binary on
+    PATH, not a package, so `demo/package.json` stays at three.
   - **Adapted from `fabriqaai/ffmpeg-analyse-video-skill`**, which is two markdown
     files and no code. What was taken is the shape — sample, batch, read,
     synthesise — and the sampling ladder, with the short end made denser because
@@ -1402,6 +1554,421 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-08-30 — three bugs in the turn, and the one that shipped
+
+The turn went in and then a look at rendered frames found three things wrong with
+it. All three are fixed, none of the guards were loosened, and two of the three
+are now asserted in the engine's own self test.
+
+**The foreshortening was inverted, and the geometry is worth writing down so it
+cannot be got wrong again.** Turn the head so the nose points to screen right.
+The cheek that comes toward camera is on screen *left*; the cheek that rotates
+away is on screen *right*. So the eye carried nearest the right hand silhouette
+is on the **far** side of the form: it foreshortens, and it travels the *smaller*
+distance, because it is wrapping around the head rather than sliding across the
+front of it. The eye trailing behind is the **near** one: full width, larger
+travel, crossing the centre line as the broad side swings in.
+
+The first build had the scale on the wrong one of that pair. The shifts were
+right; only the scales were swapped, which reads as a face whose near cheek is
+collapsing. Measured across a sweep, in device px at 1080 wide, after the fix:
+29.2 against 49.7 at minus one, 34.7 against 49.1 at minus 0.7, 51.2 against 51.2
+at zero, 34.9 against 49.1 at plus 0.7, 29.3 against 49.8 at plus one. **The self
+test now checks both ends**, because a sign error is invisible if you only look
+at one of them.
+
+**A card coloured block was appearing in the background near the crown, and it
+was the lid.** The lid is deliberately oversized — wider and twice as tall as the
+eye — so that it covers the eye completely at any scale. `surprised` takes the
+eye to 2.6 times its height, which drags that slab far above the eye line, and a
+turn on top of that walks its top corner off the head. Being card coloured, it is
+invisible on the card and visible the instant it is not.
+
+Fixed twice over. **Every facial feature is now clipped to the head's own
+outline**, with a clip path built from the plate's exact geometry so the two
+cannot disagree about where the head ends. And **the eye clamp measures room at
+the narrowest point of the eye's vertical span** rather than at its centre, which
+is the actual arithmetic error underneath: a widened eye reaches a height where
+the plate is a good deal narrower than it is at the eye line. A geometric guard
+reports the signed distance of the worst placed feature corner from the
+silhouette and **the render fails if it ever goes positive**, because a clip
+quietly trimming a pose is still a pose that does not fit. Worst measured is 3.61
+units inside the edge in the clip and 2.46 inside in a plan that puts every state
+through plus and minus 0.85.
+
+**The eyes at dead centre were already exact, and the check written for them was
+not.** At turn zero both eyes measure 51.2 by 17.5 px, identically, on every
+frame. The 0.4px of vertical difference a rendered frame shows is the head's own
+idle roll — 0.55 degrees across a 42px eye separation is 0.40px, which is what
+the render measures — so it is the head moving rather than the eyes differing,
+and it is asserted on the rig rather than on a screenshot for exactly that
+reason. The first version of the assertion demanded the pair sit dead on the
+centre line and failed at 1.388 units; **that check was wrong, not the code** — it
+was asserting the mascot never glances sideways, and the saccades are the whole
+idle layer. It now asserts the pair moves as one, which is the real contract, and
+a companion check asserts straight on carries no squeeze, no shift, no tilt and
+no foreshortening, so the turn maths cannot reach the neutral pose.
+
+**And the test writes two files now, always the same two.** `demo/out/mascot-light.mp4`
+and `demo/out/mascot-dark.mp4`, overwritten every run. The resolution used to be
+in the name and for one afternoon the chapter was too, so every change to the cut
+minted a fresh pair while the old pair sat on disk looking current — which is how
+a review ended up watching a clip rendered ninety minutes earlier. The name says
+what it is; the file's own timestamp says when it was made.
+
+### 2026-08-30 — the mascot turns, and the bubble is the site's
+
+Two additions on top of the rig, both the same day and both measured on rendered
+frames rather than argued about.
+
+**The measured eye width across a turn sweep**, in device px at 1080 wide, after
+the foreshortening fix. The narrow one is always the eye the turn carried toward
+the silhouette:
+
+| turn | screen-left eye | screen-right eye | far eye |
+|---|---|---|---|
+| -1 | **29.2** | 49.7 | left |
+| -0.7 | **34.7** | 49.1 | left |
+| -0.35 | **43.9** | 51.6 | left |
+| 0 | 51.2 | 51.2 | neither |
+| +0.35 | 51.6 | **44.1** | right |
+| +0.7 | 49.1 | **34.9** | right |
+| +1 | 49.8 | **29.3** | right |
+
+**The turn is one number and five flat moves.** `turn` runs from -1 to +1 and
+every value between them renders, because there is no pose table and no second
+drawing, only arithmetic: the card squeezes 7.5% of its width, both eyes travel
+toward the near edge with the far one going further so the **gap closes from 21
+grid units to 16.5**, the far eye foreshortens 42% across, the head tilts three
+degrees into it and the shadow slides 4.5px with the mass. At a full turn the
+near eye travels **38 device px** and the far one **56**, on a 240px head.
+
+**The gap closing is the whole cheat.** An eye pair that merely slid across a
+circle reads as two stickers on a plate. One whose gap closes as it slides reads
+as a face turning, because that is what perspective does to two features on a
+curved form. Everything else in the list is support.
+
+**The eyes lead the head on a turn, and no code in the file is about that.** The
+eyes read the lead channel and the card reads the lag channel, so the gaze
+arrives first out of the same three frame lag the rig already had.
+
+**`turn` is the one channel an exit does not reset.** Every other channel is a
+gesture and goes back to nothing; the turn is where he is facing. A head that
+snapped back to camera at the end of every state would make `turn-away` a twitch
+rather than a place he went, and it is also what lets a sweep across four marks
+read as one continuous ramp instead of four marks fighting their own exits.
+
+**The resting bias is one config value and it follows the corner.** `TURN.bias`
+is 0.35, a third of a turn to his right, so from the bottom left corner he looks
+*into* the frame rather than out of it. `planMascot` flips the sign on its own
+when `pos` ends in `right`; an explicit `bias` option overrides both, and
+`bias: 0` is dead straight on. **To put him in the other corner, change `pos` and
+nothing else** — the bias follows it. One number in one place, so a second copy
+of it cannot go stale.
+
+**The overlay clips land in `demo/out/mascot/`**, inside the already ignored
+`out/`, and the name carries every axis in a fixed order:
+`mascot-<state>-<theme>[-turned][-bubble]-<flavour>` where the flavour is one of
+`alpha.webm`, `onblack.mp4` or `onwhite.mp4`, plus a `-still.png` poster per clip
+and one `cues.json` for the whole set. So
+`mascot-thinking-dark-turned-bubble-alpha.webm` is thinking, dark, held at a
+three quarter turn, carrying its bubble, with real alpha.
+
+**Two new states, `turn-away` and `snap-back`**, and `turn-away` parks at 0.85
+rather than at 1 for a reason worth keeping: `snap-back`'s anticipation is a turn
+*further away*, and 0.17 of a 0.85 move lands the wind up at 0.995 with the
+channel's ceiling untouched. The pop curve then carries it through zero and about
+a tenth past, which is what a head does when something catches it.
+
+**The composition guard is real and it fires.** A state may move the eyes on its
+own, and a state's offset plus a full turn could walk an eye off the side of the
+face. Every eye is clamped to leave 1.2 grid units of card outside it, measured
+against the plate's width at that eye's own height. A plain sweep never reaches
+the clamp across any frame; `curious` held at a full turn does, which is exactly
+the case it was written for, and the preflight counts clamped frames because an
+eye sitting on its clamp is an eye that stopped moving.
+
+**The bubble is now index.html's thought bubble** rather than a filled caption
+card: a rounded pill in the page colour with an outline, and dots climbing off
+the head toward it. Two dots rather than the site's three — the smallest is 5px
+on the page and at 1080 wide that is ten device px of outline, which reads as a
+speck of dirt. The cluster sits **10 device px off the ink** where the site's
+sits sixteen, which at phone size is the difference between attached to him and
+near him. The three numbers a render measures rather than assumes, and which the
+export guards on: **outline 2 css px, which computes to 4 device px**, **gap to
+the head 10 device px**, **cap height 38 device px** against a 32 floor. The motion is the site's own 0, 70, 140ms, as three tweens on one
+timeline rather than three transition delays, and the exit is that list
+backwards. The `pop` cue moved from the first dot to the pill: the dots are the
+anticipation and the pill is the arrival.
+
+**The outline is 2 css px because chrome floors `border-width` to a whole css
+pixel.** It was written as 1.5 to get three device px and the render came back
+with two — 1.5 resolves to 1, and at device scale 2 that is the site's own
+number again, which is the first thing h.264 eats at crf 17. The export guard
+caught it off `getComputedStyle` rather than off what was typed, and it now
+measures **4 device px**. Both the guard and the self test insist on a whole
+pixel, so it cannot be written back.
+
+**And one self inflicted incident worth writing down.** A python replace meant
+for one css comment matched an identically named section header a thousand lines
+earlier and stripped every backtick between the two, which broke every template
+literal in the middle of the file. Nothing was lost — the file is not tracked
+yet, but every patch that built it was on disk and the module was rebuilt and
+re-verified against the same numbers it had before. **The lesson is the anchor,
+not the tooling**: a section header in this house style is not unique, because
+the header block and the code both use it, and a replace anchored on one is a
+replace anchored on either.
+
+The seven original states carry their numbers through both changes unchanged:
+entry 7 to 24 frames, overshoot 10.7 to 15.4 per cent, settle 150 to 317ms,
+squash peak 7.0%, breathing 1.60%, no repeated blinks, no frozen frames.
+
+### 2026-08-30 — the mascot is a rig, and it exports itself
+
+The mascot has been a still picture with a blink on it since v1: two pose files on
+the site, a lid and a gaze in `record.mjs`'s end card, and a face in
+`lib/pictograms.mjs`'s shape vocabulary that is drawn and does not act.
+**`demo/lib/mascot.mjs` makes him a character.** Seven named states, a real rig
+under them, and a second script that renders the same states as standalone overlay
+clips Einz can drop over his own footage in canva.
+
+**Nothing on the site changed.** `index.html`, `CNAME`, `robots.txt`,
+`sitemap.xml`, the language stubs and `assets/` were not touched, no existing post
+file was edited, `.gitignore` was not edited because `demo/out/` is already ignored
+whole, and no dependency was added — the list stays `puppeteer-core`,
+`ffmpeg-static` and `gsap`.
+
+**The rig.** A card, two eyes with independent x, y and both scales, two lids, two
+brows, a shadow and a glow, every one of them a channel on one gsap timeline. The
+geometry is `skills/page-builder/SKILL.md`'s table and the self-test checks all six
+of its ratios rather than trusting them. The motion core is `lib/pictograms.mjs`'s,
+unchanged: the same four house curves plus `land`, the same volume preserving `sq`
+channel with its 8% ceiling, the same `lift` driving the same shadow model, the
+same ban on a css transition anywhere near a mark.
+
+**gsap does not run in the page this time, and that is the one architectural
+call.** Pictograms serialises its timeline builder into the browser because
+DrawSVGPlugin has to own the dash, and everything that file carries around the
+clock — the root timeline pinning, the rAF filter, the `sync()` probe, the per
+frame parity check — exists to keep node and the page agreeing about a channel
+node cannot compute. Nothing in the mascot is line drawn. So node holds the whole
+animation and the page writes what it is handed. One engine, one reader, and a
+class of bug that is not there rather than guarded.
+
+**Four things were found by looking at rendered frames rather than at code, and
+all four are the reason the brief said to judge it at phone size.**
+
+1. **A lid is not the eye's own shape.** The first lid was a copy of the eye pill
+   translated down over it, which looked obviously right and rendered as a hollow
+   ring: two rounded pills overlapping leave a crescent at the bottom *and* two
+   slivers at the ends where their round ends curve away from each other. A lid has
+   a straight edge. It is now a flat bottomed slab wider and taller than the eye,
+   painted in the card's own colour, so what it covers is the eye and nothing else.
+2. **`curious` at 1.55 against 1.22 is not asymmetry, it is a rounding error.** Two
+   slabs at 6.8 and 5.4 units read at phone size as two slabs. 1.80 against 1.10 is
+   one eye open and one not.
+3. **`delighted` at eye scale 0.52 was still a slab.** 0.40 by 1.28 turns a 4.4 unit
+   pill into a 1.8 unit line, which is a different shape rather than a smaller one,
+   and it is the only thing that makes the state announce itself in a still.
+4. **`unimpressed`'s brows, dropped and level, were a fourth slab on the face.**
+   Turned out eight degrees they read as bored. `surprised`'s go the other way.
+
+**And one that was found by measuring.** The head's clearance was being read off
+`getBoundingClientRect`, which returns the axis aligned box of the rect's
+*geometry* — so a plate turned eight degrees reported a box wider than itself by
+the corners it does not have. At radius 0.5 the ink is a circle and a circle does
+not get wider when you turn it. That number said the head was half a pixel outside
+a safe line it was fifteen pixels inside, and the fix on offer was to move the
+mascot inward to satisfy an artefact. `headRect` computes it instead: the axis
+aligned box of a rotated ellipse is exact in one line, and a card falls back to the
+four transformed corners, which is conservative in the right direction. The bubble
+is still measured in the page, because it is a dom box with no rotation on it.
+
+**Three engine bugs, all of the same family, all worth keeping.** A `fromTo` with
+`immediateRender:false` writes nothing until its own time, so at build time the
+channel objects still hold the seed — an exit built by reading them eased back to
+rest *from* rest and snapped on the frame it started, which is what made scrubbing
+backwards produce a different animation from scrubbing forwards. The builder now
+tracks the last `to` written to each channel and the exits are built from that.
+Anticipation was also running *backwards* from the mark, so a state was animating
+during the state before it; it runs forward now, which also makes `entryFrames`
+mean the frames from the mark to the arrival rather than the frames from an
+invisible head start.
+
+**The measurements are per state and they are declared per state.** Each state
+names the one channel it should be judged on and the value it arrives at, because
+a nod's read is in y and a tilt's is in rotation and one shared metric would
+flatter both. The entrance window is the entrance — from the mark to `settled` —
+rather than a fixed tail, or `thinking`'s scan and `agreeing`'s second nod get
+scored as the entrance failing to settle, which is the opposite of what they are.
+
+**Two curves were added and they are not inventions.** `btk.shut` and `btk.open`
+are `index.html`'s own blink written as beziers. None of the four house paths is an
+accelerating close, and a lid on `btk.pop` would open past the top of the eye.
+
+**The overlay export is the second deliverable and it has its own two problems.**
+Alpha needs `-auto-alt-ref 0`, because libvpx with alt refs on encodes hidden
+frames the alpha plane has no partner for; and a stream tagged `yuva420p` is not
+proof of anything, because the encoder reports the tag it was asked for whether or
+not the plane reached the muxer. So the run composites one clip per theme over a
+colour nothing in the mascot uses and reads two corners back. And the capture is a
+region rather than the canvas — a 1080x1920 png of a corner overlay is almost
+entirely transparent and about a gigabyte a state — padded back to full size at the
+offset it came from, out of the same `headRect` the guards read, so a region that
+cropped the mascot would be one the guard also thought was somewhere else.
+
+**The brows are the one thing that needs Einz's word.** The page spec's mascot is a
+circle and two flat slabs and explicitly nothing else. Brows are new anatomy. They
+are demo only, hidden by default, used by two states out of seven, and nothing in
+this file reaches `index.html` — the same footing the drop shadows have had since
+the sixth clip, which that spec also bans on the page. If the answer is no, the two
+states lose a cue and still read; if the answer is yes, it should be written into
+the skill file rather than left as a thing `demo/` does.
+
+**The head is a rounded rect and not a circle, and that also wants a word.** The
+brief asked for a card. `radius` is a ratio and at its default of 0.5 a rounded
+rect's `rx` is half its side, which *is* the circle the site ships — so the rig
+carries the card and the default draws the mascot. Nothing renders as a square
+today.
+
+### 2026-08-29 — video-review takes a url, and gives the file back
+
+`skills/video-review` was local files only and said so three times: in the skill,
+in the index and in `frames.mjs`'s own header. The rule was written when the only
+clips worth reviewing were ours, sitting in `demo/out/` two minutes after a
+render. It is now also worth pointing the eyes at somebody else's clip, and
+asking for a download by hand before every one of those is friction with no
+payoff.
+
+**What changed.** An argument matching `http`/`https` is fetched with yt-dlp into
+`demo/out/downloads/dl-<hash of the url>/`, and from the moment the file is on
+disk the code is the path it always took: same probe off ffmpeg's stderr, same
+sampling ladder, same `--guides`, same seven item checklist read in batches of
+eight to ten. **Local mode is untouched.** No fetch, no delete, and no yt-dlp
+required to run it.
+
+**The media is temporary and the review is what survives.** A fetched clip is
+deleted by
+`node skills/video-review/frames.mjs --cleanup demo/out/frames-review-<name>`
+once the review is written, and the skill calls that step not optional. The
+delete reads the frames dir's own `index.json`, removes only the download folder
+recorded there, and **refuses any path outside `demo/out/downloads/`** whatever
+an edited index claims. On a local review it removes nothing and says so. The
+frames survive the delete deliberately: they are 540px jpegs, they are
+gitignored, and a second look at a beat should not need a second download.
+
+**Four calls worth writing down.**
+
+1. **The temp folder is inside `demo/out/`, and `.gitignore` was not edited.**
+   `demo/out/` is already ignored whole, so a download cannot be committed by
+   accident, and the rule that says do not touch `.gitignore` unless asked stays
+   kept. A new top level `tmp/` would have needed both a new rule and a new
+   directory to buy nothing.
+2. **The download folder is keyed by a hash of the url, not by the title.** Two
+   runs on one link share a folder, so a re-run costs no bandwidth, and the
+   cache is checked **before** yt-dlp is looked for, which means a second pass
+   over an already fetched clip works on a machine with no yt-dlp on it.
+3. **The frames never land beside a fetched file.** They go to `demo/out/` like
+   every other review's, because the folder they would otherwise share is the
+   one about to be deleted.
+4. **yt-dlp is a binary on PATH, not an npm package.** `demo/package.json` stays
+   at three dependencies, which keeps the fourth-dependency conversation
+   unopened. Missing yt-dlp is a clear message and an exit, and it names
+   `--ytdlp=<path>` and `YTDLP` for a binary somewhere unusual.
+
+**What was tested.** Local mode still writes the same frames and the same index,
+with `url` and `download` sitting null beside the old keys. The url path was
+exercised with a seeded download folder, covering detection, the cache hit, the
+frames landing in `demo/out/`, the index's download block, the delete, a second
+delete on an already deleted folder, and the delete on a local review. The fetch
+itself could not run, because yt-dlp was not installed. It was installed the same
+day and the first real link found the bug below.
+
+### 2026-08-29 — the skill gets ears, and the rule that has to come with them
+
+`video-review` shipped with **no transcription** as a non-negotiable, stated three
+times over. The reason was sound and it was narrow: our clips are made here, the
+script is written into the post file before the voice is synthesised, so there is
+nothing to transcribe and inferring words from audio could only introduce error.
+**That reasoning stops at the edge of our own footage.** The moment the skill
+started reading other people's clips the rule was costing us the whole audio
+track, so Einz lifted it.
+
+**Three sources, in order, never mixed.**
+
+1. **The clip's own captions.** yt-dlp pulls them beside the media in the same
+   call that fetches it, `--write-subs --write-auto-subs --sub-langs 'en.*'
+   --sub-format json3/vtt`. This is first because it is **free, exact and already
+   published**: they are the publisher's own words, they cost no key and no
+   request of ours, and youtube's `json3` carries **a timing per word**, which is
+   better than any api hands back. `en-orig` sorts ahead of `en` so the original
+   wins over a machine translation of it.
+2. **A whisper api, and only if a key is already in the environment.**
+   `WHISPER_API_KEY` or `OPENAI_API_KEY`, with `WHISPER_API_BASE` and
+   `WHISPER_MODEL` for anything of that shape. **No key, no request.** It does not
+   prompt, does not go looking in a file, and does not quietly bill somebody for
+   a service they had not already set up.
+3. **Nothing, said out loud.** No captions and no key writes a `transcript.md`
+   that says **no transcript was possible** and lists why, and `transcript.json`
+   carries `possible: false`. The review then says the words are unknown. **A
+   review with invented dialogue in it is worth less than one that admits it could
+   not hear**, and that is the whole reason the old rule existed. The rule is gone;
+   the instinct behind it is now enforced by the fallback.
+
+**The alignment is the point, not the transcript.** `transcript.md` carries a
+table with **one row per sampled frame**, the words spoken inside that window,
+and an **empty `on screen` column** for the reading half to fill in. The empty
+column is deliberate: the script cannot see, and the review is where the two
+tracks meet. On the reference clip that table immediately showed something no
+amount of frame reading would have: **the on screen text is not what is being
+said.** 122 words spoken, 49 on screen, and the cards are rewrites rather than
+quotes, landing about half a second after the voice.
+
+**Audio handling.** Extracted with the `ffmpeg-static` we already carry, `-vn -ac
+1 -ar 16000 -c:a aac -b:a 64k`, into a hidden file in the frames dir, and
+**deleted at the end of the run** unless `--keep-audio`. It is extracted even on
+the captions path, because "there is audio, it is this long" belongs in an honest
+no-transcript report. Same ethic as the media: somebody else's audio is a thing
+to read, not a thing to keep.
+
+**What was tested.** The captions path on a real short, 19 cues and 122 words with
+per word timing. `--engine=whisper` with no key set, which reports the missing key
+and writes the no-transcript file. A local clip with no captions and no key, same.
+`transcript.json` carrying `possible: false` and the reasons. The temp audio gone
+afterwards in every case. **The whisper request itself has never run**, because no
+key exists on this machine, so that path is code and not yet evidence.
+
+### 2026-08-29 — the first real fetch, and the merge that was not happening
+
+yt-dlp was installed with `pip install --user yt-dlp` (2026.08.19) and the first
+real link went through. Two things came out of it.
+
+**yt-dlp needs to be handed our ffmpeg, and without it the review is silent for
+the wrong reason.** yt-dlp pulls video and audio as separate streams and merges
+them with ffmpeg off PATH. There is no ffmpeg on PATH here, so it left two files,
+`.f616.mp4` and `.f251-20.webm`, and our own picker took the larger, which was the
+**video only** track. The probe then reported `SILENT` on a clip that has sound.
+**The fix is `--ffmpeg-location`, pointed at the `ffmpeg-static` binary we already
+carry**, and it is in `fetchUrl` with a comment saying why. After it: one merged
+mp4, `audio opus`, 43.72s. A clip called silent because of how it was fetched
+rather than how it was made is exactly the class of thing this skill exists not
+to do.
+
+**The sampling ladder wants overriding on a clip that is not ours.** The default
+put a frame a second on a 43.72s file, which cannot resolve a cut. `--every=0.5
+--max=100` gave 88 frames, and the cut list came from **ffmpeg scene detection**
+rather than from the frames: `select='gt(scene,0.20)'`, then the same at 0.12,
+0.08 and 0.05 to tell one transition reported several times from several
+transitions. That is a measurement the frames cannot give and it belongs in the
+toolkit for any clip we did not render. One ambiguity, whether 4.75 to 6.25s was
+a cut or a push, was settled with a 0.25s pass over that stretch alone.
+
+**`demo/refs/` is where the notes go, and `.gitignore` was edited to ignore it.**
+Einz asked for both directly, which is what lifts the rule about not touching that
+file. The folder is ignored whole rather than tracking the notes and ignoring the
+media: the notes are about somebody else's work, and a public repo is not where
+our reading of it needs to live.
 
 ### 2026-08-29 — post5 gets a voice it was designed not to have, and the mascot beeps
 
