@@ -10,9 +10,9 @@ names in here either.
   **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
   inside the mp4**, rendered with the shutter open at four subframes in **15.5
   minutes**. **Its fix pass landed the same day and it is 39.86s now, checked at
-  12fps only** — five of the six things a viewing found are fixed, the sixth is a
-  question waiting on Einz, and the 60fps master is deliberately not rendered
-  until it is answered. See post11's fix list under Decisions. **The first clip built on
+  12fps only** — all six things a viewing found are fixed, including the empty
+  opening, which Einz answered with the pictogram scene layer. The 60fps master
+  is not rendered yet. See post11's fix list under Decisions. **The first clip built on
   `demo/lib/mascot.mjs`** and **the first that puts the live site inside a card**
   rather than filling the frame with it: white page, big type, real footage of
   theboringtek.com cropped to the hero, and the corner mascot reacting the whole
@@ -56,16 +56,17 @@ names in here either.
     a **list** of bubbles on a shorter profile, which is what lets three
     greetings land on three languages inside one line. The single bubble path is
     byte for byte what it was and the self test proves it. See Decisions.
-  - **Five of the six fixes are in, and the sixth is a question for Einz.** The
-    domain is spoken as four words and still drawn as one string, through a
-    named exception the guard was taught rather than a guard that was loosened;
-    the typed line is read by a fourth, comedy voice; the typing, the send and
-    the confirmation all have sound; the ending is send, tick, offer, report,
-    card; and the corner has fourteen marks against eight with the turn doing
-    the work over the opening. **Open: what fills the empty top of the frame from
-    0.00 to 9.51s** — two options are written out under Decisions and neither is
-    picked. **The clip in `c635bcb` has all six faults in it; the fix pass is
-    12fps only and the 60fps master waits on the answer.**
+  - **All six fixes are in.** The domain is spoken as four words and still
+    drawn as one string, through a named exception the guard was taught rather
+    than a guard that was loosened; the typed line is read by a fourth, comedy
+    voice; the typing, the send and the confirmation all have sound; the ending
+    is send, tick, offer, report, card; the corner has thirteen marks against
+    eight with the turn doing the work over the opening; and **the empty top of
+    the frame from 0.00 to 9.51s is now the pictogram scene layer**, four
+    pictures one per line, in the card's own box so the handover to the site
+    card moves nothing. Einz picked that over bringing the card in early.
+    **The clip in `c635bcb` has all six faults in it; the fix pass is 12fps only
+    and the 60fps master has not been run.**
 - **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
   been looked at is the **light theme at the twelve frame preview**, plus still
   frames from a turn sweep and from every state. **The dark theme has not been
@@ -1213,20 +1214,20 @@ Still no posting cadence or content pillars. See Next steps.
   a selector, a zoom and an alignment resolved against a live rect. **The site is
   filmed at 360x1200 css px** and the crop never shows its top sixty, which is
   what excludes the nav.
-  **The mascot's fourteen marks after the 2026-08-30 fix pass**, five bubbles,
-  and the turn is set only in the first quarter: it walks out to 0.62 and back
-  to the 0.35 resting bias by the time the card arrives, and every mark after
-  that leaves the channel alone:
+  **The mascot's thirteen marks after the 2026-08-30 fix pass**, five bubbles,
+  and the opening four are hung off the **scene** each one is reacting to rather
+  than off the line. The turn is set only over those four: it walks out to 0.62
+  and back to the 0.35 resting bias by the time the card arrives, and every mark
+  after that leaves the channel alone:
 
   ```
    0.30  neutral       turn 0.18
-   1.45  curious       turn 0.62, up into the first line's second card
-   2.80  neutral       turn 0.30
-   4.20  thinking      turn 0.44, on `why they even need it`
-   6.59  unimpressed   on the word `no` in `have no time`
-   8.10  neutral       turn 0.20
-   9.40  neutral       turn 0.60, toward the middle a beat before the card arrives
-  11.97  curious       turn 0.35, back to the bias, into `press the button`
+   1.45  curious       turn 0.62, into the blocks as they land
+   3.55  thinking      turn 0.44, as the slash goes through the eye
+   6.59  unimpressed   as the third sheet lands on the pile
+   8.55  curious       turn 0.52, as the check is cut into the one block
+   9.95  neutral       turn 0.35, level and back on the bias as the card arrives
+  11.97  curious       into `press the button`
   13.51  neutral       and it holds three lines, carrying the three greetings:
                          `hey` 16.98, `привет` 17.85, `labdien` 18.70
   24.11  delighted     `nice` 24.73, on the frame the salary line finishes typing
@@ -1236,9 +1237,20 @@ Still no posting cadence or content pillars. See Next steps.
   36.21  agreeing      `finally` 36.81
   ```
 
-  **It imports `lib/voice.mjs`, `lib/captions.mjs`, `lib/mascot.mjs` and
-  `lib/sfx.mjs` and not `lib/pictograms.mjs`** — there is no scene layer, because
-  the picture is the site.
+  **The scene layer's four, in the card's own box:**
+
+  ```
+   0.18.. 2.72  everywhere   eight blocks filling the board, arriving scattered
+   2.42.. 5.10  unseen       a figure and an eye with a slash struck through it
+   4.80.. 7.85  pile         three sheets landing, two cut rules on the top one
+   7.55.. 9.51  one          one block and a check cut into it
+  ```
+
+  **It imports all five of the libraries since 2026-08-30**: `lib/voice.mjs`,
+  `lib/captions.mjs`, `lib/mascot.mjs`, `lib/sfx.mjs` and — added with the fix
+  pass — `lib/pictograms.mjs`. The scene layer is the first ten seconds only, in
+  the card's own box, and it hands over to the site on the frame the card starts
+  arriving. For the rest of the clip the picture is the site.
   **No music.** After the 2026-08-30 fix pass the sound is the read, a second
   read in the comedy voice over the typing, the mascot's two cues, a click on
   each tap but one, thirteen `key` ticks under the hand, a `press` on the send
@@ -1798,7 +1810,7 @@ no card allowed to straddle two lines.
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
 
-### 2026-08-30 — post11's fix list: five done, one is a question for Einz
+### 2026-08-30 — post11's fix list: all six done, and the sixth was a decision
 
 Six things came out of watching the clip. **Five of them are fixed and the sixth
 is a decision that has not been made.** The fix pass is in `demo/post11.mjs`,
@@ -1868,41 +1880,97 @@ channel alone exactly as before. One more was added at the far end: he looks up
 at the check mark on the frame the page draws it, which is the beat the whole
 reorder exists to make land.
 
-**6. The empty gap, open, and it is Einz's call.** Measured off the rendered
-frames rather than off the plan: **0.00 to 9.51s, the whole frame above y=400
-css is white**, on every sampled frame. The site card does not fade in until
-9.51 and there is nothing else up there. The mascot fault inside that window is
-fixed; the empty region is not, and it cannot be without deciding what the clip
-is. Two options are on the table and **neither is picked**:
+**6. The empty gap, answered: the pictogram scene layer.** Einz picked it over
+bringing the site card in early. Measured off the rendered frames before the
+fix, the whole frame above y=400 css was white from 0.00 to 9.51s; it now
+carries four pictures, one per line, and the only frame in the clip whose card
+box is pure white is the seam itself.
 
-- **The pictogram scene layer.** `lib/pictograms.mjs` in the card's own box for
-  the first four lines, one small scene per line, leaving on the same frame the
-  card arrives. It is the module built for exactly that third of the frame and
-  it costs no new file. It costs a fifth import into a clip that deliberately
-  imports four, and a second gsap clock (the parity check for that already
-  exists), and it makes the opening look like post6 and post7 rather than like
-  this one.
-- **The card earlier.** Fade the site in at about 1.0s, held wide and still on
-  the lockup, so the product is in frame from the first line and beat five
-  becomes a push in rather than an arrival. It costs nothing and adds nothing to
-  the imports. What it spends is the reveal: `go to theboringtek.com` currently
-  lands on the card appearing, and after this it lands on a card that has been
-  sitting there for nine seconds.
+**The layer lives in the card's own box and that is the whole design rule.**
+`.pic` is laid at `SCREEN` — 76,96 388x420 css, 152,192 776x840 device — which is
+the identical rect the site card fills from 9.51s, so nothing moves position or
+size when one hands over to the other. The svg fits its 100x60 viewBox to the
+box on the width, so the drawing sits as a band in the middle of where the
+lockup is about to be.
 
-**A second, smaller version of the same hole is at 29.6 to 34.9s**, five seconds
-of white above the caption before the end card arrives. It is not on the list
-and it is not being fixed on its own, but whatever answers six probably answers
-it too.
+**The handover is arithmetic rather than two numbers that agree.** `CARD_LEAD`
+is 0.42s, `handover` is computed once in `main()` as `beats[4].start -
+CARD_LEAD` rounded to three places, and it is handed to **both** halves: the
+last scene's `out` and the card's own fade in. `guard` fails the render if
+`pic.seconds` and `site.fades[0].t0` are ever different numbers, which is what
+catches a refactor that stops passing it. The last scene stops leaving at 9.21
+and is gone at 9.51, the frame the card starts arriving: no dissolve between two
+things in one box and no hole either.
 
-**What the 12fps review found that is not fixed.** Two things, both written up
-in `demo/out/review-post11-1080x1920.md`. The stretch **24.05 to 26.39s has no
-voice and no caption** — it is the 2.3s the reorder bought, filled by the form
-finishing on camera with a click on each press, and it wants watching at 60fps
-before it is called fine. And **the tap ring outlives the step it belongs to**: a
-single pick chip advances itself after 240ms and the ring lives 420ms, so the
-last 180ms of it sits over whatever the page drew next. That is every chip tap
-in the clip and it predates this pass, so it was left alone rather than changed
-without being asked.
+**The four pictures, and the reasoning is the part worth keeping.**
+
+  1. `everywhere` — eight blocks filling the board, arriving scattered rather
+     than in reading order. `everywhere` is a quantity and a direction at once
+     and eight of one shape landing all over the frame is the only thing this
+     vocabulary says that means both.
+  2. `unseen` — a figure and, beside them, an eye with a mark struck through it.
+     `does not know` is the hard one: the set has no question mark and inventing
+     one would be a shape drawn by a different hand. The slash is **knocked**,
+     which is the one thing that lets an --fg stroke cross an --fg shape and
+     still read as a stroke.
+  3. `pile` — three sheets landing one on another, each knocked so the page
+     shows between them, with two cut rules on the top one so the stack reads as
+     documents rather than as slabs. The line is `some know exactly, but have no
+     time` and the picture only says the second half; a picture that tried to
+     say both would say neither at phone size.
+  4. `one` — one block and a check cut into it. The plainest of the four, and it
+     is the same gesture the ending pays off with the site's own tick, so the
+     clip says it small here and large there.
+
+**A scene container arriving is not a picture arriving, and the first cut got
+that wrong.** A scene's parts sit at nothing until their own steps run, so a
+first `pop` timed politely after the handoff left the zone empty for about a
+fifth of a second between every pair — the frame at 8.00s in the first preview
+was exactly the fault this layer exists to fix, one twentieth the size. Every
+opening pop is now pulled back to inside its own scene's entrance, which is the
+earliest `planScenes` allows (`sc.in + enter.for * 0.5`).
+
+**No accent, and it is refused rather than avoided.** The layer is `fg`, `muted`
+and `cut` only, and `guard` fails on a part inked accent, because the clip's
+whole identity is that it has no green of its own anywhere.
+
+**The parity check was not weakened and is the reason this is trustworthy.**
+`lib/pictograms.mjs` runs two gsap clocks — node steps its own copy of the
+timeline and the page steps its own off the same `t` — and the render compares
+them on every frame. Measured: worst `|gsap t - frame/fps|` **3.333e-8s** against
+a 1e-6 ceiling, and worst node-against-page **0** over the whole clip. The one
+frame ceilings are post7's, scaled to the frame time, and the worst the scenes
+reach is 0.618 of a 1.000 fade allowance and 0.364 of a 0.600 draw allowance. No
+faults.
+
+**It cost a fifth import and no dependency.** `post11.mjs` now imports
+`lib/pictograms.mjs` alongside voice, captions, mascot and sfx; gsap was already
+one of demo's three and is inlined from `node_modules` at render time as it
+always was. No file was added.
+
+**And the mascot's opening marks moved onto the scenes.** Thirteen marks now,
+still five bubbles. The four opening reactions are hung off the **scene** they
+are reacting to rather than off the line — `curious` inside `everywhere`,
+`thinking` inside `unseen`, `unimpressed` inside `pile`, `curious` inside `one` —
+so he is watching a picture arrive rather than punctuating a sentence, and no two
+land on one beat. The turn still walks out to 0.62 and back to the 0.35 bias
+before the card lands.
+
+**What the 12fps reviews found and did not fix.** Three things, all in
+`demo/out/review-post11-1080x1920.md`. **24.05 to 26.39s has no voice and no
+caption** — the 2.3s the reorder bought, filled by the form finishing on camera
+with a click on each press, and it wants watching at 60fps before it is called
+fine. **The tap ring outlives the step it belongs to**: a single pick chip
+advances itself after 240ms and the ring lives 420ms, so its last 180ms sits over
+whatever the page drew next. That is every chip tap in the clip, it predates all
+of this, and it was left alone rather than changed without being asked. And
+**9.500s is the one frame whose card box is pure white** — measured off the
+pixels, darkest 255 there against 208 and 243 either side. The scene layer
+finishes leaving and the card starts arriving on the same instant, so the empty
+frame *is* the seam and the 12fps sample landed on it; at 60fps the samples fall
+at 9.500 and 9.517 and both should carry a trace. That last sentence is
+arithmetic rather than something measured, and it is the first thing to look at
+on the 60fps frames.
 
 ### 2026-08-30 — a mascot mark may say several things in a row
 
@@ -4259,15 +4327,11 @@ of them.
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
 - **post11, "the explainer", is built and not posted** — 2026-08-30,
-  `demo/post11.mjs`. **Five of its six fixes are in and it is 39.86s now**, every
-  check passing and the video-review pass clean, **but only at 12fps: the 60fps
-  master is deliberately not rendered** until the sixth is answered. **It owes
-  Einz one decision** — what fills the empty top of the frame from 0.00 to 9.51s,
-  the pictogram layer or the site card brought in early; see post11's fix list
-  under Decisions, where both options are written out and neither is picked. It
-  also owes a **posting pack**: caption, tweet and three tags per platform, none
-  of them decided. And it owes **a track** — the clip ships with no music by
-  design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
+  `demo/post11.mjs`. **All six of its fixes are in and it is 39.86s now**, every
+  check passing and both video-review passes clean, **but only at 12fps: the
+  60fps master has not been run.** It owes a **posting pack**: caption, tweet and
+  three tags per platform, none of them decided. And it owes **a track** — the
+  clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
   now seven clips behind and still unbuilt.**
 - **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
