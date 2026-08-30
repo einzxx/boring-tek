@@ -9,10 +9,12 @@ names in here either.
 - **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
   **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
   inside the mp4**, rendered with the shutter open at four subframes in **15.5
-  minutes**. **Its fix pass landed the same day and it is 39.86s now, checked at
-  12fps only** — all six things a viewing found are fixed, including the empty
-  opening, which Einz answered with the pictogram scene layer. The 60fps master
-  is not rendered yet. See post11's fix list under Decisions. **The first clip built on
+  minutes**. **Three rounds of fixes landed the same day and it is 44.08s now,
+  checked at 12fps only.** Every fault a viewing found is closed, including the
+  silent stretch where the form used to finish itself: the voice narrates the
+  form to the send now. The empty top of the frame is empty on purpose and the
+  space is Einz's to fill. The 60fps master has not been run. See post11's three
+  rounds under Decisions. **The first clip built on
   `demo/lib/mascot.mjs`** and **the first that puts the live site inside a card**
   rather than filling the frame with it: white page, big type, real footage of
   theboringtek.com cropped to the hero, and the corner mascot reacting the whole
@@ -56,17 +58,20 @@ names in here either.
     a **list** of bubbles on a shorter profile, which is what lets three
     greetings land on three languages inside one line. The single bubble path is
     byte for byte what it was and the self test proves it. See Decisions.
-  - **All six fixes are in.** The domain is spoken as four words and still
-    drawn as one string, through a named exception the guard was taught rather
-    than a guard that was loosened; the typed line is read by a fourth, comedy
-    voice; the typing, the send and the confirmation all have sound; the ending
-    is send, tick, offer, report, card; the corner has thirteen marks against
-    eight with the turn doing the work over the opening; and **the empty top of
-    the frame from 0.00 to 9.51s is now the pictogram scene layer**, four
-    pictures one per line, in the card's own box so the handover to the site
-    card moves nothing. Einz picked that over bringing the card in early.
-    **The clip in `c635bcb` has all six faults in it; the fix pass is 12fps only
-    and the 60fps master has not been run.**
+  - **Three rounds of fixes, and they are all in.** The domain is spoken as
+    four words and still drawn as one string, through a named exception the
+    guard was taught rather than a guard that was loosened. The typed line is
+    read by a fourth, comedy voice, a us woman. The typing, each field fill, the
+    send and the confirmation all have sound. **The form is narrated to the end**
+    and every field is filled on the word that names it, so the stretch that
+    sounded dead is gone and it is a guard rather than a claim: exactly two holes
+    in the read, the typing and the confirmation, or the render fails. The ending
+    is **send, tick, report, offering, end card**. The end card is the logo as it
+    is drawn, three stacked lines, centred as a measured group. The corner has
+    twelve marks and seven bubbles, carries the opening on its own, and there is
+    no sour state anywhere in the clip. **The empty top of the frame is empty on
+    purpose**: a pictogram layer was built for it and taken out again, and the
+    space is Einz's. **12fps only; the 60fps master has not been run.**
 - **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
   been looked at is the **light theme at the twelve frame preview**, plus still
   frames from a turn sweep and from every state. **The dark theme has not been
@@ -1197,9 +1202,9 @@ Still no posting cadence or content pillars. See Next steps.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
 - **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
-  **36.93s at 60fps as first built; 39.86s after the same day's fix pass, which
-  is rendered and checked at 12fps only**, vertical only, the read inside the
-  mp4, out to
+  **36.93s at 60fps as first built; 44.08s after the same day's three rounds of
+  fixes, which are rendered and checked at 12fps only**, vertical only, the read
+  inside the mp4, out to
   `demo/out/post11-1080x1920.mp4`. `--blur` opens the shutter for the final,
   `DEMO_FPS=12` previews it, `--plan` prints every plan and renders nothing, and
   `--encode-only` re-encodes from kept frames. Frames under `out/frames-post11`,
@@ -1214,48 +1219,48 @@ Still no posting cadence or content pillars. See Next steps.
   a selector, a zoom and an alignment resolved against a live rect. **The site is
   filmed at 360x1200 css px** and the crop never shows its top sixty, which is
   what excludes the nav.
-  **The mascot's thirteen marks after the 2026-08-30 fix pass**, five bubbles,
-  and the opening four are hung off the **scene** each one is reacting to rather
-  than off the line. The turn is set only over those four: it walks out to 0.62
-  and back to the 0.35 resting bias by the time the card arrives, and every mark
-  after that leaves the channel alone:
+  **The mascot's twelve marks and seven bubbles, as the third round left them.**
+  The opening four are his alone, because nothing else is drawn up there. The
+  turn is set over those only: out to 0.58 and back to the 0.35 resting bias
+  before the card arrives, and every mark after that leaves the channel alone.
+  There is no `unimpressed` in the clip and `agreeing` is kept for the close,
+  because it is the one state that earns a `ding`:
 
   ```
    0.30  neutral       turn 0.18
-   1.45  curious       turn 0.62, into the blocks as they land
-   3.55  thinking      turn 0.44, as the slash goes through the eye
-   6.59  unimpressed   as the third sheet lands on the pile
-   8.55  curious       turn 0.52, as the check is cut into the one block
-   9.95  neutral       turn 0.35, level and back on the bias as the card arrives
+   1.55  curious       turn 0.58, bubble `hmm...`
+   4.30  thinking      turn 0.42, on `some know exactly, but have no time`
+   7.20  curious       turn 0.50, bubble `interesting`
+   9.57  neutral       turn 0.35, level and on the bias as the card arrives
   11.97  curious       into `press the button`
   13.51  neutral       and it holds three lines, carrying the three greetings:
                          `hey` 16.98, `привет` 17.85, `labdien` 18.70
-  24.11  delighted     `nice` 24.73, on the frame the salary line finishes typing
-  26.45  neutral       through the last two steps and the send
-  27.84  curious       up at the check mark, on the frame the page draws it
-  29.45  neutral
-  36.21  agreeing      `finally` 36.81
+  23.73  delighted     `nice`, on the frame the salary line finishes typing
+  26.07  neutral       through the size step and the last step being filled
+  32.29  curious       up at the check mark, on the frame the page draws it
+  33.68  neutral       through the report and the offering
+  40.45  agreeing      `finally`
   ```
 
-  **The scene layer's four, in the card's own box:**
+  **The last step is filled field by field, on the word that names it**, through
+  the page's own focus and its own input listeners:
 
   ```
-   0.18.. 2.72  everywhere   eight blocks filling the board, arriving scattered
-   2.42.. 5.10  unseen       a figure and an eye with a slash struck through it
-   4.80.. 7.85  pile         three sheets landing, two cut rules on the top one
-   7.55.. 9.51  one          one block and a check cut into it
+  26.67  f-name      your business
+  27.75  f-reg       12345678            named and never read aloud
+  29.08  f-country   usa
+  30.00  f-email     you@yourbusiness.com
   ```
 
-  **It imports all five of the libraries since 2026-08-30**: `lib/voice.mjs`,
-  `lib/captions.mjs`, `lib/mascot.mjs`, `lib/sfx.mjs` and — added with the fix
-  pass — `lib/pictograms.mjs`. The scene layer is the first ten seconds only, in
-  the card's own box, and it hands over to the site on the frame the card starts
-  arriving. For the rest of the clip the picture is the site.
-  **No music.** After the 2026-08-30 fix pass the sound is the read, a second
-  read in the comedy voice over the typing, the mascot's two cues, a click on
-  each tap but one, thirteen `key` ticks under the hand, a `press` on the send
-  and a `ding` on the check mark: **twenty eight effects**, at -14.2 LUFS /
-  -1.0 dBTP.
+  **It imports `lib/voice.mjs`, `lib/captions.mjs`, `lib/mascot.mjs` and
+  `lib/sfx.mjs` and not `lib/pictograms.mjs`.** A scene layer was built for the
+  opening on 2026-08-30 and taken out again the same day: the top of the frame is
+  empty for the first nine and a half seconds on purpose and the space is Einz's
+  to fill. What carries those four lines is the corner mascot.
+  **No music.** The sound is the read, a second read in the comedy voice over the
+  typing, the mascot's own cues, a click on each tap but one, `key` ticks under
+  the hand and under each field fill, a `press` on the send and a `ding` on the
+  check mark: **forty two effects**, at -14.2 LUFS / -1.0 dBTP.
 - **`demo/music/` is licensed audio and it is never pushed.** Two pixabay mp3s
   live there on this machine; `.gitignore` carries `demo/music/` for the same
   reason it carries `.env`. The licence is ours to hold, not ours to
@@ -1469,8 +1474,13 @@ motion engine and is the only dependency any of this has gained since. Full deta
   because node's global `WebSocket` cannot set the headers the endpoint wants. **Four
   voices since 2026-08-30**: three narrators, `calm` = `en-US-AndrewNeural` (the
   default), `dry` = `en-US-EricNeural`, `uk` = `en-GB-RyanNeural`, all at a negative
-  rate; and one comedy voice, **`wry` = `en-IN-PrabhatNeural`**, male indian english,
-  marked `comedy: true` so nothing can pick it to narrate. `NARRATORS` is the list of
+  rate; and one comedy voice, **`aside` = `en-US-JennyNeural`**, female us english,
+  marked `comedy: true` so nothing can pick it to narrate. **That slot shipped as
+  `wry` = `en-IN-PrabhatNeural` for one build and was replaced the same day**: a
+  clip whose register is plain does not want its one joke marked out by an
+  accent, because then the accent is the joke. It is female on purpose, because
+  the three narrators are all male and the one voice that is somebody else in the
+  film should be audible as somebody else on the first syllable. `NARRATORS` is the list of
   the ones that are not comedy. `node lib/voice.mjs test` speaks a line in all four and
   reports the durations, and `voices` prints `[comedy]` against the fourth. Audio and a json sidecar land in
   `demo/out/voice/`, already gitignored.
@@ -1810,167 +1820,122 @@ no card allowed to straddle two lines.
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
 
-### 2026-08-30 — post11's fix list: all six done, and the sixth was a decision
+### 2026-08-30 — post11, three rounds of fixes, and what each one settled
 
-Six things came out of watching the clip. **Five of them are fixed and the sixth
-is a decision that has not been made.** The fix pass is in `demo/post11.mjs`,
-`demo/lib/voice.mjs` and `demo/lib/sfx.mjs`; nothing else was touched, no file
-was added, and no dependency was added. **It is rendered and checked at 12fps
-only. The 60fps pass is deliberately not run**, because whatever answers six
-changes the first ten seconds and there is no point paying fifteen minutes for a
-master that is about to move. The clip is now **39.86s**, up from 36.93.
+Six things came out of watching the first cut and the list turned into three
+rounds. Everything below is in `demo/post11.mjs`, `demo/lib/voice.mjs` and
+`demo/lib/sfx.mjs`. **The clip is 44.08s and it is rendered and checked at 12fps
+only; the 60fps master has not been run.**
 
-**1. The domain read, done.** The script line is `go to the boring tek dot com`,
-four words with a person's pacing, and the caption still draws
-`theboringtek.com`. The guard was **taught the exception rather than loosened**:
-`SAY_AS` at the top of the file names the one line, the run of spoken words and
-the string that replaces them; `markLines` collapses that run into one drawn
-word carrying the run's own start and end; `guard` applies the same substitution
-to the **spoken** string before comparing, so the check still starts from what
-came out of the synthesiser. And the exception has to fire **exactly once** or
-the render fails, because an exception that quietly stopped matching would take
-the guard down with it, which is the only way a check of this shape goes wrong.
-That last clause is the part to carry forward to the next one of these.
+**1. The domain read.** The script says `go to the boring tek dot com`, four
+spoken words with a person's pacing, and the caption draws `theboringtek.com`.
+The guard was **taught the exception rather than loosened**: `SAY_AS` names the
+line, the run of spoken words and the string that replaces them; `markLines`
+collapses the run into one drawn word carrying the run's own start and end;
+`guard` applies the same substitution to the **spoken** string before comparing,
+so the check still starts from what came out of the synthesiser. And the
+exception has to fire **exactly once** or the render fails, because an exception
+that quietly stopped matching would take the guard with it. That last clause is
+the part to carry to the next check of this shape.
 
-**2. The comedy voice, done, and it is a fourth voice.** `wry` =
-`en-IN-PrabhatNeural` in `lib/voice.mjs`, marked `comedy: true`, with a
-`NARRATORS` export that is every voice that is not. The english only rule
-settled 2026-08-27 is about **language** and indian english is english: this is
-an accent, and that is the whole of the exception. It reads the typed line over
-the typing at `+2%`, 3.25s of sound, a decibel and a half under the narrator.
-**It is not captioned** — the words are already on screen being typed into the
-field, and a caption of them would be the same sentence twice — so it never
-reaches the caption plan and the drawn-is-spoken guard never sees it. It is laid
-onto the voice track by hand (`layIn`) rather than through `buildVoice`, and its
-words **are** in the duck envelope so the keyboard goes under it.
+**2. The comedy voice, and it changed twice.** `lib/voice.mjs` gained a fourth
+slot for the one line in the clip that is not ours: the sentence somebody in
+front of the form is typing. It shipped as `wry` = `en-IN-PrabhatNeural`, indian
+english, read deadpan, and **that was the wrong call and was replaced the same
+day**. The reasoning is worth keeping: a clip whose whole register is plain does
+not want its one joke marked out by an accent, because then the accent is the
+joke rather than the line. It is `aside` = **`en-US-JennyNeural`**, a us woman,
+`comedy: true`, read light and warm at -14%. It is female on purpose and that is
+the second half of the same argument: the three narrators are all male, so the
+one voice that is somebody else in the film is audibly somebody else on the
+first syllable with nothing to do but be one. `NARRATORS` is every voice not
+marked comedy. **The english only rule settled 2026-08-27 never moved**: it is
+about language, and both of these were english.
 
-**And the hand is now cut to the read rather than to a number.** The typing
-window is the comedy take's measured sound length, so the last keystroke lands
-on the last syllable without either of them being told about the other, and the
-hole line ten carries is derived in `main()` rather than typed: `gap: null` in
-`LINES` and a `buildVoice` that refuses a null gap, so a derived number nobody
-derived stops the render instead of looking like a timing choice.
+**The hand is cut to the read rather than to a number.** The typing window is
+the comedy take's measured sound length, so the last keystroke lands on the last
+syllable without either being told about the other, and the hole line ten
+carries is derived in `main()` rather than typed: `gap: null` in `LINES`, and a
+`buildVoice` that refuses a null gap so a derived number nobody derived stops
+the render instead of looking like a timing choice.
 
-**3. The missing sounds, done, all three synthesised.** `key` and `press` are
-two new recipes in `lib/sfx.mjs` (see the entry above) and the confirmation is
-`ding`, which was already written as "a check being drawn" and had only ever
-been used for an agreement. **One tick per four characters, not per keystroke**:
-forty three sounds inside three and a half seconds is a rattle, thirteen is a
-keyboard from the next desk. The typo and the backspace always get their own,
-because they are the two moments the rhythm breaks.
+**3. The missing sounds.** `key` and `press` are two new recipes in
+`lib/sfx.mjs` (see the entry above) and the confirmation is `ding`, which was
+already written as "a check being drawn". **One tick per four characters, not
+per keystroke**: forty three sounds inside three seconds is a rattle. The typo
+and the backspace always get their own, because they are the two moments the
+rhythm breaks. Each of the four field fills carries three ticks of its own.
 
-**4. The ending's order, done, and it cost the fade.** The order is now send
-tap, tick, offering, report, end card. Moving `send it` in front of the offering
-took away the white beat the form used to be finished behind, so **the last two
-steps are on camera now**: next, a size, and the last step. The one thing that
-is still not a keystroke is the two required fields, and `fill` fires **inside
-the last step's own entrance**, while index.html is still growing the card, so
-no frame shows a field going from empty to full. The send shot is the only leg
-in the file aligned to the **bottom** of a growing card, which is why it waits
-half a second after the advance where the top aligned ones take a tenth: a card's
-top does not move during the grid grow and its bottom moves the whole time.
+**4. The ending, ordered three times before it was right.** It is now **send
+tap, the tick, the report, the offering, the end card** — the report answers the
+press because it is what the press buys, and the pitch lands last with the frame
+to itself. The first cut had the offering before the send; the second had it
+between the tick and the report.
 
-**5. The corner mascot, done, and the turn does the work.** Fourteen marks
-against eight, and **the five bubbles are unchanged** — everything added is the
-turn channel and the state table, which costs nothing anybody has to read. The
-first quarter now runs neutral, curious, neutral, thinking, unimpressed,
-neutral, neutral, with the turn walked from 0.18 out to 0.62 and back to the
-0.35 bias by the time the card arrives. Every mark after the card leaves the
-channel alone exactly as before. One more was added at the far end: he looks up
-at the check mark on the frame the page draws it, which is the beat the whole
-reorder exists to make land.
+**Moving the send in front of the offering took away the white beat the form
+used to be finished behind**, so the last two steps are on camera. And the
+confirmation reframe **leaves on the tick rather than after the card has
+finished growing**: the sent state is a much shorter card than the last step, so
+waiting rendered `start again` alone at the top of the frame for four frames.
+Leaving early measures a card that is still shrinking, which is a small error
+the drift closes, against a framing that is entirely wrong.
 
-**6. The empty gap, answered: the pictogram scene layer.** Einz picked it over
-bringing the site card in early. Measured off the rendered frames before the
-fix, the whole frame above y=400 css was white from 0.00 to 9.51s; it now
-carries four pictures, one per line, and the only frame in the clip whose card
-box is pure white is the seam itself.
+**5. The corner mascot, and it ended up carrying the opening.** No
+`unimpressed` anywhere in the clip: it sat on `have no time`, it was the right
+read of that line and the wrong read of the film, and a corner character who
+pulls a sour face at the viewer's problem is not somebody you then ask to build
+you something. `thinking` does that work now. `agreeing` is kept for the close
+alone, because it is the one state that earns a `ding` and the ding has to keep
+meaning yes.
 
-**The layer lives in the card's own box and that is the whole design rule.**
-`.pic` is laid at `SCREEN` — 76,96 388x420 css, 152,192 776x840 device — which is
-the identical rect the site card fills from 9.51s, so nothing moves position or
-size when one hands over to the other. The svg fits its 100x60 viewBox to the
-box on the width, so the drawing sits as a band in the middle of where the
-lockup is about to be.
+Twelve marks and **seven bubbles**: `hmm...` while the problem is still being
+described and `interesting` on the line that turns it into something we can do,
+plus the three greetings, `nice` and `finally`. The turn is set over the opening
+only, out to 0.58 and back to the 0.35 resting bias before the card arrives.
 
-**The handover is arithmetic rather than two numbers that agree.** `CARD_LEAD`
-is 0.42s, `handover` is computed once in `main()` as `beats[4].start -
-CARD_LEAD` rounded to three places, and it is handed to **both** halves: the
-last scene's `out` and the card's own fade in. `guard` fails the render if
-`pic.seconds` and `site.fades[0].t0` are ever different numbers, which is what
-catches a refactor that stops passing it. The last scene stops leaving at 9.21
-and is gone at 9.51, the frame the card starts arriving: no dissolve between two
-things in one box and no hole either.
+**6. The empty top of the frame, and it is empty on purpose now.** It was the
+one dead region: 0.00 to 9.51s with nothing above the caption band. Einz picked
+the pictogram scene layer over bringing the card in early, it was built, and
+then **it was taken out again in the next round and the space is his to fill.**
+`lib/pictograms.mjs` is not imported. What carries those four lines is the
+mascot, which is why the opening is his.
 
-**The four pictures, and the reasoning is the part worth keeping.**
+**And the silent stretch, which was the fault the third round existed for.** The
+form used to finish itself with no words over it — first behind a fade, then in
+plain sight, and both were the same thing dressed differently. **The voice stays
+with the form now**: three lines cover the size step, the name and registration
+number, and the country and email, and every field is filled **on the word that
+names it** through `wordAt`. The registration number is named and never read,
+because a synthesiser reading eight digits is thirty seconds of nothing and a
+number said aloud is a number somebody will try to write down.
 
-  1. `everywhere` — eight blocks filling the board, arriving scattered rather
-     than in reading order. `everywhere` is a quantity and a direction at once
-     and eight of one shape landing all over the frame is the only thing this
-     vocabulary says that means both.
-  2. `unseen` — a figure and, beside them, an eye with a mark struck through it.
-     `does not know` is the hard one: the set has no question mark and inventing
-     one would be a shape drawn by a different hand. The slash is **knocked**,
-     which is the one thing that lets an --fg stroke cross an --fg shape and
-     still read as a stroke.
-  3. `pile` — three sheets landing one on another, each knocked so the page
-     shows between them, with two cut rules on the top one so the stack reads as
-     documents rather than as slabs. The line is `some know exactly, but have no
-     time` and the picture only says the second half; a picture that tried to
-     say both would say neither at phone size.
-  4. `one` — one block and a check cut into it. The plainest of the four, and it
-     is the same gesture the ending pays off with the site's own tick, so the
-     clip says it small here and large there.
+**It is a guard rather than a claim.** The render measures every hole in the
+read on the waveform and there must be **exactly two**: the one the hand types
+in, which the comedy read and twenty five keyboard ticks live inside, and the
+one the check mark is drawn in. A third fails the render, and so does a first
+one that runs more than 1.70s past the last keystroke. The render also fails if
+a digit ever reaches the script.
 
-**A scene container arriving is not a picture arriving, and the first cut got
-that wrong.** A scene's parts sit at nothing until their own steps run, so a
-first `pop` timed politely after the handoff left the zone empty for about a
-fifth of a second between every pair — the frame at 8.00s in the first preview
-was exactly the fault this layer exists to fix, one twentieth the size. Every
-opening pop is now pulled back to inside its own scene's entrance, which is the
-earliest `planScenes` allows (`sc.in + enter.for * 0.5`).
+**The end card is the logo as it is actually drawn.** THE / BORING / TEK stacked
+on three lines with the address under it and nothing else. Stacking is what
+makes it big: on one line the wordmark had to fit 300px of a 540 wide frame,
+which is michroma at 25px; the widest stacked line is `BORING`, so the same
+width buys 59px. It is **centred as a group and the centre is measured**, not
+typed: `build()` measures both blocks after the face has loaded and places them
+either side of `centreY`. `centreY` is the middle of the room **above the
+caption band** rather than the middle of the frame, because the last line of the
+clip is still being captioned into that band while the card is up.
 
-**No accent, and it is refused rather than avoided.** The layer is `fg`, `muted`
-and `cut` only, and `guard` fails on a part inked accent, because the clip's
-whole identity is that it has no green of its own anywhere.
-
-**The parity check was not weakened and is the reason this is trustworthy.**
-`lib/pictograms.mjs` runs two gsap clocks — node steps its own copy of the
-timeline and the page steps its own off the same `t` — and the render compares
-them on every frame. Measured: worst `|gsap t - frame/fps|` **3.333e-8s** against
-a 1e-6 ceiling, and worst node-against-page **0** over the whole clip. The one
-frame ceilings are post7's, scaled to the frame time, and the worst the scenes
-reach is 0.618 of a 1.000 fade allowance and 0.364 of a 0.600 draw allowance. No
-faults.
-
-**It cost a fifth import and no dependency.** `post11.mjs` now imports
-`lib/pictograms.mjs` alongside voice, captions, mascot and sfx; gsap was already
-one of demo's three and is inlined from `node_modules` at render time as it
-always was. No file was added.
-
-**And the mascot's opening marks moved onto the scenes.** Thirteen marks now,
-still five bubbles. The four opening reactions are hung off the **scene** they
-are reacting to rather than off the line — `curious` inside `everywhere`,
-`thinking` inside `unseen`, `unimpressed` inside `pile`, `curious` inside `one` —
-so he is watching a picture arrive rather than punctuating a sentence, and no two
-land on one beat. The turn still walks out to 0.62 and back to the 0.35 bias
-before the card lands.
-
-**What the 12fps reviews found and did not fix.** Three things, all in
-`demo/out/review-post11-1080x1920.md`. **24.05 to 26.39s has no voice and no
-caption** — the 2.3s the reorder bought, filled by the form finishing on camera
-with a click on each press, and it wants watching at 60fps before it is called
-fine. **The tap ring outlives the step it belongs to**: a single pick chip
-advances itself after 240ms and the ring lives 420ms, so its last 180ms sits over
-whatever the page drew next. That is every chip tap in the clip, it predates all
-of this, and it was left alone rather than changed without being asked. And
-**9.500s is the one frame whose card box is pure white** — measured off the
-pixels, darkest 255 there against 208 and 243 either side. The scene layer
-finishes leaving and the card starts arriving on the same instant, so the empty
-frame *is* the seam and the 12fps sample landed on it; at 60fps the samples fall
-at 9.500 and 9.517 and both should carry a trace. That last sentence is
-arithmetic rather than something measured, and it is the first thing to look at
-on the 60fps frames.
+**What the reviews found and did not fix.** In
+`demo/out/review-post11-1080x1920.md`. **One frame at 31.67s** where the camera
+is still bottom aligned on the last step and the page has already swapped to the
+sent card — the lesser of the two options above, and worth a look at 60fps.
+**1.33s at 23.90..24.97** with no caption and no voice, which is the tail of the
+typing hole and holds the mascot's `nice` bubble and the press that opens the
+size step. And **the tap ring outlives the step it belongs to**: a single pick
+chip advances itself after 240ms and the ring lives 420ms. That is every chip
+tap in the clip, it predates all of this, and it was left alone rather than
+changed without being asked.
 
 ### 2026-08-30 — a mascot mark may say several things in a row
 
@@ -3330,13 +3295,19 @@ were re-rendered against it.
 **English is the only voice language, and that is permanent.** No Russian and no Latvian
 voice on any clip, ever. Einz's decision.
 
-**Amended 2026-08-30, and it is not a change: the rule is about language, not accent.**
-`lib/voice.mjs` gained a fourth voice, `wry` = `en-IN-PrabhatNeural`, indian english,
-marked `comedy: true` and used for exactly one line in post11: the sentence a person in
-the film is typing into the form, which is not the agency talking. Indian english is
-english, so nothing above moved. What did get written down is that a comedy voice is a
-named kind rather than a fourth narrator: `NARRATORS` is the three that are not comedy,
-and a clip picking a read voice picks from that list.
+**Amended 2026-08-30, and it is not a change: the rule is about language.**
+`lib/voice.mjs` gained a fourth voice, marked `comedy: true` and used for exactly one
+line in post11: the sentence a person in the film is typing into the form, which is not
+the agency talking. What got written down is that a comedy voice is a named kind rather
+than a fourth narrator: `NARRATORS` is the three that are not comedy, and a clip picking
+a read voice picks from that list.
+
+That slot was `en-IN-PrabhatNeural` for one build and is `en-US-JennyNeural` now, and
+the swap was a taste call rather than a rule change: indian english is english and the
+rule never had anything to say about it. What the rule does not cover, and what the
+change is actually about, is that a clip this plain does not want its one joke marked
+out by an accent. **Do not read the swap as the english only rule growing teeth about
+accents.**
 
 Worth being exact about what it is and is not. It is **not** a limitation: the endpoint
 `lib/voice.mjs` talks to offers Russian and Latvian neural voices and adding them would
@@ -4327,8 +4298,8 @@ of them.
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
 - **post11, "the explainer", is built and not posted** — 2026-08-30,
-  `demo/post11.mjs`. **All six of its fixes are in and it is 39.86s now**, every
-  check passing and both video-review passes clean, **but only at 12fps: the
+  `demo/post11.mjs`. **Three rounds of fixes are in and it is 44.08s now**, every
+  check passing and all three video-review passes clean, **but only at 12fps: the
   60fps master has not been run.** It owes a **posting pack**: caption, tweet and
   three tags per platform, none of them decided. And it owes **a track** — the
   clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is

@@ -72,10 +72,6 @@ import {
   renderSfx, writeWav, limit, decode, mixdown, voiceEnvelope, applyGain,
   loudness, describeMix, checkUnderVoice, dbfs, SR,
 } from './lib/sfx.mjs';
-import {
-  planScenes, sceneFrame, sceneMotion, pictogramCss, pictogramMarkup,
-  pictogramRuntime, pictogramPagePlan, describeScenes, WEIGHTS,
-} from './lib/pictograms.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -163,25 +159,55 @@ const LINES = [
      disk and buildVoice refuses a line whose gap is still null. */
   { text: 'then type what you want',
     rate: '-4%', pitch: '0Hz', gap: null, screen: 'site' },
-  /* the send, and it comes **before** the offering. the first cut had the list
-     of things we do here, which put the pitch on screen while the form was
-     still being filled and landed the confirmation after the pitch was over.
-     the order a viewer needs is: press it, see that it went, then hear what it
-     is you are asking for.
+  /* ---- the rest of the form, narrated ----
+     these three lines are new and they exist because the stretch they sit in
+     used to be silent. the form was finished off the voice: two and a half seconds of
+     a card filling itself with no words over it, which on a rendered strip reads
+     as the audio having dropped out rather than as a pause.
 
-     the hole after this one is not a breath. the send is a real press, the page
+     so the voice stays with the form. one step or one field per phrase, and
+     every one of them happens on the word that names it, which is the same
+     discipline the greetings use: `wordAt` keys the cue to what was said rather
+     than to a number.
+
+     the first cut of this fix only narrated the last step, and all that did was
+     move the hole: the size step in front of it was still two and a half seconds
+     of pressing with nobody talking. the size step gets its own line now, and
+     what is left unvoiced is the third of a second it takes to press `next`.
+
+     the registration number is named and never read. a synthesiser reading eight
+     digits aloud is thirty seconds of nothing, and a number said out loud is
+     also a number a viewer will try to write down. the field is filled with a
+     plain placeholder and the voice says what it is, which is all anybody needs.
+
+     the camera is on the top of the card for the first of these, because that is
+     where the name and the registration number are, and on the bottom for the
+     second, because that is where the country, the email and the send button
+     are. each field is on screen when it is named. */
+  { text: 'how big your business is',
+    rate: '-4%', pitch: '0Hz', gap: 0.28, screen: 'site' },
+  { text: 'your name and your registration number',
+    rate: '-6%', pitch: '0Hz', gap: 0.30, screen: 'site' },
+  { text: 'where you are, and your email',
+    rate: '-6%', pitch: '0Hz', gap: 0.34, screen: 'site' },
+  /* the send. the hole after it is not a breath: the press is real, the page
      disables the button and breathes it, the stubbed post answers after 480ms
-     and only then is a check mark drawn — so the confirmation costs about two
-     seconds of silence, and the line before it is two words long. */
+     and only then is a check mark drawn, so the confirmation costs about two
+     seconds and the line before it is two words long. */
   { text: 'send it',
-    rate: '-6%', pitch: '-1Hz', gap: 2.60, screen: 'site' },
-  /* and now the offering, on white, after the tick. the commas are what make it
-     land one item at a time: `cardBreak` breaks on them, so app, website,
-     research and graphic design each get the frame to themselves. */
-  { text: 'app, website, research, graphic design, or one small job',
-    rate: '+4%', pitch: '+1Hz', gap: 0.32, screen: 'white' },
+    rate: '-6%', pitch: '-1Hz', gap: 2.95, screen: 'site' },
+  /* and then, in this order and it is the third time it has been reordered:
+     the tick, then what happens next, then what we do, then the card. the
+     report is what the viewer gets for pressing the button, so it answers the
+     press; the offering is the pitch and it lands last, on white, with nothing
+     else in the frame. */
   { text: 'in one or two days you get your report',
     rate: '-8%', pitch: '-1Hz', gap: 0.38, screen: 'white' },
+  /* the commas are what make this land one item at a time: `cardBreak` breaks
+     on them, so app, website, research and graphic design each get the frame to
+     themselves. */
+  { text: 'app, website, research, graphic design, or one small job',
+    rate: '+4%', pitch: '+1Hz', gap: 0.32, screen: 'white' },
   /* the close. the slowest and the lowest, and the only line that gets to sit
      under an end card. */
   { text: 'we sit between you and ai',
@@ -211,25 +237,46 @@ const SAY_AS = [{
 /* ---------- the comedy line ----------
    the typed line is the one sentence in the clip that is not ours: it is what
    somebody sitting in front of the form is thinking. so it is read by somebody
-   else. `wry` is the fourth voice in `lib/voice.mjs`, male indian english,
-   added for this and marked as a comedy voice so nothing can pick it to
-   narrate. the english only rule settled 2026-08-27 is about language, and this
-   is an accent — read light and deadpan, never played for the accent.
+   else. `aside` is the fourth voice in `lib/voice.mjs`, a us woman, marked as a
+   comedy voice so nothing can pick it to narrate. it read in indian english for
+   one build and does not any more: a clip this plain does not want its one joke
+   marked out by an accent, because the accent becomes the joke, and the line is
+   funnier said warmly and straight. the three narrators are male, so a woman is
+   audibly somebody else on the first syllable and has nothing to do but be one.
 
    it is not captioned. the words are already on screen, in the field, being
    typed; a caption of them would be the same sentence twice. so it never
    reaches the caption plan and the drawn-is-spoken guard never sees it, which
    is why it is laid into the voice track by hand rather than through
    `buildVoice`. it is in the duck envelope, so the keys go under it. */
-const JOKE = { voice: 'wry', rate: '+2%', pitch: '0Hz', trimDb: -1.5 };
+const JOKE = { voice: 'aside', rate: '-14%', pitch: '0Hz', trimDb: -1.5 };
 const TYPE_LINE = 9;      /* `then type what you want`, zero based */
 const TYPE_LEAD = 0.30;   /* the line's last word to the first keystroke */
-/* what is left of the hole after the typing: the last two steps of the form,
-   done on camera, and the camera's move onto the send button. */
-const TYPE_TAIL = 2.70;
+/* what is left of the hole after the typing, and it is now one press wide: the
+   `next` that confirms what was typed, and the camera arriving on the step it
+   opens. the line that asks how big the business is starts the moment that step
+   has been drawn, and from there the voice stays with the form to the send. */
+const TYPE_TAIL = 1.30;
 const SILENCE_DB = -46;            /* a take ends where it falls this far under its own peak */
 const PRE = 0.05, POST = 0.08;     /* audio kept either side of a take's own words */
 const EDGE_FADE = 0.008;
+
+/* ---------- what the last step is filled with ----------
+   four fields, four values, and none of them is a real anything. the name and
+   the email are the placeholders the site's own copy would use; the country is
+   the plainest three letters in the world; and the registration number is eight
+   digits in a row, which is the shape of a registration number and is obviously
+   not one. nothing here is a client, a company, a person or an address.
+
+   the website field is left empty on purpose. it is marked optional on the site
+   and it is optional here: a form where every optional field is also filled in
+   is a form nobody has ever filled in. */
+const FIELDS = [
+  { id: 'f-name', key: 'name', text: 'your business' },
+  { id: 'f-reg', key: 'reg', text: '12345678' },
+  { id: 'f-country', key: 'country', text: 'usa' },
+  { id: 'f-email', key: 'email', text: 'you@yourbusiness.com' },
+];
 
 /* what gets typed into the free text box. it is the joke the brief asked for
    and it is the one thing on screen that is not either the script or the site's
@@ -271,171 +318,38 @@ const CARD_CLEARANCE = 30;
    exist to be framed. */
 const SITE = { w: 360, h: 1200 };
 
-/* the end card. the wordmark where the site card was, and the address under it
-   in the lockup subline's treatment, which is the one place the brand allows
-   michroma small. */
-/* the end card. the wordmark and the address sit where the site card was, on the
-   same axis and centred in the room it leaves, so the last shot lands on the
-   same part of the frame the whole middle of the clip has been using. */
-const END = { wordmarkW: 300, wordmarkY: 285, domW: 214, domY: 347 };
+/* ---------- the end card ----------
+   the wordmark stacked on three lines, the way the logo is actually drawn and
+   the way index.html sets it, with the address under it in the lockup subline's
+   treatment. that is the one place the brand allows michroma small, and there is
+   nothing else on the card.
 
-/* ---------- the scene layer, and it only exists for the first ten seconds ----------
-   the four lines before the site card arrives are type on white with an empty
-   top two thirds, which a viewing called out as the one dead region in the clip.
-   this fills it, and the rule that shapes everything below is that it fills
-   **the card's own box**: `.pic` is laid at SCREEN, exactly where the site card
-   lands, so nothing moves position or size when one hands over to the other.
-   the svg fits its viewBox inside that box on the width, so the drawing sits as
-   a band in the middle of where the lockup is about to be.
+   **stacked rather than on one line, and that is what makes it big.** on one
+   line `THE BORING TEK` had to fit inside 300px of a 540 wide frame, which is
+   michroma at about 25px: legible, and nowhere near the size the last shot of a
+   clip wants. the widest of the three stacked lines is `BORING`, so the same
+   width buys more than twice the type.
 
-   they are quiet on purpose. no accent, because this clip has no green of its
-   own anywhere; no scene translates; nothing spins. a block arrives, a mark is
-   drawn, a stack lands. the voice is the thing being listened to and these are
-   only what the frame is doing while it talks.
+   **it is centred as a group and the centre is measured, not typed.** the
+   wordmark block is three lines tall at a size nothing knows until the face has
+   loaded, so `build()` measures both blocks and places them either side of
+   `centreY` rather than each at a top somebody guessed. `centreY` is the middle
+   of the room above the caption band rather than the middle of the frame: the
+   band is fixed at 572..620 and the last line of the clip is still being
+   captioned into it while this is on screen, so a card centred on the frame's
+   own middle would put the address on top of the words. */
+const END = {
+  wordmarkW: 330,   /* the width `BORING` occupies, in css px */
+  domW: 214,
+  gap: 46,          /* clear air between the wordmark block and the address */
+  centreY: 336,     /* the group's own centre, in the room above the caption band */
+};
 
-   **the handover is the whole timing argument.** the last scene's `out` is the
-   frame the card's fade begins, to the millisecond, and `guard` fails the render
-   if those two ever stop being the same number. scene four therefore stops
-   leaving at 9.21 and is gone at 9.51, which is the frame the card starts
-   arriving: no dissolve between two things in one box, and no hole either.
-
-   each scene hands to the next on a 0.30s overlap, which is `planScenes`' own
-   definition of a handoff: the outgoing one starts leaving on exactly the frame
-   the incoming one starts arriving.
-
-   **the first part of a scene pops while the one before it is still leaving**,
-   and that is a correction off rendered frames rather than a preference. a scene
-   container arriving is not a picture arriving: its parts are still at nothing
-   until their own steps run, so a first pop timed politely after the handoff
-   left the zone empty for about a fifth of a second between every pair. the
-   frame at 8.00s in the first preview was exactly that, and it is the same fault
-   this whole layer exists to fix, one twentieth the size. so each opening pop is
-   pulled back to inside its own scene's entrance, which is the earliest
-   `planScenes` allows.
-
-   the four pictures, and why each one:
-
-     1  everywhere       eight blocks filling the board, arriving scattered
-                         rather than in reading order. `everywhere` is a quantity
-                         and a direction at once, and eight of one shape landing
-                         all over the frame is the only thing this vocabulary
-                         says that means both.
-     2  a figure and a   `does not know` is the hard one. the set has no question
-        slashed eye      mark and inventing one would be a shape drawn by a
-                         different hand, so it is said the way the set already
-                         says things: a person, and beside them an eye with a
-                         mark struck through it. the slash is knocked, which is
-                         the one thing that lets an --fg stroke cross an --fg
-                         shape and still read as a stroke.
-     3  three sheets     `but have no time` is the punch of the line and a pile
-        landing in a     of paper is what no time looks like. they land one on
-        pile             another with the shadow doing the separating and a knock
-                         around each, then two cut rules on the top one so the
-                         stack reads as documents rather than as slabs. the first
-                         half of the line is carried by the voice; a picture that
-                         tried to say both would say neither at phone size.
-     4  one block and    the plainest of the four and the one the line most
-        one check cut    wants. it is also the gesture the ending pays off with
-        into it          the site's own tick, so the clip says it small here and
-                         large there.
-
-   the ink is `fg`, `muted` and `cut` and there is no fourth. `accent` is refused
-   in `guard` rather than merely avoided here. */
-const HAIR = WEIGHTS.hair, MARK = WEIGHTS.mark;
-
-/* the scene layer's own clock, written out so the handover is arithmetic rather
-   than four numbers that happen to line up. `HAND` is the exit's own length,
-   which is `SCENE_EXITS.springOut.for`, and every `out` below is a `leaving`
-   plus it. */
-const HAND = 0.30;
-/* how long before its own line the site card starts fading in. it is the one
-   number the scene layer and the camera share: the scenes end on it and the card
-   begins on it, so the handover is arithmetic rather than two typed times that
-   happen to agree. `guard` still compares what the two halves actually did with
-   it, which is what catches a refactor that stops passing it. */
+/* how long before its own line the site card starts fading in. it was shared
+   with the scene layer while there was one; it stays a named constant because
+   the card's arrival is the only cut in the clip and a number like that belongs
+   somewhere it can be found. */
 const CARD_LEAD = 0.42;
-
-const SCENES = handover => [
-  /* ---- line one: ai for business is everywhere now ---- */
-  {
-    id: 'everywhere', in: 0.18, out: 2.42 + HAND, exit: 'springOut',
-    parts: [
-      /* two rows of four. the order the times are in is not the order they sit
-         in: they arrive across the board rather than along it, which reads as a
-         thing spreading rather than as a row being filled. */
-      { id: 'e-1', shape: 'square', at: { cx: 14, cy: 20, s: 14 }, steps: { kind: 'pop', t: 1.01 } },
-      { id: 'e-2', shape: 'square', at: { cx: 38, cy: 20, s: 14 }, steps: { kind: 'pop', t: 0.45 } },
-      { id: 'e-3', shape: 'square', ink: 'muted', at: { cx: 62, cy: 20, s: 14 }, steps: { kind: 'pop', t: 1.29 } },
-      { id: 'e-4', shape: 'square', at: { cx: 86, cy: 20, s: 14 }, steps: { kind: 'pop', t: 0.73 } },
-      { id: 'e-5', shape: 'square', ink: 'muted', at: { cx: 14, cy: 40, s: 14 }, steps: { kind: 'pop', t: 0.87 } },
-      { id: 'e-6', shape: 'square', at: { cx: 38, cy: 40, s: 14 }, steps: { kind: 'pop', t: 1.43 } },
-      { id: 'e-7', shape: 'square', at: { cx: 62, cy: 40, s: 14 }, steps: { kind: 'pop', t: 0.59 } },
-      { id: 'e-8', shape: 'square', ink: 'muted', at: { cx: 86, cy: 40, s: 14 }, steps: { kind: 'pop', t: 1.15 } },
-    ],
-  },
-  /* ---- line two: some people do not know why they even need it ---- */
-  {
-    id: 'unseen', in: 2.42, out: 4.80 + HAND, exit: 'springOut',
-    parts: [
-      { id: 'u-who', shape: 'human', at: { cx: 30, cy: 26, r: 8, sw: 26, sh: 9 },
-        steps: { kind: 'pop', t: 2.68 } },
-      { id: 'u-eye', shape: 'eye', at: { cx: 68, cy: 30, w: 30, h: 11, pr: 4.6 },
-        steps: { kind: 'pop', t: 3.14 } },
-      /* struck through, and knocked so the page shows between the two. it is
-         drawn rather than popped: a line through something is a gesture with a
-         direction, and popping it in whole would be a second shape appearing. */
-      { id: 'u-no', shape: 'stroke', w: MARK, knock: true,
-        at: { x1: 54, y1: 41, x2: 82, y2: 19 },
-        steps: { kind: 'draw', t: 3.66, for: 0.55 } },
-    ],
-  },
-  /* ---- line three: some know exactly, but have no time ---- */
-  {
-    id: 'pile', in: 4.80, out: 7.55 + HAND, exit: 'springOut',
-    parts: [
-      { id: 'p-1', shape: 'sheet', knock: true, at: { x: 24, y: 36, w: 52, h: 12 },
-        steps: { kind: 'pop', t: 5.06 } },
-      { id: 'p-2', shape: 'sheet', knock: true, at: { x: 29, y: 25, w: 46, h: 11 },
-        steps: { kind: 'pop', t: 5.62 } },
-      { id: 'p-3', shape: 'sheet', knock: true, at: { x: 22, y: 14, w: 50, h: 11 },
-        steps: { kind: 'pop', t: 6.20 } },
-      /* the writing, cut into the top sheet the way the vocabulary cuts writing
-         into any document: a hole in the ink rather than ink on top of it, which
-         is the only thing that reads on a solid shape. */
-      { id: 'p-r1', shape: 'rule', ink: 'cut', w: HAIR, at: { x1: 27, x2: 61, y: 17.6 },
-        steps: { kind: 'draw', t: 6.72, for: 0.40 } },
-      { id: 'p-r2', shape: 'rule', ink: 'cut', w: HAIR, at: { x1: 27, x2: 50, y: 21.2 },
-        steps: { kind: 'draw', t: 6.86, for: 0.40 } },
-    ],
-  },
-  /* ---- line four: and some just need one small thing done ---- */
-  {
-    id: 'one', in: 7.55, out: handover, exit: 'springOut',
-    parts: [
-      { id: 'o-box', shape: 'square', at: { cx: 50, cy: 30, s: 20 },
-        steps: { kind: 'pop', t: 7.80 } },
-      { id: 'o-done', shape: 'check', ink: 'cut', w: MARK, at: { cx: 50, cy: 30, s: 13 },
-        steps: { kind: 'draw', t: 8.48, for: 0.52 } },
-    ],
-  },
-];
-
-/* ---------- the scene layer's one frame ceilings ----------
-   post7's, scaled to this clip's frame time exactly as they are there: every one
-   is a ceiling on a **single frame's** change, which is the only kind of number
-   that can tell a fast move from a snap. `sceneMotion` prints what the scenes
-   actually reach against each of them before a frame is written, so the headroom
-   is on screen rather than in a comment. */
-const PIC_R = STEP / 16.6667;
-const PART_MOVE_LIMIT = 4.5 * PIC_R;    /* viewBox units */
-const PART_SCALE_LIMIT = 0.14 * PIC_R;
-const PART_ROT_LIMIT = 10 * PIC_R;      /* degrees */
-const PART_DASH_LIMIT = 0.12 * PIC_R;   /* fraction of a path, per frame */
-const PART_FADE_LIMIT = 0.20 * PIC_R;
-const PART_LIFT_LIMIT = 0.22 * PIC_R;
-const SCENE_MOVE_LIMIT = 3.0 * PIC_R;
-const SCENE_SCALE_LIMIT = 0.06 * PIC_R;
-const SCENE_FADE_LIMIT = 0.20 * PIC_R;
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -810,9 +724,10 @@ const ZOOM_CAP = 1.9;
 /* how many keystrokes share one tick. see the keyboard note below. */
 const KEY_GROUP = 4;
 
-function planSite(beats, jokeDur, cardIn) {
+function planSite(beats, jokeDur) {
   const B = i => beats[i];
-  const cues = [];        /* one shot actions: a tap, a key, a call into the page */
+  const cues = [];        /* one shot actions: a tap, a key, a fill, a call */
+  const keys = [];        /* where the keyboard ticks go */
   const legs = [];        /* the camera */
   const fades = [];       /* the card's own opacity */
   const rings = [];       /* the tap indicator and its sound, one per real tap */
@@ -825,6 +740,15 @@ function planSite(beats, jokeDur, cardIn) {
     cues.push({ t: +t.toFixed(4), tap: sel, note });
     rings.push({ t: +t.toFixed(4), kind: sound || 'click' });
   };
+  /* one field of the last step, filled through the page's own input listeners.
+     it carries its own three key ticks: a field completing in silence is the
+     fault this whole stretch was rewritten to fix, at the size of one field. */
+  const fill = (t, id, note) => {
+    const f = FIELDS.find(x => x.id === id);
+    if (!f) throw new Error('no field called "' + id + '"');
+    cues.push({ t: +t.toFixed(4), fill: f, note });
+    for (let k = 0; k < 3; k++) keys.push(+(t + k * 0.07).toFixed(4));
+  };
   const call = (t, fn, note) => cues.push({ t: +t.toFixed(4), call: fn, note });
   const key = (t, k) => cues.push({ t: +t.toFixed(4), key: k });
 
@@ -834,9 +758,7 @@ function planSite(beats, jokeDur, cardIn) {
      is also what keeps the subline whole by construction, because the subline is
      inside the thing being fitted. */
   const b5 = B(4);
-  /* `cardIn` rather than `b5.start - CARD_LEAD` computed again here. it is the
-     same number, handed in, because the scene layer ends on it and two places
-     doing the same arithmetic is two places that can round it differently. */
+  const cardIn = +(b5.start - CARD_LEAD).toFixed(3);
   fades.push({ t0: cardIn, t1: b5.start + 0.10, to: 1 });
   legs.push({ t0: cardIn, t1: b5.start + 0.10, ease: 'glide',
     to: shot('.lockup', { fit: 14 }), beat: 5, anchor: 'start' });
@@ -937,7 +859,6 @@ function planSite(beats, jokeDur, cardIn) {
      the typo and the backspace get their own tick wherever they fall, because
      they are the two moments the rhythm breaks and a group that swallowed them
      would be a sound that is not listening to the hand it belongs to. */
-  const keys = [];
   let since = KEY_GROUP;
   for (const k of typing.keys) {
     const own = k.kind !== 'key';
@@ -945,63 +866,86 @@ function planSite(beats, jokeDur, cardIn) {
     since++;
   }
 
-  /* ---- the last two steps, and they are on camera now ----
-     the card used to leave here. the offering was the next line, the screen was
-     white for it, and the rest of the form was finished behind the fade. the
-     offering is now after the confirmation, so there is no white beat to hide in
-     and no reason to want one: the form finishes where the viewer can see it.
-
-     the one thing that is still not a keystroke is the last step's two fields.
-     typing a name and an email at a rate a person types is three more seconds of
-     a form being filled, which this clip does not have and does not need. so
-     `fill` fires **inside the last step's own entrance**, while index.html is
-     still growing the card and springing `.cardin` — through the page's own
-     input listeners exactly as before, and with no frame that shows the fields
-     empty and then full. */
+  /* ---- the size step, on camera, in the hole the typing leaves ----
+     what is left of that hole after the read and the hand is the room the form
+     needs to get from the free text box to the last step: one press to confirm
+     what was typed, and one chip for how big the business is. both are real
+     presses, both are on camera, and the camera reframes between them because
+     the card is a different height at every step. */
   const steps = typing.to;
   tap(steps + 0.40, '.nav .btn:not(.ghost)', 'the explain step is answered');
-  legs.push({ t0: steps + 0.95, t1: steps + 1.45, ease: 'drift',
-    to: shot('.pad', { fit: 10, align: 'top' }), beat: 11, anchor: 'the size step' });
-  tap(steps + 1.55, '.chips .chip:nth-child(2)', 'how big is your business');
-  call(steps + 1.95, 'fill', 'the last step, filled inside its own entrance');
-
-  /* ---- beat eleven: send, and the confirmation ----
-     the camera is already on the card, so this is a reframe onto the bottom of
-     the last step rather than a fade in. the send is a real press on the page's
-     own button and the two posts are stubbed: nothing leaves the browser and the
-     run counts them. the page then does what it does, the button goes busy, the
-     stub answers after 480ms, and a check mark is drawn. */
+  /* ---- beat eleven: how big your business is ----
+     the chip is pressed on the word `big`, so the step is answered while the
+     line that asks it is still being said and the page advances under its own
+     tail. the camera arrives first, because a shot resolved while index.html is
+     still growing the card frames a card that is still becoming. */
   const b11 = B(10);
-  /* this is the one leg in the file that is aligned to the **bottom** of a card
-     that is still growing, and that is why it waits half a second after the
-     chip advances rather than the tenth of a second beats eight and nine take.
-     a top aligned shot can be measured during index.html's grid grow because the
-     top of `.pad` does not move while it happens; the bottom moves the whole
-     time, so a shot resolved mid grow frames a send button that is not where it
-     is going to be. */
-  legs.push({ t0: steps + 2.30, t1: steps + 2.85, ease: 'glide',
-    to: shot('.pad', { fit: 10, align: 'bottom' }), beat: 11, anchor: 'the send button' });
-  const sendAt = +(b11.end + 0.10).toFixed(4);
+  legs.push({ t0: steps + 0.90, t1: steps + 1.40, ease: 'drift',
+    to: shot('.pad', { fit: 10, align: 'top' }), beat: 11, anchor: 'the size step' });
+  tap(wordAt(b11, 'big').start + 0.10, '.chips .chip:nth-child(2)', 'how big is your business');
+
+  /* ---- beats eleven and twelve: the last step, one field per phrase ----
+     this used to be a single `fill` behind a fade and then, for one build, a
+     single `fill` hidden inside the card's own entrance. both were the same
+     thing dressed differently: a form completing itself while nobody said
+     anything. the voice stays with it now, so every field is filled **on the
+     word that names it** and the frame is on that field when it happens.
+
+     `wordAt` rather than an offset, for the same reason the greetings use it:
+     an offset keys the fill to a line nobody is allowed to edit, and a word
+     keys it to what was actually said.
+
+     the registration number is the one that is named and not read. the field
+     gets a plain eight digit placeholder and the voice never says a digit. */
+  const b12 = B(11), b13 = B(12);
+  legs.push({ t0: b12.start - 0.16, t1: b12.start + 0.40, ease: 'drift',
+    to: shot('.pad', { fit: 10, align: 'top' }), beat: 12, anchor: 'the last step' });
+  fill(wordAt(b12, 'name').start + 0.04, 'f-name', 'the business name');
+  fill(wordAt(b12, 'registration').start + 0.30, 'f-reg', 'the registration number, never read aloud');
+
+  /* the bottom of the card for the second phrase, because that is where the
+     country, the email and the send button are, and it settles before the line
+     starts rather than under it. */
+  legs.push({ t0: b13.start - 0.42, t1: b13.start + 0.14, ease: 'glide',
+    to: shot('.pad', { fit: 10, align: 'bottom' }), beat: 13, anchor: 'the send button' });
+  fill(wordAt(b13, 'are').start + 0.06, 'f-country', 'where you are');
+  fill(wordAt(b13, 'email').start + 0.10, 'f-email', 'the email');
+  call(b13.end + 0.16, 'blur', 'nothing is focused when the send is pressed');
+
+  /* ---- beat fourteen: send, and the confirmation ----
+     the camera is already framed on the button, so this is a press and nothing
+     else. the two posts are stubbed: nothing leaves the browser and the run
+     counts them. the page goes busy, the stub answers after 480ms, and a check
+     mark is drawn. */
+  const b14 = B(13);
+  const sendAt = +(b14.end + 0.10).toFixed(4);
   tap(sendAt, '.nav .btn:not(.ghost)', 'send', 'press');
-  /* the tick, and the sound on it. 480ms is the stub and the page draws on the
-     frame after that, so this is where the confirmation actually exists. it is
-     the set's `ding`, which is written as "a check being drawn" and is the one
-     sound in the file that already meant yes. */
+  /* the tick, and the sound on it. it is the set's `ding`, which is written as
+     "a check being drawn" and is the one sound in the file that already meant
+     yes. */
   const confirmAt = +(sendAt + 0.55).toFixed(4);
   /* and a reframe after the page has answered: the sent state is a much shorter
      card than the last step was, so the frame that held the fields would hold
-     mostly white around a check mark. at the first timing this landed 0.15s
-     before the fade and the confirmation was a shot nobody saw. */
-  legs.push({ t0: b11.end + 0.52, t1: b11.end + 1.02, ease: 'drift',
-    to: shot('.pad', { fit: 10, align: 'top' }), beat: 11, anchor: 'the check mark' });
+     mostly white around a check mark. */
+  /* it leaves as soon as the page has answered rather than after it has
+     finished changing, and that is a correction off rendered frames. the sent
+     state is a much shorter card than the last step, so between the tick being
+     drawn and the camera arriving the frame is bottom aligned on a card that is
+     no longer there: the first cut waited half a second and rendered `start
+     again` alone at the top of the frame with white under it. leaving on the
+     tick means the target is measured while the card is still shrinking, which
+     is a small error the drift closes, and the alternative is a framing that is
+     entirely wrong for a fifth of a second. */
+  legs.push({ t0: b14.end + 0.68, t1: b14.end + 1.16, ease: 'drift',
+    to: shot('.pad', { fit: 10, align: 'top' }), beat: 14, anchor: 'the check mark' });
 
-  /* ---- beat twelve: the card leaves and the offering lands on white ----
+  /* ---- beat fifteen: the card leaves and the report lands on white ----
      the tick has had about a second and a quarter settled in frame by the time
-     this starts, which is the whole reason `send it` carries a 2.60s gap. the
-     five things we do are the screen for this line, so the card goes and does
-     not come back. */
-  const b12 = B(11);
-  fades.push({ t0: b12.start - 0.40, t1: b12.start - 0.02, to: 0 });
+     this starts, which is what `send it` carries a 2.60s gap for. the report is
+     the first thing said after the press because it is what the press buys; the
+     offering comes after it and gets the frame to itself. */
+  const b15 = B(14);
+  fades.push({ t0: b15.start - 0.40, t1: b15.start - 0.02, to: 0 });
 
   cues.sort((a, b) => a.t - b.t);
   legs.sort((a, b) => a.t0 - b.t0);
@@ -1009,71 +953,52 @@ function planSite(beats, jokeDur, cardIn) {
 }
 
 /* ---------- the mascot's marks ----------
-   thirteen marks and five bubbles. the bubbles are the brief's five and the
-   count has not moved through any of this: everything added is the turn channel
-   and the state table, which cost nothing anybody has to read.
+   thirteen marks and seven bubbles.
 
-   the opening four are hung off the **scenes** rather than off the lines, one
-   each, inside the scene's own hold — see `planMarks`. the turn is set only over
-   those four: the module's resting bias turns him a third of the way into the
-   frame and that is right for the middle of the clip, and over the opening he is
-   turned further into the picture and back out again. by the time the site card
-   fades in he is on the bias and every mark after that leaves the channel alone,
-   exactly as they always did.
+   **the opening is his.** the top two thirds of the frame is empty for the first
+   nine and a half seconds and it is staying that way: the pictogram layer was
+   built for it and then taken out again, and the space is Einz's to fill. so
+   what carries those four lines is the corner, and it is the one stretch of the
+   clip where he talks rather than reacts. `hmm...` lands while the problem is
+   still being described and `interesting` lands on the line that turns it into
+   something we can do, which is the shape of the argument the voice is making.
 
-   the three greetings are a **run** on one mark rather than three marks. three
-   ordinary bubbles need six and a quarter seconds of head room between them,
-   which is a fifth of this clip spent on one line; a run is the same gesture at
-   a shorter profile, so each one lands on the language it is greeting in. that
-   is the one thing this clip cost `lib/mascot.mjs`. */
-function planMarks(beats, site, pic) {
+   **there is no `unimpressed` anywhere in this clip.** it used to sit on `have
+   no time` and it was the right read of that line and the wrong read of the
+   film: a corner character who pulls a sour face at the viewer's problem is not
+   somebody you then ask to build you something. everything here is warm, and
+   `thinking` does the work that state used to do.
+
+   **`agreeing` is kept for the close and nothing else**, because it is the one
+   state that earns a `ding` and the ding has to keep meaning yes: it lands on
+   the check mark at the send and on the last line, and a third one in the
+   opening would make it a punctuation mark instead.
+
+   the turn is set over the opening only. the module's resting bias turns him a
+   third of the way into the frame and that is right once there is something in
+   the middle of it; over the opening he is turned further into the empty space
+   and back out again, and by the time the card fades in he is on the bias and
+   every mark after that leaves the channel alone. */
+function planMarks(beats, site) {
   const B = i => beats[i];
   const at = x => +x.toFixed(3);
   const typing = site.typing;
-  /* a scene by name, so a mark is hung off the picture it is reacting to rather
-     than off a number that has to be kept in step with one by hand. */
-  const S = id => {
-    const sc = pic.scenes.find(x => x.id === id);
-    if (!sc) throw new Error('there is no scene called "' + id + '"');
-    return sc;
-  };
   const marks = [];
 
-  /* ---- the first quarter, and it is one reaction per scene ----
-     before the scene layer existed this was four marks hung off the lines, and
-     that was the right answer while the top of the frame was empty: he was the
-     only thing in it that could move. now there is a picture up there and the
-     job changed. one reaction per scene, each landing inside that scene's own
-     hold rather than on the line's first word, so he is watching a thing arrive
-     rather than punctuating a sentence.
-
-     none of them is stacked on another beat: four scenes, four marks, and the
-     gaps between them are the handoffs. none of them says anything either, the
-     five bubbles this clip has are all spoken for.
-
-     the moves stay small. the picture is the thing being looked at, and a
-     mascot doing gymnastics next to it would be two things asking for the same
-     attention. what carries them is the turn: it walks out to 0.62 and back to
-     the 0.35 resting bias by the time the card arrives, and every mark after
-     that leaves the channel alone. */
+  /* ---- the four white lines, and he is all there is ---- */
   marks.push({ t: 0.30, state: 'neutral', turn: 0.18 });
-  /* the blocks are still landing. he looks up into them, which is what `curious`
-     is: a tilt in with the eyes arriving ahead of the head. */
-  marks.push({ t: at(S('everywhere').settled + 0.87), state: 'curious', turn: 0.62 });
-  /* the slash goes through the eye. `thinking` is the smallest state that reads
-     as not following: up and away, one lid down, a slow scan over the hold. */
-  marks.push({ t: at(S('unseen').settled + 0.73), state: 'thinking', turn: 0.44 });
-  /* the third sheet lands on the pile and he is not impressed by it. this is the
-     clip's original joke and it now sits with the picture that makes it rather
-     than a second and a half after the word `no`. */
-  marks.push({ t: at(S('pile').settled + 1.39), state: 'unimpressed' });
-  /* the check is being cut into the one small block. he leans in for it, and the
-     turn comes most of the way back on the way. */
-  marks.push({ t: at(S('one').settled + 0.60), state: 'curious', turn: 0.52 });
-  /* level again as the scenes leave and the card arrives, and back on the bias
-     the whole middle of the clip runs at. */
-  marks.push({ t: at(S('one').out + 0.44), state: 'neutral', turn: 0.35 });
-  /* the card is up and the site is the picture from here. */
+  /* the first line has landed and the second is arriving. he has not made his
+     mind up about any of it yet, and that is the bubble. */
+  marks.push({ t: at(B(0).start + 1.25), state: 'curious', turn: 0.58, bubble: 'hmm...' });
+  /* `some know exactly, but have no time`. up and away, one lid down, a slow
+     scan over the hold: the smallest state in the table that reads as somebody
+     working something out. */
+  marks.push({ t: at(B(1).end - 0.50), state: 'thinking', turn: 0.42 });
+  /* `and some just need one small thing done`, which is the first line in the
+     clip that is a door rather than a problem. he leans in for it and says so. */
+  marks.push({ t: at(B(3).start - 0.55), state: 'curious', turn: 0.50, bubble: 'interesting' });
+  /* level and back on the bias as the card arrives. */
+  marks.push({ t: at(B(4).start - 0.03), state: 'neutral', turn: 0.35 });
   marks.push({ t: at(B(5).start - 0.24), state: 'curious' });
   /* one state across beats seven, eight and nine, carrying the three greetings
      inside its own hold. */
@@ -1089,20 +1014,20 @@ function planMarks(beats, site, pic) {
   /* the salary line, on the frame it finishes typing, and it is hung off the
      hand rather than off a beat because that is the thing he is reacting to. */
   marks.push({ t: at(typing.to + 0.06), state: 'delighted', bubble: 'nice' });
-  /* level again for the last two steps and the send. */
+  /* level through the size step and the last step being filled in. */
   marks.push({ t: at(typing.to + 2.40), state: 'neutral' });
-  /* the check mark. he looks up at it, on the frame the page draws it, which is
-     the beat the whole reorder exists to make land. */
+  /* the check mark. he looks up at it on the frame the page draws it, which is
+     the beat the whole ending is ordered around. */
   marks.push({ t: at(site.confirmAt + 0.10), state: 'curious' });
-  marks.push({ t: at(B(11).start - 0.20), state: 'neutral' });
-  marks.push({ t: at(B(13).start - 0.16), state: 'agreeing', bubble: 'finally' });
+  marks.push({ t: at(B(14).start - 0.20), state: 'neutral' });
+  marks.push({ t: at(B(16).start - 0.16), state: 'agreeing', bubble: 'finally' });
   return marks;
 }
 
 /* ---------- the composed page ----------
    the site's own tokens, the caption layer, the mascot layer, the card the site
    is filmed in, the tap ring and the end card. nothing else is in the frame. */
-function sceneHtml(cap, capBox, mas, pic) {
+function sceneHtml(cap, capBox, mas) {
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -1165,10 +1090,14 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
    engine's own note warns about, measured on cells rather than on the row that
    centres them. */
 .end{left:50%; right:auto; width:max-content; max-width:${VW - 2 * SAFE_CSS.left}px}
-#end-wm{top:${END.wordmarkY}px; font-family:var(--display); font-weight:400;
-  color:var(--fg); text-transform:uppercase; letter-spacing:0; line-height:1;
+/* the three lines are three blocks in one element rather than three elements,
+   so the safe area check measures one box and the group can be centred by
+   measuring one height. 1.16 is the site's own stacked lockup leading. */
+#end-wm{font-family:var(--display); font-weight:400;
+  color:var(--fg); text-transform:uppercase; letter-spacing:0; line-height:1.16;
   white-space:nowrap; transform:translate(-50%,-50%)}
-#end-dom{top:${END.domY}px; font-family:var(--display); font-weight:400;
+#end-wm span{display:block}
+#end-dom{font-family:var(--display); font-weight:400;
   color:var(--sub); text-transform:uppercase; letter-spacing:.18em; line-height:1;
   white-space:nowrap; text-indent:.18em; transform:translate(-50%,-50%)}
 
@@ -1179,7 +1108,6 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
    and half in another. all or nothing, never per glyph. */
 .m-pill[data-mono="1"]{font-family:var(--mono); letter-spacing:0}
 
-${pictogramCss(pic, SCREEN)}
 ${captionCss(cap, capBox)}
 ${mascotCss(mas)}
 </style>
@@ -1187,9 +1115,8 @@ ${mascotCss(mas)}
 <body>
 <div class="stage">
   <div class="tick"></div>
-${pictogramMarkup(pic)}
   <div class="screen" id="screen"><iframe id="site" src="/index.html" scrolling="no"></iframe></div>
-  <div class="end" id="end-wm">the boring tek</div>
+  <div class="end" id="end-wm"><span>the</span><span>boring</span><span>tek</span></div>
   <div class="end" id="end-dom">theboringtek.com</div>
 ${captionMarkup(cap)}
 ${mascotMarkup(mas)}
@@ -1202,18 +1129,6 @@ window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(mas))};
 window.__P11 = ${JSON.stringify({ VW, VH, DSF, SCREEN, SITE, END, CAP_BOX })};
 (${captionPage.toString()})();
 ${mascotRuntime()}
-/* the scene layer's plan carries no svg: the markup is already in the document
-   and the page half only needs the origins, which parts draw, which cast a
-   shadow, the shadow's constants, how many css px a viewBox unit is worth, and
-   the engine plan, so the page builds the same gsap timeline node built rather
-   than being handed the numbers it produced. that is the parity check, and it
-   is the reason there is one motion core with two readers.
-
-   it is installed **after** the mascot's runtime and before the stage's,
-   because its own rAF filter wraps whatever shim is already there and nothing
-   else in this document asks for a frame. */
-window.__PIC_PLAN = ${JSON.stringify(pictogramPagePlan(pic, SCREEN))};
-${pictogramRuntime()}
 (${stagePage.toString()})();
 /* the three layers measure and fit themselves once, after both faces are
    really here. offline everything renders in the mono fallback and looks
@@ -1229,10 +1144,6 @@ document.fonts.load('400 40px Michroma')
       cap: window.__cap.build(),
       mas: window.__mas.build(),
       caps: window.__mas.caps(),
-      /* the scene layer's own build. no font is involved, but it is built here
-         anyway so there is one ready gate rather than two. what it still does is
-         refuse a part that draws and has no geometry to draw. */
-      pic: window.__pic.build(),
     };
   });
 </script>
@@ -1259,10 +1170,16 @@ function stagePage() {
      renders** — uppercase — because canvas measureText knows nothing about
      text-transform and caps are about fifteen per cent wider. */
   function fit(el, want, track) {
-    const s = el.textContent.toUpperCase();
+    /* the widest line the element sets, which on a stacked wordmark is `BORING`
+       and on a single line is the line. measuring `textContent` would measure
+       three lines run together, which is a fifth of the real size. */
+    const lines = el.querySelector('span')
+      ? [...el.querySelectorAll('span')].map(e => e.textContent.toUpperCase())
+      : [el.textContent.toUpperCase()];
     const cv = document.createElement('canvas').getContext('2d');
     cv.font = '400 100px Michroma';
-    const em = (cv.measureText(s).width + track * 100 * s.length) / 100;
+    let em = 0;
+    for (const s of lines) em = Math.max(em, (cv.measureText(s).width + track * 100 * s.length) / 100);
     el.style.fontSize = (want / em).toFixed(3) + 'px';
     return +(want / em).toFixed(2);
   }
@@ -1272,8 +1189,22 @@ function stagePage() {
     build() {
       const a = fit(wm, P.END.wordmarkW, 0);
       const b = fit(dom, P.END.domW, 0.18);
+      /* the group is placed as a group, after the fit, because the wordmark's
+         height is three lines of a size nothing knew until the face loaded. both
+         blocks translate about their own centres, so what is written here is
+         each block's centre and the arithmetic is one addition. */
+      const wh = wm.getBoundingClientRect().height;
+      const dh = dom.getBoundingClientRect().height;
+      const total = wh + P.END.gap + dh;
+      const top = P.END.centreY - total / 2;
+      wm.style.top = (top + wh / 2).toFixed(2) + 'px';
+      dom.style.top = (top + wh + P.END.gap + dh / 2).toFixed(2) + 'px';
       this.ready = true;
-      return { wordmarkPx: a, domPx: b };
+      return {
+        wordmarkPx: a, domPx: b,
+        end: { top: +top.toFixed(1), bottom: +(top + total).toFixed(1),
+          wordmark: +wh.toFixed(1), dom: +dh.toFixed(1) },
+      };
     },
     /* the camera. a point in the site's own css px, centred in the card at zoom
        z. the site's fixed top bar lives at the iframe's own top, so the clamp is
@@ -1437,8 +1368,16 @@ function stagePage() {
         cta.classList.add('shake');
         return 'shook';
       }
-      if (what === 'focus:name') { const e = d.getElementById('f-name'); if (e) { e.focus(); return 'name'; } return 'no field'; }
-      if (what === 'focus:email') { const e = d.getElementById('f-email'); if (e) { e.focus(); return 'email'; } return 'no field'; }
+      /* any field of the last step, by the id index.html gives it. it was two
+         named cases while only two fields were filled; the last step is narrated
+         field by field now and a third and a fourth would have been two more
+         copies of the same line. */
+      if (what.slice(0, 6) === 'focus:') {
+        const e = d.getElementById(what.slice(6));
+        if (!e) return 'no field';
+        e.focus();
+        return what.slice(6);
+      }
       if (what === 'blur') { if (d.activeElement && d.activeElement.blur) d.activeElement.blur(); return 'blurred'; }
       return 'unknown: ' + what;
     },
@@ -1800,40 +1739,13 @@ async function main() {
   console.log('  ' + cut.marked.length + ' line ends were marked so no card straddles two of them, '
     + 'and the marks are stripped before a card is drawn');
 
-  /* ---- the scene layer, which is the opening and nothing else ----
-     it is planned before the mascot, because the mascot's first four marks are
-     hung off the scenes rather than off the lines now: one reaction per scene,
-     inside that scene's own hold, so he is watching a picture rather than
-     reacting to a sentence that has a picture next to it.
-
-     `handover` is the frame the site card starts arriving on, rounded once here
-     and handed to both halves, so the scenes ending and the card beginning are
-     provably the same instant rather than two numbers that agree to three
-     decimal places on a good day. */
-  const handover = +(v.beats[4].start - CARD_LEAD).toFixed(3);
-  const pic = planScenes(SCENES(handover));
-  console.log(describeScenes(pic));
-  for (const n of pic.notes) console.log('    ! ' + n);
-  const picMotion = sceneMotion(pic, FPS, pic.seconds);
-  const W = picMotion.worst;
-  console.log('  the worst single frame in the scene layer, against the ceiling it is judged on:');
-  for (const [k, lim, name] of [
-    ['partO', PART_FADE_LIMIT, 'a part fading'], ['partS', PART_SCALE_LIMIT, 'a part scaling'],
-    ['partM', PART_MOVE_LIMIT, 'a part moving'], ['partR', PART_ROT_LIMIT, 'a part turning'],
-    ['partD', PART_DASH_LIMIT, 'a path drawing'], ['partL', PART_LIFT_LIMIT, 'a shadow lifting'],
-    ['sceneO', SCENE_FADE_LIMIT, 'a scene fading'], ['sceneS', SCENE_SCALE_LIMIT, 'a scene scaling'],
-    ['sceneM', SCENE_MOVE_LIMIT, 'a scene moving'],
-  ]) {
-    console.log('    ' + name.padEnd(18) + W[k].d.toFixed(4) + ' of ' + lim.toFixed(4)
-      + (W[k].who ? '   ' + W[k].who + ' at ' + W[k].t.toFixed(2) + 's' : ''));
-  }
-  console.log('    ' + picMotion.handoffs.length + ' handoff(s), '
-    + picMotion.dark.toFixed(2) + 's with nothing in the zone, at most '
-    + picMotion.visMax + ' scene(s) up at once');
-
   /* ---- the site, the mascot, the cut ---- */
-  const site = planSite(v.beats, jokeDur, handover);
-  const marks = planMarks(v.beats, site, pic);
+  const site = planSite(v.beats, jokeDur);
+  console.log('  the last step is filled field by field, on the word that names it:');
+  for (const c of site.cues.filter(c => c.fill)) {
+    console.log('    ' + c.t.toFixed(2) + 's  ' + c.fill.id.padEnd(10) + '"' + c.fill.text + '"   ' + c.note);
+  }
+  const marks = planMarks(v.beats, site);
   const mas = planMascot({
     seconds: SECONDS, marks, theme: 'light', pos: 'bottom-left',
     band: { x: CAP_BOX.x, y: CAP_BOX.y, w: CAP_BOX.w, h: CAP_BOX.h },
@@ -1876,19 +1788,34 @@ async function main() {
     + Object.entries(cues.reduce((a, c) => (a[c.kind] = (a[c.kind] || 0) + 1, a), {}))
       .map(([k, n]) => n + ' ' + k).join(', ') + ', and no music');
 
+  /* ---------- where the clip is quiet ----------
+     every hole in the read, measured on the waveform, so the one place with no
+     voice and no caption over it is a number rather than something a viewer
+     notices for us. the typing hole is the only one allowed to be long, and it
+     is not silent: a comedy read runs over it and the keyboard runs under that. */
+  const quiet = [];
+  for (let i = 1; i < v.beats.length; i++) {
+    const from = v.beats[i - 1].sound.end, to = v.beats[i].sound.start;
+    if (to - from > 0.60) quiet.push({ i, from: +from.toFixed(2), to: +to.toFixed(2), len: +(to - from).toFixed(2) });
+  }
+  console.log('  the holes over 0.60s in the read:');
+  for (const q of quiet) {
+    const covered = q.from >= site.typing.from - 0.30 && q.to <= site.typing.to + TYPE_TAIL + 0.30;
+    console.log('    ' + q.from.toFixed(2) + '..' + q.to.toFixed(2) + '  ' + q.len.toFixed(2) + 's  '
+      + (covered ? 'the typing hole: the comedy read and the keyboard are in it'
+        : 'the confirmation: the tick is drawn in it'));
+  }
+
   if (PLAN_ONLY) {
     console.log('\n  the cut');
-    for (const sc of pic.scenes) {
-      console.log('    ' + sc.in.toFixed(2).padStart(6) + '..' + sc.out.toFixed(2)
-        + '  scene ' + sc.id + ', settled ' + sc.settled.toFixed(2)
-        + ', leaving ' + sc.leaving.toFixed(2) + ', ' + sc.parts.length + ' parts');
-    }
     console.log('    ' + site.typing.from.toFixed(2) + '..' + site.typing.to.toFixed(2)
       + '  the hand and the comedy read, ' + site.keys.length + ' key ticks under '
       + site.typing.keys.length + ' keystrokes');
     for (const c of site.cues.filter(c => !c.key)) {
       console.log('    ' + c.t.toFixed(2).padStart(6) + 's  '
-        + (c.tap ? 'tap  ' + c.tap : 'call ' + c.call) + '   ' + (c.note || ''));
+        + (c.tap ? 'tap  ' + c.tap
+          : c.fill ? 'fill ' + c.fill.id + ' "' + c.fill.text + '"'
+            : 'call ' + c.call) + '   ' + (c.note || ''));
     }
     for (const l of site.legs) {
       console.log('    ' + l.t0.toFixed(2).padStart(6) + '..' + l.t1.toFixed(2)
@@ -1908,7 +1835,7 @@ async function main() {
   if (ONLY_ENCODE) {
     state = JSON.parse(fs.readFileSync(STATE, 'utf8'));
   } else {
-    state = await render(cap, mas, site, v, N, SECONDS, pic);
+    state = await render(cap, mas, site, v, N, SECONDS);
     fs.writeFileSync(STATE, JSON.stringify(state, null, 2));
   }
 
@@ -1969,8 +1896,8 @@ async function main() {
   const p = probe(file);
 
   const joked = { ...joke, dur: jokeDur, at: jokeAt, words: jokeWords };
-  report(state, v, cut, cap, mas, rep60, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joked, pic);
-  const fail = guard(state, v, cut, cap, mas, rep60, site, cues, mix, under, after, lim, p, SECONDS, joked, pic);
+  report(state, v, cut, cap, mas, rep60, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joked);
+  const fail = guard(state, v, cut, cap, mas, rep60, site, cues, mix, under, after, lim, p, SECONDS, joked);
 
   if (!KEEP && !ONLY_ENCODE) {
     fs.rmSync(FRAMES, { recursive: true, force: true });
@@ -1981,14 +1908,14 @@ async function main() {
 }
 
 /* ---------- the render ---------- */
-async function render(cap, mas, site, v, N, SECONDS, pic) {
+async function render(cap, mas, site, v, N, SECONDS) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
   for (const d of [FRAMES, SUBS, VERIFY]) {
     fs.rmSync(d, { recursive: true, force: true });
     fs.mkdirSync(d, { recursive: true });
   }
 
-  const html = sceneHtml(cap, CAP_BOX, mas, pic);
+  const html = sceneHtml(cap, CAP_BOX, mas);
   const { srv, port } = await serve(html);
   const browser = await puppeteer.launch({
     executablePath: CHROME,
@@ -2026,7 +1953,6 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
       stage: !!window.__stage, built: !!window.__built,
       cap: !!(window.__cap && window.__cap.ready),
       mas: !!(window.__mas && window.__mas.ready),
-      pic: !!(window.__pic && window.__pic.ready),
       fonts: document.fonts.status,
       doc: !!d, cta: !!(d && d.querySelector('.cta')),
       siteFonts: d ? d.fonts.status : null,
@@ -2036,10 +1962,10 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
   let burned = 0, s = null;
   for (let i = 0; i < 400; i++) {
     s = await state0();
-    if (s.built && s.cap && s.mas && s.pic && s.cta && s.siteFonts === 'loaded') break;
+    if (s.built && s.cap && s.mas && s.cta && s.siteFonts === 'loaded') break;
     await advance(STEP); burned += STEP;
   }
-  if (!(s.built && s.cap && s.mas && s.pic && s.cta)) {
+  if (!(s.built && s.cap && s.mas && s.cta)) {
     throw new Error('the stage never became ready: ' + JSON.stringify(s));
   }
   /* offline everything renders in the mono fallback and looks almost right,
@@ -2054,23 +1980,6 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
     if (!ok) throw new Error(k + ' did not load — the type would be judged in the mono fallback');
   }
   console.log('    ready after ' + burned.toFixed(0) + 'ms of virtual time');
-
-  /* ---------- the second gsap clock, checked before a frame is written ----------
-     the scene layer runs on the rAF shim and the shim is flushed once per
-     captured frame, so gsap's own time has to be the frame index over the frame
-     rate: exactly, not nearly. this walks a dozen ticks and reads the number
-     back off the global timeline and off the master, and hands back the ticks it
-     spent so the render's own one-tick-per-capture count still means what it
-     says. it is the check this clip's camera guard was modelled on and it is not
-     allowed to soften. */
-  const picBuilt = await page.evaluate(() => window.__built.pic);
-  const picSync = await page.evaluate((fps, count) => window.__pic.sync(fps, count, 1), FPS, 12);
-  console.log('    gsap ' + picBuilt.gsap + ', ' + picBuilt.eases + ' house eases, timeline '
-    + picBuilt.tlDuration + 's: ' + picSync.steps + ' shim ticks, worst |gsap t - frame/fps| = '
-    + picSync.worst + 's');
-  if (!(Number(picSync.worst) < 1e-6)) {
-    throw new Error('the pictogram timeline is not on the capture clock — ' + picSync.worst + 's off');
-  }
 
   /* the site gets its own opening move off camera. index.html decodes its
      wordmark over 1150ms and types its subline after it, and that is the page's
@@ -2120,17 +2029,9 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
 
   /* ---- the loop ---- */
   const fired = new Set();
-  const taps = [], calls = [], clipFaults = [], navFaults = [], camTrail = [], shots = [], framing = [];
+  const taps = [], calls = [], fills = [], clipFaults = [], navFaults = [], camTrail = [], shots = [], framing = [];
   const camFaults = [];
   const safeSamples = [], bandHits = [], lidSeen = [];
-  /* the scene layer's own books. `picFaults` is every one frame ceiling it
-     broke, `picDrift` is the worst disagreement between the timeline node
-     stepped and the one the page stepped, and `picSafe` is the closest its
-     drawn ink and its shadow ever came to a border. */
-  const picFaults = [];
-  let picPrev = null, picPrevTicks = null, picDrift = 0, picDriftAt = null;
-  let picVisMax = 0, picStirred = 0, picApplied = 0, picPrevSum = null;
-  let picSafe = null, picSafeSamples = 0, picBandHits = 0;
   let safeWorst = null, sawAccent = false, capMoved = 0, prevSum = null, maxVisible = 0;
   let bubbleWorst = null, bubbleSamples = 0, masBandHits = 0;
   let cam = null, leg = null, legFrom = null, legTo = null;
@@ -2275,15 +2176,18 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
           await page.keyboard.press('Backspace');
         } else if (c.key !== undefined) {
           await page.keyboard.type(c.key, { delay: 0 });
-        } else if (c.call === 'fill') {
-          /* the last step, filled the way a person would and through the page's
-             own input listeners. nothing is written into the site's state. */
-          await page.evaluate(() => window.__stage.call('focus:name'));
-          await page.keyboard.type('your business', { delay: 0 });
-          await page.evaluate(() => window.__stage.call('focus:email'));
-          await page.keyboard.type('you@yourbusiness.com', { delay: 0 });
-          await page.evaluate(() => window.__stage.call('blur'));
-          calls.push({ t: +t.toFixed(3), what: 'fill', got: 'name and email', note: c.note });
+        } else if (c.fill) {
+          /* one field of the last step, on the word that names it, through the
+             page's own focus and its own input listeners. nothing is written
+             into the site's state and nothing skips a step. */
+          const got = await page.evaluate(id => window.__stage.call('focus:' + id), c.fill.id);
+          if (got === 'no field') {
+            console.warn('    ! field missing: ' + c.fill.id + ' @' + t.toFixed(2) + 's');
+          } else {
+            await page.keyboard.type(c.fill.text, { delay: 0 });
+          }
+          fills.push({ t: +t.toFixed(3), id: c.fill.id, text: c.fill.text, got, note: c.note });
+          calls.push({ t: +t.toFixed(3), what: 'fill ' + c.fill.id, got, note: c.note });
         } else if (c.call) {
           const got = await page.evaluate(w => window.__stage.call(w), c.call);
           calls.push({ t: +t.toFixed(3), what: c.call, got, note: c.note });
@@ -2332,7 +2236,7 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
       await page.evaluate(x => window.__stage.fade(x), fade);
 
       /* --- the end card --- */
-      const endIn = v.beats[13].start - 0.30;
+      const endIn = v.beats[LINES.length - 1].start - 0.30;
       const endOut = SECONDS;
       const end = t < endIn ? 0 : GLIDE(clampTo((t - endIn) / 0.55, 0, 1));
       await page.evaluate(x => window.__stage.end(x), end);
@@ -2366,65 +2270,8 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
       await page.evaluate(fr => { window.__mas.apply(fr); window.__stage.mono(); },
         mascotFrame(mas, t));
 
-      /* --- the scene layer ---
-         node steps its own copy of the timeline and leaves the frame for the
-         rAF loop; the flush below applies it and the page steps its own gsap
-         off the same `t`. the two are compared afterwards, which is what makes
-         this one motion core with two readers rather than two that look alike.
-
-         the ceilings are checked here, in node, against the numbers the page is
-         about to be handed. every part holds a value at every instant of the
-         clip, including long before and long after its own steps, so these
-         compare unconditionally: there is no "it was invisible, it is allowed to
-         have jumped" case, which is exactly the exception a snap would hide in. */
-      const picF = sceneFrame(pic, t);
-      if (picPrev) {
-        for (let i = 0; i < picF.s.length; i++) {
-          const a = picPrev.s[i], b = picF.s[i], who = pic.scenes[i].id;
-          if (Math.abs(b[0] - a[0]) > SCENE_FADE_LIMIT) picFaults.push({ t, what: 'scene fade', who });
-          if (Math.abs(b[1] - a[1]) > SCENE_SCALE_LIMIT) picFaults.push({ t, what: 'scene scale', who });
-          if (Math.hypot(b[2] - a[2], b[3] - a[3]) > SCENE_MOVE_LIMIT) picFaults.push({ t, what: 'scene move', who });
-        }
-        for (let i = 0; i < picF.p.length; i++) {
-          const a = picPrev.p[i], b = picF.p[i], who = pic.parts[i].id;
-          const d = Math.hypot(b[2] - a[2], b[3] - a[3]);
-          if (Math.abs(b[0] - a[0]) > PART_FADE_LIMIT) picFaults.push({ t, what: 'fade', who });
-          if (Math.abs(b[1] - a[1]) > PART_SCALE_LIMIT) picFaults.push({ t, what: 'scale', who });
-          if (d > PART_MOVE_LIMIT) picFaults.push({ t, what: 'move', who });
-          if (Math.abs(b[4] - a[4]) > PART_ROT_LIMIT) picFaults.push({ t, what: 'turn', who });
-          if (Math.abs(b[5] - a[5]) > PART_DASH_LIMIT) picFaults.push({ t, what: 'draw', who });
-          if (Math.abs(b[6] - a[6]) > PART_LIFT_LIMIT) picFaults.push({ t, what: 'shadow', who });
-          /* nothing in these four scenes translates, so movement is not how this
-             layer proves it is alive. what it does instead is pop, draw and
-             fade, and the sum of every channel is what says so. */
-          picStirred = Math.max(picStirred, Math.abs(b[0] - a[0]) + Math.abs(b[1] - a[1])
-            + Math.abs(b[5] - a[5]) + Math.abs(b[6] - a[6]));
-        }
-      }
-      picPrev = picF;
-      await page.evaluate(pf => window.__pic.set(pf), picF);
-
       /* --- one flush per capture, in both documents --- */
       await page.evaluate(now => window.__stage.tick(now), (SETTLE + idx + 1) * SUBSTEP);
-
-      /* --- and what the page actually applied ---
-         three things and only three. the frame that landed is the frame node
-         left, exactly one tick happened for this capture, and the channels gsap
-         produced in the browser are the channels node produced here. the last of
-         those is the parity check. */
-      const picLast = await page.evaluate(() => window.__pic.last);
-      if (!picLast) picFaults.push({ t, what: 'never ticked', who: 'the rAF shim' });
-      else {
-        if (picLast.t !== picF.t) picFaults.push({ t, what: 'stale frame', who: 'applied ' + picLast.t });
-        if (picPrevTicks !== null && picLast.ticks !== picPrevTicks + 1) {
-          picFaults.push({ t, what: 'tick count', who: picLast.ticks + ' after ' + picPrevTicks });
-        }
-        picPrevTicks = picLast.ticks;
-        picVisMax = Math.max(picVisMax, picLast.vis);
-        if (picLast.drift > picDrift) { picDrift = picLast.drift; picDriftAt = +t.toFixed(3); }
-        if (picPrevSum !== null) picApplied = Math.max(picApplied, Math.abs(picLast.sum - picPrevSum));
-        picPrevSum = picLast.sum;
-      }
 
       /* --- the samples, on the frame's own instant --- */
       if (first && f % Math.max(1, Math.round(FPS / 4)) === 0) {
@@ -2436,7 +2283,6 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
           nav: window.__stage.navSeen(),
           lid: window.__stage.siteLid(),
           win: window.__stage.window_(),
-          pic: window.__pic.safe(window.__P11.VW, window.__P11.VH),
         }));
         /* ---------- the camera, read back ----------
            node writes a transform and the page renders one, and until the scroll
@@ -2450,26 +2296,6 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
           const want = cam.cy - SCREEN.h / 2 / cam.z;
           const off = Math.abs(s.win.top - want);
           if (off > 1.5) camFaults.push({ t: +t.toFixed(2), want: +want.toFixed(1), got: s.win.top });
-        }
-        /* the scene layer measures its own drawn ink, part by part, and it is
-           folded into the same safe area answer everything else is judged on.
-           `soft` rather than `ink` for the border, because a shadow that leaves
-           the frame is as wrong as a shape that does. */
-        if (s.pic) {
-          picSafeSamples++;
-          const near = Math.min(s.pic.softLeft, s.pic.softTop, s.pic.softRight, s.pic.softBottom);
-          if (!picSafe || near < picSafe.near) picSafe = { t: +t.toFixed(2), near, ...s.pic };
-          if (Math.min(s.pic.left, s.pic.top, s.pic.right, s.pic.bottom)
-            < Math.min(s.safe.left, s.safe.top, s.safe.right, s.safe.bottom)) {
-            s.safe.worst = s.pic.worst;
-          }
-          s.safe.left = Math.min(s.safe.left, s.pic.left);
-          s.safe.top = Math.min(s.safe.top, s.pic.top);
-          s.safe.right = Math.min(s.safe.right, s.pic.right);
-          s.safe.bottom = Math.min(s.safe.bottom, s.pic.bottom);
-          /* and against the measured caption ink, the same test the card takes,
-             because the scene box and the caption band share a frame. */
-          if (s.pic.softLow > ceiling.top) picBandHits++;
         }
         safeSamples.push({ t: +t.toFixed(2), ...s.safe });
         if (!safeWorst || Math.min(s.safe.left, s.safe.top, s.safe.right, s.safe.bottom)
@@ -2566,22 +2392,14 @@ async function render(cap, mas, site, v, N, SECONDS, pic) {
     built, ceiling, accent, cyr, faces, settle: SETTLE / FPS,
     head: headWorst, safe: safeWorst, safeSamples,
     bubble: bubbleWorst, bubbleSamples, masBandHits,
-    taps, calls, camTrail, shots, framing, camFaults, clipFaults, navFaults, bandHits,
+    taps, calls, fills, camTrail, shots, framing, camFaults, clipFaults, navFaults, bandHits,
     sawAccent, capMoved, maxVisible, typedInk, steps, sent,
     posts: posts - posts0, lidMoved, lidSamples: lidSeen.length,
-    pic: {
-      faults: picFaults.slice(0, 20), faultCount: picFaults.length,
-      drift: picDrift, driftAt: picDriftAt,
-      visMax: picVisMax, stirred: +picStirred.toFixed(4), applied: +picApplied.toFixed(4),
-      sync: picSync, built: picBuilt,
-      safe: picSafe, safeSamples: picSafeSamples, bandHits: picBandHits,
-      box: { ...SCREEN },
-    },
   };
 }
 
 /* ---------- what the run prints ---------- */
-function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joke, pic) {
+function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joke) {
   const dev = x => Math.round(x * DSF);
   console.log('\nrendered');
   console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps  ' + p.seconds.toFixed(2) + 's  '
@@ -2632,40 +2450,6 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
   console.log('    the form ended on: ' + (state.sent.sent ? 'the check mark' : 'step "' + state.sent.q + '"')
     + ', and ' + state.posts + ' posts were intercepted (nothing left the browser)');
 
-  console.log('\n  the scene layer');
-  console.log('    ' + pic.scenes.length + ' scenes, ' + pic.parts.length + ' parts, in the card'
-    + ' own box at ' + state.pic.box.x + ',' + state.pic.box.y + ' '
-    + state.pic.box.w + 'x' + state.pic.box.h + ' — the same box the site card lands in');
-  for (const sc of pic.scenes) {
-    console.log('      ' + sc.in.toFixed(2).padStart(6) + '..' + sc.out.toFixed(2)
-      + '  ' + sc.id.padEnd(11) + ' settled ' + sc.settled.toFixed(2)
-      + ', leaving ' + sc.leaving.toFixed(2)
-      + '   ' + sc.parts.map(i => pic.parts[i].id).join(' '));
-  }
-  console.log('    the handover: the last scene is gone at ' + pic.seconds.toFixed(2)
-    + 's and the card starts arriving at ' + site.fades[0].t0.toFixed(2)
-    + 's, which is the same frame');
-  console.log('    gsap ' + state.pic.built.gsap + ' on the capture clock, worst |gsap t - frame/fps| = '
-    + state.pic.sync.worst + 's; worst node against page over the whole clip '
-    + state.pic.drift + (state.pic.driftAt == null ? '' : ' at ' + state.pic.driftAt + 's'));
-  console.log('    ' + (state.pic.faultCount || 'no') + ' one frame fault(s), at most '
-    + state.pic.visMax + ' scene(s) up at once, the layer stirred '
-    + state.pic.stirred.toFixed(3) + ' in a frame at its liveliest');
-  for (const f of state.pic.faults.slice(0, 5)) {
-    console.log('      ! ' + f.t.toFixed(2) + 's  ' + f.what + '  ' + f.who);
-  }
-  if (state.pic.safe) {
-    console.log('    the ink, worst of ' + state.pic.safeSamples + ' samples at ' + state.pic.safe.t
-      + 's: ' + Math.round(state.pic.safe.left * DSF) + ' left, ' + Math.round(state.pic.safe.top * DSF)
-      + ' top, ' + Math.round(state.pic.safe.right * DSF) + ' right, '
-      + Math.round(state.pic.safe.bottom * DSF) + ' bottom in device px'
-      + ' (' + state.pic.safe.worst + '), and its shadow reaches '
-      + Math.round(state.pic.safe.near * DSF));
-    console.log('    the lowest it ever draws is ' + state.pic.safe.softLow
-      + ' and the caption ceiling is ' + state.ceiling.top
-      + ', so ' + (state.ceiling.top - state.pic.safe.softLow).toFixed(1) + 'px of clear air');
-  }
-
   console.log('\n  the frame');
   console.log('    caption ceiling ' + state.ceiling.top + ', the card ends at '
     + (SCREEN.y + SCREEN.h) + ', clear air ' + (state.ceiling.top - (SCREEN.y + SCREEN.h)).toFixed(1)
@@ -2687,8 +2471,11 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
     + ' (this clip has no green in it at all)');
 
   console.log('\n  the type');
-  console.log('    the wordmark fits ' + END.wordmarkW + 'px at '
-    + state.built.wordmarkPx + 'px, the address ' + END.domW + 'px at ' + state.built.domPx + 'px');
+  console.log('    the end card is three stacked lines at ' + state.built.wordmarkPx
+    + 'px, fitted so `boring` occupies ' + END.wordmarkW + 'px, with the address under it at '
+    + state.built.domPx + 'px');
+  console.log('      the group runs ' + state.built.end.top + '..' + state.built.end.bottom
+    + ' css, centred on ' + END.centreY + ', and the caption ceiling is ' + state.ceiling.top);
   console.log('    the head rendered at ' + state.built.mas.headPx + ' device px, the bubble caps at '
     + state.built.caps.capPx + ' (floor ' + BUBBLE.minCap + ') and the outline at '
     + state.built.mas.strokePx + ' device px');
@@ -2744,7 +2531,7 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
    the shape every clip in here uses: the thing must have happened, it must have
    happened everywhere it was supposed to, and every claim in the log above must
    be a measurement. */
-function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim, p, SECONDS, joke, pic) {
+function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim, p, SECONDS, joke) {
   const fail = [];
   const floor = Math.min(SAFE.left, SAFE.top, SAFE.right, SAFE.bottom);
 
@@ -2804,41 +2591,6 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
   if (state.masBandHits) fail.push('the bubble entered the caption band ' + state.masBandHits + ' times');
   if (state.bandHits.length) {
     fail.push('the site card overlapped the caption band on ' + state.bandHits.length + ' samples');
-  }
-
-  /* the scene layer, and the handover it exists to make clean */
-  if (Math.abs(pic.seconds - site.fades[0].t0) > 1e-6) {
-    fail.push('the scenes end at ' + pic.seconds.toFixed(3) + 's and the site card starts arriving at '
-      + site.fades[0].t0.toFixed(3) + 's — the handover is supposed to be the same frame');
-  }
-  if (pic.scenes.length !== 4) {
-    fail.push(pic.scenes.length + ' scenes, and there is one line each for the four before the card');
-  }
-  for (const p2 of pic.parts) {
-    if (p2.ink === 'accent') fail.push('"' + p2.id + '" is inked accent and this clip has no green in it');
-  }
-  if (!(Number(state.pic.sync.worst) < 1e-6)) {
-    fail.push('the pictogram timeline is ' + state.pic.sync.worst + 's off the capture clock');
-  }
-  if (!(state.pic.drift < 1e-4)) {
-    fail.push('the scene layer node stepped and the one the page stepped disagree by '
-      + state.pic.drift + ' at ' + state.pic.driftAt + 's — the two gsap clocks have come apart');
-  }
-  if (state.pic.faultCount) {
-    fail.push(state.pic.faultCount + ' one frame fault(s) in the scene layer, first is "'
-      + state.pic.faults[0].what + '" on ' + state.pic.faults[0].who + ' at '
-      + state.pic.faults[0].t.toFixed(2) + 's');
-  }
-  if (state.pic.visMax > 2) fail.push(state.pic.visMax + ' scenes were on screen at once');
-  if (!state.pic.safeSamples) fail.push('the scene layer was never sampled on screen');
-  if (!state.pic.stirred) fail.push('nothing in the scene layer moved between two frames');
-  if (state.pic.bandHits) {
-    fail.push('the scene layer reached into the caption band on ' + state.pic.bandHits + ' samples');
-  }
-  if (state.pic.safe && state.pic.safe.near * DSF < floor - 0.5) {
-    fail.push('the scene layer comes within ' + Math.round(state.pic.safe.near * DSF)
-      + ' device px of a border at ' + state.pic.safe.t + 's (' + state.pic.safe.worst
-      + '), floor is ' + floor);
   }
 
   /* the captions */
@@ -2912,6 +2664,44 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
       + ' device px of cap, floor is ' + BUBBLE.minCap);
   }
 
+  /* ---------- no dead air ----------
+     every hole in the read is measured on the waveform and there are exactly
+     two of them: the one the hand types in, which a comedy read and a keyboard
+     live inside, and the one the check mark is drawn in. a third would be the
+     fault this pass was written to remove, and a first hole that ran long past
+     the last keystroke would be the same fault wearing the first one's name. */
+  const holes = [];
+  for (let i = 1; i < v.beats.length; i++) {
+    const from = v.beats[i - 1].sound.end, to = v.beats[i].sound.start;
+    if (to - from > 0.60) holes.push({ from: +from.toFixed(2), to: +to.toFixed(2), len: +(to - from).toFixed(2) });
+  }
+  if (holes.length !== 2) {
+    fail.push(holes.length + ' holes over 0.60s in the read and there are two: the typing and '
+      + 'the confirmation — ' + holes.map(h => h.from + '..' + h.to).join(', '));
+  } else {
+    const [a, b] = holes;
+    if (!(a.from <= site.typing.from && a.to >= site.typing.to)) {
+      fail.push('the first hole (' + a.from + '..' + a.to + ') is not the one the hand types in');
+    } else if (a.to - site.typing.to > 1.70) {
+      fail.push('the typing hole runs ' + (a.to - site.typing.to).toFixed(2)
+        + 's past the last keystroke with no voice in it');
+    }
+    if (!(b.from <= site.confirmAt && b.to >= site.confirmAt)) {
+      fail.push('the second hole (' + b.from + '..' + b.to + ') is not the one the check mark is drawn in');
+    }
+  }
+
+  /* the last step is filled field by field, on camera, and every field the
+     script names is one the run actually typed into. */
+  for (const f of FIELDS) {
+    const got = (state.fills || []).find(x => x.id === f.id);
+    if (!got) fail.push('the field ' + f.id + ' was never filled');
+    else if (got.got === 'no field') fail.push('the field ' + f.id + ' was not on the page when it was named');
+  }
+  if (/[0-9]/.test(LINES.map(l => l.text).join(' '))) {
+    fail.push('a digit reached the script, and the registration number is named and never read');
+  }
+
   /* the comedy read. it is over the typing or it is over nothing, and it is not
      allowed to run past the last keystroke into the beat where the form is being
      finished, because that beat belongs to the taps. */
@@ -2960,6 +2750,24 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
     }
   }
 
+  /* the end card: three stacked lines and the address, centred as a group in the
+     room above the caption band, and it has to stay out of that band. */
+  if (!state.built.end) fail.push('the end card never reported where it placed itself');
+  else {
+    const e = state.built.end;
+    if (e.bottom > state.ceiling.top - 20) {
+      fail.push('the end card reaches ' + e.bottom.toFixed(1) + ' and the caption ceiling is '
+        + state.ceiling.top + ' — the address would sit on the last line of the clip');
+    }
+    if (e.top * DSF < SAFE.top - 0.5) {
+      fail.push('the end card starts ' + Math.round(e.top * DSF) + ' device px down, floor is ' + SAFE.top);
+    }
+    if (e.wordmark < 2.4 * state.built.wordmarkPx) {
+      fail.push('the wordmark measured ' + e.wordmark + 'px tall at ' + state.built.wordmarkPx
+        + 'px of type, which is not three lines');
+    }
+  }
+
   /* the mascot's own report */
   for (const st of rep.states) {
     if (st.entryFrames == null) fail.push(st.state + ' never reached its own mark');
@@ -2997,7 +2805,10 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
   /* the copy. no dash anywhere a viewer can read one, in any language, and that
      covers the script, the typed line, the bubbles and the end card. */
   const readable = [...LINES.map(l => l.text), TYPED, 'the boring tek', 'theboringtek.com',
-    ...SAY_AS.map(x => x.draw),
+    ...SAY_AS.map(x => x.draw), ...FIELDS.map(f => f.text),
+    /* every bubble, whichever spelling asked for it. it used to read the runs
+       only, which was correct while every bubble a viewer saw was in one, and
+       stopped being correct the moment the opening grew two of its own. */
     ...mas.marks.flatMap(m => (m.bubbles || []).map(b => b.text))];
   for (const s of readable) {
     if (/[—–]/.test(s) || /\s-\s/.test(s)) fail.push('a punctuation dash in: "' + s + '"');

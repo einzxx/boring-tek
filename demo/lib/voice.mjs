@@ -105,24 +105,30 @@ export const VOICES = {
   },
   /* the fourth, added 2026-08-30, and the only one in the list that is not the
      narrator. the three above are the agency talking; this one is for a line
-     somebody *else* is thinking — post11 types `i want ai to do my job but
-     keep my salary` into a form and that sentence is not ours to say.
+     somebody *else* is thinking: post11 types `i want ai to do my job but keep
+     my salary` into a form and that sentence is not ours to say.
 
-     so it is a comedy voice, and it is named as one. the english only rule
-     settled 2026-08-27 is about language, and indian english is english: this
-     is an accent, which is a different thing, and it is the only reason a
-     fourth voice was allowed at all.
+     **it was `en-IN-PrabhatNeural` for about an hour and it is not any more.**
+     the first build read the line in indian english, which was a real accent
+     read by a real neural voice and was still the wrong call: a clip whose
+     whole register is deadpan and plain does not want its one joke marked out
+     by an accent, because the accent then becomes the joke. so it is a us woman
+     now, read light and warm, and the line is funny for what it says rather
+     than for who is saying it. that is the whole reasoning, and it is why the
+     id changed rather than the slot.
 
-     how it is read matters more than which id it is. light and deadpan, short,
-     under two and a half seconds. it is funny because it is said flatly by
-     somebody who means it, and the moment it is played for the accent rather
-     than for the line it is a caricature and it is wrong. `comedy: true` is on
-     it so nothing can pick it as a narrator by accident. */
-  wry: {
-    id: 'en-IN-PrabhatNeural', rate: '-4%', pitch: '-1Hz', comedy: true,
-    note: 'male, indian english. the comedy voice, and the only one that is '
-      + 'not the agency speaking: for a line a person in the film is thinking. '
-      + 'deadpan and light, never a caricature.',
+     it is female on purpose and that is the second half of the same argument:
+     the three narrators are all male, so the one voice that is somebody else in
+     the film reads as somebody else on the first syllable with nothing to do
+     but be a different person.
+
+     `comedy: true` is on it so nothing can pick it as a narrator by accident,
+     and `NARRATORS` below is every voice that is not marked. */
+  aside: {
+    id: 'en-US-JennyNeural', rate: '+2%', pitch: '0Hz', comedy: true,
+    note: 'female, us. the comedy voice, and the only one that is not the '
+      + 'agency speaking: for a line a person in the film is thinking. light '
+      + 'and warm, never played for the joke.',
   },
 };
 export const DEFAULT_VOICE = 'calm';
