@@ -42,7 +42,7 @@
 
      node lib/voice.mjs test                 a sample line, and its duration
      node lib/voice.mjs test "some copy"     the same for your own line
-     node lib/voice.mjs voices               the three we picked, and why
+     node lib/voice.mjs voices               the four we picked, and why
      node lib/voice.mjs say "copy" --voice=dry --format=wav --name=post6
 */
 
@@ -78,8 +78,9 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
 const ORIGIN = 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold';
 
 /* ---------- the voices ----------
-   twenty two english voices answer this endpoint. these three are the ones that
-   can read our copy without selling it. the brand is deadpan, lowercase and
+   twenty two english voices answer this endpoint. the first three are the ones
+   that can read our copy without selling it, and the fourth is a comedy voice
+   that never reads our copy at all. the brand is deadpan, lowercase and
    short, so anything cheerful, breathy or "expressive" is wrong however good it
    sounds: the line `we delete the manual work` has to land flat.
 
@@ -102,8 +103,32 @@ export const VOICES = {
     note: 'male, british. the same register in a different accent, for when a '
       + 'clip should not sound american. we are in riga, not in california.',
   },
+  /* the fourth, added 2026-08-30, and the only one in the list that is not the
+     narrator. the three above are the agency talking; this one is for a line
+     somebody *else* is thinking — post11 types `i want ai to do my job but
+     keep my salary` into a form and that sentence is not ours to say.
+
+     so it is a comedy voice, and it is named as one. the english only rule
+     settled 2026-08-27 is about language, and indian english is english: this
+     is an accent, which is a different thing, and it is the only reason a
+     fourth voice was allowed at all.
+
+     how it is read matters more than which id it is. light and deadpan, short,
+     under two and a half seconds. it is funny because it is said flatly by
+     somebody who means it, and the moment it is played for the accent rather
+     than for the line it is a caricature and it is wrong. `comedy: true` is on
+     it so nothing can pick it as a narrator by accident. */
+  wry: {
+    id: 'en-IN-PrabhatNeural', rate: '-4%', pitch: '-1Hz', comedy: true,
+    note: 'male, indian english. the comedy voice, and the only one that is '
+      + 'not the agency speaking: for a line a person in the film is thinking. '
+      + 'deadpan and light, never a caricature.',
+  },
 };
 export const DEFAULT_VOICE = 'calm';
+/* the narrators, which is every voice that is not marked as comedy. a clip
+   picking a read voice picks from this. */
+export const NARRATORS = Object.keys(VOICES).filter(k => !VOICES[k].comedy);
 
 /* ---------- the drm token ----------
    windows file time is seconds since 1601 in 100ns ticks. rounded down to five
@@ -582,10 +607,10 @@ async function cli(argv) {
   const cmd = rest[0] || 'test';
 
   if (cmd === 'voices') {
-    console.log('the boring tek — the three voices we picked\n');
+    console.log('the boring tek — the four voices we picked\n');
     for (const [k, v] of Object.entries(VOICES)) {
       console.log('  ' + k.padEnd(6) + v.id + '   rate ' + v.rate + ', pitch ' + v.pitch
-        + (k === DEFAULT_VOICE ? '   [default]' : ''));
+        + (k === DEFAULT_VOICE ? '   [default]' : '') + (v.comedy ? '   [comedy]' : ''));
       console.log('         ' + v.note + '\n');
     }
     return;

@@ -120,7 +120,7 @@ function ends(buf, ms = 2) {
 }
 
 /* ---------- the sounds ----------
-   ten of them, and each one is two or three lines of physics.
+   twelve of them, and each one is two or three lines of physics.
 
    the whole set is deliberately dull. a caption card gets a thump with no top
    end at all, because the thing it is announcing is a word appearing, not a
@@ -278,6 +278,53 @@ export const VOICES = {
     }
     return ends(normalise(lp(b, 3400)));
   },
+  /* one key going down. the eleventh sound, added for post11, whose whole
+     middle is a form being typed into and which had nothing at all under the
+     hand.
+
+     it is the `click` recipe taken apart and made smaller: three and a half
+     milliseconds of noise for the plastic hitting plastic, banded higher than
+     the lock's because a keycap is a lighter thing, and a 124 hertz pulse under
+     it for the board it is bolted to. both are gone inside fifty five
+     milliseconds. it is not one sound per keystroke — see the grouping in
+     post11 — because forty three of anything inside three seconds is a rattle.
+
+     the whole recipe is about how fast it stops. a key that rings is a key that
+     is broken. */
+  key({ len = 0.055, seed = 0x4c9e13 } = {}) {
+    const b = n(len), rnd = noise(seed);
+    const burst = Math.round(0.0035 * SR);
+    for (let i = 0; i < burst; i++) b[i] = rnd();
+    bp(b, 1300, 4200);
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      ph += 2 * Math.PI * 124 / SR;
+      b[i] = b[i] * decay(i, 0.0055) * 0.75 + Math.sin(ph) * decay(i, 0.013) * 0.55;
+    }
+    return ends(normalise(lp(b, 5000)));
+  },
+  /* the twelfth, and it is the `click` again with weight on it. post11 has six
+     real presses in it and the last one is the point of the whole clip, and it
+     sounded exactly like the five before it — which is the one place in a sound
+     design where a press has to mean something.
+
+     so: the same two parts, both bigger. nine milliseconds of noise a bit lower
+     down for a button with travel in it, and a body that falls from 150 to 110
+     hertz rather than sitting at 190, which is what makes it read as a thing
+     going down and staying there. it is still under a seventh of a second,
+     because a press that outlasts the finger is a doorbell. */
+  press({ len = 0.13, seed = 0x1f7c40 } = {}) {
+    const b = n(len), rnd = noise(seed);
+    const burst = Math.round(0.009 * SR);
+    for (let i = 0; i < burst; i++) b[i] = rnd();
+    bp(b, 620, 2600);
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      ph += 2 * Math.PI * (150 - 40 * Math.min(1, i / (0.022 * SR))) / SR;
+      b[i] = b[i] * decay(i, 0.012) * 0.8 + Math.sin(ph) * decay(i, 0.040);
+    }
+    return ends(normalise(lp(b, 3600)));
+  },
   /* a check being drawn. the one sound allowed above a kilohertz, and it is a
      soft one: a fundamental with a fifth over it, low passed hard enough that
      what is left is a tap with a pitch rather than a chime. */
@@ -340,6 +387,16 @@ export const GAINS = {
      large one. it is a character speaking, so if it ever meets a narrator the
      duck is what keeps it out of the way, not this number. */
   chirp: -28,
+  /* the key is the quietest thing in the set after the sweep, and it has to be:
+     it is the only sound that repeats a dozen times inside four seconds, and it
+     plays under a voice. at -34 a group of them is a texture under the read
+     rather than a line of events competing with it.
+
+     the press is four decibels over the click and three under the coin. it is
+     the loudest press in any clip because it is the only one that sends
+     anything, and it is still not the loudest thing in the set, because a
+     button is not a coin landing on paper. */
+  key: -34, press: -21,
 };
 const db = v => Math.pow(10, v / 20);
 export const dbfs = v => (v <= 1e-9 ? -Infinity : 20 * Math.log10(v));

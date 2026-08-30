@@ -59,7 +59,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-import { speak, VOICE_OUT } from './lib/voice.mjs';
+import { speak, VOICE_OUT, VOICES } from './lib/voice.mjs';
 import {
   planCaptions, captionFrame, captionCss, captionMarkup, captionPage, describe, bareWord,
 } from './lib/captions.mjs';
@@ -130,8 +130,17 @@ const LINES = [
   { text: 'and some just need one small thing done',
     rate: '-4%', pitch: '0Hz', gap: 0.30, screen: 'white' },
   /* the address. the one line in the clip that somebody has to be able to write
-     down, so it is the slowest of the instructions. */
-  { text: 'go to theboringtek dot com',
+     down, so it is the slowest of the instructions.
+
+     it is written here as four spoken words rather than as the address itself.
+     handed `theboringtek` the synthesiser reads it as one run together word,
+     which is unusable for the one line a viewer is supposed to be able to write
+     down. so the voice says `the boring tek dot com` with a person's pacing and
+     the caption still draws `theboringtek.com`, which is the address as it is
+     actually written. that is the only place in this clip where the spoken copy
+     and the drawn copy are not the same words, and it is a named exception with
+     a guard of its own rather than a hole in one. see SAY_AS below. */
+  { text: 'go to the boring tek dot com',
     rate: '-14%', pitch: '-1Hz', gap: 0.30, screen: 'site' },
   { text: 'press the button',
     rate: '-2%', pitch: '+1Hz', gap: 0.52, screen: 'site' },
@@ -143,17 +152,30 @@ const LINES = [
      what the three greeting bubbles land in. */
   { text: 'in english, russian or latvian',
     rate: '-14%', pitch: '0Hz', gap: 0.26, screen: 'site' },
+  /* the hole after this one is not a breath and it is not typed here either, it
+     is measured. it holds the comedy read, the hand typing under it for exactly
+     as long as that read lasts, and then the last two steps of the form done on
+     camera. `null` means derived: main() sets it once the comedy take is on
+     disk and buildVoice refuses a line whose gap is still null. */
   { text: 'then type what you want',
-    rate: '-4%', pitch: '0Hz', gap: 3.90, screen: 'site' },
+    rate: '-4%', pitch: '0Hz', gap: null, screen: 'site' },
+  /* the send, and it comes **before** the offering. the first cut had the list
+     of things we do here, which put the pitch on screen while the form was
+     still being filled and landed the confirmation after the pitch was over.
+     the order a viewer needs is: press it, see that it went, then hear what it
+     is you are asking for.
+
+     the hole after this one is not a breath. the send is a real press, the page
+     disables the button and breathes it, the stubbed post answers after 480ms
+     and only then is a check mark drawn — so the confirmation costs about two
+     seconds of silence, and the line before it is two words long. */
+  { text: 'send it',
+    rate: '-6%', pitch: '-1Hz', gap: 2.60, screen: 'site' },
+  /* and now the offering, on white, after the tick. the commas are what make it
+     land one item at a time: `cardBreak` breaks on them, so app, website,
+     research and graphic design each get the frame to themselves. */
   { text: 'app, website, research, graphic design, or one small job',
     rate: '+4%', pitch: '+1Hz', gap: 0.32, screen: 'white' },
-  /* the hole after this one is not a breath. the send is a real press, the page
-     disables the button and breathes it, the stubbed post answers after 480ms
-     and only then is a check mark drawn — so the confirmation the brief asks for
-     costs about a second and a half of silence, and the line before it is two
-     words long. */
-  { text: 'send it',
-    rate: '-6%', pitch: '-1Hz', gap: 2.20, screen: 'site' },
   { text: 'in one or two days you get your report',
     rate: '-8%', pitch: '-1Hz', gap: 0.38, screen: 'white' },
   /* the close. the slowest and the lowest, and the only line that gets to sit
@@ -162,6 +184,45 @@ const LINES = [
     rate: '-16%', pitch: '-3Hz', gap: 0.00, screen: 'white' },
 ];
 const TAIL = 1.70;                 /* the end card holds this long after the voice */
+
+/* ---------- where the spoken copy and the drawn copy come apart ----------
+   one line, named here, and it is the address.
+
+   every other card in this clip is cut from the words the synthesiser actually
+   said, and the guard that says so is the reason this is a named exception
+   rather than a loosened check. `markLines` collapses the run of spoken words
+   into the one string a reader has to see; `guard` applies the same
+   substitution to the spoken string before it compares, and it fails if the
+   exception did not fire exactly once. an exception that quietly stopped
+   matching would take the guard down with it, which is the only way a check
+   like this goes wrong. */
+const SAY_AS = [{
+  line: 5,
+  say: ['the', 'boring', 'tek', 'dot', 'com'],
+  draw: 'theboringtek.com',
+  why: 'the synthesiser reads the domain as one run together word, and this is '
+    + 'the one line a viewer has to be able to write down',
+}];
+
+/* ---------- the comedy line ----------
+   the typed line is the one sentence in the clip that is not ours: it is what
+   somebody sitting in front of the form is thinking. so it is read by somebody
+   else. `wry` is the fourth voice in `lib/voice.mjs`, male indian english,
+   added for this and marked as a comedy voice so nothing can pick it to
+   narrate. the english only rule settled 2026-08-27 is about language, and this
+   is an accent — read light and deadpan, never played for the accent.
+
+   it is not captioned. the words are already on screen, in the field, being
+   typed; a caption of them would be the same sentence twice. so it never
+   reaches the caption plan and the drawn-is-spoken guard never sees it, which
+   is why it is laid into the voice track by hand rather than through
+   `buildVoice`. it is in the duck envelope, so the keys go under it. */
+const JOKE = { voice: 'wry', rate: '+2%', pitch: '0Hz', trimDb: -1.5 };
+const TYPE_LINE = 9;      /* `then type what you want`, zero based */
+const TYPE_LEAD = 0.30;   /* the line's last word to the first keystroke */
+/* what is left of the hole after the typing: the last two steps of the form,
+   done on camera, and the camera's move onto the send button. */
+const TYPE_TAIL = 2.70;
 const SILENCE_DB = -46;            /* a take ends where it falls this far under its own peak */
 const PRE = 0.05, POST = 0.08;     /* audio kept either side of a take's own words */
 const EDGE_FADE = 0.008;
@@ -288,6 +349,24 @@ async function take(i) {
   return { ...r, i, cached: false };
 }
 
+/* the comedy line, on the same cache discipline as a take: the copy, the voice
+   and the delivery are all part of the key, because a cache that only knew the
+   words would hand back the narrator reading a line that is not his. */
+async function jokeTake() {
+  const name = 'post11-typed';
+  const cached = path.join(VOICE_OUT, name + '-' + JOKE.voice + '.json');
+  const want = TYPED.replace(/\s+/g, ' ').trim();
+  if (fs.existsSync(cached)) {
+    const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
+    if (j.text === want && j.voice === JOKE.voice && j.rate === JOKE.rate
+      && j.pitch === JOKE.pitch && fs.existsSync(j.file)) {
+      return { ...j, cached: true };
+    }
+  }
+  const r = await speak(TYPED, { voice: JOKE.voice, name, rate: JOKE.rate, pitch: JOKE.pitch });
+  return { ...r, cached: false };
+}
+
 /* where a take's sound actually starts and stops, off the waveform rather than
    off the word list. the synthesiser's WordBoundary carries a duration shorter
    than the sound — post10 measured 0.12s of speech after a reported word end —
@@ -320,6 +399,12 @@ function buildVoice(takes) {
   const offs = [];
   let end = 0;
   for (let i = 0; i < takes.length; i++) {
+    /* a derived gap that nobody derived is the one failure that would look like
+       a timing choice rather than a bug, so it is refused here. */
+    if (i > 0 && LINES[i - 1].gap == null) {
+      throw new Error('line ' + i + '\'s gap is still null — main() has to measure it '
+        + 'before the takes are laid down');
+    }
     const gap = i === 0 ? 0.35 : LINES[i - 1].gap;
     const off = +(end + gap - edges[i].start).toFixed(4);
     offs.push(off);
@@ -362,6 +447,27 @@ function buildVoice(takes) {
   return { track, seconds, words, beats, edges, offs, gaps };
 }
 
+/* one take laid onto a track that already exists, with the same edges, the same
+   fades and the same kept air as `buildVoice` uses. it is the one piece of that
+   function a second voice needs, written out once rather than duplicated inside
+   it, because the comedy read is not a fifteenth line and should not have to
+   pretend to be one to get into the file. */
+function layIn(track, pcm, edge, off, gain) {
+  const a = Math.max(0, Math.round((edge.start - PRE) * SR));
+  const b = Math.min(pcm.length, Math.round((edge.end + POST) * SR));
+  const at = Math.round(off * SR) + a;
+  const fade = Math.round(EDGE_FADE * SR);
+  for (let k = a; k < b; k++) {
+    const j = at + (k - a);
+    if (j < 0 || j >= track.length) continue;
+    let g = gain;
+    if (k - a < fade) g *= (k - a) / fade;
+    else if (b - k < fade) g *= (b - k) / fade;
+    track[j] += pcm[k] * g;
+  }
+  return { from: +(off + edge.start).toFixed(3), to: +(off + edge.end).toFixed(3) };
+}
+
 /* ---------- where a card is allowed to end ----------
    a card breaks at a sentence end, at a clause mark, or when it is full. this
    script is fourteen short lines with almost no punctuation in them, so left
@@ -379,18 +485,54 @@ function buildVoice(takes) {
 
    what the marks cannot fake is that the voice said these words in this order,
    and that is checked afterwards against the drawn sequence. */
+/* where a run of spoken words sits inside a line, by what they say. it is a
+   sequence match rather than an index, for the same reason `wordAt` is: an
+   index keys the exception to a line nobody is allowed to edit. */
+function runAt(ws, say) {
+  for (let i = 0; i + say.length <= ws.length; i++) {
+    let ok = true;
+    for (let j = 0; j < say.length; j++) {
+      if (bareWord(ws[i + j].word).toLowerCase() !== say[j]) { ok = false; break; }
+    }
+    if (ok) return i;
+  }
+  return -1;
+}
+
 function markLines(beats) {
   const out = [];
   const marked = [];
+  /* the named exceptions, each carrying its own count. one hit is the contract;
+     zero means it stopped matching and the guard has to say so rather than pass
+     quietly, and two would mean a line said the same thing twice and the cards
+     no longer line up with the sound. */
+  const exceptions = SAY_AS.map(x => ({ ...x, hits: 0, at: null }));
   for (const b of beats) {
-    b.words.forEach((w, k) => {
-      const last = k === b.words.length - 1;
+    /* the words this line **draws**. ordinarily they are the words it said; a
+       named exception collapses a run of them into the one string a reader has
+       to see, keeping the run's own start and end so the card is still cut
+       against the sound. */
+    let ws = b.words;
+    for (const x of exceptions) {
+      if (x.line !== b.i + 1) continue;
+      const at = runAt(ws, x.say);
+      if (at < 0) continue;
+      ws = [
+        ...ws.slice(0, at),
+        { word: x.draw, start: ws[at].start, end: ws[at + x.say.length - 1].end },
+        ...ws.slice(at + x.say.length),
+      ];
+      x.hits++;
+      x.at = +ws[at].start.toFixed(3);
+    }
+    ws.forEach((w, k) => {
+      const last = k === ws.length - 1;
       const already = /[.!?,;:]["')\]]?$/.test(w.word);
       if (last && !already) marked.push(w.word);
       out.push({ word: last && !already ? w.word + ',' : w.word, start: w.start, end: w.end });
     });
   }
-  return { words: out, marked };
+  return { words: out, marked, exceptions };
 }
 
 /* a word inside a beat, by what it says rather than by where it sits. keying a
@@ -503,14 +645,24 @@ const shot = (sel, o) => ({
    ever both in the card and cut. */
 const ZOOM_CAP = 1.9;
 
-function planSite(beats) {
+/* how many keystrokes share one tick. see the keyboard note below. */
+const KEY_GROUP = 4;
+
+function planSite(beats, jokeDur) {
   const B = i => beats[i];
   const cues = [];        /* one shot actions: a tap, a key, a call into the page */
   const legs = [];        /* the camera */
   const fades = [];       /* the card's own opacity */
-  const rings = [];       /* the tap indicator, one per real tap */
+  const rings = [];       /* the tap indicator and its sound, one per real tap */
 
-  const tap = (t, sel, note) => { cues.push({ t: +t.toFixed(4), tap: sel, note }); rings.push(+t.toFixed(4)); };
+  /* every tap is a `click` except one. the send is the press the whole clip is
+     about and it sounded exactly like the five presses before it, which is the
+     one place in the sound where a press had to mean something. it gets
+     `press` — the same mechanism, lower and firmer and four decibels up. */
+  const tap = (t, sel, note, sound) => {
+    cues.push({ t: +t.toFixed(4), tap: sel, note });
+    rings.push({ t: +t.toFixed(4), kind: sound || 'click' });
+  };
   const call = (t, fn, note) => cues.push({ t: +t.toFixed(4), call: fn, note });
   const key = (t, k) => cues.push({ t: +t.toFixed(4), key: k });
 
@@ -601,82 +753,144 @@ function planSite(beats) {
   legs.push({ t0: b10.start + 0.10, t1: b10.start + 0.62, ease: 'drift',
     to: shot('.pad textarea', { fit: 10, dy: 6 }), beat: 10, anchor: 'start' });
   tap(b10.end + 0.06, '.pad textarea', 'the field');
-  /* the hand has the whole hole after the line, which is what the hole is for.
-     forty characters in two and nine tenths of a second is about fourteen a
-     second, which is a person typing rather than a field filling itself. */
-  const typing = humanKeys(TYPED, b10.end + 0.30, b10.end + 0.30 + 2.90, 0x51c07a);
+  /* the hand types for exactly as long as the comedy voice takes to say the
+     line, because they are the same beat: `jokeDur` is measured off that take's
+     own waveform and the window is cut to it, so the last key lands on the last
+     syllable without either of them being told about the other. forty three
+     keystrokes over that window is about twelve characters a second, which is a
+     person typing rather than a field filling itself. */
+  const typing = humanKeys(TYPED, b10.end + TYPE_LEAD, b10.end + TYPE_LEAD + jokeDur, 0x51c07a);
   for (const k of typing.keys) key(k.t, k.key);
 
-  /* ---- beat eleven: the card is gone and the form is finished off camera ----
-     the five things we do are the screen for this line, so the card fades out.
-     what happens behind it is the rest of the real form: the explain step is
-     confirmed, a size is picked, and the last step's two required fields are
-     typed. it is done off camera because the brief gives this line to the words
-     rather than to the site, and it is done **for real** because the send on
-     beat twelve has to be a send.
+  /* ---- the keyboard, one tick per group of characters ----
+     the typing carried no sound at all, which on a clip whose whole middle is a
+     form being filled is the one silence nobody reads as a choice. a tick per
+     keystroke is forty three sounds inside three and a half seconds, and at any
+     level that is a rattle rather than a keyboard. one per four is about three a
+     second, which is what a keyboard sounds like from the next desk.
 
-     the card leaves **after** the mascot has reacted rather than before it. the
-     line finishes typing, he is delighted about it and his bubble pops, and only
-     then does the card go — because the joke on screen and the joke in the
-     corner are one beat and cutting between them halves both. */
-  const cardOut = typing.to + 1.25;
-  fades.push({ t0: typing.to + 0.80, t1: cardOut, to: 0 });
-  /* every one of these is hung off the moment the card has actually gone rather
-     than off the line, because a step changing behind a card that is still half
-     visible is a flicker nobody can explain. */
-  call(cardOut + 0.30, 'next', 'the explain step is answered');
-  call(cardOut + 0.70, 'pick:2', 'how big is your business');
-  call(cardOut + 1.20, 'fill', 'the last step, filled the way a person would');
+     the typo and the backspace get their own tick wherever they fall, because
+     they are the two moments the rhythm breaks and a group that swallowed them
+     would be a sound that is not listening to the hand it belongs to. */
+  const keys = [];
+  let since = KEY_GROUP;
+  for (const k of typing.keys) {
+    const own = k.kind !== 'key';
+    if (own || since >= KEY_GROUP) { keys.push(+k.t.toFixed(4)); since = 0; }
+    since++;
+  }
 
-  /* ---- beat twelve: send, and the confirmation ----
-     the card comes back framed on the last step, the send is a real press on the
-     page's own button, and the two posts are stubbed — nothing leaves the
-     browser and the run counts them. the page then does what it does: the button
-     goes busy, the stub answers after 480ms, and a check mark is drawn. the gap
-     after this line is what that costs. */
-  const b12 = B(11);
-  fades.push({ t0: b12.start - 0.40, t1: b12.start - 0.02, to: 1 });
-  legs.push({ t0: b12.start - 0.40, t1: b12.start + 0.12, ease: 'glide',
-    to: shot('.pad', { fit: 10, align: 'bottom' }), beat: 12, anchor: 'start' });
-  tap(b12.end + 0.10, '.nav .btn:not(.ghost)', 'send');
-  /* and one more, after the page has answered: the sent state is a much shorter
+  /* ---- the last two steps, and they are on camera now ----
+     the card used to leave here. the offering was the next line, the screen was
+     white for it, and the rest of the form was finished behind the fade. the
+     offering is now after the confirmation, so there is no white beat to hide in
+     and no reason to want one: the form finishes where the viewer can see it.
+
+     the one thing that is still not a keystroke is the last step's two fields.
+     typing a name and an email at a rate a person types is three more seconds of
+     a form being filled, which this clip does not have and does not need. so
+     `fill` fires **inside the last step's own entrance**, while index.html is
+     still growing the card and springing `.cardin` — through the page's own
+     input listeners exactly as before, and with no frame that shows the fields
+     empty and then full. */
+  const steps = typing.to;
+  tap(steps + 0.40, '.nav .btn:not(.ghost)', 'the explain step is answered');
+  legs.push({ t0: steps + 0.95, t1: steps + 1.45, ease: 'drift',
+    to: shot('.pad', { fit: 10, align: 'top' }), beat: 11, anchor: 'the size step' });
+  tap(steps + 1.55, '.chips .chip:nth-child(2)', 'how big is your business');
+  call(steps + 1.95, 'fill', 'the last step, filled inside its own entrance');
+
+  /* ---- beat eleven: send, and the confirmation ----
+     the camera is already on the card, so this is a reframe onto the bottom of
+     the last step rather than a fade in. the send is a real press on the page's
+     own button and the two posts are stubbed: nothing leaves the browser and the
+     run counts them. the page then does what it does, the button goes busy, the
+     stub answers after 480ms, and a check mark is drawn. */
+  const b11 = B(10);
+  /* this is the one leg in the file that is aligned to the **bottom** of a card
+     that is still growing, and that is why it waits half a second after the
+     chip advances rather than the tenth of a second beats eight and nine take.
+     a top aligned shot can be measured during index.html's grid grow because the
+     top of `.pad` does not move while it happens; the bottom moves the whole
+     time, so a shot resolved mid grow frames a send button that is not where it
+     is going to be. */
+  legs.push({ t0: steps + 2.30, t1: steps + 2.85, ease: 'glide',
+    to: shot('.pad', { fit: 10, align: 'bottom' }), beat: 11, anchor: 'the send button' });
+  const sendAt = +(b11.end + 0.10).toFixed(4);
+  tap(sendAt, '.nav .btn:not(.ghost)', 'send', 'press');
+  /* the tick, and the sound on it. 480ms is the stub and the page draws on the
+     frame after that, so this is where the confirmation actually exists. it is
+     the set's `ding`, which is written as "a check being drawn" and is the one
+     sound in the file that already meant yes. */
+  const confirmAt = +(sendAt + 0.55).toFixed(4);
+  /* and a reframe after the page has answered: the sent state is a much shorter
      card than the last step was, so the frame that held the fields would hold
-     mostly white around a check mark. this reframes onto what the page is now
-     showing rather than onto what it was showing when the send was pressed.
+     mostly white around a check mark. at the first timing this landed 0.15s
+     before the fade and the confirmation was a shot nobody saw. */
+  legs.push({ t0: b11.end + 0.52, t1: b11.end + 1.02, ease: 'drift',
+    to: shot('.pad', { fit: 10, align: 'top' }), beat: 11, anchor: 'the check mark' });
 
-     it is timed off the page rather than off the line: the stubbed post answers
-     after 480ms, the page draws the tick on the frame after that, and the card
-     has to be settled on it with time to be read before beat thirteen takes the
-     card away. at the first timing the reframe landed 0.15s before the fade and
-     the confirmation was a shot nobody saw. */
-  legs.push({ t0: b12.end + 0.52, t1: b12.end + 1.02, ease: 'drift',
-    to: shot('.pad', { fit: 10, align: 'top' }), beat: 12, anchor: 'the check mark' });
-
-  /* ---- beat thirteen: back to type on white ---- */
-  const b13 = B(12);
-  fades.push({ t0: b13.start - 0.35, t1: b13.start + 0.03, to: 0 });
+  /* ---- beat twelve: the card leaves and the offering lands on white ----
+     the tick has had about a second and a quarter settled in frame by the time
+     this starts, which is the whole reason `send it` carries a 2.60s gap. the
+     five things we do are the screen for this line, so the card goes and does
+     not come back. */
+  const b12 = B(11);
+  fades.push({ t0: b12.start - 0.40, t1: b12.start - 0.02, to: 0 });
 
   cues.sort((a, b) => a.t - b.t);
   legs.sort((a, b) => a.t0 - b.t0);
-  return { cues, legs, fades, rings, typing };
+  return { cues, legs, fades, rings, typing, keys, sendAt, confirmAt };
 }
 
 /* ---------- the mascot's marks ----------
-   five marks and five bubbles, and every one of them is the brief's. the turn is
-   never set: he stands in the bottom left and the module's own resting bias
-   turns him a third of the way into the frame, which is the whole reason that
-   number is one value in one place.
+   fourteen marks and five bubbles. the bubbles are the brief's five and the
+   count has not moved: everything added since is the turn channel and the state
+   table, which cost nothing anybody has to read.
+
+   the turn **is** set now, and only in the first quarter. the module's resting
+   bias turns him a third of the way into the frame and that is right for a clip
+   with something in the middle of it; for the first nine and a half seconds
+   there is nothing in the middle of it except our own type, so he is turned
+   further into it and back out again, one small move per line. by the time the
+   site card fades in he is back at the bias and every mark after that leaves the
+   channel alone, exactly as they always did.
 
    the three greetings are a **run** on one mark rather than three marks. three
    ordinary bubbles need six and a quarter seconds of head room between them,
    which is a fifth of this clip spent on one line; a run is the same gesture at
    a shorter profile, so each one lands on the language it is greeting in. that
    is the one thing this clip cost `lib/mascot.mjs`. */
-function planMarks(beats, typing) {
+function planMarks(beats, site) {
   const B = i => beats[i];
   const at = x => +x.toFixed(3);
+  const typing = site.typing;
   const marks = [];
-  marks.push({ t: 0.30, state: 'neutral' });
+
+  /* ---- the first quarter ----
+     four lines of type on white, nothing else in the frame, and he is the only
+     thing in it that can move. one `neutral` held across all four was six and a
+     quarter seconds of breathing and blinking, which on a rendered strip reads
+     as a still image with a caption under it.
+
+     so he watches the words instead. the type lands above him and across to his
+     right, so every mark here is a small turn **into** the frame with a state
+     that looks up into it. none of them is a big move on purpose: the site card
+     has not arrived yet and a mascot doing gymnastics on an empty page is worse
+     than a mascot doing nothing. and none of them says anything — the five
+     bubbles this clip has are all spoken for, so the whole of this is the turn
+     channel and the state table. */
+  marks.push({ t: 0.30, state: 'neutral', turn: 0.18 });
+  /* the first line's second card lands. he looks up into it, which is what
+     `curious` is: a tilt in with the eyes arriving ahead of the head. */
+  marks.push({ t: at(B(0).start + 1.15), state: 'curious', turn: 0.62 });
+  /* and he holds it a beat into the next line rather than snapping back on its
+     first word, which is the same rule the unimpressed mark below follows. */
+  marks.push({ t: at(B(1).start + 0.17), state: 'neutral', turn: 0.30 });
+  /* `some people do not know why they even need it` — he does not know either.
+     `thinking` is the smallest state that reads as considering: up and away,
+     one eye half lidded, a slow scan over the hold. */
+  marks.push({ t: at(B(1).end - 0.60), state: 'thinking', turn: 0.44 });
   /* the joke. he is not impressed that you have no time, which is the read the
      line wants and is also the only state in the table that arrives on the heavy
      curve rather than overshooting.
@@ -685,8 +899,13 @@ function planMarks(beats, typing) {
      back on its first word: a reaction that resets the instant the sentence ends
      is a reaction to a sentence rather than to what it said. */
   marks.push({ t: at(wordAt(B(2), 'no').start - 0.10), state: 'unimpressed' });
-  marks.push({ t: at(B(3).start + 0.30), state: 'neutral' });
-  marks.push({ t: at(B(5).start - 0.24), state: 'curious' });
+  marks.push({ t: at(B(3).start + 0.35), state: 'neutral', turn: 0.20 });
+  /* the last of the white beats, and the smallest move in the file: he turns
+     toward the middle of the frame a beat before the card fades in there. it is
+     the turn channel doing the whole job, which is what that channel is for. */
+  marks.push({ t: at(B(3).end - 0.20), state: 'neutral', turn: 0.60 });
+  /* the card arrives, and the turn comes back to rest under it. */
+  marks.push({ t: at(B(5).start - 0.24), state: 'curious', turn: 0.35 });
   /* one state across beats seven, eight and nine, carrying the three greetings
      inside its own hold. */
   const b9 = B(8);
@@ -698,11 +917,15 @@ function planMarks(beats, typing) {
       { t: at(wordAt(b9, 'latvian').start), text: 'labdien' },
     ],
   });
-  /* the salary line, on the frame it finishes typing, and he holds it through
-     the list that follows — the two marks after it are hung off the typing
-     rather than off a beat, because that is the thing he is reacting to. */
+  /* the salary line, on the frame it finishes typing, and it is hung off the
+     hand rather than off a beat because that is the thing he is reacting to. */
   marks.push({ t: at(typing.to + 0.06), state: 'delighted', bubble: 'nice' });
-  marks.push({ t: at(typing.to + 2.60), state: 'neutral' });
+  /* level again for the last two steps and the send. */
+  marks.push({ t: at(typing.to + 2.40), state: 'neutral' });
+  /* the check mark. he looks up at it, on the frame the page draws it, which is
+     the beat the whole reorder exists to make land. */
+  marks.push({ t: at(site.confirmAt + 0.10), state: 'curious' });
+  marks.push({ t: at(B(11).start - 0.20), state: 'neutral' });
   marks.push({ t: at(B(13).start - 0.16), state: 'agreeing', bubble: 'finally' });
   return marks;
 }
@@ -1323,6 +1546,24 @@ async function main() {
   console.log('the boring tek — post11, the explainer');
   fs.mkdirSync(OUT, { recursive: true });
 
+  /* ---- the comedy line, first, because the clip is cut to it ----
+     the hole the typing lives in is not a number in the script: it is however
+     long this take turns out to be, plus the room the last two steps of the form
+     need after it. so it is measured off the take's own waveform before a single
+     other beat is placed. */
+  const joke = await jokeTake();
+  const jokePcm = decode(ffmpeg, joke.file);
+  const jokeEdge = audioEdges(jokePcm);
+  const jokeDur = +(jokeEdge.end - jokeEdge.start).toFixed(3);
+  LINES[TYPE_LINE].gap = +(TYPE_LEAD + jokeDur + TYPE_TAIL).toFixed(3);
+  console.log('  the comedy line: ' + joke.voice + ' (' + joke.voiceId + ') at '
+    + joke.rate + '/' + joke.pitch + ', ' + jokeDur.toFixed(2) + 's of sound'
+    + (joke.cached ? ', cached' : '') + ' — "' + TYPED + '"');
+  console.log('    so line ' + (TYPE_LINE + 1) + ' carries a '
+    + LINES[TYPE_LINE].gap.toFixed(2) + 's hole: ' + TYPE_LEAD.toFixed(2)
+    + 's before the first key, the read and the hand together, then '
+    + TYPE_TAIL.toFixed(2) + 's for the last two steps and the move onto send');
+
   /* ---- the voice ---- */
   const takes = [];
   for (let i = 0; i < LINES.length; i++) takes.push(await take(i));
@@ -1350,6 +1591,12 @@ async function main() {
      "some know exactly, but have no time" cutting a card that was never a
      phrase. */
   const cut = markLines(v.beats);
+  for (const x of cut.exceptions) {
+    console.log('  spoken and drawn come apart once: line ' + x.line + ' says "'
+      + x.say.join(' ') + '" and draws "' + x.draw + '", '
+      + (x.hits === 1 ? 'matched at ' + x.at + 's' : x.hits + ' matches')
+      + ' — ' + x.why);
+  }
   const cap = planCaptions(cut.words, {
     style: 'float', perCard: 3, floatSize: 44,
     cardBreak: /[.!?,;:]["')\]]?$/,
@@ -1367,8 +1614,8 @@ async function main() {
     + 'and the marks are stripped before a card is drawn');
 
   /* ---- the site, the mascot, the cut ---- */
-  const site = planSite(v.beats);
-  const marks = planMarks(v.beats, site.typing);
+  const site = planSite(v.beats, jokeDur);
+  const marks = planMarks(v.beats, site);
   const mas = planMascot({
     seconds: SECONDS, marks, theme: 'light', pos: 'bottom-left',
     band: { x: CAP_BOX.x, y: CAP_BOX.y, w: CAP_BOX.w, h: CAP_BOX.h },
@@ -1388,12 +1635,24 @@ async function main() {
   /* ---- the sound ----
      no music in this pass. what is in the file besides the read is the mascot's
      own two cues — a pop when a bubble arrives and a ding on the agreement beat,
-     which is the module's whole sound surface — and a soft click on each tap,
-     which is the house recipe's own line about presses. every one of them is
-     derived from a plan that already existed rather than typed against the
-     picture, so changing a word in the script moves the voice, the captions, the
-     camera, the mascot and the sounds together. */
-  const cues = mascotCues(mas).concat(site.rings.map(t => ({ t, kind: 'click' })));
+     which is the module's whole sound surface — a click on each tap, a `key`
+     tick per group of characters under the typing, a `press` on the send, and a
+     `ding` on the frame the check mark is drawn.
+
+     the three that are new are the three things the clip did silently: the hand
+     typed with nothing under it, the send sounded like every other tap, and the
+     confirmation the whole ending is built around arrived without a sound. none
+     of them is a file — `key` and `press` are two more recipes in
+     `lib/sfx.mjs`, and `ding` is the one that was already written as "a check
+     being drawn" and had only ever been used for an agreement.
+
+     every one of them is derived from a plan that already existed rather than
+     typed against the picture, so changing a word in the script moves the voice,
+     the captions, the camera, the mascot and the sounds together. */
+  const cues = mascotCues(mas)
+    .concat(site.rings.map(r => ({ t: r.t, kind: r.kind })))
+    .concat(site.keys.map(t => ({ t, kind: 'key' })))
+    .concat([{ t: site.confirmAt, kind: 'ding' }]);
   const sfx = renderSfx(cues, SECONDS);
   console.log('  sound: ' + cues.length + ' cues — '
     + Object.entries(cues.reduce((a, c) => (a[c.kind] = (a[c.kind] || 0) + 1, a), {}))
@@ -1401,6 +1660,9 @@ async function main() {
 
   if (PLAN_ONLY) {
     console.log('\n  the cut');
+    console.log('    ' + site.typing.from.toFixed(2) + '..' + site.typing.to.toFixed(2)
+      + '  the hand and the comedy read, ' + site.keys.length + ' key ticks under '
+      + site.typing.keys.length + ' keystrokes');
     for (const c of site.cues.filter(c => !c.key)) {
       console.log('    ' + c.t.toFixed(2).padStart(6) + 's  '
         + (c.tap ? 'tap  ' + c.tap : 'call ' + c.call) + '   ' + (c.note || ''));
@@ -1432,7 +1694,23 @@ async function main() {
      spoken, then the loudness pass that keeps its best answer rather than its
      last one. both halves of that discipline were paid for by post5 and both are
      in the file above the loop. */
-  const env = voiceEnvelope(v.words, SECONDS);
+  /* the comedy read goes onto the voice track by hand rather than through
+     buildVoice, because it is not one of the fourteen takes: it is not on the
+     narrator's clock, it is not captioned, and it must never reach the plan that
+     the drawn-is-spoken guard reads. it is laid so its first sound lands on the
+     first keystroke, which is also its last sound landing on the last one — the
+     window was cut to its length. a decibel and a half under the narrator, so it
+     reads as somebody else thinking rather than as the film talking.
+
+     its words **are** in the duck envelope. the keyboard ticks have to go under
+     it exactly as they go under a narrated line, and an envelope built from the
+     fourteen takes alone would not know this line is being said at all. */
+  const jokeOff = +(site.typing.from - jokeEdge.start).toFixed(4);
+  const jokeWords = joke.words.map(w => ({
+    word: w.word, start: +(w.start + jokeOff).toFixed(4), end: +(w.end + jokeOff).toFixed(4),
+  }));
+  const jokeAt = layIn(v.track, jokePcm, jokeEdge, jokeOff, Math.pow(10, JOKE.trimDb / 20));
+  const env = voiceEnvelope(v.words.concat(jokeWords), SECONDS);
   const mix = mixdown(v.track, sfx.buf, env, { duck: DUCK, voiceGain: VOICE_TRIM });
   const under = checkUnderVoice(mix.voiceOut, mix.bus);
   const baseMix = mix.out.slice();
@@ -1467,8 +1745,9 @@ async function main() {
   const file = encode(WAV);
   const p = probe(file);
 
-  report(state, v, cap, mas, rep60, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS);
-  const fail = guard(state, v, cap, mas, rep60, site, cues, mix, under, after, lim, p, SECONDS);
+  const joked = { ...joke, dur: jokeDur, at: jokeAt, words: jokeWords };
+  report(state, v, cut, cap, mas, rep60, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joked);
+  const fail = guard(state, v, cut, cap, mas, rep60, site, cues, mix, under, after, lim, p, SECONDS, joked);
 
   if (!KEEP && !ONLY_ENCODE) {
     fs.rmSync(FRAMES, { recursive: true, force: true });
@@ -1967,7 +2246,7 @@ async function render(cap, mas, site, v, N, SECONDS) {
 }
 
 /* ---------- what the run prints ---------- */
-function report(state, v, cap, mas, rep, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS) {
+function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joke) {
   const dev = x => Math.round(x * DSF);
   console.log('\nrendered');
   console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps  ' + p.seconds.toFixed(2) + 's  '
@@ -2059,6 +2338,19 @@ function report(state, v, cap, mas, rep, site, cues, sfx, mix, under, after, lim
       + (m.bubbles || []).map(b => '"' + b.text + '" ' + b.in.toFixed(2)).join('  '));
   }
 
+  console.log('\n  the read');
+  console.log('    fourteen takes in the narrator\'s voice, and one that is not: '
+    + joke.voice + ' (' + joke.voiceId + ') reads the typed line from '
+    + joke.at.from.toFixed(2) + 's to ' + joke.at.to.toFixed(2) + 's, '
+    + JOKE.trimDb.toFixed(1) + ' dB under the narrator, over a hand typing from '
+    + site.typing.from.toFixed(2) + 's to ' + site.typing.to.toFixed(2) + 's');
+  console.log('    it is not captioned, because the words are already on screen in the field');
+  for (const x of cut.exceptions) {
+    console.log('    the drawn caption is the spoken caption on every line but ' + x.line
+      + ', which says "' + x.say.join(' ') + '" and draws "' + x.draw + '" at '
+      + x.at + 's, ' + x.hits + ' match');
+  }
+
   console.log('\n  the mix');
   console.log(describeMix(sfx.report, {
     'the read': LINES.length + ' takes, one per line, each with its own rate and pitch',
@@ -2083,7 +2375,7 @@ function report(state, v, cap, mas, rep, site, cues, sfx, mix, under, after, lim
    the shape every clip in here uses: the thing must have happened, it must have
    happened everywhere it was supposed to, and every claim in the log above must
    be a measurement. */
-function guard(state, v, cap, mas, rep, site, cues, mix, under, after, lim, p, SECONDS) {
+function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim, p, SECONDS, joke) {
   const fail = [];
   const floor = Math.min(SAFE.left, SAFE.top, SAFE.right, SAFE.bottom);
 
@@ -2154,8 +2446,30 @@ function guard(state, v, cap, mas, rep, site, cues, mix, under, after, lim, p, S
     fail.push(cap.tight.late.length + ' cards leave before their own last word is said');
   }
   /* the half the cut marks cannot fake: the voice said these words, in this
-     order, and the cards are those words with nothing added and nothing lost. */
-  const said = v.words.map(w => bareWord(w.word)).join(' ');
+     order, and the cards are those words with nothing added and nothing lost.
+
+     one line is allowed to differ and it is named. the substitution is applied
+     to the **spoken** string here, so the comparison still starts from what came
+     out of the synthesiser rather than from what `markLines` decided to draw —
+     and the exception has to have fired exactly once, because an exception that
+     stopped matching would leave a guard that passes on a caption nobody
+     checked. */
+  let said = v.words.map(w => bareWord(w.word)).join(' ');
+  for (const x of SAY_AS) {
+    const run = x.say.join(' ');
+    const hit = (cut.exceptions.find(e => e.line === x.line) || {}).hits;
+    if (hit !== 1) {
+      fail.push('the "' + x.draw + '" exception fired ' + (hit || 0) + ' times on line '
+        + x.line + ' and it has to fire exactly once — the line no longer says "'
+        + run + '"');
+    }
+    if (!said.includes(run)) {
+      fail.push('the voice never said "' + run + '", so the "' + x.draw
+        + '" exception is drawing something nobody read');
+      continue;
+    }
+    said = said.replace(run, x.draw);
+  }
   const drawn = cap.cells.map(c => c.word).join(' ');
   if (said !== drawn) {
     fail.push('the drawn caption is not what was spoken — the words diverge at "'
@@ -2192,6 +2506,35 @@ function guard(state, v, cap, mas, rep, site, cues, mix, under, after, lim, p, S
   if (state.cyr.caps.capPx < BUBBLE.minCap) {
     fail.push('the cyrillic bubble measured ' + state.cyr.caps.capPx
       + ' device px of cap, floor is ' + BUBBLE.minCap);
+  }
+
+  /* the comedy read. it is over the typing or it is over nothing, and it is not
+     allowed to run past the last keystroke into the beat where the form is being
+     finished, because that beat belongs to the taps. */
+  if (!joke || !joke.words.length) fail.push('the comedy line has no timings, so it was never laid down');
+  else {
+    if (joke.voice !== JOKE.voice) fail.push('the comedy line was read by ' + joke.voice);
+    if (VOICES[joke.voice] && !VOICES[joke.voice].comedy) {
+      fail.push('"' + joke.voice + '" is not marked as a comedy voice, so this line is being read by a narrator');
+    }
+    if (joke.text !== TYPED.replace(/\s+/g, ' ').trim()) {
+      fail.push('the comedy line reads "' + joke.text + '" and the field types "' + TYPED + '"');
+    }
+    if (joke.at.from < site.typing.from - 0.12) {
+      fail.push('the comedy read starts ' + (site.typing.from - joke.at.from).toFixed(2)
+        + 's before the first keystroke');
+    }
+    if (joke.at.to > site.typing.to + 0.20) {
+      fail.push('the comedy read runs ' + (joke.at.to - site.typing.to).toFixed(2)
+        + 's past the last keystroke, into the beat the form is finished in');
+    }
+  }
+
+  /* the sound the typing and the send were missing */
+  if (site.keys.length < 6) fail.push('only ' + site.keys.length + ' key ticks under the typing');
+  if (!cues.some(c => c.kind === 'press')) fail.push('the send tap has no press on it');
+  if (!cues.some(c => c.kind === 'ding' && Math.abs(c.t - site.confirmAt) < 1e-6)) {
+    fail.push('nothing sounds on the frame the check mark is drawn');
   }
 
   /* the typed line, and whether anybody can read it */
@@ -2250,6 +2593,7 @@ function guard(state, v, cap, mas, rep, site, cues, mix, under, after, lim, p, S
   /* the copy. no dash anywhere a viewer can read one, in any language, and that
      covers the script, the typed line, the bubbles and the end card. */
   const readable = [...LINES.map(l => l.text), TYPED, 'the boring tek', 'theboringtek.com',
+    ...SAY_AS.map(x => x.draw),
     ...mas.marks.flatMap(m => (m.bubbles || []).map(b => b.text))];
   for (const s of readable) {
     if (/[—–]/.test(s) || /\s-\s/.test(s)) fail.push('a punctuation dash in: "' + s + '"');

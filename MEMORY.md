@@ -9,7 +9,10 @@ names in here either.
 - **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
   **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
   inside the mp4**, rendered with the shutter open at four subframes in **15.5
-  minutes**. **The first clip built on
+  minutes**. **Its fix pass landed the same day and it is 39.86s now, checked at
+  12fps only** — five of the six things a viewing found are fixed, the sixth is a
+  question waiting on Einz, and the 60fps master is deliberately not rendered
+  until it is answered. See post11's fix list under Decisions. **The first clip built on
   `demo/lib/mascot.mjs`** and **the first that puts the live site inside a card**
   rather than filling the frame with it: white page, big type, real footage of
   theboringtek.com cropped to the hero, and the corner mascot reacting the whole
@@ -53,13 +56,16 @@ names in here either.
     a **list** of bubbles on a shorter profile, which is what lets three
     greetings land on three languages inside one line. The single bubble path is
     byte for byte what it was and the self test proves it. See Decisions.
-  - **Six fixes are open and none of them is started**: the domain is read as one
-    word, the typed line is silent and wants a second voice with an indian
-    accent, the typing and the send tap have no sound, the ending puts the offer
-    before the confirmation, the mascot is too quiet over the opening, and the
-    top of the frame is empty for the first nine seconds. **The clip in `c635bcb`
-    has all six in it.** The list is under Decisions with what each one actually
-    costs; two of them move every beat after them.
+  - **Five of the six fixes are in, and the sixth is a question for Einz.** The
+    domain is spoken as four words and still drawn as one string, through a
+    named exception the guard was taught rather than a guard that was loosened;
+    the typed line is read by a fourth, comedy voice; the typing, the send and
+    the confirmation all have sound; the ending is send, tick, offer, report,
+    card; and the corner has fourteen marks against eight with the turn doing
+    the work over the opening. **Open: what fills the empty top of the frame from
+    0.00 to 9.51s** — two options are written out under Decisions and neither is
+    picked. **The clip in `c635bcb` has all six faults in it; the fix pass is
+    12fps only and the 60fps master waits on the answer.**
 - **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
   been looked at is the **light theme at the twelve frame preview**, plus still
   frames from a turn sweep and from every state. **The dark theme has not been
@@ -1190,7 +1196,9 @@ Still no posting cadence or content pillars. See Next steps.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
 - **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
-  **36.93s at 60fps, vertical only, 4.12 MB, the read inside the mp4**, out to
+  **36.93s at 60fps as first built; 39.86s after the same day's fix pass, which
+  is rendered and checked at 12fps only**, vertical only, the read inside the
+  mp4, out to
   `demo/out/post11-1080x1920.mp4`. `--blur` opens the shutter for the final,
   `DEMO_FPS=12` previews it, `--plan` prints every plan and renders nothing, and
   `--encode-only` re-encodes from kept frames. Frames under `out/frames-post11`,
@@ -1205,26 +1213,37 @@ Still no posting cadence or content pillars. See Next steps.
   a selector, a zoom and an alignment resolved against a live rect. **The site is
   filmed at 360x1200 css px** and the crop never shows its top sixty, which is
   what excludes the nav.
-  **The mascot's eight marks, as built**, and the turn is never set on any of
-  them — he stands bottom left on the module's own resting bias:
+  **The mascot's fourteen marks after the 2026-08-30 fix pass**, five bubbles,
+  and the turn is set only in the first quarter: it walks out to 0.62 and back
+  to the 0.35 resting bias by the time the card arrives, and every mark after
+  that leaves the channel alone:
 
   ```
-   0.30  neutral
+   0.30  neutral       turn 0.18
+   1.45  curious       turn 0.62, up into the first line's second card
+   2.80  neutral       turn 0.30
+   4.20  thinking      turn 0.44, on `why they even need it`
    6.59  unimpressed   on the word `no` in `have no time`
-   8.05  neutral       a third of the way into the next line, not on its first word
-  11.79  curious       into `press the button`
-  13.34  neutral       and it holds three lines, carrying the three greetings:
-                         `hey` 16.81, `привет` 17.68, `labdien` 18.52
-  23.58  delighted     `nice` 24.20, on the frame the salary line finishes typing
-  26.12  neutral
-  33.28  agreeing      `finally` 33.88
+   8.10  neutral       turn 0.20
+   9.40  neutral       turn 0.60, toward the middle a beat before the card arrives
+  11.97  curious       turn 0.35, back to the bias, into `press the button`
+  13.51  neutral       and it holds three lines, carrying the three greetings:
+                         `hey` 16.98, `привет` 17.85, `labdien` 18.70
+  24.11  delighted     `nice` 24.73, on the frame the salary line finishes typing
+  26.45  neutral       through the last two steps and the send
+  27.84  curious       up at the check mark, on the frame the page draws it
+  29.45  neutral
+  36.21  agreeing      `finally` 36.81
   ```
 
   **It imports `lib/voice.mjs`, `lib/captions.mjs`, `lib/mascot.mjs` and
   `lib/sfx.mjs` and not `lib/pictograms.mjs`** — there is no scene layer, because
   the picture is the site.
-  **No music.** The sound is the read plus the mascot's two cues and a click on
-  each tap, twelve effects in all, at -14.2 LUFS / -1.0 dBTP.
+  **No music.** After the 2026-08-30 fix pass the sound is the read, a second
+  read in the comedy voice over the typing, the mascot's two cues, a click on
+  each tap but one, thirteen `key` ticks under the hand, a `press` on the send
+  and a `ding` on the check mark: **twenty eight effects**, at -14.2 LUFS /
+  -1.0 dBTP.
 - **`demo/music/` is licensed audio and it is never pushed.** Two pixabay mp3s
   live there on this machine; `.gitignore` carries `demo/music/` for the same
   reason it carries `.env`. The licence is ours to hold, not ours to
@@ -1423,13 +1442,25 @@ motion engine and is the only dependency any of this has gained since. Full deta
   over in eight and a sound that outlasts its own move is a sound the viewer
   starts listening to. It sits at -26dB, with the click rather than with the
   coin: it is a mechanism acknowledging an instruction, not an object landing.
+- **`lib/sfx.mjs` has twelve sounds since 2026-08-30, not nine.** `key` and `press`
+  are both the `click` recipe resized. `key` is one keystroke: three and a half
+  milliseconds of noise banded 1.3k to 4.2k for the cap and a 124Hz pulse under it for
+  the board, gone in 55ms, at -34dB, which is under the sweep because it is the only
+  sound that repeats a dozen times inside four seconds and it plays under a voice.
+  `press` is one button with travel in it: nine milliseconds of noise banded lower and
+  a body falling 150 to 110Hz, 130ms, at -21dB, four over the click and three under the
+  coin. It exists because post11 had six real presses in it and the last one, the one
+  that sends, sounded exactly like the five before it.
 - **`demo/lib/voice.mjs` — free voice, no key, no account, no dependency.** Edge's read
   aloud neural voices over the unauthenticated websocket the python `edge-tts` package
   uses, with the handshake and the frame masking written out against a tls socket
-  because node's global `WebSocket` cannot set the headers the endpoint wants. Three
-  voices: `calm` = `en-US-AndrewNeural` (the default), `dry` = `en-US-EricNeural`,
-  `uk` = `en-GB-RyanNeural`, all at a negative rate. `node lib/voice.mjs test` speaks a
-  line in all three and reports the durations. Audio and a json sidecar land in
+  because node's global `WebSocket` cannot set the headers the endpoint wants. **Four
+  voices since 2026-08-30**: three narrators, `calm` = `en-US-AndrewNeural` (the
+  default), `dry` = `en-US-EricNeural`, `uk` = `en-GB-RyanNeural`, all at a negative
+  rate; and one comedy voice, **`wry` = `en-IN-PrabhatNeural`**, male indian english,
+  marked `comedy: true` so nothing can pick it to narrate. `NARRATORS` is the list of
+  the ones that are not comedy. `node lib/voice.mjs test` speaks a line in all four and
+  reports the durations, and `voices` prints `[comedy]` against the fourth. Audio and a json sidecar land in
   `demo/out/voice/`, already gitignored.
 - **`demo/analyze.mjs` — the reference analyzer.** `node analyze.mjs ref.mp4` writes
   `demo/out/analysis/<name>.md`: the file, the scene cuts as shot lengths with bars, the
@@ -1767,63 +1798,111 @@ no card allowed to straddle two lines.
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
 
-### 2026-08-30 — post11's fix list, and none of it is done
+### 2026-08-30 — post11's fix list: five done, one is a question for Einz
 
-Six things came out of watching the clip. **Not one of them is fixed.** They are
-written down here rather than started, the way post9's three were, so the next
-session picks them up from a list rather than from memory. The clip that is on
-disk and in `c635bcb` is the one described above, with all six of these in it.
+Six things came out of watching the clip. **Five of them are fixed and the sixth
+is a decision that has not been made.** The fix pass is in `demo/post11.mjs`,
+`demo/lib/voice.mjs` and `demo/lib/sfx.mjs`; nothing else was touched, no file
+was added, and no dependency was added. **It is rendered and checked at 12fps
+only. The 60fps pass is deliberately not run**, because whatever answers six
+changes the first ten seconds and there is no point paying fifteen minutes for a
+master that is about to move. The clip is now **39.86s**, up from 36.93.
 
-1. **The voice reads the domain wrong.** Line five is written
-   `go to theboringtek dot com` and the synthesiser reads `theboringtek` as one
-   run-together word. It has to be spoken as **the boring tek dot com** — three
-   words and then the suffix — while **the caption still shows
-   `theboringtek.com`**, which is the address as it is written. So the spoken
-   copy and the drawn copy come apart on this one line, and that is a real change
-   rather than a retype: every card in this clip is cut from the words the
-   synthesiser said, so the caption for that line has to be built from something
-   other than the take. Whatever is done, the guard that the drawn caption is the
-   spoken caption has to be told about the exception rather than removed.
+**1. The domain read, done.** The script line is `go to the boring tek dot com`,
+four words with a person's pacing, and the caption still draws
+`theboringtek.com`. The guard was **taught the exception rather than loosened**:
+`SAY_AS` at the top of the file names the one line, the run of spoken words and
+the string that replaces them; `markLines` collapses that run into one drawn
+word carrying the run's own start and end; `guard` applies the same substitution
+to the **spoken** string before comparing, so the check still starts from what
+came out of the synthesiser. And the exception has to fire **exactly once** or
+the render fails, because an exception that quietly stopped matching would take
+the guard down with it, which is the only way a check of this shape goes wrong.
+That last clause is the part to carry forward to the next one of these.
 
-2. **The typed line is silent and should not be.** `i want ai to do my job but
-   keep my salary` types itself over 2.9 seconds with nothing on the audio but
-   the keystrokes-that-are-not-there. It wants **a separate comedy voice reading
-   it, in an indian accent**. That is a second voice in a clip whose house rule
-   is one, so it is a decision as much as a build: `lib/voice.mjs` ships three
-   voices and the list is closed by decision rather than by taste, and the
-   english-only rule settled 2026-08-27 is about language rather than about
-   accent. **Adding a fourth voice to that module is a conversation, not
-   something to do while fixing a clip.**
+**2. The comedy voice, done, and it is a fourth voice.** `wry` =
+`en-IN-PrabhatNeural` in `lib/voice.mjs`, marked `comedy: true`, with a
+`NARRATORS` export that is every voice that is not. The english only rule
+settled 2026-08-27 is about **language** and indian english is english: this is
+an accent, and that is the whole of the exception. It reads the typed line over
+the typing at `+2%`, 3.25s of sound, a decibel and a half under the narrator.
+**It is not captioned** — the words are already on screen being typed into the
+field, and a caption of them would be the same sentence twice — so it never
+reaches the caption plan and the drawn-is-spoken guard never sees it. It is laid
+onto the voice track by hand (`layIn`) rather than through `buildVoice`, and its
+words **are** in the duck envelope so the keyboard goes under it.
 
-3. **There is no sound on the typing or on the send tap.** Both are needed. The
-   taps already carry a `click` from `lib/sfx.mjs`; the keystrokes carry nothing
-   at all, and the send — the one press in the clip that is the point of the
-   clip — sounds exactly like the five presses before it. The set has ten sounds
-   and none of them is a key.
+**And the hand is now cut to the read rather than to a number.** The typing
+window is the comedy take's measured sound length, so the last keystroke lands
+on the last syllable without either of them being told about the other, and the
+hole line ten carries is derived in `main()` rather than typed: `gap: null` in
+`LINES` and a `buildVoice` that refuses a null gap, so a derived number nobody
+derived stops the render instead of looking like a timing choice.
 
-4. **The ending is muddled and the order is wrong.** After `send it` the clip
-   should read as **sent on the site first**, and only then go to the offering —
-   websites, apps, research, design. As built, the list of things we do (line
-   eleven) comes **before** the send (line twelve), so the offer lands while the
-   form is still being filled and the confirmation arrives after the pitch is
-   over. This is a script order problem, not a timing one: fixing it moves a line
-   and therefore moves every beat, every camera leg and every mascot mark after
-   it.
+**3. The missing sounds, done, all three synthesised.** `key` and `press` are
+two new recipes in `lib/sfx.mjs` (see the entry above) and the confirmation is
+`ding`, which was already written as "a check being drawn" and had only ever
+been used for an agreement. **One tick per four characters, not per keystroke**:
+forty three sounds inside three and a half seconds is a rattle, thirteen is a
+keyboard from the next desk. The typo and the backspace always get their own,
+because they are the two moments the rhythm breaks.
 
-5. **The corner mascot is too quiet at the start.** The first four lines are type
-   on white with him in `neutral` from 0.30 to 6.59, which is six and a quarter
-   seconds of breathing and blinking and nothing else. He should react more, and
-   **while looking up** — the type is above him and he is not watching it.
+**4. The ending's order, done, and it cost the fade.** The order is now send
+tap, tick, offering, report, end card. Moving `send it` in front of the offering
+took away the white beat the form used to be finished behind, so **the last two
+steps are on camera now**: next, a size, and the last step. The one thing that
+is still not a keystroke is the two required fields, and `fill` fires **inside
+the last step's own entrance**, while index.html is still growing the card, so
+no frame shows a field going from empty to full. The send shot is the only leg
+in the file aligned to the **bottom** of a growing card, which is why it waits
+half a second after the advance where the top aligned ones take a tenth: a card's
+top does not move during the grid grow and its bottom moves the whole time.
 
-6. **The first part has an empty gap.** The frame from 0 to about 9.5 seconds is
-   one caption band and one mascot on a white page, with the top two thirds
-   empty. Something has to fill it, and **what that something is has not been
-   decided.** The obvious candidates are the pictogram scene layer, which this
-   clip deliberately does not import, or bringing the site card in earlier — and
-   both change what the clip is, so this is a call rather than a task.
+**5. The corner mascot, done, and the turn does the work.** Fourteen marks
+against eight, and **the five bubbles are unchanged** — everything added is the
+turn channel and the state table, which costs nothing anybody has to read. The
+first quarter now runs neutral, curious, neutral, thinking, unimpressed,
+neutral, neutral, with the turn walked from 0.18 out to 0.62 and back to the
+0.35 bias by the time the card arrives. Every mark after the card leaves the
+channel alone exactly as before. One more was added at the far end: he looks up
+at the check mark on the frame the page draws it, which is the beat the whole
+reorder exists to make land.
 
-**One and four are the two that move everything else**, so whatever order they
-are done in, they are done before two, three, five and six are worth timing.
+**6. The empty gap, open, and it is Einz's call.** Measured off the rendered
+frames rather than off the plan: **0.00 to 9.51s, the whole frame above y=400
+css is white**, on every sampled frame. The site card does not fade in until
+9.51 and there is nothing else up there. The mascot fault inside that window is
+fixed; the empty region is not, and it cannot be without deciding what the clip
+is. Two options are on the table and **neither is picked**:
+
+- **The pictogram scene layer.** `lib/pictograms.mjs` in the card's own box for
+  the first four lines, one small scene per line, leaving on the same frame the
+  card arrives. It is the module built for exactly that third of the frame and
+  it costs no new file. It costs a fifth import into a clip that deliberately
+  imports four, and a second gsap clock (the parity check for that already
+  exists), and it makes the opening look like post6 and post7 rather than like
+  this one.
+- **The card earlier.** Fade the site in at about 1.0s, held wide and still on
+  the lockup, so the product is in frame from the first line and beat five
+  becomes a push in rather than an arrival. It costs nothing and adds nothing to
+  the imports. What it spends is the reveal: `go to theboringtek.com` currently
+  lands on the card appearing, and after this it lands on a card that has been
+  sitting there for nine seconds.
+
+**A second, smaller version of the same hole is at 29.6 to 34.9s**, five seconds
+of white above the caption before the end card arrives. It is not on the list
+and it is not being fixed on its own, but whatever answers six probably answers
+it too.
+
+**What the 12fps review found that is not fixed.** Two things, both written up
+in `demo/out/review-post11-1080x1920.md`. The stretch **24.05 to 26.39s has no
+voice and no caption** — it is the 2.3s the reorder bought, filled by the form
+finishing on camera with a click on each press, and it wants watching at 60fps
+before it is called fine. And **the tap ring outlives the step it belongs to**: a
+single pick chip advances itself after 240ms and the ring lives 420ms, so the
+last 180ms of it sits over whatever the page drew next. That is every chip tap
+in the clip and it predates this pass, so it was left alone rather than changed
+without being asked.
 
 ### 2026-08-30 — a mascot mark may say several things in a row
 
@@ -3183,6 +3262,14 @@ were re-rendered against it.
 **English is the only voice language, and that is permanent.** No Russian and no Latvian
 voice on any clip, ever. Einz's decision.
 
+**Amended 2026-08-30, and it is not a change: the rule is about language, not accent.**
+`lib/voice.mjs` gained a fourth voice, `wry` = `en-IN-PrabhatNeural`, indian english,
+marked `comedy: true` and used for exactly one line in post11: the sentence a person in
+the film is typing into the form, which is not the agency talking. Indian english is
+english, so nothing above moved. What did get written down is that a comedy voice is a
+named kind rather than a fourth narrator: `NARRATORS` is the three that are not comedy,
+and a clip picking a read voice picks from that list.
+
 Worth being exact about what it is and is not. It is **not** a limitation: the endpoint
 `lib/voice.mjs` talks to offers Russian and Latvian neural voices and adding them would
 be a morning's work. It is **not** a change to the site either — `index.html` still
@@ -4172,13 +4259,15 @@ of them.
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
 - **post11, "the explainer", is built and not posted** — 2026-08-30,
-  `demo/post11.mjs`. 36.93s, 60fps, the read in the file, every check passing and
-  both video-review passes clean. **It owes a posting pack**: caption, tweet and
-  three tags per platform, none of them decided. It also owes **a track** — the
-  clip ships with no music by design in this pass and Einz picks one later.
-  **And it owes six fixes, none of them started** — see post11's fix list under
-  Decisions; the domain read and the ending's order are the two that move
-  everything after them. It jumped post3 as well, so **post3, "missed calls", is
+  `demo/post11.mjs`. **Five of its six fixes are in and it is 39.86s now**, every
+  check passing and the video-review pass clean, **but only at 12fps: the 60fps
+  master is deliberately not rendered** until the sixth is answered. **It owes
+  Einz one decision** — what fills the empty top of the frame from 0.00 to 9.51s,
+  the pictogram layer or the site card brought in early; see post11's fix list
+  under Decisions, where both options are written out and neither is picked. It
+  also owes a **posting pack**: caption, tweet and three tags per platform, none
+  of them decided. And it owes **a track** — the clip ships with no music by
+  design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
   now seven clips behind and still unbuilt.**
 - **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
