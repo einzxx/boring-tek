@@ -203,10 +203,30 @@ const LINES = [
      else in the frame. */
   { text: 'in one or two days you get your report',
     rate: '-8%', pitch: '-1Hz', gap: 0.38, screen: 'white' },
-  /* the commas are what make this land one item at a time: `cardBreak` breaks
-     on them, so app, website, research and graphic design each get the frame to
-     themselves. */
-  { text: 'app, website, research, graphic design, or one small job',
+  /* ---- and the offering, which is a second thing we sell ----
+     the list used to follow the report with nothing between them, and read as
+     the report's own contents: a viewer heard `you get your report` and then
+     four nouns, and the obvious inference is that the report is the app and the
+     website and the research. it is not. the report is the free look at your
+     business, and building the thing is the other half of what we do and the
+     half somebody pays for.
+
+     so it is two lines rather than one, and the first of them exists only to
+     say that a second thing has started. it is also why they are two: written as
+     one sentence this is sixteen words, which is nearly twice the longest line
+     in the clip and about seven seconds of unbroken speech, and this file's own
+     rule is short lines with full stops.
+
+     the commas in the second one are what make the list land an item at a time:
+     `cardBreak` breaks on them, so websites, research and graphic design each
+     get the frame to themselves. */
+  { text: 'and if you want it built',
+    /* the slowest thing in the clip after the close, and the reason is the
+       reason the line exists: it is a turn in the argument rather than a piece
+       of information, and read at the file's ordinary pace six short words go by
+       in under a second and land as filler. */
+    rate: '-20%', pitch: '-1Hz', gap: 0.24, screen: 'white' },
+  { text: 'we do apps, websites, research, graphic design, or one small job',
     rate: '+4%', pitch: '+1Hz', gap: 0.32, screen: 'white' },
   /* the close. the slowest and the lowest, and the only line that gets to sit
      under an end card. */
@@ -1020,7 +1040,7 @@ function planMarks(beats, site) {
      the beat the whole ending is ordered around. */
   marks.push({ t: at(site.confirmAt + 0.10), state: 'curious' });
   marks.push({ t: at(B(14).start - 0.20), state: 'neutral' });
-  marks.push({ t: at(B(16).start - 0.16), state: 'agreeing', bubble: 'finally' });
+  marks.push({ t: at(B(17).start - 0.16), state: 'agreeing', bubble: 'finally' });
   return marks;
 }
 

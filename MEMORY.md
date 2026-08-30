@@ -9,7 +9,7 @@ names in here either.
 - **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
   **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
   inside the mp4**, rendered with the shutter open at four subframes in **15.5
-  minutes**. **Three rounds of fixes landed the same day and it is 44.08s now,
+  minutes**. **Four rounds of fixes landed across two days and it is 46.00s now,
   checked at 12fps only.** Every fault a viewing found is closed, including the
   silent stretch where the form used to finish itself: the voice narrates the
   form to the send now. The empty top of the frame is empty on purpose and the
@@ -67,7 +67,10 @@ names in here either.
     sounded dead is gone and it is a guard rather than a claim: exactly two holes
     in the read, the typing and the confirmation, or the render fails. The ending
     is **send, tick, report, offering, end card**. The end card is the logo as it
-    is drawn, three stacked lines, centred as a measured group. The corner has
+    is drawn, three stacked lines, centred as a measured group. **The offering
+    is a second service rather than a description of the report**: `and if you
+    want it built` goes in front of the list, so the four nouns are what we
+    build rather than what the report contains. The corner has
     twelve marks and seven bubbles, carries the opening on its own, and there is
     no sour state anywhere in the clip. **The empty top of the frame is empty on
     purpose**: a pictogram layer was built for it and taken out again, and the
@@ -1202,8 +1205,8 @@ Still no posting cadence or content pillars. See Next steps.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
 - **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
-  **36.93s at 60fps as first built; 44.08s after the same day's three rounds of
-  fixes, which are rendered and checked at 12fps only**, vertical only, the read
+  **36.93s at 60fps as first built; 46.00s after four rounds of fixes across
+  2026-08-30 and 2026-08-31, which are rendered and checked at 12fps only**, vertical only, the read
   inside the mp4, out to
   `demo/out/post11-1080x1920.mp4`. `--blur` opens the shutter for the final,
   `DEMO_FPS=12` previews it, `--plan` prints every plan and renders nothing, and
@@ -1239,7 +1242,7 @@ Still no posting cadence or content pillars. See Next steps.
   26.07  neutral       through the size step and the last step being filled
   32.29  curious       up at the check mark, on the frame the page draws it
   33.68  neutral       through the report and the offering
-  40.45  agreeing      `finally`
+  42.65  agreeing      `finally`
   ```
 
   **The last step is filled field by field, on the word that names it**, through
@@ -1820,12 +1823,13 @@ no card allowed to straddle two lines.
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
 
-### 2026-08-30 — post11, three rounds of fixes, and what each one settled
+### 2026-08-30 to 08-31 — post11, four rounds of fixes, and what each one settled
 
 Six things came out of watching the first cut and the list turned into three
-rounds. Everything below is in `demo/post11.mjs`, `demo/lib/voice.mjs` and
-`demo/lib/sfx.mjs`. **The clip is 44.08s and it is rendered and checked at 12fps
-only; the 60fps master has not been run.**
+rounds, and a fourth the next morning for the copy. Everything below is in
+`demo/post11.mjs`, `demo/lib/voice.mjs` and `demo/lib/sfx.mjs`. **The clip is
+46.00s and it is rendered and checked at 12fps only; the 60fps master has not
+been run.**
 
 **1. The domain read.** The script says `go to the boring tek dot com`, four
 spoken words with a person's pacing, and the caption draws `theboringtek.com`.
@@ -1871,6 +1875,24 @@ tap, the tick, the report, the offering, the end card** — the report answers t
 press because it is what the press buys, and the pitch lands last with the frame
 to itself. The first cut had the offering before the send; the second had it
 between the tick and the report.
+
+**And the offering is a second service rather than a description of the
+report, which is a copy fix and it is the one worth remembering.** The list used
+to follow `in one or two days you get your report` with nothing between them, so
+a viewer heard the report and then four nouns and drew the obvious inference:
+that the report *is* the app and the website and the research. It is not. The
+report is the free look at your business; building the thing is the other half
+of what we sell and the half somebody pays for. So a line was put in front of
+the list to say a second thing has started: `and if you want it built`, then
+`we do apps, websites, research, graphic design, or one small job`.
+
+**Two lines rather than one, and that is the file's own rule rather than a
+preference.** Written as one sentence it is sixteen words, nearly twice the
+longest line in the clip and about seven seconds of unbroken speech, against a
+script whose whole shape is short lines with full stops. The setup line runs at
+**-20%**, the slowest in the file after the close, because six short words
+synthesise fast whatever the rate says and at the ordinary pace it went by in
+under a second and landed as filler.
 
 **Moving the send in front of the offering took away the white beat the form
 used to be finished behind**, so the last two steps are on camera. And the
@@ -4298,8 +4320,8 @@ of them.
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
 - **post11, "the explainer", is built and not posted** — 2026-08-30,
-  `demo/post11.mjs`. **Three rounds of fixes are in and it is 44.08s now**, every
-  check passing and all three video-review passes clean, **but only at 12fps: the
+  `demo/post11.mjs`. **Four rounds of fixes are in and it is 46.00s now**, every
+  check passing and all four video-review passes clean, **but only at 12fps: the
   60fps master has not been run.** It owes a **posting pack**: caption, tweet and
   three tags per platform, none of them decided. And it owes **a track** — the
   clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
