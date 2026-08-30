@@ -1975,12 +1975,27 @@ names it** through `wordAt`. The registration number is named and never read,
 because a synthesiser reading eight digits is thirty seconds of nothing and a
 number said aloud is a number somebody will try to write down.
 
-**It is a guard rather than a claim, and it got narrower once the sent screen
-stopped being silent.** There used to be two named holes and the second of them
-was allowed to run three seconds while a check mark was drawn in it. Now
-**exactly one hole may be long**, the one the hand types in, and **every other
-hole in the clip has to come in under 1.70s** — a ceiling nothing else in the
-read had before. The render also fails if a digit ever reaches the script.
+**It is a guard rather than a claim, and it has got narrower twice.** There
+used to be two named holes and the second of them was allowed to run three
+seconds while a check mark was drawn in it. Then there was **one** hole allowed
+to be long, the one the hand types in, and everything else under 1.70s. Now the
+two numbers are **separate, because they were never measuring the same thing**,
+and both are tighter than the one they replace: `HOLE_MAX` is **1.20s** for any
+hole that is not the typing one (the longest is the 0.95s the send is pressed
+in), and `TYPE_TAIL_MAX` is **1.50s** for how far the typing hole may run past
+the last keystroke (it runs 1.33s). 1.70 was a number left over from when the
+confirmation sat in silence, and it was only ever answering both questions by
+accident.
+
+**And the hole after `done` is 0.80s where it was 1.60.** It felt dead sitting.
+It was paid for **at both ends of the tick rather than out of the tick**: the
+reframe onto the check mark is 0.34s where it was 0.48, and the card's exit is a
+0.22s fade starting 0.24s before the report where it was 0.38 starting 0.40. The
+check mark is never cropped, never scaled and never cut short — it holds at full
+size for about three quarters of a second on both themes. The mascot's `curious`
+at the tick now runs **through** the card leaving rather than levelling off
+before it, because the room it had was halved and a state cut off half way
+through its own exit is something `lib/mascot.mjs` refuses outright. The render also fails if a digit ever reaches the script.
 
 **And the confirmation is checked positively rather than by length.** `done` is
 one word from the narrator and it lands **on** the check mark, not after it, and

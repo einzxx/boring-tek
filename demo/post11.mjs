@@ -254,7 +254,7 @@ const LINES = [
   { text: 'send it',
     rate: '-6%', pitch: '-1Hz', gap: 0.95, screen: 'site' },
   { text: 'done',
-    rate: '-10%', pitch: '-1Hz', gap: 1.60, screen: 'site' },
+    rate: '-10%', pitch: '-1Hz', gap: 0.80, screen: 'site' },
   /* and then, in this order and it is the third time it has been reordered:
      the tick, then what happens next, then what we do, then the card. the
      report is what the viewer gets for pressing the button, so it answers the
@@ -1047,7 +1047,11 @@ function planSite(beats, jokeDur) {
      tick means the target is measured while the card is still shrinking, which
      is a small error the drift closes, and the alternative is a framing that is
      entirely wrong for a fifth of a second. */
-  legs.push({ t0: confirmAt + 0.04, t1: confirmAt + 0.52, ease: 'drift',
+  /* the reframe is 0.34s where it was 0.48. the hole after `done` was halved and
+     the way to pay for that is at both ends of the tick rather than out of the
+     tick itself: the camera arrives on it sooner and the card leaves it faster,
+     and the check mark is never cropped, never scaled and never cut short. */
+  legs.push({ t0: confirmAt + 0.04, t1: confirmAt + 0.38, ease: 'drift',
     to: shot('.pad', { fit: 10, align: 'top' }), beat: 15, anchor: 'the check mark' });
 
   /* ---- beat sixteen: the card leaves and the report lands on white ----
@@ -1056,7 +1060,11 @@ function planSite(beats, jokeDur) {
      the first thing said after the press because it is what the press buys; the
      offering comes after it and gets the frame to itself. */
   const b16 = B(15);
-  fades.push({ t0: b16.start - 0.40, t1: b16.start - 0.02, to: 0 });
+  /* the exit is 0.22s where it was 0.38, and it starts 0.24s before the line
+     where it started 0.40. both halves of that are the same decision: the card
+     goes quicker rather than earlier, so the tick keeps every frame it had at
+     full size and what gets shorter is the fade over the top of it. */
+  fades.push({ t0: b16.start - 0.24, t1: b16.start - 0.02, to: 0 });
 
   cues.sort((a, b) => a.t - b.t);
   legs.sort((a, b) => a.t0 - b.t0);
@@ -1130,7 +1138,12 @@ function planMarks(beats, site) {
   /* the check mark. he looks up at it on the frame the page draws it, which is
      the beat the whole ending is ordered around. */
   marks.push({ t: at(site.confirmAt + 0.10), state: 'curious' });
-  marks.push({ t: at(B(15).start - 0.20), state: 'neutral' });
+  /* he holds the look at the check mark **through** the card leaving now rather
+     than levelling off before it. the hole he used to level off in is half what
+     it was, and `curious` needs its own entrance, hold and exit inside whatever
+     room it has: cutting the room without moving this mark would have been a
+     state cut off half way through itself, which the module refuses outright. */
+  marks.push({ t: at(B(15).start + 0.35), state: 'neutral' });
   marks.push({ t: at(B(18).start - 0.16), state: 'agreeing', bubble: 'finally' });
   return marks;
 }
@@ -2844,16 +2857,27 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
   /* ---------- no dead air ----------
      every hole in the read is measured on the waveform. the shape it is checked
      against changed when the confirmation stopped being silent, and the check
-     got **narrower** rather than looser: there used to be two named holes and
-     the second of them was allowed to run three seconds while a check mark was
-     drawn in it. now there is **one** hole allowed to be long, the one the hand
-     types in, and **every other hole in the clip has to come in under
-     HOLE_MAX** — which is a ceiling nothing else in the read had before.
+     got **narrower** rather than looser, twice. there used to be two named holes
+     and the second of them was allowed to run three seconds while a check mark
+     was drawn in it. then there was **one** hole allowed to be long, the one the
+     hand types in, and everything else under 1.70s. now the two numbers are
+     separate, because they were never measuring the same thing, and both are
+     tighter than the one they replace:
 
-     and the beat that hole used to hold is checked positively: the check mark
-     has to be drawn while a word is being said. that is the thing the guard is
-     actually for, and it is the half a length limit cannot express. */
-  const HOLE_MAX = 1.70;
+       HOLE_MAX       any hole that is not the typing one. the longest in the
+                      clip is the 0.95s the send is pressed in, so 1.20 is the
+                      real shape with a little room and 1.70 was a number left
+                      over from when the confirmation sat in silence.
+       TYPE_TAIL_MAX  how far the typing hole may run past the last keystroke
+                      with nothing in it. it runs 1.33s, so 1.50 is that shape.
+                      it is a different question from the one above and it was
+                      only ever sharing a constant with it by accident.
+
+     and the beat the long hole used to hold is checked positively: the check
+     mark has to be drawn while a word is being said. that is the thing the guard
+     is actually for, and it is the half a length limit cannot express. */
+  const HOLE_MAX = 1.20;
+  const TYPE_TAIL_MAX = 1.50;
   const holes = [];
   for (let i = 1; i < v.beats.length; i++) {
     const from = v.beats[i - 1].sound.end, to = v.beats[i].sound.start;
@@ -2862,9 +2886,9 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
   const typed = holes.find(h => h.from <= site.typing.from && h.to >= site.typing.to);
   if (!typed) {
     fail.push('no hole in the read holds the typing, so the hand is being heard over a line');
-  } else if (typed.to - site.typing.to > HOLE_MAX) {
+  } else if (typed.to - site.typing.to > TYPE_TAIL_MAX) {
     fail.push('the typing hole runs ' + (typed.to - site.typing.to).toFixed(2)
-      + 's past the last keystroke with no voice in it, ceiling ' + HOLE_MAX);
+      + 's past the last keystroke with no voice in it, ceiling ' + TYPE_TAIL_MAX);
   }
   for (const h of holes) {
     if (h === typed || h.len <= HOLE_MAX) continue;
