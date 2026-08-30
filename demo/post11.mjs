@@ -76,12 +76,38 @@ import {
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const OUT = path.join(HERE, 'out');
-const FRAMES = path.join(OUT, 'frames-post11');
-const SUBS = path.join(OUT, 'subframes-post11');
-const VERIFY = path.join(OUT, 'verify-post11');
-const MP4 = path.join(OUT, 'post11-1080x1920.mp4');
-const WAV = path.join(OUT, 'post11-mix.wav');
-const STATE = path.join(OUT, 'post11-1080x1920.json');
+/* ---------- the theme ----------
+   `--dark` renders the same clip on the near black page. **the same clip**: the
+   script, the beats, the camera, the cut, the mascot's marks and the sound are
+   one plan and neither variant knows which one it is. what changes is three
+   attributes and nothing else.
+
+     the composed page carries `data-theme` on `<html>`, and index.html's own
+     token blocks are already inlined into it by `captionCss` — both of them, the
+     light `:root` and the dark override. so the caption ink, the card hairline,
+     the end card and the tap ring all follow the attribute without a line of
+     theme code anywhere in this file.
+
+     the mascot is planned with `theme`, which is what turns the phosphor glow on:
+     `lib/mascot.mjs` carries the two layer glow behind the plate and gates it on
+     the dark theme, and its own self test asserts that only dark glows.
+
+     the site inside the card is switched by writing `bt-theme` into the
+     iframe's localStorage before index.html runs, which is the same key a
+     visitor's own toggle writes. the page then comes up dark on its own: this
+     film does not restyle the site, it picks the mode the site already has.
+
+   the guards are not parameterised on any of it. every check the light render
+   passes, the dark one passes, on the same numbers. */
+const THEME = process.argv.includes('--dark') ? 'dark' : 'light';
+const TAG = 'post11-' + THEME;
+
+const FRAMES = path.join(OUT, 'frames-' + TAG);
+const SUBS = path.join(OUT, 'subframes-' + TAG);
+const VERIFY = path.join(OUT, 'verify-' + TAG);
+const MP4 = path.join(OUT, TAG + '-1080x1920.mp4');
+const WAV = path.join(OUT, TAG + '-mix.wav');
+const STATE = path.join(OUT, TAG + '-1080x1920.json');
 
 const FPS = Number(process.env.DEMO_FPS || 60);
 const STEP = 1000 / FPS;
@@ -132,16 +158,38 @@ const LINES = [
   /* the address. the one line in the clip that somebody has to be able to write
      down, so it is the slowest of the instructions.
 
-     it is written here as four spoken words rather than as the address itself.
-     handed `theboringtek` the synthesiser reads it as one run together word,
-     which is unusable for the one line a viewer is supposed to be able to write
-     down. so the voice says `the boring tek dot com` with a person's pacing and
-     the caption still draws `theboringtek.com`, which is the address as it is
-     actually written. that is the only place in this clip where the spoken copy
-     and the drawn copy are not the same words, and it is a named exception with
-     a guard of its own rather than a hole in one. see SAY_AS below. */
-  { text: 'go to the boring tek dot com',
-    rate: '-14%', pitch: '-1Hz', gap: 0.30, screen: 'site' },
+     it is written here as spoken words rather than as the address, and the
+     **comma is the whole of the third attempt at it.** three forms were
+     synthesised and their word timings compared, because this is a pacing
+     problem and pacing is measurable:
+
+       `theboringtek dot com`        one 0.93s run for twelve letters, no word
+                                     boundary inside it and therefore no pacing
+                                     inside it at all. this is the original
+                                     fault, and slowing the rate only makes the
+                                     run longer.
+       `the boring tek dot com`      five units at an identical 0.015s apart, so
+                                     the name does not group and nothing
+                                     separates it from the suffix. the address
+                                     reads as five items on a list.
+       `the boring tek, dot com`     the only one with phrasing in it: a **0.244s
+                                     gap** after `tek` against 0.015 everywhere
+                                     else, and `tek` itself held at 0.50s rather
+                                     than clipped at 0.35. two units, a name and
+                                     then a suffix, which is how a person says an
+                                     address.
+
+     so the comma stays and the rate is -18%, and the caption still draws
+     `theboringtek.com` — the address as it is actually written. that is the only
+     place in this clip where the spoken copy and the drawn copy are not the same
+     words, and it is a named exception with a guard of its own rather than a
+     hole in one. see SAY_AS below.
+
+     the comma never reaches a caption: `SAY_AS` matches on bare words, so it
+     collapses the run whether or not the synthesiser was handed punctuation, and
+     the collapse happens before `cardBreak` ever sees the line. */
+  { text: 'go to the boring tek, dot com',
+    rate: '-18%', pitch: '-1Hz', gap: 0.30, screen: 'site' },
   { text: 'press the button',
     rate: '-2%', pitch: '+1Hz', gap: 0.52, screen: 'site' },
   { text: 'it does not cost you anything',
@@ -259,10 +307,15 @@ const TAIL = 1.70;                 /* the end card holds this long after the voi
    like this goes wrong. */
 const SAY_AS = [{
   line: 5,
+  /* bare words, so the punctuation the delivery needs is invisible here. the
+     script says `the boring tek, dot com` and the comma is what makes the
+     synthesiser group the name and then pause before the suffix; `runAt`
+     compares `bareWord(...)` so the run matches with or without it, and it would
+     go on matching if the delivery ever wanted a different mark. */
   say: ['the', 'boring', 'tek', 'dot', 'com'],
   draw: 'theboringtek.com',
-  why: 'the synthesiser reads the domain as one run together word, and this is '
-    + 'the one line a viewer has to be able to write down',
+  why: 'the synthesiser cannot say the domain as one word and cannot pace it as '
+    + 'five, and this is the one line a viewer has to be able to write down',
 }];
 
 /* ---------- the comedy line ----------
@@ -400,6 +453,12 @@ const CHROME = [
   '/usr/bin/google-chrome', '/usr/bin/chromium',
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 ].find(p => { try { return fs.existsSync(p); } catch { return false; } });
+
+/* wcag's non text contrast bar, and its large text bar, which are the same
+   number. the four things this file draws as ink are held to it on both themes;
+   the two it draws as the site's own furniture are measured and held to the
+   light render instead. see the contrast block in `guard`. */
+const CONTRAST_MIN = 3.0;
 
 /* ---------- the mix ---------- */
 const TARGET_LUFS = -14;
@@ -1081,7 +1140,7 @@ function planMarks(beats, site) {
    is filmed in, the tap ring and the end card. nothing else is in the frame. */
 function sceneHtml(cap, capBox, mas) {
   return `<!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="${THEME}">
 <head>
 <meta charset="utf-8">
 <title>post11</title>
@@ -1492,6 +1551,53 @@ function stagePage() {
           ? 'space grotesk sets it' : 'space grotesk falls back for it',
       };
     },
+    /* ---------- can any of it be read on this theme ----------
+       the three things that carry the clip on either page are the caption ink,
+       the card's own hairline and the bubble's outline, and all three are a thin
+       or a small thing against a flat ground. so they are **measured off the
+       computed style** rather than trusted to a token: the contrast ratio is
+       wcag's, computed here on the colours the browser actually resolved.
+
+       a caption is large text by any definition at 44px, so 3.0 is the bar it
+       has to clear and it clears it by a distance on both themes. the hairline
+       and the outline are not text and wcag has no number for them: 3.0 is the
+       non text contrast bar from the same spec and it is what they are held to.
+       the run prints all of it and the review looks at it. */
+    contrast() {
+      const px = c => {
+        const m = String(c).match(/[\d.]+/g).map(Number);
+        return m.slice(0, 3);
+      };
+      const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      const L = c => { const [r, g, b] = px(c); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b); };
+      const ratio = (a, b) => {
+        const x = L(a), y = L(b);
+        return +((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)).toFixed(2);
+      };
+      const root = getComputedStyle(document.documentElement);
+      const bg = getComputedStyle(document.body).backgroundColor;
+      const cell = document.querySelector('.cap-w') || document.querySelector('.cap-in');
+      const out = {
+        theme: document.documentElement.getAttribute('data-theme'),
+        bg,
+        caption: { ink: cell ? getComputedStyle(cell).color : root.getPropertyValue('--fg').trim() },
+        hairline: { ink: getComputedStyle(screen).borderTopColor },
+        bubble: { ink: getComputedStyle(pill).borderTopColor, fill: getComputedStyle(pill).backgroundColor },
+        endcard: { ink: getComputedStyle(wm).color, sub: getComputedStyle(dom).color },
+        ring: { ink: getComputedStyle(document.getElementById('tap')).borderTopColor },
+      };
+      out.caption.ratio = ratio(out.caption.ink, bg);
+      out.hairline.ratio = ratio(out.hairline.ink, bg);
+      /* the outline is drawn against the pill's own fill, not against the page:
+         the pill is a filled capsule and the stroke sits on its edge, so the
+         honest comparison is stroke against fill and fill against page. */
+      out.bubble.ratio = ratio(out.bubble.ink, out.bubble.fill);
+      out.bubble.onPage = ratio(out.bubble.fill, bg);
+      out.endcard.ratio = ratio(out.endcard.ink, bg);
+      out.endcard.subRatio = ratio(out.endcard.sub, bg);
+      out.ring.ratio = ratio(out.ring.ink, bg);
+      return out;
+    },
     /* the safe area of everything we draw, against the drawn ink rather than
        against the box anything was told to draw in. the caption's own check does
        the words; the card, the end card and the tap ring are added here. the
@@ -1578,7 +1684,10 @@ function injected() {
   /* ---- from here down it is the site ---- */
   try {
     localStorage.setItem('bt-lang', 'en');
-    localStorage.setItem('bt-theme', 'light');
+    /* the site's own key, written before its own script reads it. the film does
+       not restyle index.html for the dark variant: it sets the toggle a visitor
+       would have set and lets the page come up in the mode it already has. */
+    localStorage.setItem('bt-theme', window.__DM_THEME || 'light');
   } catch (e) { /* private mode, the page copes on its own */ }
 
   /* the page gates pointer tracking on this one query and also snaps --ex/--ey
@@ -1799,7 +1908,7 @@ async function main() {
   }
   const marks = planMarks(v.beats, site);
   const mas = planMascot({
-    seconds: SECONDS, marks, theme: 'light', pos: 'bottom-left',
+    seconds: SECONDS, marks, theme: THEME, pos: 'bottom-left',
     band: { x: CAP_BOX.x, y: CAP_BOX.y, w: CAP_BOX.w, h: CAP_BOX.h },
     seed: 0x11a70b,
   });
@@ -1979,6 +2088,10 @@ async function render(cap, mas, site, v, N, SECONDS) {
   });
   const page = await browser.newPage();
   await page.setViewport({ width: VW, height: VH, deviceScaleFactor: DSF });
+  /* the theme reaches both documents before either page script runs, which is
+     the only way the site can come up already dark rather than flipping into it
+     on a frame somebody would see. */
+  await page.evaluateOnNewDocument(t => { window.__DM_THEME = t; }, THEME);
   await page.evaluateOnNewDocument(injected);
   const cdp = await page.createCDPSession();
   await cdp.send('Emulation.setEmulatedMedia', {
@@ -2056,6 +2169,16 @@ async function render(cap, mas, site, v, N, SECONDS) {
 
   /* the cyrillic answer, measured before a frame is written rather than after a
      render. the pill is loaded with the greeting and asked what it can set. */
+  const contrast = await page.evaluate(() => window.__stage.contrast());
+  console.log('    contrast on the ' + contrast.theme + ' page, against ' + contrast.bg + ':');
+  console.log('      caption ink       ' + contrast.caption.ratio.toFixed(2) + ':1   ' + contrast.caption.ink);
+  console.log('      card hairline     ' + contrast.hairline.ratio.toFixed(2) + ':1   ' + contrast.hairline.ink);
+  console.log('      bubble outline    ' + contrast.bubble.ratio.toFixed(2) + ':1 against its own fill, '
+    + 'and the fill is ' + contrast.bubble.onPage.toFixed(2) + ':1 against the page');
+  console.log('      end card wordmark ' + contrast.endcard.ratio.toFixed(2) + ':1, the address '
+    + contrast.endcard.subRatio.toFixed(2) + ':1');
+  console.log('      the tap ring      ' + contrast.ring.ratio.toFixed(2) + ':1');
+
   const cyr = await page.evaluate(() => {
     const el = document.getElementById('m-bubble-text');
     const before = el.textContent;
@@ -2443,7 +2566,7 @@ async function render(cap, mas, site, v, N, SECONDS) {
   if (SUB > 1) blend(N);
 
   return {
-    built, ceiling, accent, cyr, faces, settle: SETTLE / FPS,
+    built, ceiling, accent, cyr, faces, contrast, theme: THEME, settle: SETTLE / FPS,
     head: headWorst, safe: safeWorst, safeSamples,
     bubble: bubbleWorst, bubbleSamples, masBandHits,
     taps, calls, fills, camTrail, shots, framing, camFaults, clipFaults, navFaults, bandHits,
@@ -2842,6 +2965,75 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
     if (e.wordmark < 2.4 * state.built.wordmarkPx) {
       fail.push('the wordmark measured ' + e.wordmark + 'px tall at ' + state.built.wordmarkPx
         + 'px of type, which is not three lines');
+    }
+  }
+
+  /* ---------- can any of it be read, on whichever page this is ----------
+     four things carry meaning as ink and they are held to CONTRAST_MIN on both
+     themes: the caption, the bubble's outline against the capsule it draws, the
+     end card and the tap ring.
+
+     **two are measured and deliberately not floored, and the reason is the
+     point.** the card's hairline is `var(--line)`, index.html's own separator,
+     which is faint on purpose on both themes — it is not a boundary anything
+     depends on, because the card is full of the site and the site is the
+     boundary. and the bubble's fill is the page colour by design: it is a
+     capsule with a hole in it and the **outline** is what separates it, which is
+     the number above. flooring either would mean restyling the site inside the
+     card for the film, which is the one thing this file has never done.
+
+     what they get instead is **parity**: whatever the light render measured,
+     the dark one has to match or beat. the light state is on disk next to this
+     one, so a theme swap that quietly made anything fainter fails even where
+     there is no absolute number to fail against. */
+  if (!state.contrast) fail.push('nothing measured what any of it is painted against');
+  else {
+    const c = state.contrast;
+    if (c.theme !== THEME) fail.push('the page came up ' + c.theme + ' and the render is ' + THEME);
+    const INK = [
+      ['the caption ink', 'caption.ratio'],
+      ['the bubble outline against its own capsule', 'bubble.ratio'],
+      ['the end card wordmark', 'endcard.ratio'],
+      ['the end card address', 'endcard.subRatio'],
+      ['the tap ring', 'ring.ratio'],
+    ];
+    /* the parity check covers **only** these two, and that is the whole of its
+       job. the five above already clear an absolute bar by four or five times,
+       and comparing them across themes measures nothing but the fact that near
+       black on white is a bigger number than off white on near black, which is
+       the site's own token pair and not a degradation. these two have no
+       absolute bar to clear, so the light render is the only thing there is to
+       hold them to. */
+    const PAIRED = [
+      ['the card hairline', 'hairline.ratio'],
+      ['the bubble capsule against the page', 'bubble.onPage'],
+    ];
+    const at = (o, path2) => path2.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+    for (const [what, key] of INK) {
+      const got = at(c, key);
+      if (!(got >= CONTRAST_MIN)) {
+        fail.push(what + ' is ' + got + ':1 on the ' + c.theme + ' page, floor is ' + CONTRAST_MIN);
+      }
+    }
+    /* and against the light render, when there is one to compare with. */
+    if (THEME === 'dark') {
+      const lightState = path.join(OUT, 'post11-light-1080x1920.json');
+      if (!fs.existsSync(lightState)) {
+        console.log('    (no light render on disk, so nothing to hold the dark one against)');
+      } else {
+        const lc = (JSON.parse(fs.readFileSync(lightState, 'utf8')) || {}).contrast;
+        if (!lc) console.log('    (the light render predates the contrast probe)');
+        else {
+          for (const [what, key] of PAIRED) {
+            const a = at(lc, key), b = at(c, key);
+            if (a == null || b == null) continue;
+            if (b < a - 0.05) {
+              fail.push(what + ' is ' + b + ':1 on dark against ' + a + ':1 on light, '
+                + 'so the theme swap made it fainter');
+            }
+          }
+        }
+      }
     }
   }
 

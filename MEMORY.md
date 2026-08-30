@@ -1204,6 +1204,24 @@ Still no posting cadence or content pillars. See Next steps.
   takes it off again before anything is drawn.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
+- **`demo/post11.mjs` renders two variants since 2026-08-31: `--dark` gives the
+  same clip on the near black page.** Same script, same beats, same camera, same
+  marks, same sound: **three attributes change and nothing else.** `data-theme`
+  on the composed page's `<html>` (index.html's own light and dark token blocks
+  are already inlined by `captionCss`, so the caption ink, the card hairline, the
+  end card and the tap ring all follow it); `theme` into `planMascot`, which is
+  what turns the phosphor glow on; and `bt-theme` written into the iframe's
+  localStorage before index.html runs, which is the same key a visitor's toggle
+  writes — **the film picks the mode the site already has rather than restyling
+  it.** Outputs are `post11-light-*` and `post11-dark-*` in `demo/out/`.
+  **Every guard runs unchanged on both**, plus one written for the pair: the
+  caption ink, the bubble's outline, the end card and the tap ring are held to
+  wcag 3.0 absolutely; the card hairline and the bubble's capsule fill have no
+  absolute bar to clear — the hairline is index.html's own faint separator and
+  the capsule fill *is* the page colour by design — so those two are held to the
+  **light render's own numbers** instead. Measured: caption 19.46:1 light,
+  14.34:1 dark; hairline 1.29:1 on both; capsule 1.00:1 on both; end card
+  wordmark 19.46 / 14.34, address 8.12 / 12.04; tap ring 19.46 / 14.34.
 - **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
   **36.93s at 60fps as first built; 46.83s after five rounds of fixes across
   2026-08-30 and 2026-08-31, which are rendered and checked at 12fps only**, vertical only, the read
@@ -1838,8 +1856,27 @@ rounds, and two more the next morning for the copy and the last of the silence. 
 46.83s and it is rendered and checked at 12fps only; the 60fps master has not
 been run.**
 
-**1. The domain read.** The script says `go to the boring tek dot com`, four
-spoken words with a person's pacing, and the caption draws `theboringtek.com`.
+**1. The domain read, and it took three attempts.** The script says **`go to the
+boring tek, dot com`** at -18%, and the caption draws `theboringtek.com`. The
+comma is the whole of it, and the three forms were compared on measured word
+timings rather than argued about:
+
+  `theboringtek dot com`     one 0.93s run for twelve letters, no word boundary
+                             inside it and therefore no pacing inside it. this is
+                             the original fault and a slower rate only lengthens
+                             the run.
+  `the boring tek dot com`   five units at an identical 0.015s apart, so the name
+                             does not group and nothing separates it from the
+                             suffix. it reads as five items on a list.
+  `the boring tek, dot com`  a **0.244s gap** after `tek` against 0.015 elsewhere,
+                             and `tek` held at 0.50s rather than clipped at 0.35.
+                             two units, a name then a suffix, which is how a
+                             person says an address. **kept.**
+
+`SAY_AS` matches on **bare words**, so the collapse works with or without the
+punctuation the delivery needs and would go on working if the mark ever changed;
+the comma never reaches a caption because the collapse happens before
+`cardBreak` sees the line.
 The guard was **taught the exception rather than loosened**: `SAY_AS` names the
 line, the run of spoken words and the string that replaces them; `markLines`
 collapses the run into one drawn word carrying the run's own start and end;
