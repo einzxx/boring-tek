@@ -53,6 +53,13 @@ names in here either.
     a **list** of bubbles on a shorter profile, which is what lets three
     greetings land on three languages inside one line. The single bubble path is
     byte for byte what it was and the self test proves it. See Decisions.
+  - **Six fixes are open and none of them is started**: the domain is read as one
+    word, the typed line is silent and wants a second voice with an indian
+    accent, the typing and the send tap have no sound, the ending puts the offer
+    before the confirmation, the mascot is too quiet over the opening, and the
+    top of the frame is empty for the first nine seconds. **The clip in `c635bcb`
+    has all six in it.** The list is under Decisions with what each one actually
+    costs; two of them move every beat after them.
 - **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
   been looked at is the **light theme at the twelve frame preview**, plus still
   frames from a turn sweep and from every state. **The dark theme has not been
@@ -1198,6 +1205,21 @@ Still no posting cadence or content pillars. See Next steps.
   a selector, a zoom and an alignment resolved against a live rect. **The site is
   filmed at 360x1200 css px** and the crop never shows its top sixty, which is
   what excludes the nav.
+  **The mascot's eight marks, as built**, and the turn is never set on any of
+  them — he stands bottom left on the module's own resting bias:
+
+  ```
+   0.30  neutral
+   6.59  unimpressed   on the word `no` in `have no time`
+   8.05  neutral       a third of the way into the next line, not on its first word
+  11.79  curious       into `press the button`
+  13.34  neutral       and it holds three lines, carrying the three greetings:
+                         `hey` 16.81, `привет` 17.68, `labdien` 18.52
+  23.58  delighted     `nice` 24.20, on the frame the salary line finishes typing
+  26.12  neutral
+  33.28  agreeing      `finally` 33.88
+  ```
+
   **It imports `lib/voice.mjs`, `lib/captions.mjs`, `lib/mascot.mjs` and
   `lib/sfx.mjs` and not `lib/pictograms.mjs`** — there is no scene layer, because
   the picture is the site.
@@ -1677,6 +1699,27 @@ default**, so the pill drops to the mono stack, which measures 351.56 and render
 all-or-nothing rule applied per bubble, not a new font: **no fourth family was
 added and the font budget did not move.**
 
+**The face that actually sets it is `Cascadia Code`, and that was measured per
+candidate rather than assumed.** `--mono` lists nine families and the stack as a
+whole comes back at 351.56; walked one at a time against the 291.75 the browser
+default gives, `ui-monospace`, `JetBrains Mono`, `Roboto Mono`, `SF Mono` and
+`Menlo` all fall back, `Consolas` and the bare `monospace` keyword set it at
+329.88, and `Cascadia Code` and `Cascadia Mono` set it at 351.56 — which is the
+stack's own number, so **Cascadia Code is the first present family and is what
+renders `привет` on this machine.** It is a windows font and it is not ours, so
+the honest way to say it is that the mono stack sets cyrillic wherever the stack
+has a face that can, and here that face is Cascadia Code. A machine without it
+falls to Consolas and the bubble still sets.
+
+**The captions run over all fourteen lines, including the site beats, and that is
+Einz's call rather than the brief's default.** The brief names the caption style
+only for the type-on-white lines, which reads as the site being the screen on its
+own beats — and would have left a viewer with the sound off getting seven of the
+fourteen lines. The cost is vertical: the site card is 420 css px tall rather
+than the ~520 it could have been, so that the band has a fixed home clear of both
+the card and the mascot's corner. **One band, ink at 572..620, and it does not
+move for any beat in the clip.**
+
 **The page's own zoom ceiling is what shapes the button beat.** `index.html` is
 laid out edge to edge and the subline is the widest line it sets, so a frame
 narrower than it with it in shot cuts its first and last letter — post9 rendered
@@ -1723,6 +1766,64 @@ no card allowed to straddle two lines.
 
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
+
+### 2026-08-30 — post11's fix list, and none of it is done
+
+Six things came out of watching the clip. **Not one of them is fixed.** They are
+written down here rather than started, the way post9's three were, so the next
+session picks them up from a list rather than from memory. The clip that is on
+disk and in `c635bcb` is the one described above, with all six of these in it.
+
+1. **The voice reads the domain wrong.** Line five is written
+   `go to theboringtek dot com` and the synthesiser reads `theboringtek` as one
+   run-together word. It has to be spoken as **the boring tek dot com** — three
+   words and then the suffix — while **the caption still shows
+   `theboringtek.com`**, which is the address as it is written. So the spoken
+   copy and the drawn copy come apart on this one line, and that is a real change
+   rather than a retype: every card in this clip is cut from the words the
+   synthesiser said, so the caption for that line has to be built from something
+   other than the take. Whatever is done, the guard that the drawn caption is the
+   spoken caption has to be told about the exception rather than removed.
+
+2. **The typed line is silent and should not be.** `i want ai to do my job but
+   keep my salary` types itself over 2.9 seconds with nothing on the audio but
+   the keystrokes-that-are-not-there. It wants **a separate comedy voice reading
+   it, in an indian accent**. That is a second voice in a clip whose house rule
+   is one, so it is a decision as much as a build: `lib/voice.mjs` ships three
+   voices and the list is closed by decision rather than by taste, and the
+   english-only rule settled 2026-08-27 is about language rather than about
+   accent. **Adding a fourth voice to that module is a conversation, not
+   something to do while fixing a clip.**
+
+3. **There is no sound on the typing or on the send tap.** Both are needed. The
+   taps already carry a `click` from `lib/sfx.mjs`; the keystrokes carry nothing
+   at all, and the send — the one press in the clip that is the point of the
+   clip — sounds exactly like the five presses before it. The set has ten sounds
+   and none of them is a key.
+
+4. **The ending is muddled and the order is wrong.** After `send it` the clip
+   should read as **sent on the site first**, and only then go to the offering —
+   websites, apps, research, design. As built, the list of things we do (line
+   eleven) comes **before** the send (line twelve), so the offer lands while the
+   form is still being filled and the confirmation arrives after the pitch is
+   over. This is a script order problem, not a timing one: fixing it moves a line
+   and therefore moves every beat, every camera leg and every mascot mark after
+   it.
+
+5. **The corner mascot is too quiet at the start.** The first four lines are type
+   on white with him in `neutral` from 0.30 to 6.59, which is six and a quarter
+   seconds of breathing and blinking and nothing else. He should react more, and
+   **while looking up** — the type is above him and he is not watching it.
+
+6. **The first part has an empty gap.** The frame from 0 to about 9.5 seconds is
+   one caption band and one mascot on a white page, with the top two thirds
+   empty. Something has to fill it, and **what that something is has not been
+   decided.** The obvious candidates are the pictogram scene layer, which this
+   clip deliberately does not import, or bringing the site card in earlier — and
+   both change what the clip is, so this is a call rather than a task.
+
+**One and four are the two that move everything else**, so whatever order they
+are done in, they are done before two, three, five and six are worth timing.
 
 ### 2026-08-30 — a mascot mark may say several things in a row
 
@@ -4074,9 +4175,11 @@ of them.
   `demo/post11.mjs`. 36.93s, 60fps, the read in the file, every check passing and
   both video-review passes clean. **It owes a posting pack**: caption, tweet and
   three tags per platform, none of them decided. It also owes **a track** — the
-  clip ships with no music by design in this pass and Einz picks one later. It
-  jumped post3 as well, so **post3, "missed calls", is now seven clips behind and
-  still unbuilt.**
+  clip ships with no music by design in this pass and Einz picks one later.
+  **And it owes six fixes, none of them started** — see post11's fix list under
+  Decisions; the domain read and the ending's order are the two that move
+  everything after them. It jumped post3 as well, so **post3, "missed calls", is
+  now seven clips behind and still unbuilt.**
 - **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
   written up under Socials, **discuss before building.** The third one cannot start

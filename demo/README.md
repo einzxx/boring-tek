@@ -1668,6 +1668,13 @@ sampled frames.
 | the mascot | bottom left, 240 device px of head, the module's own resting turn |
 | the end card | the wordmark on 285 and `theboringtek.com` on 347 |
 
+**The captions run over all fourteen lines, including the site beats.** The brief
+names the caption style only for the type-on-white lines, which reads as the site
+being the screen on its own beats and would leave a viewer with the sound off
+getting seven lines of fourteen. Einz's call, and the cost is vertical: the card
+is 420 css px tall rather than the ~520 it could have been, so the band has a
+fixed home clear of both the card and the mascot's corner.
+
 The card sits **152 / 192 / 152** device px off the left, top and right against
 floors of 140 / 180 / 140 — inside the platform safe area with twelve px to
 spare rather than on the line, which is what the brief asked for after an earlier
@@ -1746,6 +1753,15 @@ space grotesk against 291.75 in the browser default**, so the pill drops to the
 mono stack, which measures 351.56 and renders **36 device px of cap** against a
 32 floor.
 
+**The face that actually sets it is `Cascadia Code`**, and that was measured per
+candidate rather than assumed. Walking `--mono`'s nine families one at a time
+against the browser default's 291.75: `ui-monospace`, `JetBrains Mono`,
+`Roboto Mono`, `SF Mono` and `Menlo` all fall back, `Consolas` and the bare
+`monospace` keyword set it at 329.88, and `Cascadia Code` and `Cascadia Mono` set
+it at 351.56 — which is the whole stack's own number, so Cascadia Code is the
+first present family and is what renders `привет` here. It is a windows font and
+it is not ours; a machine without it falls to Consolas and the bubble still sets.
+
 The other four: the per beat stills were captured after the loop with only the
 caption re-applied, so all fourteen showed the end card; the end card's two lines
 spanned the frame, so the safe area check measured the frame's own edges; the
@@ -1807,6 +1823,39 @@ frame, which is the whole reason that number is one value in one place.
 is the one thing this clip cost `lib/mascot.mjs`. Three ordinary bubbles need six
 and a quarter seconds of head room between them, which is a fifth of this clip
 spent on one line. See `lib/mascot.mjs` below for the profile a run uses.
+
+### What is still wrong with it, and none of it is fixed
+
+Six things came out of watching it. **The clip on disk has all six in them**, and
+they are written down rather than started so the next session picks them up from
+a list. Two of them move every beat after themselves.
+
+1. **The voice reads the domain wrong.** `theboringtek` comes back as one
+   run-together word and it has to be spoken as **the boring tek dot com**, while
+   the caption still shows `theboringtek.com`. That splits the spoken copy from
+   the drawn copy on one line, which this file's whole caption cut is built on
+   not doing — so the guard that the drawn caption is the spoken caption has to
+   learn about the exception rather than be dropped.
+2. **The typed line is silent.** `i want ai to do my job but keep my salary`
+   types itself over 2.9s with nothing under it, and it wants **a second voice
+   reading it, in an indian accent**. `lib/voice.mjs` ships three voices and the
+   list is closed by decision, so a fourth is a conversation rather than an edit.
+3. **No sound on the typing or the send tap.** The taps carry a `click`; the
+   keystrokes carry nothing, and the send sounds exactly like the five presses
+   before it. The set has ten sounds and none of them is a key.
+4. **The ending is muddled.** After `send it` it should read as **sent on the
+   site first**, then the offering — websites, apps, research, design. As built
+   the offer is line eleven and the send is line twelve, so the pitch lands while
+   the form is still being filled. It is a script order problem, and moving a
+   line moves every beat, camera leg and mascot mark after it.
+5. **The corner mascot is too quiet at the start.** Six and a quarter seconds of
+   `neutral` over the first four lines. He should react more, and **while looking
+   up** — the type is above him and he is not watching it.
+6. **The first part has an empty gap.** Nought to about 9.5s is one caption band
+   and one mascot on white with the top two thirds empty, and **what fills it has
+   not been decided.** The candidates change what the clip is: the pictogram
+   scene layer this file deliberately does not import, or the site card arriving
+   earlier.
 
 ### The sound
 
