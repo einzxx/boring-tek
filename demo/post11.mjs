@@ -188,14 +188,25 @@ const LINES = [
     rate: '-4%', pitch: '0Hz', gap: 0.28, screen: 'site' },
   { text: 'your name and your registration number',
     rate: '-6%', pitch: '0Hz', gap: 0.30, screen: 'site' },
-  { text: 'where you are, and your email',
+  { text: 'your website, where you are, and your email',
     rate: '-6%', pitch: '0Hz', gap: 0.34, screen: 'site' },
-  /* the send. the hole after it is not a breath: the press is real, the page
-     disables the button and breathes it, the stubbed post answers after 480ms
-     and only then is a check mark drawn, so the confirmation costs about two
-     seconds and the line before it is two words long. */
+  /* the send, and then the one word that says it worked.
+
+     the gap after `send it` is the press and the wait, and it is short: the
+     press is real, the page disables the button and breathes it, and the stubbed
+     post answers after 480ms. what used to follow was three seconds of watching
+     a check mark with nobody saying anything, which is the same fault as the
+     form filling itself in silence and it sat on the one beat the whole ending
+     is built around.
+
+     so `done` lands **on** the check mark rather than after it, and the press is
+     timed backwards from that: the tap is placed so the page's own answer
+     arrives on the word. it is one syllable on purpose. the tick is the picture
+     and this is only the thing you say when something has gone through. */
   { text: 'send it',
-    rate: '-6%', pitch: '-1Hz', gap: 2.95, screen: 'site' },
+    rate: '-6%', pitch: '-1Hz', gap: 0.95, screen: 'site' },
+  { text: 'done',
+    rate: '-10%', pitch: '-1Hz', gap: 1.60, screen: 'site' },
   /* and then, in this order and it is the third time it has been reordered:
      the tick, then what happens next, then what we do, then the card. the
      report is what the viewer gets for pressing the button, so it answers the
@@ -270,6 +281,14 @@ const SAY_AS = [{
    is why it is laid into the voice track by hand rather than through
    `buildVoice`. it is in the duck envelope, so the keys go under it. */
 const JOKE = { voice: 'aside', rate: '-14%', pitch: '0Hz', trimDb: -1.5 };
+/* how long the stubbed post takes to answer, in `injected()` below. the send
+   beat is timed backwards through it so the check mark lands on a word, so it is
+   a named constant rather than a number in two places. it has to agree with the
+   480 in `injected()` below and `guard` reads that function's own source to
+   check that it does, because the two live in different worlds and a stub that
+   quietly got slower would move the tick off the word with nothing to show for
+   it. */
+const STUB = 0.48;
 const TYPE_LINE = 9;      /* `then type what you want`, zero based */
 const TYPE_LEAD = 0.30;   /* the line's last word to the first keystroke */
 /* what is left of the hole after the typing, and it is now one press wide: the
@@ -288,12 +307,15 @@ const EDGE_FADE = 0.008;
    digits in a row, which is the shape of a registration number and is obviously
    not one. nothing here is a client, a company, a person or an address.
 
-   the website field is left empty on purpose. it is marked optional on the site
-   and it is optional here: a form where every optional field is also filled in
-   is a form nobody has ever filled in. */
+   they are in the order index.html lays them out, and the two lines that narrate
+   them name them in that order too, so the eye tracks down the card rather than
+   jumping about it. `f-site` is a `type="url"` input and it is handed plain
+   text: the page reads `.value` and posts it, there is no native form submit
+   anywhere in it, so nothing validates the shape and nothing needs to. */
 const FIELDS = [
   { id: 'f-name', key: 'name', text: 'your business' },
   { id: 'f-reg', key: 'reg', text: '12345678' },
+  { id: 'f-site', key: 'site', text: 'yourwebsite.com' },
   { id: 'f-country', key: 'country', text: 'usa' },
   { id: 'f-email', key: 'email', text: 'you@yourbusiness.com' },
 ];
@@ -928,6 +950,7 @@ function planSite(beats, jokeDur) {
      starts rather than under it. */
   legs.push({ t0: b13.start - 0.42, t1: b13.start + 0.14, ease: 'glide',
     to: shot('.pad', { fit: 10, align: 'bottom' }), beat: 13, anchor: 'the send button' });
+  fill(wordAt(b13, 'website').start + 0.04, 'f-site', 'the website');
   fill(wordAt(b13, 'are').start + 0.06, 'f-country', 'where you are');
   fill(wordAt(b13, 'email').start + 0.10, 'f-email', 'the email');
   call(b13.end + 0.16, 'blur', 'nothing is focused when the send is pressed');
@@ -937,13 +960,22 @@ function planSite(beats, jokeDur) {
      else. the two posts are stubbed: nothing leaves the browser and the run
      counts them. the page goes busy, the stub answers after 480ms, and a check
      mark is drawn. */
-  const b14 = B(13);
-  const sendAt = +(b14.end + 0.10).toFixed(4);
+  const b14 = B(13), b15 = B(14);
+  /* the press is placed **backwards from `done`** rather than forwards from
+     `send it`. the page answers 480ms after the tap and draws the tick on the
+     frame after that, so a tap keyed to the line before it lands the tick
+     wherever the gap happens to put it; keyed to the line after it, the tick and
+     the word arrive together every time, whatever either take turns out to be.
+     STUB is that 480ms, written down once here because two places depend on it.
+
+     it still has to be a press somebody makes after being told to, so the run
+     fails if it ever resolves earlier than the line that asks for it. */
+  const sendAt = +(b15.start - STUB - 0.07).toFixed(4);
   tap(sendAt, '.nav .btn:not(.ghost)', 'send', 'press');
   /* the tick, and the sound on it. it is the set's `ding`, which is written as
      "a check being drawn" and is the one sound in the file that already meant
-     yes. */
-  const confirmAt = +(sendAt + 0.55).toFixed(4);
+     yes, and it now lands under a word rather than in a hole. */
+  const confirmAt = +(sendAt + STUB + 0.07).toFixed(4);
   /* and a reframe after the page has answered: the sent state is a much shorter
      card than the last step was, so the frame that held the fields would hold
      mostly white around a check mark. */
@@ -956,16 +988,16 @@ function planSite(beats, jokeDur) {
      tick means the target is measured while the card is still shrinking, which
      is a small error the drift closes, and the alternative is a framing that is
      entirely wrong for a fifth of a second. */
-  legs.push({ t0: b14.end + 0.68, t1: b14.end + 1.16, ease: 'drift',
-    to: shot('.pad', { fit: 10, align: 'top' }), beat: 14, anchor: 'the check mark' });
+  legs.push({ t0: confirmAt + 0.04, t1: confirmAt + 0.52, ease: 'drift',
+    to: shot('.pad', { fit: 10, align: 'top' }), beat: 15, anchor: 'the check mark' });
 
-  /* ---- beat fifteen: the card leaves and the report lands on white ----
+  /* ---- beat sixteen: the card leaves and the report lands on white ----
      the tick has had about a second and a quarter settled in frame by the time
      this starts, which is what `send it` carries a 2.60s gap for. the report is
      the first thing said after the press because it is what the press buys; the
      offering comes after it and gets the frame to itself. */
-  const b15 = B(14);
-  fades.push({ t0: b15.start - 0.40, t1: b15.start - 0.02, to: 0 });
+  const b16 = B(15);
+  fades.push({ t0: b16.start - 0.40, t1: b16.start - 0.02, to: 0 });
 
   cues.sort((a, b) => a.t - b.t);
   legs.sort((a, b) => a.t0 - b.t0);
@@ -1039,8 +1071,8 @@ function planMarks(beats, site) {
   /* the check mark. he looks up at it on the frame the page draws it, which is
      the beat the whole ending is ordered around. */
   marks.push({ t: at(site.confirmAt + 0.10), state: 'curious' });
-  marks.push({ t: at(B(14).start - 0.20), state: 'neutral' });
-  marks.push({ t: at(B(17).start - 0.16), state: 'agreeing', bubble: 'finally' });
+  marks.push({ t: at(B(15).start - 0.20), state: 'neutral' });
+  marks.push({ t: at(B(18).start - 0.16), state: 'agreeing', bubble: 'finally' });
   return marks;
 }
 
@@ -1818,12 +1850,14 @@ async function main() {
     const from = v.beats[i - 1].sound.end, to = v.beats[i].sound.start;
     if (to - from > 0.60) quiet.push({ i, from: +from.toFixed(2), to: +to.toFixed(2), len: +(to - from).toFixed(2) });
   }
-  console.log('  the holes over 0.60s in the read:');
+  console.log('  the holes over 0.60s in the read, and what is in each of them:');
   for (const q of quiet) {
-    const covered = q.from >= site.typing.from - 0.30 && q.to <= site.typing.to + TYPE_TAIL + 0.30;
-    console.log('    ' + q.from.toFixed(2) + '..' + q.to.toFixed(2) + '  ' + q.len.toFixed(2) + 's  '
-      + (covered ? 'the typing hole: the comedy read and the keyboard are in it'
-        : 'the confirmation: the tick is drawn in it'));
+    const what = q.from <= site.typing.from && q.to >= site.typing.to
+      ? 'the hand types in it, under the comedy read'
+      : q.from <= site.sendAt && q.to >= site.sendAt ? 'the send is pressed in it'
+        : q.from <= site.confirmAt && q.to >= site.confirmAt ? 'the check mark is drawn in it'
+          : 'the tick is held and the card leaves';
+    console.log('    ' + q.from.toFixed(2) + '..' + q.to.toFixed(2) + '  ' + q.len.toFixed(2) + 's  ' + what);
   }
 
   if (PLAN_ONLY) {
@@ -2685,30 +2719,53 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
   }
 
   /* ---------- no dead air ----------
-     every hole in the read is measured on the waveform and there are exactly
-     two of them: the one the hand types in, which a comedy read and a keyboard
-     live inside, and the one the check mark is drawn in. a third would be the
-     fault this pass was written to remove, and a first hole that ran long past
-     the last keystroke would be the same fault wearing the first one's name. */
+     every hole in the read is measured on the waveform. the shape it is checked
+     against changed when the confirmation stopped being silent, and the check
+     got **narrower** rather than looser: there used to be two named holes and
+     the second of them was allowed to run three seconds while a check mark was
+     drawn in it. now there is **one** hole allowed to be long, the one the hand
+     types in, and **every other hole in the clip has to come in under
+     HOLE_MAX** — which is a ceiling nothing else in the read had before.
+
+     and the beat that hole used to hold is checked positively: the check mark
+     has to be drawn while a word is being said. that is the thing the guard is
+     actually for, and it is the half a length limit cannot express. */
+  const HOLE_MAX = 1.70;
   const holes = [];
   for (let i = 1; i < v.beats.length; i++) {
     const from = v.beats[i - 1].sound.end, to = v.beats[i].sound.start;
     if (to - from > 0.60) holes.push({ from: +from.toFixed(2), to: +to.toFixed(2), len: +(to - from).toFixed(2) });
   }
-  if (holes.length !== 2) {
-    fail.push(holes.length + ' holes over 0.60s in the read and there are two: the typing and '
-      + 'the confirmation — ' + holes.map(h => h.from + '..' + h.to).join(', '));
-  } else {
-    const [a, b] = holes;
-    if (!(a.from <= site.typing.from && a.to >= site.typing.to)) {
-      fail.push('the first hole (' + a.from + '..' + a.to + ') is not the one the hand types in');
-    } else if (a.to - site.typing.to > 1.70) {
-      fail.push('the typing hole runs ' + (a.to - site.typing.to).toFixed(2)
-        + 's past the last keystroke with no voice in it');
-    }
-    if (!(b.from <= site.confirmAt && b.to >= site.confirmAt)) {
-      fail.push('the second hole (' + b.from + '..' + b.to + ') is not the one the check mark is drawn in');
-    }
+  const typed = holes.find(h => h.from <= site.typing.from && h.to >= site.typing.to);
+  if (!typed) {
+    fail.push('no hole in the read holds the typing, so the hand is being heard over a line');
+  } else if (typed.to - site.typing.to > HOLE_MAX) {
+    fail.push('the typing hole runs ' + (typed.to - site.typing.to).toFixed(2)
+      + 's past the last keystroke with no voice in it, ceiling ' + HOLE_MAX);
+  }
+  for (const h of holes) {
+    if (h === typed || h.len <= HOLE_MAX) continue;
+    fail.push('a ' + h.len + 's hole at ' + h.from + '..' + h.to + ' with no voice and no caption '
+      + 'in it, and the only hole allowed past ' + HOLE_MAX + 's is the one the hand types in');
+  }
+  /* the check mark is drawn under a word. it used to be drawn in the hole above
+     and that is the whole reason the hole above is gone. */
+  const over = v.beats.find(b2 => site.confirmAt >= b2.sound.start - 0.30
+    && site.confirmAt <= b2.sound.end + 0.30);
+  if (!over) {
+    fail.push('the check mark is drawn at ' + site.confirmAt.toFixed(2)
+      + 's with nothing being said over it');
+  }
+  /* and the press is still a press somebody makes after being told to. */
+  if (site.sendAt < v.beats[13].end) {
+    fail.push('the send is pressed at ' + site.sendAt.toFixed(2) + 's, before `send it` has finished at '
+      + v.beats[13].end.toFixed(2) + 's');
+  }
+  /* the stub in `injected()` and the STUB the send is timed through are the same
+     number, read off the function's own source rather than trusted. */
+  if (!new RegExp('\\), ' + Math.round(STUB * 1000) + '\\)\\);').test(injected.toString())) {
+    fail.push('STUB is ' + STUB + 's and the stubbed post in injected() answers at a different '
+      + 'time — the check mark would not land on the word the send is timed to');
   }
 
   /* the last step is filled field by field, on camera, and every field the

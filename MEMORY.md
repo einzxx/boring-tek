@@ -9,7 +9,7 @@ names in here either.
 - **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
   **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
   inside the mp4**, rendered with the shutter open at four subframes in **15.5
-  minutes**. **Four rounds of fixes landed across two days and it is 46.00s now,
+  minutes**. **Five rounds of fixes landed across two days and it is 46.83s now,
   checked at 12fps only.** Every fault a viewing found is closed, including the
   silent stretch where the form used to finish itself: the voice narrates the
   form to the send now. The empty top of the frame is empty on purpose and the
@@ -1205,7 +1205,7 @@ Still no posting cadence or content pillars. See Next steps.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
 - **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
-  **36.93s at 60fps as first built; 46.00s after four rounds of fixes across
+  **36.93s at 60fps as first built; 46.83s after five rounds of fixes across
   2026-08-30 and 2026-08-31, which are rendered and checked at 12fps only**, vertical only, the read
   inside the mp4, out to
   `demo/out/post11-1080x1920.mp4`. `--blur` opens the shutter for the final,
@@ -1242,18 +1242,25 @@ Still no posting cadence or content pillars. See Next steps.
   26.07  neutral       through the size step and the last step being filled
   32.29  curious       up at the check mark, on the frame the page draws it
   33.68  neutral       through the report and the offering
-  42.65  agreeing      `finally`
+  44.45  agreeing      `finally`
   ```
 
   **The last step is filled field by field, on the word that names it**, through
   the page's own focus and its own input listeners:
 
   ```
-  26.67  f-name      your business
-  27.75  f-reg       12345678            named and never read aloud
-  29.08  f-country   usa
-  30.00  f-email     you@yourbusiness.com
+  26.64  f-name      your business
+  27.69  f-reg       12345678             named and never read aloud
+  28.85  f-site      yourwebsite.com
+  30.04  f-country   usa
+  30.88  f-email     you@yourbusiness.com
   ```
+
+  All five, in the order index.html lays them out, and the two lines that name
+  them name them in that order too, so the eye tracks down the card rather than
+  jumping about it. `f-site` is a `type="url"` input handed plain text: the page
+  reads `.value` and posts it, there is no native form submit anywhere in
+  index.html, so nothing validates the shape.
 
   **It imports `lib/voice.mjs`, `lib/captions.mjs`, `lib/mascot.mjs` and
   `lib/sfx.mjs` and not `lib/pictograms.mjs`.** A scene layer was built for the
@@ -1823,12 +1830,12 @@ no card allowed to straddle two lines.
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
 
-### 2026-08-30 to 08-31 — post11, four rounds of fixes, and what each one settled
+### 2026-08-30 to 08-31 — post11, five rounds of fixes, and what each one settled
 
 Six things came out of watching the first cut and the list turned into three
-rounds, and a fourth the next morning for the copy. Everything below is in
+rounds, and two more the next morning for the copy and the last of the silence. Everything below is in
 `demo/post11.mjs`, `demo/lib/voice.mjs` and `demo/lib/sfx.mjs`. **The clip is
-46.00s and it is rendered and checked at 12fps only; the 60fps master has not
+46.83s and it is rendered and checked at 12fps only; the 60fps master has not
 been run.**
 
 **1. The domain read.** The script says `go to the boring tek dot com`, four
@@ -1931,12 +1938,23 @@ names it** through `wordAt`. The registration number is named and never read,
 because a synthesiser reading eight digits is thirty seconds of nothing and a
 number said aloud is a number somebody will try to write down.
 
-**It is a guard rather than a claim.** The render measures every hole in the
-read on the waveform and there must be **exactly two**: the one the hand types
-in, which the comedy read and twenty five keyboard ticks live inside, and the
-one the check mark is drawn in. A third fails the render, and so does a first
-one that runs more than 1.70s past the last keystroke. The render also fails if
-a digit ever reaches the script.
+**It is a guard rather than a claim, and it got narrower once the sent screen
+stopped being silent.** There used to be two named holes and the second of them
+was allowed to run three seconds while a check mark was drawn in it. Now
+**exactly one hole may be long**, the one the hand types in, and **every other
+hole in the clip has to come in under 1.70s** — a ceiling nothing else in the
+read had before. The render also fails if a digit ever reaches the script.
+
+**And the confirmation is checked positively rather than by length.** `done` is
+one word from the narrator and it lands **on** the check mark, not after it, and
+the press is timed **backwards** through the stub to make that true: `sendAt` is
+`done`'s own start minus `STUB` minus a frame, so the tick and the word arrive
+together whatever either take turns out to be. Three things are asserted around
+it: the tick falls inside some beat's own sound, the press never resolves before
+`send it` has finished, and **`STUB` agrees with the 480 in `injected()`** —
+read off that function's own source, because the two live in different worlds
+and a stub that quietly got slower would slide the tick off the word with
+nothing to show for it.
 
 **The end card is the logo as it is actually drawn.** THE / BORING / TEK stacked
 on three lines with the address under it and nothing else. Stacking is what
@@ -4320,8 +4338,8 @@ of them.
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
 - **post11, "the explainer", is built and not posted** — 2026-08-30,
-  `demo/post11.mjs`. **Four rounds of fixes are in and it is 46.00s now**, every
-  check passing and all four video-review passes clean, **but only at 12fps: the
+  `demo/post11.mjs`. **Five rounds of fixes are in and it is 46.83s now**, every
+  check passing and all five video-review passes clean, **but only at 12fps: the
   60fps master has not been run.** It owes a **posting pack**: caption, tweet and
   three tags per platform, none of them decided. And it owes **a track** — the
   clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
