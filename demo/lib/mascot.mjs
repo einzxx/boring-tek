@@ -439,6 +439,24 @@ export const BUBBLE = {
   step: 0.07, dotFor: 0.26, pillFor: 0.34,
   outStep: 0.06, outFor: 0.18,
   in: 0.48, hold: 0.90, out: 0.30,
+
+  /* ---------- and the same gesture, quick ----------
+     one bubble is a thought. a run of them — a greeting in three languages, a
+     count, a list — is a different beat, and at the timings above three of them
+     need six and a quarter seconds, which is a fifth of a thirty second clip
+     spent on one line. so a mark may carry a **list** of bubbles instead of one,
+     and a list runs on these numbers: the same dot, dot, pill in a shorter
+     window, floored at a life long enough to read one word.
+
+     it is opt in and nothing reaches it unless a mark asks. a mark carrying a
+     single `bubble` string is built from the numbers above, unchanged, which is
+     why every clip and every self test written before this one plans and renders
+     exactly as it did. */
+  quick: {
+    step: 0.05, dotFor: 0.20, pillFor: 0.24,
+    outStep: 0.05, outFor: 0.14,
+    in: 0.30, hold: 0.30, out: 0.20,
+  },
 };
 
 /* the sounds, and there are only two. a bubble arriving is a `pop`, which is
@@ -887,7 +905,7 @@ export function planMascot(opts = {}) {
       settled: +(m.t + S.entry).toFixed(4),
       leaving: +(m.t + S.entry + hold).toFixed(4),
       out: +(m.t + S.entry + hold + S.exit).toFixed(4),
-      mark: mk, label: S.label, bubble: null,
+      mark: mk, label: S.label, bubble: null, bubbles: null,
       /* what this mark does to the turn, if anything. a state that turns on its
          own says so and the builder writes it; a mark that merely wants to be
          held somewhere carries the number and a window to get there in. */
@@ -895,37 +913,88 @@ export function planMascot(opts = {}) {
       turnFor: +(m.turnFor == null ? S.entry : m.turnFor).toFixed(4),
       authorsTurn: !!S.authorsTurn,
     };
-    if (m.bubble) {
-      const words = String(m.bubble).trim().split(/\s+/).filter(Boolean);
-      if (!words.length) throw new Error('mark ' + k + ' has an empty bubble');
+    /* ---------- what he says ----------
+       one bubble or a run of them. `bubble: 'go on'` is the whole surface every
+       clip before this one used and it is untouched; `bubbles: [{t, text}]` is
+       the run, each one placed on the clip's own clock so a greeting can land on
+       the word it is greeting in.
+
+       both paths end in the same list, so everything downstream — the builder,
+       the frame, the cues, the report — reads `rec.bubbles` and knows nothing
+       about which spelling asked for it. `rec.bubble` stays as the first of
+       them, because that is what the single case has always meant. */
+    const say = (text, where) => {
+      const words = String(text).trim().split(/\s+/).filter(Boolean);
+      if (!words.length) throw new Error('mark ' + k + ' has an empty bubble' + where);
       if (words.length > BUBBLE.maxWords) {
-        throw new Error('mark ' + k + '\'s bubble is ' + words.length + ' words ("'
-          + m.bubble + '") — the ceiling is ' + BUBBLE.maxWords
+        throw new Error('mark ' + k + '\'s bubble' + where + ' is ' + words.length + ' words ("'
+          + text + '") — the ceiling is ' + BUBBLE.maxWords
           + ' and the rule is two or three');
       }
       if (words.length > BUBBLE.sayWords) {
-        notes.push('mark ' + k + '\'s bubble is ' + words.length
+        notes.push('mark ' + k + '\'s bubble' + where + ' is ' + words.length
           + ' words, which is at the ceiling rather than at the rule');
       }
       /* no punctuation dashes, in any language, anywhere a visitor can read.
          this is the brand rule and it is checked rather than trusted. */
-      if (/[—–]/.test(m.bubble) || /\s-\s/.test(m.bubble)) {
-        throw new Error('mark ' + k + '\'s bubble has a punctuation dash in it: "' + m.bubble + '"');
+      if (/[—–]/.test(text) || /\s-\s/.test(text)) {
+        throw new Error('mark ' + k + '\'s bubble' + where + ' has a punctuation dash in it: "' + text + '"');
       }
+      return { text: String(text).trim(), words: words.length };
+    };
+    /* a bubble drawn from its own timing profile. `inAt` is when the first dot
+       starts climbing; everything after it is arithmetic on the profile, and the
+       hold is whatever room is left, floored so a word is never a flash. */
+    const bubbleAt = (text, inAt, T, floor, where) => {
+      const s = say(text, where);
+      const holdFor = Math.max(floor, Math.min(T.hold, rec.leaving - inAt - T.in - T.out - 0.08));
+      return {
+        ...s, profile: T,
+        in: +inAt.toFixed(4),
+        full: +(inAt + T.in).toFixed(4),
+        leaving: +(inAt + T.in + holdFor).toFixed(4),
+        out: +(inAt + T.in + holdFor + T.out).toFixed(4),
+      };
+    };
+    if (m.bubble != null && m.bubbles != null) {
+      throw new Error('mark ' + k + ' carries both `bubble` and `bubbles` — pick one');
+    }
+    if (m.bubble) {
       /* the bubble lives inside the hold, never over the entrance or the exit:
          a bubble arriving while the head is still moving is two events on one
          frame and neither of them reads. */
-      const inAt = +(rec.settled + 0.12).toFixed(4);
-      const holdFor = Math.max(0.42, Math.min(BUBBLE.hold, rec.leaving - inAt - BUBBLE.in - BUBBLE.out - 0.08));
-      rec.bubble = {
-        text: String(m.bubble).trim(), words: words.length,
-        in: inAt,
-        full: +(inAt + BUBBLE.in).toFixed(4),
-        leaving: +(inAt + BUBBLE.in + holdFor).toFixed(4),
-        out: +(inAt + BUBBLE.in + holdFor + BUBBLE.out).toFixed(4),
-      };
-      if (rec.bubble.out > rec.leaving + 0.001) {
-        throw new Error('mark ' + k + '\'s bubble runs to ' + rec.bubble.out.toFixed(2)
+      rec.bubbles = [bubbleAt(m.bubble, +(rec.settled + 0.12).toFixed(4), BUBBLE, 0.42, '')];
+    } else if (m.bubbles) {
+      if (!Array.isArray(m.bubbles) || !m.bubbles.length) {
+        throw new Error('mark ' + k + '\'s `bubbles` is not a list of {t, text}');
+      }
+      const list = [...m.bubbles].sort((x, y) => x.t - y.t);
+      rec.bubbles = list.map((e, j) => {
+        if (!(e.t >= 0)) throw new Error('bubble ' + j + ' on mark ' + k + ' has no time on it');
+        /* the first dot starts on the time given, so a bubble asked for on a word
+           begins on that word rather than finishing on it. */
+        return bubbleAt(e.text, +e.t.toFixed(4), BUBBLE.quick, BUBBLE.quick.hold, ' ' + j);
+      });
+      /* two bubbles on screen at once is two thoughts, which is not a thing a
+         head with one bubble anchor can draw: they would be the same two dots and
+         the same pill holding two strings. */
+      for (let j = 1; j < rec.bubbles.length; j++) {
+        if (rec.bubbles[j].in < rec.bubbles[j - 1].out - 0.001) {
+          throw new Error('bubbles ' + (j - 1) + ' and ' + j + ' on mark ' + k
+            + ' overlap: the first is up until ' + rec.bubbles[j - 1].out.toFixed(2)
+            + 's and the second starts at ' + rec.bubbles[j].in.toFixed(2) + 's');
+        }
+      }
+      if (rec.bubbles[0].in < rec.settled + 0.001) {
+        throw new Error('the first bubble on mark ' + k + ' starts at '
+          + rec.bubbles[0].in.toFixed(2) + 's, while the head is still arriving at '
+          + rec.settled.toFixed(2) + 's');
+      }
+    }
+    rec.bubble = rec.bubbles ? rec.bubbles[0] : null;
+    for (const b of rec.bubbles || []) {
+      if (b.out > rec.leaving + 0.001) {
+        throw new Error('mark ' + k + '\'s bubble "' + b.text + '" runs to ' + b.out.toFixed(2)
           + 's, past its own state\'s hold — give the mark more room');
       }
     }
@@ -1263,8 +1332,12 @@ function engineFor(plan) {
     if (m.turn != null) B.turn(m.turn, { for: m.turnFor, ease: 'drift' });
     turnNow = B.pose.turn;
     exitToRest(tl, ch, H, B, m.leaving, m.exit);
-    if (m.bubble) {
-      const b = m.bubble;
+    /* every bubble this mark says, in order. one is the ordinary case and reads
+       exactly as it always did; a run of them is the same three tweens over and
+       over, on the shorter profile the plan already resolved, and they cannot
+       overlap because `planMascot` refuses a list that does. */
+    for (const b of m.bubbles || []) {
+      const T = b.profile || BUBBLE;
       /* in: small dot, larger dot, then the pill, each seventy milliseconds
          behind the one before it. the dots spring from a fifth of their size and
          the pill from seven tenths, which are the site's own numbers. everything
@@ -1272,17 +1345,17 @@ function engineFor(plan) {
          than arriving flat. */
       for (let k = 0; k < 2; k++) {
         put(ch.bub[k], { o: 0, sc: 0.2 }, { o: 1, sc: 1 },
-          b.in + k * BUBBLE.step, BUBBLE.dotFor, H.pop);
+          b.in + k * T.step, T.dotFor, H.pop);
       }
       put(ch.bub[2], { o: 0, sc: 0.7, y: 5 }, { o: 1, sc: 1, y: 0 },
-        b.in + 2 * BUBBLE.step, BUBBLE.pillFor, H.pop);
+        b.in + 2 * T.step, T.pillFor, H.pop);
       /* out: the same list backwards, and quicker. a thought does not leave in
          the order it arrived. */
       put(ch.bub[2], { o: 1, sc: 1, y: 0 }, { o: 0, sc: 0.8, y: 4 },
-        b.leaving, BUBBLE.outFor, H.glide);
+        b.leaving, T.outFor, H.glide);
       for (let k = 0; k < 2; k++) {
         put(ch.bub[1 - k], { o: 1, sc: 1 }, { o: 0, sc: 0.3 },
-          b.leaving + (k + 1) * BUBBLE.outStep, BUBBLE.outFor, H.glide);
+          b.leaving + (k + 1) * T.outStep, T.outFor, H.glide);
       }
     }
   }
@@ -1429,7 +1502,17 @@ export function mascotFrame(plan, t) {
 
   const sh = shadowAt(card.lift);
   const now = plan.marks.find(m => t >= m.t && t < m.out);
-  const bubbleMark = plan.marks.find(m => m.bubble && t >= m.bubble.in - 0.001 && t < m.bubble.out + 0.001);
+  /* whichever bubble is up, over every mark and every bubble on it. a mark may
+     say one thing or several, and the pill holds one string at a time either
+     way — `planMascot` is what makes that true, by refusing a list that
+     overlaps itself. */
+  let saying = null;
+  for (const m of plan.marks) {
+    for (const b of m.bubbles || []) {
+      if (t >= b.in - 0.001 && t < b.out + 0.001) { saying = b; break; }
+    }
+    if (saying) break;
+  }
 
   return {
     t,
@@ -1477,7 +1560,7 @@ export function mascotFrame(plan, t) {
       o: n(Math.max(bub[0].o, bub[1].o, bub[2].o)),
       dots: [{ o: n(bub[0].o), sc: n(bub[0].sc) }, { o: n(bub[1].o), sc: n(bub[1].sc) }],
       pill: { o: n(bub[2].o), sc: n(bub[2].sc), y: n(bub[2].y) },
-      text: bubbleMark ? bubbleMark.bubble.text : null,
+      text: saying ? saying.text : null,
     },
     state: now ? now.state : null,
     /* the lid level with no blink in it, which is what the preflight measures
@@ -1519,7 +1602,12 @@ export function mascotCues(plan) {
     /* on the pill rather than on the first dot. the dots are the anticipation
        and the pill is the arrival, and a sound on the wind up is a sound that is
        early for the thing it is the sound of. */
-    if (m.bubble) cues.push({ t: +(m.bubble.in + BUBBLE.step * 2).toFixed(4), kind: SFX.bubble });
+    /* one pop per bubble, on the pill rather than on the first dot: the dots are
+       the anticipation and the pill is the arrival, and a sound on the wind up is
+       early for the thing it is the sound of. */
+    for (const b of m.bubbles || []) {
+      cues.push({ t: +(b.in + (b.profile || BUBBLE).step * 2).toFixed(4), kind: SFX.bubble });
+    }
     const S = STATES[m.state];
     if (S.ding != null) cues.push({ t: +(m.t + S.ding).toFixed(4), kind: SFX.agree });
   }
@@ -1746,7 +1834,7 @@ export function mascotMotion(plan, fps, seconds) {
       overshoot: +(over * 100).toFixed(1),
       settleFrames: cross == null ? null : last - cross,
       settleMs: cross == null ? null : Math.round((last - cross) / fps * 1000),
-      bubble: m.bubble ? m.bubble.text : null,
+      bubble: m.bubbles ? m.bubbles.map(b => b.text).join(' / ') : null,
     };
   });
 
@@ -2157,8 +2245,8 @@ export function describeMascot(plan) {
       + 'entry ' + m.entry.toFixed(2) + ' hold ' + m.hold.toFixed(2) + ' exit ' + m.exit.toFixed(2)
       + (m.turn != null ? '  turn ' + m.turn.toFixed(2) : '')
       + (m.authorsTurn ? '  turns' : '')
-      + (m.bubble ? '  bubble "' + m.bubble.text + '" ' + m.bubble.in.toFixed(2)
-        + '..' + m.bubble.out.toFixed(2) : ''));
+      + (m.bubbles || []).map(b => '  bubble "' + b.text + '" ' + b.in.toFixed(2)
+        + '..' + b.out.toFixed(2)).join(''));
     out.push('              ' + m.label);
   }
   for (const note of plan.notes) out.push('    note: ' + note);
@@ -2602,6 +2690,53 @@ function selfTest() {
   try { planMascot({ marks: [{ t: 0.4, state: 'neutral', bubble: 'yes — no' }], seconds: 4 }); }
   catch (e) { threw = /dash/.test(e.message); }
   ok('a bubble with a dash in it is refused', threw);
+
+  /* ---------- a run of bubbles ----------
+     the opt in path, and the first thing it has to prove is that it is opt in:
+     a mark carrying one string plans exactly what it planned before this
+     existed, which is what the numbers above have already asserted. */
+  const run = planMascot({
+    seconds: 9.0,
+    marks: [{ t: 0.4, state: 'neutral', bubbles: [
+      { t: 1.30, text: 'hey' }, { t: 2.40, text: 'привет' }, { t: 3.50, text: 'labdien' },
+    ] }],
+  });
+  const rb = run.marks[0].bubbles;
+  ok('a mark can say three things in a row', rb.length === 3,
+    rb.map(b => b.in.toFixed(2) + '..' + b.out.toFixed(2)).join('  '));
+  ok('a run uses the quick profile', rb.every(b => b.profile === BUBBLE.quick),
+    'each one lives ' + (rb[0].out - rb[0].in).toFixed(2) + 's against the ordinary '
+    + (BUBBLE.in + 0.42 + BUBBLE.out).toFixed(2));
+  /* the pill holds one string at a time, and that is the whole reason overlap is
+     refused rather than resolved. */
+  const said = t => mascotFrame(run, t).bubble.text;
+  ok('each bubble is the one on screen at its own time',
+    said(rb[0].full + 0.05) === 'hey' && said(rb[1].full + 0.05) === 'привет'
+    && said(rb[2].full + 0.05) === 'labdien');
+  ok('nothing is said between them', said(rb[0].out + 0.02) === null,
+    'the pill is empty at ' + (rb[0].out + 0.02).toFixed(2) + 's');
+  ok('one pop per bubble', mascotCues(run).filter(c => c.kind === SFX.bubble).length === 3);
+  ok('a single bubble still reports as one', bub.marks[0].bubbles.length === 1
+    && bub.marks[0].bubble === bub.marks[0].bubbles[0]);
+  threw = false;
+  try {
+    planMascot({ seconds: 9, marks: [{ t: 0.4, state: 'neutral', bubbles: [
+      { t: 1.30, text: 'hey' }, { t: 1.45, text: 'again' }] }] });
+  } catch (e) { threw = /overlap/.test(e.message); }
+  ok('two bubbles on screen at once are refused', threw);
+  threw = false;
+  try {
+    planMascot({ seconds: 9, marks: [{ t: 0.4, state: 'neutral',
+      bubble: 'go on', bubbles: [{ t: 1.3, text: 'hey' }] }] });
+  } catch (e) { threw = /pick one/.test(e.message); }
+  ok('a mark may not carry both spellings', threw);
+  threw = false;
+  try {
+    planMascot({ seconds: 9, marks: [{ t: 0.4, state: 'neutral',
+      bubbles: [{ t: 1.3, text: 'yes — no' }] }] });
+  } catch (e) { threw = /dash/.test(e.message); }
+  ok('the dash rule reaches inside a run', threw);
+
   threw = false;
   try { planMascot({ marks: [{ t: 0.4, state: 'nope' }], seconds: 4 }); }
   catch (e) { threw = /no state called/.test(e.message); }

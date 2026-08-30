@@ -6,6 +6,53 @@ names in here either.
 
 ## Status
 
+- **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
+  **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
+  inside the mp4**, rendered with the shutter open at four subframes in **15.5
+  minutes**. **The first clip built on
+  `demo/lib/mascot.mjs`** and **the first that puts the live site inside a card**
+  rather than filling the frame with it: white page, big type, real footage of
+  theboringtek.com cropped to the hero, and the corner mascot reacting the whole
+  way through. **The live site did not change** — `index.html`, `CNAME`,
+  `robots.txt`, `sitemap.xml`, the language stubs and `assets/` were all
+  untouched, and **no existing post file was edited**. **No dependency was
+  added**; the list stays `puppeteer-core`, `ffmpeg-static` and `gsap`. **Not
+  posted anywhere, on any platform, and there is no posting pack yet** — caption
+  and hashtags are still owed.
+  - **It is one composed page rather than post9's four passes.** The site is an
+    **iframe served from the same origin** inside a clipped card and the camera
+    is a transform on the iframe element, so the mascot, the captions and the
+    footage are on one clock with no cuts. The nav is excluded by the crop
+    rather than by a promise: the bar is `position: fixed` at the iframe's own
+    top and the card never shows it. **0 sampled frames with the nav in the
+    card, 0 with the subline in it and cut.**
+  - **A camera that is a transform can be lied to by a scroll, and it was.**
+    `element.focus()` scrolls **every scrollable ancestor**, across the frame
+    boundary, so focusing a form field scrolled the clipped card in the outer
+    document by 251px and the send shot rendered a quarter of a page from where
+    every number said it was. Pinned, and **the render now compares the rendered
+    window against the camera it wrote on every sample.** See Decisions.
+  - **`document.fonts.check(font, text)` said Space Grotesk can set `привет`,
+    and it cannot.** The cyrillic answer is measured rather than asked for now,
+    with a latin control. The pill drops to the mono stack, which renders **36
+    device px of cap** against a 32 floor. **No fourth font family was added.**
+  - **The form is really filled in and the send is really a send.** Six real
+    taps, the page doing its own routing, the copy re-rendering in russian and
+    latvian with the ticks surviving, and **exactly 2 posts intercepted** —
+    nothing left the browser.
+  - **Fourteen takes, one per line, each with its own rate and pitch**: 2.01 to
+    5.57 words a second against a flat 2.3, gaps measured on the waveform.
+    Delivered at **-14.2 LUFS / -1.0 dBTP** with **no music** in this pass, which
+    is Einz's call and gets a track later.
+  - **The brief said thirty seconds and the script is eighty six words.** Read at
+    a pace a person would use that is about thirty five seconds, and the two
+    deliberate holes — the typing and the confirmation — are most of the rest.
+    The script won; nothing was cut to hit a number. That is the one place the
+    brief's numbers and the brief's copy disagreed.
+  - **It cost `lib/mascot.mjs` one addition and it is opt in**: a mark may carry
+    a **list** of bubbles on a shorter profile, which is what lets three
+    greetings land on three languages inside one line. The single bubble path is
+    byte for byte what it was and the self test proves it. See Decisions.
 - **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
   been looked at is the **light theme at the twelve frame preview**, plus still
   frames from a turn sweep and from every state. **The dark theme has not been
@@ -1135,6 +1182,27 @@ Still no posting cadence or content pillars. See Next steps.
   takes it off again before anything is drawn.
   **The sound is the voice plus four slices of `demo/music/track2.mp3`** and
   nothing else. `demo/music/` is gitignored — see the note below.
+- **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
+  **36.93s at 60fps, vertical only, 4.12 MB, the read inside the mp4**, out to
+  `demo/out/post11-1080x1920.mp4`. `--blur` opens the shutter for the final,
+  `DEMO_FPS=12` previews it, `--plan` prints every plan and renders nothing, and
+  `--encode-only` re-encodes from kept frames. Frames under `out/frames-post11`,
+  subframes under `out/subframes-post11`, state under
+  `out/post11-1080x1920.json`, a still per beat under `out/verify-post11`, the
+  mix at `out/post11-mix.wav`.
+  **It is one composed page and the live site is an iframe inside a card on it.**
+  The card is `388x420` css at `76,96`, with a 1px `--line` hairline at the 16px
+  radius; the caption band's ink is fixed at `572..620` and does not move for any
+  of the fourteen lines; the mascot stands bottom left on the module's own
+  resting turn. The camera is a transform on the iframe element and every shot is
+  a selector, a zoom and an alignment resolved against a live rect. **The site is
+  filmed at 360x1200 css px** and the crop never shows its top sixty, which is
+  what excludes the nav.
+  **It imports `lib/voice.mjs`, `lib/captions.mjs`, `lib/mascot.mjs` and
+  `lib/sfx.mjs` and not `lib/pictograms.mjs`** — there is no scene layer, because
+  the picture is the site.
+  **No music.** The sound is the read plus the mascot's two cues and a click on
+  each tap, twelve effects in all, at -14.2 LUFS / -1.0 dBTP.
 - **`demo/music/` is licensed audio and it is never pushed.** Two pixabay mp3s
   live there on this machine; `.gitignore` carries `demo/music/` for the same
   reason it carries `.env`. The licence is ours to hold, not ours to
@@ -1207,9 +1275,11 @@ Still no posting cadence or content pillars. See Next steps.
   needs them either gets the files directly or regenerates them.
 - **Tracked:** `demo/record.mjs`, `demo/post2.mjs`, `demo/post4.mjs`, `demo/post5.mjs`,
   `demo/post6.mjs`, `demo/og.mjs`, `demo/analyze.mjs`, `demo/captions-test.mjs`,
-  `demo/post7.mjs`, `demo/post9.mjs`, `demo/post10.mjs`, `demo/scenes-test.mjs`,
+  `demo/post7.mjs`, `demo/post9.mjs`, `demo/post10.mjs`, `demo/post11.mjs`,
+  `demo/scenes-test.mjs`, `demo/mascot-test.mjs`, `demo/mascot-export.mjs`,
   `demo/lib/captions.mjs`, `demo/lib/voice.mjs`, `demo/lib/pictograms.mjs`,
-  `demo/lib/sfx.mjs`, `demo/README.md`, `demo/package.json`.
+  `demo/lib/sfx.mjs`, `demo/lib/mascot.mjs`, `demo/README.md`,
+  `demo/package.json`.
   **`demo/README.md` carries post10** — a section of its own, an index line, and
   a paragraph under Why demo/ is safe about `demo/music/` being licensed audio
   that is never pushed. **It also carries post5's audio pass** as The fifth
@@ -1554,6 +1624,132 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-08-30 — post11, the explainer: the site in a card, and a camera that lied
+
+The eleventh clip, the first built on `lib/mascot.mjs`, and the first that puts
+the live site **inside a card** rather than filling the frame with it.
+
+**One composed page, not four passes, and that is the whole architecture.**
+post9 loads `index.html`, puts a camera and a caption layer on top of it, and
+cuts to a composed page for the beats that are not the site. That is right for a
+film whose site shots are full bleed. This clip is not that: the site is a card
+in the middle of a white frame with our own type under it and the mascot in the
+corner, and **the mascot has to be alive on every frame including the site
+ones** — which a cut to a different document cannot do. So the site is an
+**iframe served from the same origin** inside a clipped card, and the camera is
+a transform on the iframe element. One page, one clock, one render pass, no
+cuts. `index.html` is loaded byte for byte as it is in git and nothing is
+injected into it for the framing.
+
+**The crop is the framing, and it is why the nav is gone.** The site's top bar
+is `position: fixed`, so it sits at the iframe's own top whatever the camera
+does, and the card never shows the iframe's top sixty css px. That is arithmetic
+rather than a promise and it is guarded: the nav was inside the card on **0**
+sampled frames. Everything below the hero is laid out `display: none` for the
+film, which turns "who we are never appears" from a thing the numbers happen to
+give into a thing that cannot happen.
+
+**The camera and the picture disagreed by 251 px and every number said they
+agreed.** This is the one to carry forward. `element.focus()` scrolls the focused
+element into view in **every scrollable ancestor it has**, and an
+`overflow: hidden` box is a scroll container — so focusing a form field inside
+the iframe scrolled the card in the *outer* document, across the frame boundary.
+A camera that is a transform reads nothing that moved, so the send shot resolved
+correctly, was written correctly, and rendered a quarter of a page lower: the
+last thing the clip showed was an empty card with a button at the top of it.
+Both scrolls are pinned next to the transform now, and **the render measures the
+rendered window against the camera it wrote on every sample and fails if they
+differ by more than a pixel and a half.** That check is the reason this is an
+entry rather than a shipped clip, and it is the same shape as the parity check
+`lib/pictograms.mjs` runs between its two gsap clocks.
+
+**`document.fonts.check(font, text)` does not answer whether a face can set a
+string.** It came back **true** for Space Grotesk on `привет`, and Space Grotesk
+ships latin and latin-ext and no cyrillic at all: it answers whether the faces
+needed are *loaded*, and a browser that is going to fall back still says yes. It
+is measured instead — the string laid out in one family with no fallback list
+and again in a family that does not exist, and two identical widths are the
+fallback twice, with a latin control so a probe that cannot tell two faces apart
+cannot pass. Measured: **291.75px in Space Grotesk against 291.75 in the browser
+default**, so the pill drops to the mono stack, which measures 351.56 and renders
+**36 device px of cap** against a 32 floor. The fallback is `index.html`'s own
+all-or-nothing rule applied per bubble, not a new font: **no fourth family was
+added and the font budget did not move.**
+
+**The page's own zoom ceiling is what shapes the button beat.** `index.html` is
+laid out edge to edge and the subline is the widest line it sets, so a frame
+narrower than it with it in shot cuts its first and last letter — post9 rendered
+THE BORING TEK as SHE / 7/RING / MEK doing exactly this. post9's answer was to
+frame *around* the subline, and that answer is not available here: the band
+between the subline and the first section below the hero is about 120 page px,
+so a frame that clears it at the top reaches the sections at the bottom. So the
+button shot frames the group from the h1 down to the cta zone at **1.164**, and
+what makes the button large is that the site's own mascot travels out of the top
+of the card. Two more framing rules came off rendered frames: a fit is on
+**both axes** (on width alone the lockup framed at 1.10 and cut the mascot's
+crown and the hint line), and **no line of the page may be cut in half** — the
+frame is pushed clear of the h1 and the subline instead.
+
+**The form is really filled in and the send is really a send.** Six taps, all
+real presses inside the card, and the page does the routing: a single pick chip
+advances itself after 240ms, `check my business` routes to the multi pick step
+that gives the two ticks and then to the free text box that gives the typing. The
+three languages are switched through the page's own handler rather than by a tap,
+because the language buttons live in the top bar and the crop excludes it — the
+form's copy re-renders, the russian page drops to the mono stack the way the
+spec says it must, and the ticks survive the switch. The last two steps are done
+off camera during the line that is type on white, and they are done for real.
+**Exactly 2 posts intercepted; nothing left the browser.**
+
+**The delivery is fourteen takes, one per line, and the brief's thirty seconds
+lost to the brief's exact script.** One `speak()` per line with its own `rate`
+and `pitch` in the ssml prosody tag: **2.01 to 5.57 words a second** against a
+flat 2.3, light lines near the neural default, the two jokes slower and lower,
+the close slowest at `-16%`/`-3Hz`. The takes are laid on one clock with the gaps
+**measured on the waveform**, and two of them are not breaths — 3.90s where the
+typing happens and 2.20s where the confirmation lands. The script is eighty six
+words and marked exact; read at a pace a person would use that is about thirty
+five seconds. Nothing was cut and nothing was rushed to hit a number.
+
+**The line ends are marked so no card straddles a screen beat.** Fourteen short
+lines with almost no punctuation cut `dot com press`, `job send it` and `time and
+some` — post10's `do it we` again, and worse, because the picture changes
+underneath a card that is holding two beats. A comma goes on each line's last
+word, on the caption's copy only and after the synthesiser has spoken, and
+`punctuation: 'drop'` takes it off before a card is drawn. What the marks cannot
+fake is checked separately: the drawn word sequence against the spoken one, and
+no card allowed to straddle two lines.
+
+**And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
+a **list** of bubbles instead of one, on a shorter profile — see the entry below.
+
+### 2026-08-30 — a mascot mark may say several things in a row
+
+The brief asked for a greeting in three languages, one on each language as it is
+named, inside a two and a half second line. At the module's own bubble timings
+that is not possible: a bubble lives 1.20s minimum and needs its state's
+entrance and exit around it, so three of them need **six and a quarter seconds**
+of head room, which is a fifth of a thirty second clip spent on one line.
+
+So a mark may carry `bubbles: [{ t, text }]` instead of `bubble: '...'`, each `t`
+a second on the clip's own clock. A list runs on `BUBBLE.quick` — `in` 0.30, a
+hold floored at 0.30, `out` 0.20 — so each one lives **0.80s** against the
+ordinary 1.20, which is a glance and is what a one word greeting is.
+
+**It is opt in and the single case is untouched.** A mark carrying one string
+plans and renders exactly what it did before this existed, and the self test
+asserts it on the same numbers it always had: dot0 at 0.98, the pill overshooting
+to 1.030, the pop landing at 1.120. Seven new assertions cover the list — three
+in a row, the quick profile, one string on the pill at a time, nothing said
+between them, one pop per bubble, a refused overlap, and the dash rule reaching
+inside a run. `node lib/mascot.mjs test` is green.
+
+`planMascot` refuses a list that overlaps itself rather than resolving it,
+because the pill holds one string at a time and two thoughts on one anchor would
+resolve by build order, which is not an answer. Everything downstream — the
+builder, the frame, the cues, the report — reads one list and knows nothing about
+which spelling asked for it.
 
 ### 2026-08-30 — three bugs in the turn, and the one that shipped
 
@@ -3874,6 +4070,13 @@ of them.
   burned in. The only open part is whether and when Einz posts it. It jumped
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
+- **post11, "the explainer", is built and not posted** — 2026-08-30,
+  `demo/post11.mjs`. 36.93s, 60fps, the read in the file, every check passing and
+  both video-review passes clean. **It owes a posting pack**: caption, tweet and
+  three tags per platform, none of them decided. It also owes **a track** — the
+  clip ships with no music by design in this pass and Einz picks one later. It
+  jumped post3 as well, so **post3, "missed calls", is now seven clips behind and
+  still unbuilt.**
 - **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
   written up under Socials, **discuss before building.** The third one cannot start
@@ -3909,6 +4112,12 @@ Not scheduled, parked:
   `f38553b`, and the open part is whether and when it goes out. **Two finished
   clips are now sitting on complete packs**, which is a cadence question rather
   than a build one.
+- **post11 has no pack and no track.** Written down 2026-08-30. Unlike post7 and
+  post10 this is a missing decision rather than a missing posting: caption,
+  tweet and three tags per platform are all undecided, and the clip deliberately
+  ships with **no music** in this pass because Einz picks the track. **Three
+  finished clips are now sitting on the shelf** — two on complete packs and this
+  one on an empty one.
 - Business email to publish — still not decided. The form is now the contact route, so
   this is no longer blocking, but a real address is still worth having.
 - Whether the full site stays single-file as it grows past v1. Default: stays

@@ -26,6 +26,11 @@ All headless Chrome, all tooling. The renderers first:
 - **`post10.mjs`** renders a 13.17 second social clip, vertical only, with the
   voice and four slices of a licensed mp3 in the file. **The first dark one and
   the first with no accent in it at all.** See The tenth clip.
+- **`post11.mjs`** renders a 36.9 second explainer, vertical only, with the read
+  in the file. **The first clip built on `lib/mascot.mjs`, and the first that
+  puts the live site inside a card rather than filling the frame with it.**
+  White page, big type, real footage of theboringtek.com cropped to the hero, and
+  the corner mascot reacting the whole way through. See The eleventh clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -1613,6 +1618,209 @@ ones this clip needed:
 - **the caption never outlives its bubble**
 - no two consecutive frames are identical before the cut to black
 
+## The eleventh clip — the explainer, and the site inside a card
+
+```
+node post11.mjs                 the clip, shutter shut
+node post11.mjs --blur          the final, four subframes to a frame
+DEMO_FPS=12 node post11.mjs     the fast preview pass
+node post11.mjs --plan          every plan printed, and nothing rendered
+node post11.mjs --encode-only   re-encode from kept frames
+```
+
+**36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB at 0.89 Mbit/s, the read in
+the file**, into `demo/out/post11-1080x1920.mp4`. **15.5 minutes with the shutter
+open at four subframes**, about four without. A calm friendly explainer for the service:
+white page, big simple type, real captured footage of the live site, and the
+corner mascot reacting throughout. Positive, not rage, not dry.
+
+Two firsts. **It is the first clip built on `lib/mascot.mjs`**, so the mascot's
+performance is a list of marks rather than a list of gaze keys. And **it is the
+first that puts the live site inside a card** rather than filling the frame with
+it.
+
+### One composed page, not four passes
+
+post9 films the site by loading `index.html` and putting a camera, a cursor and a
+caption layer on top of it, and cuts to a composed page for the beats that are
+not the site. That is right for a film whose site shots are full bleed. This one
+is not that: the site is a **card** in the middle of a white frame with our own
+type under it and the mascot in the corner, and the mascot has to be alive on
+every frame including the site ones.
+
+So the site is an **iframe, served from the same origin**, inside a clipped card,
+and the camera is a transform on the iframe element. One page, one clock, one
+render pass, no cuts. `index.html` is loaded exactly as it is in git and nothing
+at all is injected into it for the framing.
+
+**The crop is the framing, and it is why the nav is gone.** The site's top bar is
+`position: fixed`, so it sits at the iframe's own top whatever the camera does,
+and the card never shows the iframe's top sixty css px. That is arithmetic rather
+than a promise, and there is a guard on it: the nav was inside the card on **0**
+sampled frames.
+
+### The frame
+
+| | css px of 540x960 |
+|---|---|
+| the site card | `76,96`, `388x420`, a 1px `--line` hairline at the 16px radius |
+| the caption band | ink at `572..620`, and it does not move for any of the fourteen lines |
+| the mascot | bottom left, 240 device px of head, the module's own resting turn |
+| the end card | the wordmark on 285 and `theboringtek.com` on 347 |
+
+The card sits **152 / 192 / 152** device px off the left, top and right against
+floors of 140 / 180 / 140 — inside the platform safe area with twelve px to
+spare rather than on the line, which is what the brief asked for after an earlier
+framing sat too close to the edges. There is **56.3 css px** of clear air between
+the bottom of the card and the top of the tallest caption, measured against a
+drawn card rather than against the caption's box.
+
+### The camera, and the page's own ceiling
+
+A shot is a selector, a zoom and an alignment, resolved in the browser at the
+moment its leg starts. Nothing is a page coordinate. Three rules, and all three
+are the page's rather than this file's:
+
+- **The crop never shows the iframe's own top**, where the fixed bar lives.
+- **A fit is on both axes.** Fitting the lockup on width alone framed it at 1.10
+  and cut the mascot's crown off the top of the card and the hint line off the
+  bottom.
+- **No line of the page is ever cut in half.** The h1 is THE BORING TEK stacked
+  in three lines at this width, and a frame whose top edge lands inside it shows
+  `BORING / TEK` — the brand name arriving as a fragment. The frame is pushed
+  clear instead, and the same rule covers the subline under it.
+
+That last rule is what shapes the button shot. Fitting the button alone asks for
+a zoom the subline cannot survive, and the band between the subline and the first
+section below the hero is about 120 page px, so a frame that clears the subline
+at the top reaches the sections at the bottom. So beat six is framed on the group
+from the h1 down to the cta zone at **1.164**, and what makes the button large is
+that the site's own mascot has travelled out of the top of the card.
+
+**Everything below the hero is laid out `display: none` for the film.** The brief
+is explicit that who we are and the honest part never appear; the crop already
+excludes them at every framing the camera is allowed, and this is what turns that
+from a thing the numbers happen to give into a thing that cannot happen.
+
+### The form is really filled in
+
+Six taps, all inside the card and all real `Input.dispatchMouseEvent` presses at
+the drawn ring's own coordinates. The page does the rest of the work: a single
+pick chip marks itself pressed, waits 240ms and advances itself, and picking
+`check my business` routes to the path with the multi pick step on it, which is
+the two ticks, and then to a free text box, which is the typing.
+
+The three languages are switched through the page's own handler rather than by a
+tap, because the language buttons live in the top bar and the crop excludes it.
+What is on screen is the real thing: the question, the chips and the buttons
+re-render, the russian page drops to the mono stack the way `index.html` says it
+must, and the ticks survive the switch.
+
+The last two steps are done off camera during the line that is type on white,
+because the brief gives that line to the words rather than to the site — and they
+are done **for real**, because the send has to be a send. Exactly **2 posts are
+intercepted** and nothing leaves the browser.
+
+### What the frames found
+
+Six things, all fixed before the final. Two are worth carrying forward.
+
+**`element.focus()` scrolls every scrollable ancestor it has, across the frame
+boundary.** An `overflow: hidden` box is a scroll container, so focusing a field
+inside the iframe scrolled the card in the outer document by 251px. The camera is
+a transform, so nothing it reads moved: the send shot resolved correctly, was
+written correctly, and rendered a quarter of a page lower. Both scrolls are
+pinned next to the transform now, and **the render measures the rendered window
+against the camera it wrote on every sample** and fails if they differ by more
+than a pixel and a half. That check is the reason this is a paragraph rather than
+a shipped clip.
+
+**`document.fonts.check(font, text)` does not answer whether a face can set a
+string.** It came back true for Space Grotesk on `привет`, and Space Grotesk
+ships latin and latin-ext and no cyrillic at all — it answers whether the faces
+are loaded. It is measured instead: the string is laid out in one family with no
+fallback list and again in a family that does not exist, and two identical widths
+are the fallback twice. A latin control runs through the same test, so a probe
+that cannot tell two faces apart cannot pass. The answer here is **291.75px in
+space grotesk against 291.75 in the browser default**, so the pill drops to the
+mono stack, which measures 351.56 and renders **36 device px of cap** against a
+32 floor.
+
+The other four: the per beat stills were captured after the loop with only the
+caption re-applied, so all fourteen showed the end card; the end card's two lines
+spanned the frame, so the safe area check measured the frame's own edges; the
+card-against-the-caption check was against the caption's box rather than its ink;
+and at the engine's own 0.28em word gap `ai for business` read as `ai
+forbusiness`, because every word kicks as it is said and a long word grows into
+the gap on its left.
+
+### The delivery is fourteen takes, one per line
+
+One `speak()` per line, each with its own `rate` and `pitch` straight into the
+ssml prosody tag, so the reading has a shape instead of a speed. **2.01 to 5.57
+words a second** against a flat 2.3: the light lines run near the neural default,
+the two that are jokes drop and slow, and the close is the slowest thing in the
+file at `-16%` / `-3Hz`.
+
+The takes are laid on one clock with the silence between them **measured on the
+waveform** rather than taken from the word list — post10's lesson, and it matters
+here because two of the gaps are not breaths. The 3.90s after `then type what you
+want` is where the typing happens, and the 2.20s after `send it` is what the
+confirmation costs.
+
+**The brief said thirty seconds and the script is marked exact.** The script is
+eighty six words; read at a pace a person would actually use that is about
+thirty five seconds, and the two holes above are most of the rest. The script
+won. The run prints what it came out at.
+
+### The cut marks are on the line ends
+
+A card breaks at a sentence end, at a clause mark, or when it is full, and this
+script is fourteen short lines with almost no punctuation in them. Left alone the
+cut ran straight through the seams — `dot com press`, `job send it`, `time and
+some` — which is post10's `do it we` again, and worse: a card holding the end of
+one screen beat and the start of the next while the picture changes underneath
+it.
+
+So a comma goes on the last word of every line, **on the caption's copy only and
+after the synthesiser has spoken**, `cardBreak` breaks on it and
+`punctuation: 'drop'` takes it off again before a card is drawn. Nothing about
+the audio or the timing can move. What the marks cannot fake is checked
+separately: the drawn word sequence has to be the spoken word sequence, and no
+card may straddle two lines.
+
+### The mascot
+
+Eight marks and five bubbles, and the turn is never set — he stands in the bottom
+left and the module's own resting bias turns him a third of the way into the
+frame, which is the whole reason that number is one value in one place.
+
+| at | state | says |
+|---|---|---|
+| the word `no` in `have no time` | `unimpressed` | |
+| `press the button` | `curious` | |
+| across `it does not cost you anything` to `in english, russian or latvian` | `neutral` | `hey`, `привет`, `labdien`, one on each language |
+| the frame the typing finishes | `delighted` | `nice` |
+| `we sit between you and ai` | `agreeing` | `finally` |
+
+**The three greetings are a run on one mark rather than three marks**, and that
+is the one thing this clip cost `lib/mascot.mjs`. Three ordinary bubbles need six
+and a quarter seconds of head room between them, which is a fifth of this clip
+spent on one line. See `lib/mascot.mjs` below for the profile a run uses.
+
+### The sound
+
+**No music in this pass.** What is in the file besides the read is the mascot's
+own two cues — a `pop` when a bubble arrives and a `ding` on the agreement beat —
+and a soft `click` on each tap, which is the house recipe's own line about
+presses. Twelve effects, every one derived from a plan that already existed.
+
+Delivered at **-14.2 LUFS / -1.0 dBTP**, the limiter pulling 4.8 dB at its
+hardest, the bus 15.0 dB under the voice at its closest in the 1076 windows a
+word is being spoken in. The loudness loop is post5's: it keeps its best pass
+rather than its last, and the ceiling handed to the limiter comes down by
+whatever the measured true peak overshot by.
+
 ## The og card
 
 ```
@@ -2534,8 +2742,8 @@ past the mark would be the opposite of what it means.
 #### The marks api
 
 A mark is a second on the clip's clock and a state to be in from then, optionally
-with a bubble. Everything else is worked out from the state table and the gap to
-the next mark:
+with a bubble — or with a **run** of them. Everything else is worked out from the
+state table and the gap to the next mark:
 
 ```js
 planMascot({
@@ -2546,6 +2754,34 @@ planMascot({
   theme: 'light',
 })
 ```
+
+**A mark may say several things in a row**, and post11 is what asked for it: a
+greeting in three languages, one on each language as it is named. At the ordinary
+timings three bubbles need six and a quarter seconds of head room between them,
+which is a fifth of a thirty second clip spent on one line, so a list runs on a
+shorter profile — `in` 0.30, a hold floored at 0.30, `out` 0.20, so each one
+lives 0.80s against the ordinary 1.20.
+
+```js
+{ t: 13.34, state: 'neutral', bubbles: [
+    { t: 16.81, text: 'hey' },
+    { t: 17.68, text: 'привет' },
+    { t: 18.52, text: 'labdien' } ] }
+```
+
+Each `t` is a second on the clip's own clock, so a greeting lands on the word it
+is greeting in. It is **opt in and nothing reaches it unless a mark asks**: a
+mark carrying a single `bubble` string plans and renders exactly what it did
+before this existed, which the self test asserts on the same numbers it always
+did. `planMascot` refuses a list that overlaps itself, because the pill holds one
+string at a time and two thoughts on one anchor would resolve by build order.
+
+**The pill drops to the mono stack for anything that is not plain ascii.** Space
+Grotesk ships latin and latin-ext and no cyrillic, so `привет` would otherwise
+fall back one glyph at a time and set half a word in one face and half in
+another — `index.html`'s own all-or-nothing rule, applied per bubble. post11
+measures it rather than assuming it; see The eleventh clip for why
+`document.fonts.check` is the wrong instrument for that question.
 
 A mark may carry `turn` (where to hold the channel) and `turnFor` (how long to
 get there). `planMascot` refuses a `turn` on `turn-away` or `snap-back`, because
