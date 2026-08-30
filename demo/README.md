@@ -26,11 +26,15 @@ All headless Chrome, all tooling. The renderers first:
 - **`post10.mjs`** renders a 13.17 second social clip, vertical only, with the
   voice and four slices of a licensed mp3 in the file. **The first dark one and
   the first with no accent in it at all.** See The tenth clip.
-- **`post11.mjs`** renders a 36.9 second explainer, vertical only, with the read
-  in the file. **The first clip built on `lib/mascot.mjs`, and the first that
-  puts the live site inside a card rather than filling the frame with it.**
-  White page, big type, real footage of theboringtek.com cropped to the hero, and
-  the corner mascot reacting the whole way through. See The eleventh clip.
+- **`post11.mjs`** renders a 46.5 second explainer, vertical only, with the read
+  in the file, **in two variants: light, and `--dark` on the near black page.**
+  **The first clip built on `lib/mascot.mjs`**, **the first that puts the live
+  site inside a card** rather than filling the frame with it, and **the first
+  that renders both themes off one plan.** Big type, real footage of
+  theboringtek.com cropped to the hero, the form filled and narrated field by
+  field, and the corner mascot reacting the whole way through. Out to
+  `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
+  **12fps previews only so far; no 60fps pass.** See The eleventh clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -1621,23 +1625,33 @@ ones this clip needed:
 ## The eleventh clip — the explainer, and the site inside a card
 
 ```
-node post11.mjs                 the clip, shutter shut
+node post11.mjs                 the clip, light, shutter shut
+node post11.mjs --dark          the same clip on the near black page
 node post11.mjs --blur          the final, four subframes to a frame
 DEMO_FPS=12 node post11.mjs     the fast preview pass
 node post11.mjs --plan          every plan printed, and nothing rendered
 node post11.mjs --encode-only   re-encode from kept frames
 ```
 
-**36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB at 0.89 Mbit/s, the read in
-the file**, into `demo/out/post11-1080x1920.mp4`. **15.5 minutes with the shutter
-open at four subframes**, about four without. A calm friendly explainer for the service:
-white page, big simple type, real captured footage of the live site, and the
-corner mascot reacting throughout. Positive, not rage, not dry.
+**46.47s, 1080x1920, the read in the file**, in two variants:
 
-Two firsts. **It is the first clip built on `lib/mascot.mjs`**, so the mascot's
-performance is a list of marks rather than a list of gaze keys. And **it is the
-first that puts the live site inside a card** rather than filling the frame with
-it.
+```
+demo/out/post11-light-1080x1920.mp4
+demo/out/post11-dark-1080x1920.mp4
+```
+
+A calm friendly explainer for the service: big simple type, real captured footage
+of the live site inside a card, and the corner mascot reacting throughout.
+Positive, not rage, not dry.
+
+**Neither variant has been rendered or reviewed at 60fps.** Everything below is
+measured off 12fps previews, which is what every number in this section is. The
+60fps pass is outstanding — see the end of the section.
+
+Three firsts. **It is the first clip built on `lib/mascot.mjs`**, so the mascot's
+performance is a list of marks rather than a list of gaze keys. **It is the first
+that puts the live site inside a card** rather than filling the frame with it.
+And **it is the first that renders in both themes off one plan**.
 
 ### One composed page, not four passes
 
@@ -1770,7 +1784,7 @@ and at the engine's own 0.28em word gap `ai for business` read as `ai
 forbusiness`, because every word kicks as it is said and a long word grows into
 the gap on its left.
 
-### The delivery is fourteen takes, one per line
+### The delivery is nineteen takes, one per line
 
 One `speak()` per line, each with its own `rate` and `pitch` straight into the
 ssml prosody tag, so the reading has a shape instead of a speed. **2.01 to 5.57
@@ -1780,14 +1794,19 @@ file at `-16%` / `-3Hz`.
 
 The takes are laid on one clock with the silence between them **measured on the
 waveform** rather than taken from the word list — post10's lesson, and it matters
-here because two of the gaps are not breaths. The 3.90s after `then type what you
-want` is where the typing happens, and the 2.20s after `send it` is what the
-confirmation costs.
+here because the gaps that are not breaths are the ones the guard is written
+about. See No dead air below for what each of the three holes holds.
 
-**The brief said thirty seconds and the script is marked exact.** The script is
-eighty six words; read at a pace a person would actually use that is about
-thirty five seconds, and the two holes above are most of the rest. The script
-won. The run prints what it came out at.
+There is a twentieth take that is not one of the nineteen: the comedy voice
+reading the typed line, laid onto the track by hand because it is not on the
+narrator's clock and must never reach the caption plan. See The comedy voice
+below.
+
+**The brief said thirty seconds and the script is marked exact.** The script has
+grown since: the form is narrated to the send, the confirmation has a word on it
+and the offering is two lines rather than one, and the clip is 46.47s. Every one
+of those was a fault being fixed rather than a line being added for its own sake,
+and each is written up below. The run prints what it came out at.
 
 ### The cut marks are on the line ends
 
@@ -1807,68 +1826,325 @@ card may straddle two lines.
 
 ### The mascot
 
-Eight marks and five bubbles, and the turn is never set — he stands in the bottom
-left and the module's own resting bias turns him a third of the way into the
-frame, which is the whole reason that number is one value in one place.
+Twelve marks and seven bubbles. **The opening four are his alone**, because
+nothing else is drawn up there: a pictogram scene layer was built for that space
+and taken out again, and it is Einz's to fill. The turn is set over those four
+only — out to 0.58 and back to the 0.35 resting bias before the card arrives —
+and every mark after that leaves the channel alone.
 
 | at | state | says |
 |---|---|---|
-| the word `no` in `have no time` | `unimpressed` | |
-| `press the button` | `curious` | |
+| the opening | `neutral` | |
+| the first line's second card | `curious` | `hmm...` |
+| `some know exactly, but have no time` | `thinking` | |
+| `and some just need one small thing done` | `curious` | `interesting` |
+| the card arriving | `neutral`, then `curious` | |
 | across `it does not cost you anything` to `in english, russian or latvian` | `neutral` | `hey`, `привет`, `labdien`, one on each language |
 | the frame the typing finishes | `delighted` | `nice` |
+| the frame the check mark is drawn | `curious` | |
 | `we sit between you and ai` | `agreeing` | `finally` |
+
+**There is no `unimpressed` anywhere in the clip.** It sat on `have no time`, it
+was the right read of that line and the wrong read of the film: a corner
+character who pulls a sour face at the viewer's problem is not somebody you then
+ask to build you something. `thinking` does that work. **`agreeing` is kept for
+the close and nothing else**, because it is the one state that earns a `ding` and
+the ding has to keep meaning yes.
 
 **The three greetings are a run on one mark rather than three marks**, and that
 is the one thing this clip cost `lib/mascot.mjs`. Three ordinary bubbles need six
 and a quarter seconds of head room between them, which is a fifth of this clip
 spent on one line. See `lib/mascot.mjs` below for the profile a run uses.
 
-### What is still wrong with it, and none of it is fixed
+### The script, as it stands
 
-Six things came out of watching it. **The clip on disk has all six in them**, and
-they are written down rather than started so the next session picks them up from
-a list. Two of them move every beat after themselves.
+Nineteen lines. `screen` is what the frame is doing: `site` shows the card,
+`white` hides it and the type is the whole picture.
 
-1. **The voice reads the domain wrong.** `theboringtek` comes back as one
-   run-together word and it has to be spoken as **the boring tek dot com**, while
-   the caption still shows `theboringtek.com`. That splits the spoken copy from
-   the drawn copy on one line, which this file's whole caption cut is built on
-   not doing — so the guard that the drawn caption is the spoken caption has to
-   learn about the exception rather than be dropped.
-2. **The typed line is silent.** `i want ai to do my job but keep my salary`
-   types itself over 2.9s with nothing under it, and it wants **a second voice
-   reading it, in an indian accent**. `lib/voice.mjs` ships three voices and the
-   list is closed by decision, so a fourth is a conversation rather than an edit.
-3. **No sound on the typing or the send tap.** The taps carry a `click`; the
-   keystrokes carry nothing, and the send sounds exactly like the five presses
-   before it. The set has ten sounds and none of them is a key.
-4. **The ending is muddled.** After `send it` it should read as **sent on the
-   site first**, then the offering — websites, apps, research, design. As built
-   the offer is line eleven and the send is line twelve, so the pitch lands while
-   the form is still being filled. It is a script order problem, and moving a
-   line moves every beat, camera leg and mascot mark after it.
-5. **The corner mascot is too quiet at the start.** Six and a quarter seconds of
-   `neutral` over the first four lines. He should react more, and **while looking
-   up** — the type is above him and he is not watching it.
-6. **The first part has an empty gap.** Nought to about 9.5s is one caption band
-   and one mascot on white with the top two thirds empty, and **what fills it has
-   not been decided.** The candidates change what the clip is: the pictogram
-   scene layer this file deliberately does not import, or the site card arriving
-   earlier.
+```
+ #   in .. out      screen  line
+ 1   0.30..2.35     white   ai for business is everywhere now
+ 2   2.63..4.80     white   some people do not know why they even need it
+ 3   5.01..7.33     white   some know exactly, but have no time
+ 4   7.75..9.60     white   and some just need one small thing done
+ 5   9.93..12.32    site    go to the boring tek, dot com
+ 6  12.64..13.32    site    press the button
+ 7  13.85..15.26    site    it does not cost you anything
+ 8  15.56..16.98    site    answer a few simple questions
+ 9  17.26..19.74    site    in english, russian or latvian
+10  20.02..20.93    site    then type what you want
+--  21.23..24.10    site    i want ai to do my job but keep my salary   (the comedy voice, uncaptioned)
+11  25.40..26.59    site    how big your business is
+12  26.89..28.85    site    your name and your registration number
+13  29.13..31.65    site    your website, where you are, and your email
+14  31.99..32.35    site    send it
+15  33.24..33.52    site    done
+16  34.33..36.38    white   in one or two days you get your report
+17  36.75..37.83    white   and if you want it built
+18  38.06..42.66    white   we do apps, websites, research, graphic design, or one small job
+19  42.97..44.69    white   we sit between you and ai
+```
+
+The cut hangs off it: send tap 32.69, the tick 33.24, the reframe onto it
+33.28..33.62, the card's exit 34.09..34.31, the end card from 42.67.
+
+### The domain read, and why the comma
+
+Three forms were synthesised and their **word timings compared**, because this is
+a pacing problem and pacing is measurable. What each one did:
+
+```
+theboringtek dot com      theboringtek(0.93) dot(0.27) com(0.48)
+                          gaps 0.016 0.016
+the boring tek dot com    the(0.15) boring(0.48) tek(0.35) dot(0.26) com(0.42)
+                          gaps 0.015 0.015 0.015 0.015
+the boring tek, dot com   the(0.15) boring(0.47) tek(0.50) dot(0.24) com(0.46)
+                          gaps 0.015 0.015 0.244 0.015          <- kept, at -18%
+```
+
+The first hands the synthesiser one word boundary for twelve letters, so there is
+no pacing **inside** the run at all and a slower rate only makes the run longer.
+That is the original fault. The second gives five units an identical 0.015s
+apart, so the name never groups and nothing separates it from the suffix: the
+address reads as five items on a list. The third is the only one with phrasing in
+it — a **0.244s gap** after `tek` against 0.015 everywhere else, and `tek` itself
+held at 0.50s rather than clipped at 0.35. Two units, a name and then a suffix,
+which is how a person says an address.
+
+### The caption guard's one named exception
+
+The caption draws `theboringtek.com`, which is the address as it is written, so
+the spoken copy and the drawn copy come apart on that one line. Every other card
+in the clip is cut from the words the synthesiser said and there is a guard that
+says so, and the guard was **taught the exception rather than loosened**:
+
+- `SAY_AS` names the line, the run of spoken words and the string that replaces
+  them. It matches on **bare words**, so the comma the delivery needs is
+  invisible to it and it would go on matching if the mark ever changed.
+- `markLines` collapses the run into one drawn word carrying the run's own start
+  and end, before `cardBreak` ever sees the line.
+- `guard` applies the same substitution to the **spoken** string before it
+  compares, so the check still starts from what came out of the synthesiser.
+- The exception has to fire **exactly once** or the render fails. An exception
+  that quietly stopped matching would take the guard down with it, and that is
+  the only way a check of this shape goes wrong.
+
+### The comedy voice, and the typed line
+
+`lib/voice.mjs` has a fourth voice for the one sentence in the clip that is not
+ours: `aside` = **`en-US-JennyNeural`**, a us woman, `comedy: true`, read light
+and warm at -14%. It reads `i want ai to do my job but keep my salary` over the
+typing and **it is not captioned**, because the words are already on screen in
+the field being typed. It never reaches the caption plan, so it is laid onto the
+voice track by hand rather than through `buildVoice`; its words **are** in the
+duck envelope so the keyboard goes under it.
+
+It shipped as `en-IN-PrabhatNeural` for one build. A clip whose whole register is
+plain does not want its one joke marked out by an accent, because then the accent
+is the joke. Female on purpose too: the three narrators are all male, so the one
+voice that is somebody else in the film is audibly somebody else on the first
+syllable. **The english only rule never moved** — it is about language, and both
+of those were english.
+
+**The hand is cut to the read.** The typing window is the comedy take's measured
+sound length, so the last keystroke lands on the last syllable without either
+being told about the other, and the hole line ten carries is derived in `main()`
+rather than typed: `gap: null` in `LINES`, and a `buildVoice` that refuses a null
+gap so a derived number nobody derived stops the render.
+
+### The form is filled field by field, on the word that names it
+
+Five fields, all of them, through the page's own focus and its own input
+listeners. Nothing is written into the site's state and nothing skips a step:
+
+```
+26.64  f-name      your business
+27.69  f-reg       12345678              named and never read aloud
+28.85  f-site      yourwebsite.com
+30.04  f-country   usa
+30.88  f-email     you@yourbusiness.com
+```
+
+They are in the order `index.html` lays them out and the lines that name them
+name them in that order, so the eye tracks down the card rather than jumping
+about it. `f-site` is a `type="url"` input handed plain text: the page reads
+`.value` and posts it and there is no native form submit anywhere in
+`index.html`, so nothing validates the shape.
+
+**The registration number is named and never read.** A synthesiser reading eight
+digits aloud is thirty seconds of nothing, and a number said out loud is a number
+somebody will try to write down. The render fails if a digit ever reaches the
+script.
+
+### The ending, and the one word on the tick
+
+The order is **send tap, the tick, the report, the offering, the end card**, and
+it took four attempts to get there. The report answers the press because it is
+what the press buys; the offering is the pitch and it lands last with the frame
+to itself.
+
+**`done` lands on the check mark rather than after it**, and the press is timed
+**backwards** through the stub to make that true: `sendAt` is `done`'s own start
+minus `STUB` minus a frame, so the tick and the word arrive together whatever
+either take turns out to be. `STUB` is 0.48s and `guard` reads `injected()`'s own
+source to check it still matches the 480 in the stubbed fetch, because the two
+live in different worlds and a stub that quietly got slower would slide the tick
+off the word with nothing to show for it.
+
+**The offering is a second service, not a description of the report.** The list
+used to follow `you get your report` with nothing between them, so a viewer heard
+the report and then four nouns and drew the obvious inference: that the report
+*is* the app and the website. It is not. The report is the free look at the
+business; building the thing is the other half of what we sell. `and if you want
+it built` is the whole fix, and it is its own line because as one sentence it is
+sixteen words, nearly twice the longest line in the clip.
+
+**The hole after `done` is 0.80s where it was 1.60**, because 1.60 sat. It was
+paid for **at both ends of the tick rather than out of the tick**: the reframe
+onto the check mark is 0.34s where it was 0.48, and the card's exit is a 0.22s
+fade starting 0.24s before the report where it was 0.38 starting 0.40. The card
+goes quicker rather than earlier, so the check mark keeps every frame it had at
+full size — never cropped, never scaled — and holds legible for about three
+quarters of a second on both themes.
+
+### The end card
+
+`THE / BORING / TEK` stacked on three lines the way the logo is actually drawn
+and the way `index.html` sets it, with the address under it in the lockup
+subline's treatment, and nothing else on the card.
+
+**Stacking is what makes it big.** On one line the wordmark had to fit 300px of a
+540 wide frame, which is michroma at 25px; the widest stacked line is `BORING`,
+so the same width buys 59px. It is **centred as a group and the centre is
+measured, not typed**: `build()` measures both blocks after the face has loaded
+and places them either side of `centreY`. That centre is the middle of the room
+**above the caption band** rather than the middle of the frame, because the last
+line of the clip is still being captioned into that band while the card is up.
+
+### The dark variant
+
+`--dark` renders the same clip on the near black page. **The same clip**: the
+script, the beats, the camera, the cut, the mascot's marks and the sound are one
+plan and neither variant knows which one it is. Three attributes change:
+
+- **`data-theme` on the composed page's `<html>`.** `index.html`'s own token
+  blocks are already inlined into the page by `captionCss` — both of them, the
+  light `:root` and the dark override — so the caption ink, the card hairline,
+  the end card and the tap ring all follow the attribute without a line of theme
+  code in `post11.mjs`.
+- **`theme` into `planMascot`**, which is what turns the phosphor glow on.
+  `lib/mascot.mjs` gates the two layer glow on the dark theme and its own self
+  test asserts that only dark glows.
+- **`bt-theme` into the iframe's `localStorage`** before `index.html` runs, which
+  is the same key a visitor's own toggle writes. The page comes up dark on its
+  own: **the film picks the mode the site already has rather than restyling it.**
+  It is set through `evaluateOnNewDocument` so it lands before either page
+  script, which is the only way the site can come up already dark rather than
+  flipping into it on a frame somebody would see.
+
+Every guard runs unchanged on both, plus one written for the pair. Measured off
+the computed style at render, light against dark:
+
+```
+caption ink                       19.46:1   14.34:1
+card hairline                      1.29:1    1.29:1
+bubble outline vs its capsule     19.46:1   14.34:1
+bubble capsule vs the page         1.00:1    1.00:1
+end card wordmark / address    19.46/8.12  14.34/12.04
+the tap ring                      19.46:1   14.34:1
+```
+
+Five of those are held to wcag's 3.0 absolutely — its large text bar and its non
+text bar are the same number. **Two are measured and deliberately not floored.**
+The card's hairline is `var(--line)`, `index.html`'s own separator, faint on
+purpose on both themes and not a boundary anything depends on, because the card
+is full of the site and the site is the boundary. And the bubble's fill **is** the
+page colour by design: it is a capsule with a hole in it and the outline is what
+separates it. Flooring either would mean restyling the site inside the card for
+the film, which this file has never done. They are held to **parity with the
+light render** instead, read off `post11-light-1080x1920.json`, so a theme swap
+that quietly made anything fainter fails even where there is no absolute number
+to fail against.
 
 ### The sound
 
-**No music in this pass.** What is in the file besides the read is the mascot's
-own two cues — a `pop` when a bubble arrives and a `ding` on the agreement beat —
-and a soft `click` on each tap, which is the house recipe's own line about
-presses. Twelve effects, every one derived from a plan that already existed.
+**No music.** What is in the file besides the read is a second read in the comedy
+voice over the typing, the mascot's own cues — a `pop` when a bubble arrives and
+a `ding` on the agreement beat — a `click` on each tap but one, `key` ticks under
+the hand and under each field fill, a `press` on the send and a `ding` on the
+check mark. **Forty two effects**, every one derived from a plan that already
+existed rather than typed against the picture.
+
+Three of those were added because the clip did them in silence. `key` and
+`press` are two new recipes in `lib/sfx.mjs`, both the `click` recipe resized:
+`key` is one keystroke, three and a half milliseconds of noise banded 1.3k to
+4.2k for the cap and a 124Hz pulse under it for the board, gone in 55ms, at -34dB
+— under the sweep, because it is the only sound that repeats a dozen times inside
+four seconds and it plays under a voice. `press` is one button with travel in it,
+nine milliseconds of noise banded lower and a body falling 150 to 110Hz, 130ms,
+at -21dB, four over the click and three under the coin. It exists because the
+clip had six real presses in it and the last one, the one that sends, sounded
+exactly like the five before it. The confirmation is `ding`, which was already
+written as "a check being drawn" and had only ever been used for an agreement.
+
+**One tick per four characters, not per keystroke.** Forty three sounds inside
+three seconds is a rattle. The typo and the backspace always get their own,
+because they are the two moments the rhythm breaks.
 
 Delivered at **-14.2 LUFS / -1.0 dBTP**, the limiter pulling 4.8 dB at its
-hardest, the bus 15.0 dB under the voice at its closest in the 1076 windows a
-word is being spoken in. The loudness loop is post5's: it keeps its best pass
-rather than its last, and the ceiling handed to the limiter comes down by
-whatever the measured true peak overshot by.
+hardest. The loudness loop is post5's: it keeps its best pass rather than its
+last, and the ceiling handed to the limiter comes down by whatever the measured
+true peak overshot by.
+
+### No dead air, and it is a guard rather than a claim
+
+Every hole in the read is measured on the waveform. The check has got **narrower
+twice** and it is worth writing down why, because both times the shape changed
+rather than the tolerance:
+
+```
+20.96..25.43   4.47s   the hand types in it, under the comedy read
+32.34..33.29   0.95s   the send is pressed in it
+33.58..34.38   0.80s   the tick is held and the card leaves
+```
+
+There used to be two named holes and the second was allowed three seconds while a
+check mark was drawn in it. Then there was **one** hole allowed to be long, the
+one the hand types in, and everything else under 1.70s. Now the two numbers are
+**separate, because they were never measuring the same thing**:
+
+- **`HOLE_MAX` = 1.20s** — any hole that is not the typing one. The longest in
+  the clip is the 0.95s the send is pressed in.
+- **`TYPE_TAIL_MAX` = 1.50s** — how far the typing hole may run past the last
+  keystroke with nothing in it. It runs 1.33s.
+
+Both are tighter than the single 1.70 they replace, which was left over from when
+the confirmation sat in silence and was only answering both questions by
+accident.
+
+**And three things are checked positively, which is the half a length limit
+cannot express.** The check mark has to be drawn while a word is being said — it
+has to fall inside some beat's own sound. The send may never resolve before
+`send it` has finished. And `STUB` has to agree with the stubbed post in
+`injected()`, read off that function's own source.
+
+### Outstanding, and not started
+
+- **The opening motion pass.** The mascot should play **big and centred above the
+  caption band through the opening**, up to and including the domain line, then
+  **glitch out of the centre and glitch back in at the bottom left corner on the
+  button tap** — hard cut, a short burst, rgb split and jitter, post10's glitch
+  language — and work from the corner unchanged after that. **Not begun.** It
+  needs a per frame transform on `.m-zone` driven from node, the head, bubble and
+  band guards re-pointed at DOM measured rects instead of `headRect`'s plan
+  geometry so they still describe what is on screen at the larger size, and
+  post10's glitch read across. **The mascot's placement still wants another look
+  either way.**
+- **The 60fps pass.** Neither variant has been rendered or reviewed at sixty.
+  Every number in this section is off a 12fps preview.
+- **A posting pack and a track.** Caption, tweet and three tags per platform,
+  none of them decided; and the clip ships with no music by design, so Einz picks
+  one later.
 
 ## The og card
 

@@ -9,14 +9,18 @@ names in here either.
 - **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
   **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
   inside the mp4**, rendered with the shutter open at four subframes in **15.5
-  minutes**. **Five rounds of fixes landed across two days and it is 46.83s now,
+  minutes**. **Six rounds of fixes landed across two days and it is 46.47s now,
   checked at 12fps only.** Every fault a viewing found is closed, including the
   silent stretch where the form used to finish itself: the voice narrates the
   form to the send now. The empty top of the frame is empty on purpose and the
-  space is Einz's to fill. The 60fps master has not been run. See post11's three
-  rounds under Decisions. **The first clip built on
-  `demo/lib/mascot.mjs`** and **the first that puts the live site inside a card**
-  rather than filling the frame with it: white page, big type, real footage of
+  space is Einz's to fill. **It renders in two variants since 08-31, light and
+  `--dark`, out to `demo/out/post11-light-1080x1920.mp4` and
+  `post11-dark-1080x1920.mp4`.** **Neither has been rendered or reviewed at
+  60fps: 12fps previews only.** The next thing it owes is the **opening motion
+  pass**, which is not begun. See post11's six rounds under Decisions. **The
+  first clip built on `demo/lib/mascot.mjs`**, **the first that puts the live
+  site inside a card** rather than filling the frame with it, and **the first
+  that renders both themes off one plan**: big type, real footage of
   theboringtek.com cropped to the hero, and the corner mascot reacting the whole
   way through. **The live site did not change** — `index.html`, `CNAME`,
   `robots.txt`, `sitemap.xml`, the language stubs and `assets/` were all
@@ -1223,7 +1227,7 @@ Still no posting cadence or content pillars. See Next steps.
   14.34:1 dark; hairline 1.29:1 on both; capsule 1.00:1 on both; end card
   wordmark 19.46 / 14.34, address 8.12 / 12.04; tap ring 19.46 / 14.34.
 - **`demo/post11.mjs`**, added 2026-08-30: the eleventh clip, the explainer.
-  **36.93s at 60fps as first built; 46.83s after five rounds of fixes across
+  **36.93s at 60fps as first built; 46.47s after six rounds of fixes across
   2026-08-30 and 2026-08-31, which are rendered and checked at 12fps only**, vertical only, the read
   inside the mp4, out to
   `demo/out/post11-1080x1920.mp4`. `--blur` opens the shutter for the final,
@@ -1848,13 +1852,44 @@ no card allowed to straddle two lines.
 **And it cost `lib/mascot.mjs` one addition, which is opt in.** A mark may carry
 a **list** of bubbles instead of one, on a shorter profile — see the entry below.
 
-### 2026-08-30 to 08-31 — post11, five rounds of fixes, and what each one settled
+### 2026-08-30 to 08-31 — post11, six rounds of fixes, and what each one settled
 
 Six things came out of watching the first cut and the list turned into three
 rounds, and two more the next morning for the copy and the last of the silence. Everything below is in
 `demo/post11.mjs`, `demo/lib/voice.mjs` and `demo/lib/sfx.mjs`. **The clip is
-46.83s and it is rendered and checked at 12fps only; the 60fps master has not
+46.47s and it is rendered and checked at 12fps only; the 60fps master has not
 been run.**
+
+**The script as it stands, nineteen lines**, because every round moved it and a
+list is easier to check than a paragraph:
+
+```
+ 1   0.30..2.35    white   ai for business is everywhere now
+ 2   2.63..4.80    white   some people do not know why they even need it
+ 3   5.01..7.33    white   some know exactly, but have no time
+ 4   7.75..9.60    white   and some just need one small thing done
+ 5   9.93..12.32   site    go to the boring tek, dot com
+ 6  12.64..13.32   site    press the button
+ 7  13.85..15.26   site    it does not cost you anything
+ 8  15.56..16.98   site    answer a few simple questions
+ 9  17.26..19.74   site    in english, russian or latvian
+10  20.02..20.93   site    then type what you want
+--  21.23..24.10   site    i want ai to do my job but keep my salary  (comedy voice, uncaptioned)
+11  25.40..26.59   site    how big your business is
+12  26.89..28.85   site    your name and your registration number
+13  29.13..31.65   site    your website, where you are, and your email
+14  31.99..32.35   site    send it
+15  33.24..33.52   site    done
+16  34.33..36.38   white   in one or two days you get your report
+17  36.75..37.83   white   and if you want it built
+18  38.06..42.66   white   we do apps, websites, research, graphic design, or one small job
+19  42.97..44.69   white   we sit between you and ai
+```
+
+The cut hangs off it: send tap 32.69, the tick 33.24, the reframe onto it
+33.28..33.62, the card's exit 34.09..34.31, the end card from 42.67. Outputs are
+**`demo/out/post11-light-1080x1920.mp4`** and **`post11-dark-1080x1920.mp4`**,
+both **46.47s**.
 
 **1. The domain read, and it took three attempts.** The script says **`go to the
 boring tek, dot com`** at -18%, and the caption draws `theboringtek.com`. The
@@ -2017,6 +2052,22 @@ typed: `build()` measures both blocks after the face has loaded and places them
 either side of `centreY`. `centreY` is the middle of the room **above the
 caption band** rather than the middle of the frame, because the last line of the
 clip is still being captioned into that band while the card is up.
+
+**What is outstanding, and none of it is started.**
+
+- **The opening motion pass.** The mascot should play **big and centred above the
+  caption band through the opening**, up to and including the domain line, then
+  **glitch out of the centre and glitch back in at the bottom left corner on the
+  button tap** — hard cut, a short burst, rgb split and jitter, post10's glitch
+  language — and work from the corner unchanged after that. **Not begun**, and it
+  is not a retime: it needs a per frame transform on `.m-zone` driven from node,
+  the head, bubble and band guards re-pointed at DOM measured rects instead of
+  `headRect`'s plan geometry so they still describe what is on screen at the
+  larger size, and post10's glitch read across. **The mascot's placement wants
+  another look either way.**
+- **The 60fps pass. Neither variant has been rendered or reviewed at sixty.**
+  Every number in this entry is off a 12fps preview.
+- **A posting pack and a track**, both still owed.
 
 **What the reviews found and did not fix.** In
 `demo/out/review-post11-1080x1920.md`. **One frame at 31.67s** where the camera
@@ -4389,9 +4440,18 @@ of them.
   burned in. The only open part is whether and when Einz posts it. It jumped
   post3 as well, so **post3, "missed calls", is now six clips behind and still
   unbuilt.**
+- **post11, "the explainer", is built in two variants and not posted** —
+  2026-08-30 to 08-31, `demo/post11.mjs`. **46.47s**, light and `--dark`, out to
+  `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`. **Only
+  12fps previews exist: neither variant has been rendered or reviewed at 60fps.**
+  It owes **the opening motion pass** (the mascot big and centred through the
+  opening, then glitching to the bottom left corner on the button tap), which is
+  not begun and is the next thing to do; the **60fps master**; and a **posting
+  pack** and a **track**. The mascot's placement wants another look either way.
+  The entry below predates the last three rounds and is kept for the history.
 - **post11, "the explainer", is built and not posted** — 2026-08-30,
-  `demo/post11.mjs`. **Five rounds of fixes are in and it is 46.83s now**, every
-  check passing and all five video-review passes clean, **but only at 12fps: the
+  `demo/post11.mjs`. **Six rounds of fixes are in and it is 46.47s now**, every
+  check passing and every video-review pass clean, **but only at 12fps: the
   60fps master has not been run.** It owes a **posting pack**: caption, tweet and
   three tags per platform, none of them decided. And it owes **a track** — the
   clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
