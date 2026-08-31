@@ -37,6 +37,13 @@ All headless Chrome, all tooling. The renderers first:
   **Both 60fps finals rendered green, 47.03s each, and both have since been
   overwritten** by the 12fps previews from the brain removal, which write to the
   same two paths. **They want `--blur` run again.** See The eleventh clip.
+- **`post12.mjs`** renders a 5.05 second sting, vertical, dark only, **with no
+  words in it at all until the last half second.** The shortest clip here and
+  the first that is a joke rather than an argument: the mascot alone in the
+  middle of a black frame says hi, holds still, farts, giggles, and the wordmark
+  snaps in over a glitch. **The first clip whose sounds are the content** — there
+  is no voice and no caption, and four new recipes in `lib/sfx.mjs` carry it.
+  Out to `demo/out/post12-dark-1080x1920.mp4`. See The twelfth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -2525,6 +2532,266 @@ The day a second clip wants a glitch is the day it moves.
   none of them decided; and the clip ships with no music by design, so Einz picks
   one later.
 
+## The twelfth clip — the sting, and a joke instead of an argument
+
+```
+cd demo
+node post12.mjs                 # 1080x1920, 60fps, shutter closed
+DEMO_FPS=12 node post12.mjs     # the fast preview pass
+node post12.mjs --blur          # 60fps with the shutter open, four subframes
+node post12.mjs --keep-frames   # leave the jpegs on disk
+node post12.mjs --encode-only   # re-encode from kept frames
+```
+
+**5.05 seconds, dark only, one output path, overwritten every run:**
+`demo/out/post12-dark-1080x1920.mp4`. Nine beat stills land in
+`demo/out/verify-post12/`, which is how the cut is read as a strip rather than
+scrubbed as a video.
+
+Every clip before this one is an argument. post9 pitches, post10 is angry,
+post11 explains for forty seven seconds. None of them is *likeable*, and a feed
+is not only won by being right. This is the mascot being a small robot for five
+seconds with a joke in the middle, and the whole brand content is three words at
+the end.
+
+### No words at all, which is a constraint rather than a saving
+
+There is no read, no caption and no bubble. Nothing is written on the screen
+until 4.56s. That is the first time a clip here has had to be legible from the
+picture and the sound alone, and it is why nearly every time in the file is
+**derived off the rig** rather than typed against it: with nothing written down,
+a beat that lands a fifth of a second late has nothing to hide behind.
+
+The video-review skill's transcript step reports "no transcript was possible",
+which is correct twice over — there are no captions and no whisper key — and
+also moot, because there is nothing to transcribe.
+
+### The mascot module is used exactly as it is
+
+`lib/mascot.mjs` supplies the plan, the frame, the preflight, the css, the
+markup and the page runtime. Nothing in `post12.mjs` reaches inside it and there
+is no body — that module draws a head and this clip does not invent one.
+
+Two things the clip does to the plan, and both are arithmetic on its output
+rather than a change to it:
+
+- **`plan.box` is rewritten to centre him.** `planMascot` places by corner, and
+  this clip wants him in the middle. `headRect`, `mascotCss` and
+  `mascotPagePlan` all read `plan.box` when they are called, so moving it before
+  any of them run is the same as having been placed there — and every clearance
+  number in the report still comes out of the module's own geometry.
+- **`size` is 148 rather than 128**, which puts the plate at **277.5 device px**
+  against the module's own 220 to 280 window. Larger than his 240px corner size,
+  which is what the brief asked for, and still a number `planMascot` checks. 280
+  is the ceiling, so 277.5 is as large as he is allowed to be.
+
+He is centred on the middle of the **safe band** rather than of the frame:
+180 device px off the top and 220 off the bottom puts the middle of what a viewer
+sees ten css px above the middle of the file, and a thing centred on the frame
+reads a shade low. The wordmark lands on the same line, so he is replaced rather
+than followed.
+
+### The cut, and the pause that is the whole joke
+
+Four marks, and the room between them is not taste — `planMascot` refuses a mark
+with no room for its own entrance, hold and exit, so the clip is as short as
+these four states allow.
+
+| at | state | what it is |
+|---|---|---|
+| 0.06s | `neutral` | he fades up, arrives at rest, blinks and drifts |
+| 1.14s | `agreeing` | the hi. up first, then a contact squash with a warm half blink on it |
+| 2.38s | `surprised` | the fart. pulls back, snaps up, eyes to 2.6x, brows high, `turn` +0.30 |
+| 3.55s | `delighted` | the giggle. two hops with real lift, eyes squashed into arcs |
+| 4.56s | — | the cut, and the wordmark is born on that frame |
+| 5.05s | — | end, after 0.40s of the end card holding |
+
+`agreeing` for the greeting is the call worth defending. It goes **up** first —
+"a nod that starts by going down is a head falling off" — and lands on a squash
+with a half blink on it, which is "a small squash and a rise" and is also,
+with a rising bleep on the contact, unmistakably a nod hello. `surprised` then
+gets the fart, because eyes at two and a half times their height with brows in
+high is the one pose in the table that means *what was that*, and the `turn` on
+it is him tilting away from the puff, which leaves to screen left.
+
+**The pause is 0.62s and it is `agreeing`'s own hold plus its exit**, not a gap
+left over between two marks. For most of it the only things moving are the idle
+drift, a saccade and a blink. A five second clip spending an eighth of itself on
+nothing is the joke being set up, and the render guards it: under half a second
+and the file fails rather than shipping a gap where a pause was meant to be.
+
+### The giggle is measured off the picture
+
+Three bleeps, and the brief says he bounces on each one, so the three times are
+turning points in the **drawn head's** own y — the card, which is three frames
+behind the rig by design, not `pose`, which is the rig. They come out at 3.83,
+4.22 and 4.33: the top of the first hop, the dip between, the top of the second.
+The gaps are 0.39 and 0.11, which is uneven **on purpose**: the state hops big
+and then small, so the laugh comes out as one and then two, which is what a
+laugh that catches sounds like.
+
+**A prominence test is what makes that function work**, and it is a fault this
+clip paid for. A hop is several tweens handed to each other, and a handover
+writes its own `from` value: where one tween settled a quarter of a unit past
+where the next starts, the curve steps, and a step is two turning points. Those
+are real numbers and about half a device pixel on screen. The first cut put a
+bleep on one. A turn now only counts if it is three grid units from the last one
+that did — the hops swing twelve and seven, the artefact swings one.
+
+### The puff is drawn in code and it took two goes
+
+Eleven soft blobs of white light, born under him thirty milliseconds apart,
+expanding as they travel, screen blended so they add light to a black frame
+rather than sit on it as grey discs. No asset and no sprite.
+
+**The first cut was invisible and only a rendered frame said so.** The blobs
+were born at (258, 536), inside the head's own thirty pixel glow, and the
+fastest travelled a hundred css px against a sixty nine px head radius: what
+came out was a smudge on the bottom left of his halo that read as the glow
+leaking downward. Every guard in the file was green on it.
+
+What fixed it: born at (244, 534), outside the halo, where a thing escaping from
+under him would first be seen; brighter, bigger and less blurred; and **the
+distance is the parameter rather than the velocity.** A velocity plus a life is
+two numbers that multiply into the one thing that actually matters, which is
+where the blob ends up — and where it ends up is what the safe area cares about.
+With distance as the parameter the longest lived blob cannot quietly become the
+one that leaves the frame.
+
+The reach guard makes two judgement calls and both are written down rather than
+buried: a blob is measured only while it is over a tenth opaque, because a cloud
+at three per cent is not a thing crossing a line; and the extent is the disc plus
+one blur radius rather than three, because a css blur is a gaussian. Worst
+measured is 210 device px clear on the left against a 140 floor.
+
+### The end, and a grey card that was almost shipped
+
+post11's glitch language on post10's machinery: a hard stretch where every
+channel is at full and the bands move every frame, then a short stutter. It is a
+function of the **output frame index**, held across every subframe, for post10's
+reason — a one frame rgb split written against `t` is on for one subframe of four
+and lands at a quarter strength.
+
+Only the wordmark is torn, and that is a decision rather than a shortcut. The
+mascot is one dom subtree driven by ids out of the mascot module's own runtime
+and there is no second copy of it that could be kept in sync; the wordmark is
+three words of static text and duplicating it cannot go wrong. It is also the
+only thing on screen when the glitch is at full heat, because the head is cut on
+the same frame the hit lands.
+
+**The white flash was a full frame rect at 0.40 and the frame it fired on came
+back as an even grey card** — the whole screen at forty per cent white with a
+screen blended noise layer over the top, on a frame where the head had already
+been cut and the words had not yet arrived. That is not a glitch, it is a missing
+frame, and again every guard was green on it. It is a 420px radial bloom at 0.30
+now, the noise ceiling came down from 0.34 to 0.22, and the wordmark is born on
+the same frame as the cut so there is never an instant with neither of them on
+it.
+
+### The wordmark
+
+Three lines, centred, on the line his head was on. Michroma, the site's display
+face, and the only place it appears in this clip. **Fitted in the page rather
+than guessed**, because Michroma is proportional and the tracking is nearly a
+fifth of an em, so the width of `BORING` is a measurement: the page sets 100px,
+measures the widest line and scales. Every copy is fitted, the torn ones
+included, or a tear would show a wordmark at a different size to the one under
+it.
+
+330 css px is 660 device px against a safe band 800 wide, which is 70 device px
+of air either side on top of the platform's own margin. The caps measure 74
+device px. It reads at 400px wide, which is about a phone thumbnail.
+
+### The sound is the content
+
+Four new voices in `lib/sfx.mjs` — `hi`, `fart`, `giggle` and `glitch` — and
+five cues, every one of them a time something else had already decided:
+
+| at | sound | where the time came from |
+|---|---|---|
+| 1.61s | `hi` | `agreeing`'s own declared ding offset, the bottom of the first nod |
+| 2.34s | `fart` | the puff's own birth, four hundredths before the head moves |
+| 3.83 / 4.22 / 4.33s | `giggle` x3 | turning points in the drawn head's y |
+| 4.56s | `glitch` | the cut |
+
+**The ceiling wins the mix on this clip, by 4.4 dB, and that is a property of
+what a sting is.** Hitting post10's -14 LUFS would mean lifting the bus 25.6 dB,
+which puts the loudest sound two and a half decibels over full scale and asks
+the limiter to take three and a half back. This clip is five sounds and nothing
+else, so three and a half decibels of limiting is not glue — it is the glitch
+losing its snap. So the bus is peak normalised to -1.8 dBFS instead, the limiter
+does nothing, and the integrated figure comes out at **-18.4 LUFS**, which is the
+honest description of a clip that is silent for three quarters of its length.
+Every platform normalises on the same measure and will lift it back. The sample
+ceiling is 0.8 dB under the true peak ceiling because a sample peak limiter does
+not hold a true peak and aac adds its own overshoot; measured on the finished
+file, the true peak is -1.8 dBFS.
+
+### The hi was built twice, and the numbers are in the file
+
+The brief asked for a synthesised bleep and for an edge tts "hi" pitched up and
+bit crushed, and for whichever is cuter to ship. Both were built — seven tts
+takes, four on "hi" and three on "hi?" — and the comparison table with the pitch
+contours and the top end shares is at the bottom of `post12.mjs` under `THE HI,
+BOTH WAYS`, along with the one thing the numbers cannot settle.
+
+The short version: **the synthesised bleep ships.** A neural voice saying "hi"
+is one glide with a falling terminal contour, which is what a statement does in
+english; the brief asks for two tones rising. A question mark buys the rise back
+and the best take gets to 1.26x against the bleep's 1.53x, and it is still one
+continuous glide with no gap in it, so it can never be the two notes the brief
+describes. Every tts take also carries six to eight per cent of its energy above
+four kilohertz, which is sibilance plus the crusher's own aliasing, against the
+bleep's zero — and every sound in `lib/sfx.mjs` is low passed under 3.8k on
+purpose, which is why the set sounds like one set.
+
+**Nothing in this pipeline can hear**, and the file says so in as many words. A
+pitch contour and a spectral centroid are proxies for cute, not measurements of
+it. The tts takes are left in `demo/out/p12-hi/` for a person to listen to and
+overrule.
+
+### The guards this clip added
+
+Everything `mascot-test.mjs` checks, minus the bubble items, plus:
+
+- **He is actually in the middle.** The head's left and right clearance on the
+  worst frame must agree within two device px.
+- **He is actually larger than his corner size.** The rendered plate must be over
+  240 device px, which is the number the default `size` produces.
+- **The puff never crosses the safe area**, measured off the plan at four times
+  the master rate.
+- **The wordmark is in Michroma**, fitted to within six device px of its target
+  width, over a cap height floor, and inside the safe area on all four sides.
+- **The pause is over half a second.**
+- **The giggle is three beats**, none of them closer than 90ms — which is about
+  the sound, not the rhythm — none further apart than 0.60s, and all of them
+  before the cut.
+- **The glitch runs on under a fifth of the frames** and nothing fires past the
+  clean line, so the end card holds still.
+- **The end card holds over 0.35s.**
+- **No identical frames**, off a per frame signature built from everything this
+  file writes plus everything the mascot writes. post10 shipped a pair and only
+  found out at sixty.
+- **No green anywhere**, asserted on the markup the render actually served. The
+  hexes and `--accent` are banned outright; the *word* is checked with block
+  comments stripped, because the mascot module's own css comment explains that
+  the two greens exist and are not used here, and a guard that fails on a comment
+  saying "there is no green" is a guard nobody keeps.
+
+### Outstanding
+
+- **A posting pack.** No caption, no tags, no platform decided.
+- **It runs 5.05s against a four to five second brief.** The overshoot is the
+  four states' own entry, hold and exit floors: there is no room to take out
+  without `planMascot` refusing the plan, and the pause is the last thing that
+  should be cut.
+- **The glitch recipe now exists twice.** `post11.mjs` carries its own local
+  `glitchSfx` — a dropped packet coming apart over a sixth of a second — and
+  `lib/sfx.mjs` now carries `glitch`, a single hard hit. They are different
+  sounds for different events, so this is not yet a duplicate; the day post11 is
+  next touched is the day to look at whether its recipe belongs in the module
+  beside this one.
+
 ## The og card
 
 ```
@@ -2953,7 +3220,7 @@ disagree about blinking.
 
 ### `lib/sfx.mjs` — synthesised sound
 
-Ten sounds, written in JavaScript sample by sample. **There is not one audio
+Sixteen sounds, written in JavaScript sample by sample. **There is not one audio
 file in the repo**, for the same reason the pictograms are drawn in code and the
 mascot is an inline SVG: a sample pack is a dependency with a licence, a
 download and a folder of binaries in a public repo, and it sounds like everybody

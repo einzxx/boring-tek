@@ -120,12 +120,20 @@ function ends(buf, ms = 2) {
 }
 
 /* ---------- the sounds ----------
-   twelve of them, and each one is two or three lines of physics.
+   sixteen of them, and each one is two or three lines of physics.
 
    the whole set is deliberately dull. a caption card gets a thump with no top
    end at all, because the thing it is announcing is a word appearing, not a
    notification; the coin is the only sound in the clip with any metal in it,
-   because it is the only thing in the clip made of metal. */
+   because it is the only thing in the clip made of metal.
+
+   **the last four are a character rather than a set of things, and post12 is
+   what asked for them.** `chirp` opened that door and these walk through it: a
+   greeting, a noise a body makes, a laugh, and the frame breaking. they are the
+   only sounds in the file that are allowed to be funny, and the rule that keeps
+   them inside the house is that none of them is bright: the giggle is the
+   highest thing here and it is still low passed under four kilohertz, which is
+   where every other sound in this file has its ceiling. */
 export const VOICES = {
   /* a caption card arriving. a body with no click on it: a sine falling from
      150 to 92 hertz inside sixty milliseconds, gone in a tenth of a second. it
@@ -360,6 +368,152 @@ export const VOICES = {
     }
     return ends(normalise(lp(b, 220)), 30);
   },
+
+  /* ---------- the four post12 brought ----------
+     the thirteenth, and it is the mascot saying hello. `chirp` is one note and
+     means "i have something to say"; this is two, and the second is higher,
+     which is the whole difference between a beep and a greeting. a rising pair
+     is what a door entry system, a kettle and a cartoon robot all use to mean
+     the same thing, and a falling pair means the opposite so completely that
+     there is nothing to tune between them.
+
+     the notes are 90ms and 105ms with 34ms of air between them, because the gap
+     is what makes it two syllables rather than one glide. each note also glides
+     up inside itself, the same trick `chirp` uses, so the pair rises twice: once
+     between the notes and once within each of them. that is the part that reads
+     as cute rather than as an announcement.
+
+     the third harmonic a quarter under is `chirp`'s, and so is the 3.4k low
+     pass: this is the same small robot with a bigger vocabulary, not a new one.
+     the second note is a hair quieter than the first, which is what a voice does
+     and a doorbell does not.
+
+     it was built against an edge tts "hi" pitched up and bit crushed. see
+     post12.mjs for that comparison and which one shipped. */
+  hi({ f0 = 620, f1 = 760, f2 = 900, f3 = 1140, one = 0.09, gap = 0.034, two = 0.105,
+    tau = 0.055, third = 0.24 } = {}) {
+    const b = n(one + gap + two);
+    const note = (at, len, a, z, amp) => {
+      const s0 = Math.round(at * SR), s1 = Math.min(b.length, Math.round((at + len) * SR));
+      let ph = 0;
+      for (let i = s0; i < s1; i++) {
+        const q = Math.min(1, (i - s0) / ((s1 - s0) * 0.55));
+        ph += 2 * Math.PI * (a + (z - a) * (q * q * (3 - 2 * q))) / SR;
+        b[i] += (Math.sin(ph) + Math.sin(ph * 3) * third)
+          * decay(i - s0, tau) * Math.min(1, (i - s0) / (0.003 * SR)) * amp;
+      }
+    };
+    note(0, one, f0, f1, 1);
+    note(one + gap, two, f2, f3, 0.88);
+    return ends(normalise(lp(b, 3400)));
+  },
+
+  /* the fourteenth, and it is the one sound in this file that is a joke. the
+     brief is "comic not gross", and that is a recipe rather than a taste: what
+     makes a real one unpleasant is the noise in it, the wet broadband hiss, and
+     there is none here at all. what is left is a pitched buzz, which is what a
+     cartoon has always used and what a kazoo actually is.
+
+     three parts. a fundamental falling from 96 to 58 hertz, which is the air
+     going out. a tremolo at 38 hertz with most of the depth on it, which is the
+     flutter and is the part the ear reads as an event rather than as a tone. and
+     a slow wobble on the pitch, four and a half hertz, so it sags rather than
+     glides: a clean fall is a synth sweep and a sagging one is a thing
+     deflating.
+
+     low passed at 380, harder than anything else in the file. above that line
+     the tremolo starts producing sidebands with an edge on them and the whole
+     thing turns into a raspberry. under it there is no top end left to be rude
+     with, and what comes out is a low soft parp.
+
+     the attack is fourteen milliseconds rather than none. this does not start on
+     the sample; it starts. */
+  fart({ len = 0.30, f0 = 96, f1 = 58, trem = 38, depth = 0.72, wob = 4.5,
+    attack = 0.014 } = {}) {
+    const b = n(len);
+    let ph = 0, mp = 0, wp = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = i / b.length;
+      wp += 2 * Math.PI * wob / SR;
+      /* the fall is eased and the wobble rides on top of it. */
+      const f = (f0 + (f1 - f0) * (q * q * (3 - 2 * q))) * (1 + 0.07 * Math.sin(wp));
+      ph += 2 * Math.PI * f / SR;
+      mp += 2 * Math.PI * trem / SR;
+      const am = 1 - depth * 0.5 * (1 - Math.cos(mp));
+      /* a second harmonic under the fundamental rather than over it, which gives
+         it a body without giving it a rasp. */
+      const tone = Math.sin(ph) + Math.sin(ph * 2) * 0.42;
+      /* in over the attack, flat, then out over the last third. */
+      const env = Math.min(1, i / (attack * SR)) * (q < 0.62 ? 1 : 1 - (q - 0.62) / 0.38);
+      b[i] = tone * am * env;
+    }
+    return ends(normalise(lp(b, 380)), 6);
+  },
+
+  /* the fifteenth: one note of a three note giggle. the clip fires it three
+     times with `step` 0, 1 and 2 and the pitch climbs a whole tone each time, so
+     a laugh is three cues rather than one buffer. that is the whole reason it is
+     shaped this way: three cues can be placed on whatever the picture is
+     actually doing, and post12 puts them on the mascot's own hops, measured off
+     the rig rather than laid on a grid this file invented.
+
+     it is `chirp` made smaller and quicker: 62 milliseconds against ninety, a
+     shorter tail, the same glide up inside itself. a laugh is the same voice as
+     the greeting going faster, which is what a laugh is. */
+  giggle({ step = 0, len = 0.062, f0 = 780, f1 = 980, tau = 0.030, third = 0.26,
+    ratio = 1.122 } = {}) {
+    const b = n(len);
+    const k = Math.pow(ratio, step);
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = Math.min(1, (i / b.length) / 0.5);
+      ph += 2 * Math.PI * (f0 * k + (f1 - f0) * k * (q * q * (3 - 2 * q))) / SR;
+      b[i] = (Math.sin(ph) + Math.sin(ph * 3) * third)
+        * decay(i, tau) * Math.min(1, i / (0.0025 * SR));
+    }
+    return ends(normalise(lp(b, 3800)));
+  },
+
+  /* the sixteenth: the frame breaking, once, hard. post11 has a glitch of its
+     own written inside post11.mjs and this is deliberately not that one. that
+     one is a dropped packet, four or five gates coming apart over a sixth of a
+     second, and it is the sound of a signal degrading. this is a single hit: the
+     sound of a cut that should not be there.
+
+     three things on one instant. eight milliseconds of full band noise, which is
+     the transient and is the only genuinely bright thing in this file. a square
+     blip falling a fifth underneath, because a square is obviously generated and
+     a sine is not. and a tail of the same noise put through a sample and hold at
+     2.6k, which is a bit crusher: it is what a digital thing sounds like when it
+     is broken, and it is the reason this reads as a glitch rather than as a
+     snare.
+
+     140 milliseconds, which is eight frames at sixty. anything longer is a
+     broken render rather than a fault. */
+  glitch({ len = 0.14, burst = 0.008, crush = 2600, f0 = 260, f1 = 92,
+    seed = 0x2c81f7 } = {}) {
+    const b = n(len), rnd = noise(seed);
+    const bn = Math.round(burst * SR);
+    for (let i = 0; i < bn; i++) b[i] = rnd() * (1 - i / bn);
+    /* the crushed tail. one sample held for the whole step, which is what
+       decimation is, under a fast decay so it stutters out rather than fades. */
+    const hold = Math.max(1, Math.round(SR / crush));
+    let held = 0;
+    for (let i = bn; i < b.length; i++) {
+      if ((i - bn) % hold === 0) held = rnd();
+      const q = (i - bn) / (b.length - bn);
+      b[i] += held * Math.exp(-5.5 * q) * 0.62;
+    }
+    /* the blip. it stops at three fifths, so the crushed tail is the last thing
+       left and the hit ends on noise rather than on a pitch. */
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = i / b.length;
+      ph += 2 * Math.PI * (f0 + (f1 - f0) * q) / SR;
+      b[i] += (Math.sin(ph) > 0 ? 0.36 : -0.36) * Math.exp(-6 * q) * (q < 0.6 ? 1 : 0);
+    }
+    return ends(normalise(bp(b, 180, 7000)), 4);
+  },
 };
 
 /* ---------- the balance ----------
@@ -397,6 +551,21 @@ export const GAINS = {
      anything, and it is still not the loudest thing in the set, because a
      button is not a coin landing on paper. */
   key: -34, press: -21,
+
+  /* ---------- the character, and it is louder than the furniture ----------
+     post12 is the first clip whose sounds are the content: there is no voice
+     over them and nothing else in the frame carrying a beat, so the table above
+     — written for effects living under a read — is the wrong yardstick for these
+     four, and they are set against each other instead.
+
+     the greeting and the laugh sit at the chirp's level and a little over it,
+     because in that clip they are the line. the fart is under both of them,
+     which is the joke working: a punchline delivered quieter than its setup is
+     funnier than one shouted, and a low buzz at -27 on a phone speaker is felt
+     more than heard, which is exactly right for the thing it stands in for. the
+     glitch is the loudest in the set after the coin, because it is a cut and a
+     cut is meant to make you flinch. */
+  hi: -26, fart: -27, giggle: -25, glitch: -23,
 };
 const db = v => Math.pow(10, v / 20);
 export const dbfs = v => (v <= 1e-9 ? -Infinity : 20 * Math.log10(v));

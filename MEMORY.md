@@ -6,6 +6,33 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-01: `demo/post12.mjs`, the twelfth clip, the sting. 5.05s,
+  1080x1920, dark only, out to `demo/out/post12-dark-1080x1920.mp4`.**
+  The shortest clip here and the first that is a joke rather than an argument:
+  the mascot alone in the middle of a black frame fades up, says hi, holds still
+  for six tenths of a second, farts, giggles, and the wordmark snaps in over a
+  glitch. **There is not one word on the screen until 4.56s** — no read, no
+  captions, no bubble. **The 60fps final rendered green with the shutter open at
+  four subframes to a frame.**
+  - **`lib/sfx.mjs` grew four voices and is now sixteen sounds**: `hi`, `fart`,
+    `giggle` and `glitch`. They are the first four in that file that stand in for
+    a character rather than for paper, ink, metal or a mechanism — `chirp` opened
+    that door in post11 and these walk through it. Nothing existing in the module
+    moved and no existing clip changed.
+  - **`lib/mascot.mjs` was used exactly as it is and was not edited.** The clip
+    rewrites `plan.box` to centre him and asks for `size: 148`, which puts the
+    plate at 277.5 device px against the module's own 220 to 280 window — larger
+    than his 240px corner size, and 280 is the ceiling, so that is as large as
+    he is allowed to be.
+  - **The hi was built twice**, as a synthesised two tone bleep and as an edge
+    tts "hi" pitched up and bit crushed, seven takes of the latter. **The bleep
+    ships.** See the decision below; the numbers are at the bottom of
+    `post12.mjs`.
+  - **The live site did not change**; **no existing post file was edited**;
+    **no dependency was added** — the list stays `puppeteer-core`,
+    `ffmpeg-static` and `gsap`. **Not posted anywhere and there is no posting
+    pack yet.**
+
 - **Built 2026-08-30, rebuilt across five more rounds to 2026-08-31:
   `demo/post11.mjs`, the eleventh clip, the explainer. 47.03s, 1080x1920, the
   read in the file.** It renders in two variants, light and `--dark`, out to
@@ -826,6 +853,30 @@ names in here either.
 - Banners delivered for **X, Facebook and YouTube**.
 - **Bio line, locked:** `the future is cool. building it is boring.`
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
+
+#### post12 — built 2026-09-01, not posted yet
+
+`demo/post12.mjs`. 5.05s, 1080x1920, dark only, one output path overwritten
+every run. The full write-up is in `demo/README.md` under The twelfth clip; this
+is what a later session needs and cannot re-derive.
+
+- **The beats.** He fades up over 0.42s from black. `neutral` at 0.06,
+  `agreeing` at 1.14 (the hi), `surprised` with `turn` +0.30 at 2.38 (the fart),
+  `delighted` at 3.55 (the giggle). The cut and the wordmark both land on 4.56.
+  The end card holds 0.40s. End at 5.05.
+- **The sounds, and every time came from somewhere else.** `hi` at 1.61, which
+  is `agreeing`'s own declared ding offset. `fart` at 2.34, which is the puff's
+  birth, four hundredths before the head moves. `giggle` at 3.83, 4.22 and 4.33,
+  which are turning points in the drawn head's own y. `glitch` at 4.56, the cut.
+- **The mix is peak normalised, not loudness targeted, and that was a decision.**
+  -18.4 LUFS integrated, true peak -1.8 dBFS. Hitting -14 would have asked the
+  limiter for 3.5 dB on a bus that is five transients and nothing else. See the
+  decision below.
+- **It runs 5.05s against a four to five second brief.** The overshoot is the
+  four states' own entry, hold and exit floors in `planMascot` — there is nothing
+  to take out without the plan being refused, and the pause is the last thing
+  that should be cut.
+- **Owed:** caption, hashtags, platform. Nothing decided.
 
 #### post1 — posted 2026-08-24, recorded 2026-08-25
 
@@ -1880,6 +1931,97 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-01 — post12: the hi is synthesised, not spoken, and the numbers say why
+
+The brief asked for the greeting to be built twice — as a synthesised bleep and
+as an edge tts "hi" pitched up and bit crushed — and for whichever is cuter to
+ship. Both were built: the bleep, four tts takes on "hi" at 1.45x to 1.95x, and
+three on "hi?" at 1.55x to 1.8x with the pitch pushed, because a question mark is
+the only handle a neural voice gives you on a terminal contour.
+
+**The bleep ships**, on three arguments and none of them is taste.
+
+**It is the shape that was asked for.** The brief says *two tone* rising. A
+neural voice saying "hi" is one glide, and it falls: 0.65x across all four takes,
+which is what a statement does in english and is why they read as resigned rather
+than as a greeting. The question mark buys the rise back — the best take reaches
+1.26x against the bleep's 1.53x — and it is still one continuous glide with no
+gap in it, so there is no way to make it two notes without pitch bending it into
+them, at which point it is not the tts take any more.
+
+**It stays inside the house ceiling.** Every tts take carries six to eight per
+cent of its energy above four kilohertz, which is sibilance plus the crusher's
+own aliasing. Every sound in `lib/sfx.mjs` is low passed under 3.8k on purpose
+and it is the reason the set sounds like one set. The bleep measures 0.0%.
+
+**It costs nothing to render.** The tts path is a network call to an
+unauthenticated microsoft endpoint plus a cached wav on disk, for a two hundred
+millisecond sound, in a clip that is otherwise reproducible from source with no
+network at all. Third argument, same direction.
+
+**And the thing the numbers cannot settle, said plainly: nothing in this pipeline
+can hear.** The video-review skill says so about itself and it is true here too.
+A pitch contour, a spectral centroid and a top end share are proxies for cute,
+not measurements of it. The above is the case for the bleep on the evidence
+available. **A person who listens to both and prefers the tts take is right and
+this is wrong** — the takes are left in `demo/out/p12-hi/`, which is
+regenerable and gitignored, for exactly that.
+
+### 2026-09-01 — post12's mix: the peak ceiling wins, and the loudness target is not a target here
+
+Every clip before this one mixes a bus under a voice and scales the pair to -14
+LUFS. post12 has no voice, and `mixdown` is the wrong tool because it exists to
+put a bus under a read.
+
+The bus came off the synthesiser at -39.6 LUFS with its peak at -23 dBFS, so
+-14 wanted **25.6 dB of lift**, which puts the loudest sound two and a half
+decibels over full scale and asks the limiter to take three and a half back. On
+a clip that is five transients and nothing else, three and a half decibels of
+limiting is not glue — it is the glitch losing its snap and the fart losing its
+edge, and the whole point of the balance in `GAINS` is the relationship between
+those five sounds. A limiter working that hard is a second opinion about it.
+
+So the bus is **peak normalised** to -1.8 dBFS, the limiter does nothing, and the
+integrated figure lands at **-18.4 LUFS**. That is the honest description of a
+clip that is silent for three quarters of its length: every platform normalises
+on the same measure and will lift it back, and the loudest single event is still
+sitting where it belongs. The file reports "the ceiling won by 4.40 dB" rather
+than hiding it, and guards a floor of -20 so "the ceiling won" can never quietly
+become "the clip is inaudible".
+
+The sample ceiling is 0.8 dB under the true peak ceiling on purpose, and it is
+post5's lesson restated: a sample peak limiter does not hold a true peak, and aac
+adds its own overshoot. Measured on the finished mp4, the true peak is -1.8 dBFS.
+
+### 2026-09-01 — three faults in post12 that every guard was green on
+
+Worth keeping as a set, because they have one shape: **a number that is correct
+about geometry and wrong about what a frame looks like.** All three were found by
+opening the 12fps preview's own stills, which is exactly the case
+`skills/video-review/SKILL.md` exists for.
+
+1. **The fart was invisible.** The puff blobs were born inside the head's own
+   thirty pixel glow and the fastest travelled a hundred css px against a sixty
+   nine px head radius. Every clearance number was fine. What rendered was a
+   smudge that read as the glow leaking downward. Fixed by moving the origin
+   outside the halo and by making **distance the parameter rather than
+   velocity** — a velocity plus a life multiply into where the blob ends up,
+   which is the only thing the safe area cares about, and with distance as the
+   parameter the longest lived blob cannot quietly become the one that leaves the
+   frame.
+2. **The glitch frame was an even grey card.** A full frame white rect at 0.40
+   with a screen blended noise layer over it, on a frame where the head had
+   already been cut and the wordmark had not yet arrived. It is a 420px radial
+   bloom at 0.30 now, the noise ceiling came down, and the wordmark is born on
+   the same frame as the cut so there is never an instant with neither of them on
+   screen.
+3. **One giggle bleep was on nothing.** Hop beats were read off turning points in
+   the head's y with no prominence test, and a tween handover writes its own
+   `from` value: where one tween settles past where the next starts, the curve
+   steps by about half a device pixel, and a step is two turning points. A turn
+   now only counts if it is three grid units from the last one that did — the
+   hops swing twelve and seven, the artefact swings one.
 
 ### 2026-08-31 — the final review is run by sub agents, and the frames never reach the caller
 
