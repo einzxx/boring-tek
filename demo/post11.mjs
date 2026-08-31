@@ -66,7 +66,7 @@ import {
 import {
   planMascot, mascotFrame, mascotMotion, mascotCss, mascotMarkup, mascotRuntime,
   mascotPagePlan, mascotCues, describeMascot, describeMotion, headRect,
-  STAGE, SAFE, HEAD_PX, BUBBLE,
+  STAGE, SAFE, HEAD_PX, BUBBLE, GRID, HEAD, EYE_CX,
 } from './lib/mascot.mjs';
 import {
   renderSfx, writeWav, limit, decode, mixdown, voiceEnvelope, applyGain,
@@ -445,6 +445,170 @@ const END = {
    the card's arrival is the only cut in the clip and a number like that belongs
    somewhere it can be found. */
 const CARD_LEAD = 0.42;
+
+/* ---------- the opening, and what is in the card box before the site is ----------
+   the card box is empty for the first four lines and it is the top two thirds of
+   the frame. this layer fills it, and it fills it with **type**: four scenes, one
+   per line, drawn in the same rectangle the site card will occupy — so the
+   handover is one thing leaving and another arriving in the same box rather than
+   a composition changing shape.
+
+   everything here is drawn in code. no image, no asset, no third font: the words
+   are the caption face at a size the captions never reach, the five small faces
+   are the mascot's own geometry read out of `lib/mascot.mjs`, and the brain is a
+   path generated from a formula. **the corner mascot is not touched by any of
+   it** — he keeps his marks, his size and his corner — and this layer sits at
+   `z-index: 1`, under him, under the captions and under the card, so it cannot
+   get in front of anything however wrong a number in here goes.
+
+   ---------- the look, and why it is two looks ----------
+   dark is the one the brief is written for: white deep glow on black, three
+   layers of soft blur behind the ink, which is post10's phosphor with the
+   numbers walked down the way `lib/mascot.mjs` walked them down. quiet, not neon:
+   the widest layer is at seven per cent.
+
+   light gets the same four scenes, the same words and the same timings, and no
+   glow at all — ink on paper. a white glow on a white page is nothing and a black
+   one is a drop shadow, which the brand bans outright. what light keeps is the
+   glitch, at about half the split, so the two variants read as one clip printed
+   twice rather than as two clips.
+
+   the orange is the one colour in this file that is neither ink nor paper, and it
+   is used in exactly one place: the five faces in scene one, and only while they
+   are on. it is the same orange on both themes, because a face that changed
+   colour with the page would read as two different characters. it clears the non
+   text contrast bar against both grounds, and the run measures that rather than
+   claiming it. */
+const SC_PAD = 22;         /* css px of air inside the card box */
+const SC_LEAD = 1.06;      /* the line height of a stacked scene */
+const SC_GAP = 20;         /* between the brain and the words under it */
+
+/* the burnt orange, and it is deliberately not the amber ramp the brand retired:
+   that ramp was a set of accents and this is one colour used for one thing.
+   #d1600a is 3.90:1 on the white page and 5.17:1 on the black one, so it clears
+   the non text bar on both without having to be told to. */
+const SC_ORANGE = '#d1600a';
+
+/* the glow, per theme, as blur/alpha pairs. shapes take the first two only: a
+   third drop-shadow at fifty px on every svg on every frame buys nothing a viewer
+   can see and costs real milliseconds a frame. */
+const SC_GLOW = {
+  dark: [[8, 0.28], [22, 0.15], [48, 0.07]],
+  light: [],
+};
+
+/* ---------- the glitch, and the one rule about it ----------
+   short and sharp, a few frames, never continuous. so a burst is **a length in
+   seconds quantised to whatever frame grid is rendering**, which is the only
+   shape that survives being previewed at twelve and shipped at sixty: written in
+   frames it would be a quarter of a second on the preview and fifty milliseconds
+   on the master, and those are not the same clip.
+
+   and it is computed once per **output** frame and held across every subframe of
+   it, for post10's reason: with the shutter open a one frame split written
+   against `t` is averaged with three clean captures and lands at a quarter
+   strength. a spring rides the shutter. a dropped packet does not. */
+const SC_GLITCH = {
+  splitDark: 5.0,          /* css px of rgb separation at full heat, dark */
+  splitLight: 2.6,         /* and on paper, where it is a hint rather than a look */
+  jitter: 3.2,             /* css px the whole scene jumps */
+  bleed: 2.4,              /* the wider, fainter second split, scene two only */
+  burst: [0.07, 0.14],     /* how long one burst lasts, in seconds */
+  every: [0.50, 1.10],     /* and how long between them */
+  dutyMax: 0.30,           /* the ceiling on the fraction of a scene's frames that glitch */
+  entry: 0.18,             /* how long a word takes to glitch itself into a scene */
+};
+
+/* the tube, and it is scene two only. a flicker is not a glitch: it is on for the
+   whole line, it is small, and it is what "a dying screen" means when the words
+   still have to be readable at phone size. the floor is what keeps them readable
+   — the deep dips are one frame of the grid and none of them reaches zero. */
+const SC_TUBE = { base: [0.86, 1.0], dipEvery: [0.20, 0.52], dip: [0.54, 0.74], dipFor: 0.06 };
+
+/* ---------- the exchange, inside the handover window ----------
+   the handover **window** is the card's own and is not this layer's to choose —
+   see `planScenes`. what is this layer's is where inside it the opacity actually
+   moves, and the first cut of that got it wrong in a way only a frame shows: one
+   scene fading out over the whole half second while the next faded in over the
+   same half second put `BUSINESS` and `NEED` on top of each other, both legible,
+   for six frames. a dissolve that long between two blocks of type is not a
+   handover, it is a double exposure.
+
+   so the window stays and the exchange is a short complementary ramp inside it:
+   one goes down exactly as the other comes up, over 0.16s, and their sum is one
+   at every instant. never blank, because the sum is one. never mush, because
+   only two frames of the preview and ten of the master are mixed at all.
+
+   and it sits at 0.60 of the window rather than in the middle, which is for the
+   one handover that is not two scenes: by the time the type is half gone the
+   site card is two thirds up, so what a viewer sees is the words coming off an
+   arriving page rather than the two of them arguing. */
+const SC_CROSS = 0.16;
+const SC_CROSS_AT = 0.60;
+
+/* ---------- the five faces ----------
+   the mascot's own head, at a third of his size, in orange, each holding a
+   different emotion. the poses are the channels `lib/mascot.mjs` animates and the
+   numbers are read off its own state table: `surprised` takes the eyes to 2.6 of
+   their height, `curious` opens one to 1.8 against the other's 1.1, `thinking`
+   drops a lid to about half. they are static here — a face that is on screen for
+   a third of a second at a time has no room to act.
+
+   they are placed around the word rather than on it, and the box they sit in is
+   the scene's own, so the arithmetic that keeps them off the type is the same
+   arithmetic that keeps them inside the safe area. */
+const SC_POSES = {
+  /* per eye: [scale x, scale y, dx, dy]. per brow: [opacity, dy, degrees].
+
+     the numbers are pushed well past the corner mascot's own, and that is the
+     size difference doing it: he is 240 device px across and these are about a
+     hundred and forty, and a difference of 0.3 on an eye scale that reads at his
+     size is a rounding error at theirs. the first pass used his numbers exactly
+     and the five faces came back as five identical dots. */
+  happy:     { eyes: [[1.15, 0.85, 0, 0.4], [1.15, 0.85, 0, 0.4]], brows: [[1, -3.6, -15], [1, -3.6, 15]] },
+  surprised: { eyes: [[1.10, 2.90, 0, -1.0], [1.10, 2.90, 0, -1.0]], brows: [[1, -3.8, -6], [1, -3.8, 6]] },
+  thinking:  { eyes: [[1.00, 0.35, -3.0, -2.0], [1.00, 1.30, -3.0, -2.0]], brows: [[1, 1.2, 10], [1, -0.6, 2]] },
+  curious:   { eyes: [[1.00, 1.00, 2.6, -1.8], [1.00, 2.10, 2.6, -1.8]], brows: [[1, 1.6, -4], [1, -2.6, 14]] },
+  confused:  { eyes: [[1.00, 1.90, -0.8, -0.4], [1.00, 0.50, 1.2, 0.8]], brows: [[1, -3.0, 16], [1, 1.4, -8]] },
+};
+/* placed in the scene's own 388x420 box. the two bands they sit in are above and
+   below the word, with a good twenty px of air either side of it, and every slot
+   leaves room for its own rotation: a 76px square turned eight degrees is 89
+   across, and it is the turned box the safe area sees. */
+const SC_FACES = [
+  { pose: 'thinking',  x: 152, y: 4,   s: 68, rot: -5 },
+  { pose: 'surprised', x: 292, y: 44,  s: 72, rot: 6 },
+  { pose: 'happy',     x: 8,   y: 74,  s: 76, rot: -8 },
+  { pose: 'curious',   x: 30,  y: 272, s: 70, rot: 9 },
+  { pose: 'confused',  x: 288, y: 262, s: 74, rot: -6 },
+];
+
+/* ---------- the four scenes ----------
+   the copy is written lowercase and set uppercase, which is how every other piece
+   of type in this file is written: the caption cells, the end card and the site's
+   own lockup. `scale` is the size joke in scene four and it is the only place in
+   the clip where two words in one block are set at two sizes.
+
+   the words are stacked rather than run on, because the box is 388 css px wide.
+   three lines of `WHY I / NEED / AI?!` fit at twice the type one line of
+   `WHY I NEED AI?!` could reach, and the whole point of this layer is type big
+   enough to carry the top of the frame on its own. */
+const SCENES = [
+  { key: 'business', line: 1, faces: true, lines: [{ t: 'business' }] },
+  { key: 'why', line: 2, tube: true, lines: [{ t: 'why i' }, { t: 'need' }, { t: 'ai?!' }] },
+  /* the brain arrives with the line and the words glitch in on the word `but`,
+     which is where the line turns from what they know into what they have not
+     got. it is keyed to the word rather than to a number, the same way every cue
+     in `planSite` is. */
+  { key: 'busy', line: 3, brain: true, wordsOn: 'but',
+    lines: [{ t: 'but i am' }, { t: 'busy' }] },
+  { key: 'small', line: 4,
+    lines: [{ t: 'one' }, { t: 'small', scale: 0.34 }, { t: 'thing' }] },
+];
+/* the floor the captions hold to, and every scene here is well over it. a scene
+   that ever measured under it would be type nobody can read on a phone, which is
+   the one thing this layer cannot be. */
+const SC_MIN_CAP = 32;
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -1148,6 +1312,427 @@ function planMarks(beats, site) {
   return marks;
 }
 
+/* ---------- the opening's own plan ----------
+   four scenes, one per line, and the handover between any two of them is the
+   **same shape** as the handover from the last one to the site card: one fades
+   up over exactly the window the other fades down over. that is what "no jump
+   and no blank frame" is, and it is arithmetic rather than a promise.
+
+   the window length is not typed here. it is read off `planSite`'s own card fade
+   — `CARD_LEAD` before the line, ending a tenth of a second into it — so the
+   four crossfades and the one cut in the clip are literally the same numbers,
+   and moving `CARD_LEAD` moves all five together. the last scene's exit is not
+   merely the same length as the card's entrance, it **is** the card's entrance
+   record, taken by reference.
+
+   every one of the four handovers then lands in a hole in the read: 2.35..2.63,
+   4.80..5.01, 7.33..7.75 and 9.60..9.93 are the gaps between the first five
+   lines, and the crossfade midpoints fall inside them. nothing was tuned to make
+   that true; it falls out of leading each scene by the same 0.42s the card is
+   led by. */
+function planScenes(beats, cardFade) {
+  const at = x => +x.toFixed(3);
+  const xf = at(cardFade.t1 - cardFade.t0);
+  /* where inside a handover window the opacity moves. one function, used for
+     both ends of every scene, so scene k's arrival and scene k-1's departure are
+     the same two numbers by construction rather than by agreement. */
+  const cross = w => {
+    const mid = w.t0 + (w.t1 - w.t0) * SC_CROSS_AT;
+    return { t0: at(mid - SC_CROSS / 2), t1: at(mid + SC_CROSS / 2) };
+  };
+  const scenes = SCENES.map((S, k) => {
+    const b = beats[k];
+    /* the first scene has no line before it to be led by and nothing to cross
+       with, so its entrance runs **before** frame zero and it is already whole on
+       the first frame of the clip. a fade up from nothing over the opening second
+       reads as a render that has not started yet, and the first frame of a clip
+       in a feed is the one frame everybody sees. what it arrives with instead is
+       a glitch, added to its own burst list below. */
+    const inW = k === 0
+      ? { t0: at(-xf), t1: 0 }
+      : { t0: at(b.start - CARD_LEAD), t1: at(b.start - CARD_LEAD + xf) };
+    const outW = k === SCENES.length - 1
+      ? { t0: cardFade.t0, t1: cardFade.t1 }
+      : { t0: at(beats[k + 1].start - CARD_LEAD), t1: at(beats[k + 1].start - CARD_LEAD + xf) };
+    const seed = (0x5ce0 ^ (k * 0x9e3779b1)) >>> 0;
+    const sc = {
+      ...S, k, seed,
+      beat: { start: b.start, end: b.end },
+      in: inW, out: outW, from: Math.max(inW.t0, 0), to: outW.t1,
+      /* the windows above are the anchors; these two are where the opacity
+         actually moves inside them. both are derived, so nothing here can drift
+         away from the card's own arrival. */
+      crossIn: cross(inW), crossOut: cross(outW),
+      /* `faces` is not initialised here on purpose: it arrives off `SCENES` as
+         the flag that says this scene has them, and the schedule below replaces
+         it. an empty array written here would overwrite the flag with something
+         falsy, which is a silent way to lose five faces. */
+      bursts: [], dips: [], wordsAt: null,
+    };
+    if (outW.t0 <= inW.t1) {
+      throw new Error('scene ' + (k + 1) + ' starts leaving at ' + outW.t0
+        + ' and has not finished arriving until ' + inW.t1);
+    }
+    return sc;
+  });
+
+  /* ---- the bursts ----
+     placed at an uneven interval from the plan's own dice, each one a length in
+     seconds rather than in frames, so the same clip previews at twelve and ships
+     at sixty with the fault lasting the same amount of time either way. they are
+     kept out of the first and last fifth of a scene: a glitch on top of a
+     crossfade is two things happening to the same pixels and reads as neither. */
+  for (const s of scenes) {
+    const r = prng(s.seed ^ 0x9d2c);
+    const body = { from: Math.max(s.crossIn.t1 + 0.06, 0.06), to: s.crossOut.t0 - 0.06 };
+    let t = body.from + 0.10 + r() * 0.22;
+    while (t < body.to) {
+      s.bursts.push({
+        t: at(t),
+        len: +(SC_GLITCH.burst[0] + r() * (SC_GLITCH.burst[1] - SC_GLITCH.burst[0])).toFixed(3),
+        force: +(0.62 + r() * 0.38).toFixed(3),
+      });
+      t += SC_GLITCH.every[0] + r() * (SC_GLITCH.every[1] - SC_GLITCH.every[0]);
+    }
+    /* the clip opens on a fault rather than on a fade: the first scene is whole
+       on frame zero and frame zero is a glitch frame. */
+    if (s.k === 0) s.bursts.unshift({ t: 0, len: SC_GLITCH.entry, force: 1 });
+    if (!s.bursts.length) throw new Error('scene ' + (s.k + 1) + ' has no glitch in it at all');
+
+    /* the five faces, each on its own uneven schedule and each with a one frame
+       dropout inside every window it is up for. hard edges on purpose: they
+       glitch in and out, they do not fade, and a fade here would read as five
+       little things politely arriving. */
+    if (s.faces === true) {
+      s.faces = SC_FACES.map((_, i) => {
+        const fr = prng((s.seed ^ (0xface + i * 0x2545f491)) >>> 0);
+        const win = [];
+        let u = body.from + i * 0.11 + fr() * 0.20;
+        while (u < body.to - 0.10) {
+          const on = 0.30 + fr() * 0.44;
+          const t1 = Math.min(u + on, body.to);
+          win.push({ t0: at(u), t1: at(t1), blink: at(u + 0.09 + fr() * Math.max(on - 0.20, 0.05)) });
+          u = t1 + 0.14 + fr() * 0.30;
+        }
+        if (!win.length) throw new Error('face ' + i + ' is never on screen');
+        return win;
+      });
+    } else s.faces = [];
+
+    /* the tube, scene two only: an even wobble under everything with one frame
+       dips punched into it. the floor is 0.54 and it is a floor rather than a
+       taste — under about half the words stop being readable, and a dying screen
+       that cannot be read is just a dark frame. */
+    if (s.tube) {
+      const tr = prng(s.seed ^ 0x7be1);
+      let u = body.from;
+      while (u < body.to) {
+        s.dips.push({ t: at(u), v: +(SC_TUBE.dip[0] + tr() * (SC_TUBE.dip[1] - SC_TUBE.dip[0])).toFixed(3) });
+        u += SC_TUBE.dipEvery[0] + tr() * (SC_TUBE.dipEvery[1] - SC_TUBE.dipEvery[0]);
+      }
+    }
+
+    /* the words of scene three arrive on the word that turns the line, and a
+       burst is put on that frame so they glitch in rather than appear. */
+    if (s.wordsOn) {
+      s.wordsAt = at(wordAt(beats[s.k], s.wordsOn).start);
+      s.bursts.push({ t: s.wordsAt, len: SC_GLITCH.entry, force: 1 });
+      s.bursts.sort((a, b2) => a.t - b2.t);
+    }
+  }
+
+  return { scenes, until: cardFade.t1, xf, cardFade };
+}
+
+/* ---------- one output frame of the opening ----------
+   a pure function of the frame index and the plan, which is what makes the
+   glitch survive the shutter: every subframe of one output frame is handed the
+   same object, so a two frame rgb split is two whole frames of rgb split rather
+   than a smear at a quarter strength. */
+function rgbOf(hex) {
+  const m = hex.replace('#', '').match(/../g).map(x => parseInt(x, 16));
+  return m.join(',');
+}
+function sceneFrame(plan, f, fps) {
+  const t = f / fps;
+  const o = [0, 0, 0, 0];
+  for (const s of plan.scenes) {
+    if (t < s.in.t0 - 1e-9 || t > s.out.t1 + 1e-9) continue;
+    const up = GLIDE(clampTo((t - s.crossIn.t0) / (s.crossIn.t1 - s.crossIn.t0), 0, 1));
+    const dn = 1 - GLIDE(clampTo((t - s.crossOut.t0) / (s.crossOut.t1 - s.crossOut.t0), 0, 1));
+    o[s.k] = +Math.min(up, dn).toFixed(4);
+  }
+
+  let heat = 0, split = 0, dx = 0, dy = 0, bleed = 0;
+  for (const s of plan.scenes) {
+    if (o[s.k] < 0.02) continue;
+    for (const b of s.bursts) {
+      const f0 = Math.round(b.t * fps), n = Math.max(1, Math.round(b.len * fps));
+      if (f < f0 || f >= f0 + n) continue;
+      const h = b.force * (1 - (f - f0) / (n + 0.8));
+      if (h <= heat) continue;
+      const r = prng((s.seed ^ ((f + 1) * 2654435761)) >>> 0);
+      heat = h;
+      dx = (r() * 2 - 1) * SC_GLITCH.jitter * h;
+      dy = (r() * 2 - 1) * SC_GLITCH.jitter * 0.55 * h;
+      const cap = THEME === 'dark' ? SC_GLITCH.splitDark : SC_GLITCH.splitLight;
+      split = h * (1.4 + r() * Math.max(cap - 1.4, 0.2));
+      bleed = s.tube ? h * SC_GLITCH.bleed * (0.45 + r() * 0.55) : 0;
+    }
+  }
+
+  let tube = 1;
+  const s2 = plan.scenes.find(s => s.tube);
+  if (s2 && o[s2.k] > 0.02) {
+    const r = prng((s2.seed ^ ((f + 1) * 2246822519)) >>> 0);
+    tube = SC_TUBE.base[0] + r() * (SC_TUBE.base[1] - SC_TUBE.base[0]);
+    const n = Math.max(1, Math.round(SC_TUBE.dipFor * fps));
+    for (const d of s2.dips) {
+      const f0 = Math.round(d.t * fps);
+      if (f >= f0 && f < f0 + n) tube = Math.min(tube, d.v);
+    }
+  }
+
+  const faces = SC_FACES.map(() => 0);
+  const s1 = plan.scenes[0];
+  if (o[0] > 0.02 && s1.faces.length) {
+    const n = Math.max(1, Math.round(0.06 * fps));
+    s1.faces.forEach((win, i) => {
+      for (const w of win) {
+        if (t < w.t0 || t >= w.t1) continue;
+        const bf = Math.round(w.blink * fps);
+        faces[i] = (f >= bf && f < bf + n) ? 0 : 1;
+      }
+    });
+  }
+
+  let words = 1;
+  const s3 = plan.scenes.find(s => s.wordsAt != null);
+  if (s3) {
+    const f0 = Math.round(s3.wordsAt * fps);
+    const n = Math.max(1, Math.round(SC_GLITCH.entry * fps));
+    if (f < f0) words = 0;
+    else if (f < f0 + n - 1) words = prng((s3.seed ^ 0xb0b ^ ((f + 1) * 2654435761)) >>> 0)() < 0.42 ? 0 : 1;
+  }
+
+  /* the look, composed here rather than in the stylesheet, because the glow and
+     the split are one text-shadow list and only node knows how hot this frame
+     is. the split colours are the site's own --gr and --gc, which is where every
+     other file in demo/ takes its rgb separation from. */
+  const glow = THEME === 'dark' ? SC_GLOW.dark : SC_GLOW.light;
+  const ts = glow.map(([b, a]) => '0 0 ' + b + 'px rgba(255,255,255,' + a + ')');
+  const fl = THEME === 'dark'
+    ? glow.slice(0, 2).map(([b, a]) => 'drop-shadow(0 0 ' + b + 'px rgba(255,255,255,' + a + '))') : [];
+  const rgb = rgbOf(SC_ORANGE);
+  const fo = THEME === 'dark'
+    ? ['drop-shadow(0 0 8px rgba(' + rgb + ',.45))', 'drop-shadow(0 0 22px rgba(' + rgb + ',.20))'] : [];
+  if (split > 0.01) {
+    ts.push((-split).toFixed(2) + 'px 0 var(--gr)', split.toFixed(2) + 'px 0 var(--gc)');
+    const a = 'drop-shadow(' + (-split).toFixed(2) + 'px 0 var(--gr))';
+    const b = 'drop-shadow(' + split.toFixed(2) + 'px 0 var(--gc))';
+    fl.push(a, b); fo.push(a, b);
+  }
+  if (bleed > 0.01) {
+    ts.push((-bleed * 2.6).toFixed(2) + 'px 0 rgba(255,60,60,.22)',
+      (bleed * 2.6).toFixed(2) + 'px 0 rgba(40,215,255,.22)');
+  }
+
+  return {
+    o, faces, words: +words.toFixed(3),
+    dx: +dx.toFixed(2), dy: +dy.toFixed(2), tube: +tube.toFixed(4),
+    split: +split.toFixed(2), heat: +heat.toFixed(3),
+    ts: ts.length ? ts.join(',') : 'none',
+    fl: fl.length ? fl.join(' ') : 'none',
+    fo: fo.length ? fo.join(' ') : 'none',
+  };
+}
+
+/* ---------- the five faces, as svg ----------
+   the mascot's own plate, eyes and brows, at the unit numbers `lib/mascot.mjs`
+   exports, posed by the table above. nothing in that module is imported to be
+   run — only its geometry is read — so the corner mascot and these five cannot
+   drift apart about what a head is, and nothing here can move him. */
+function faceSvg(f) {
+  const P = HEAD.plate, E = HEAD.eye, W = HEAD.brow;
+  const about = (cx, cy, sx, sy, dx, dy) =>
+    'translate(' + dx + ' ' + dy + ') translate(' + cx.toFixed(2) + ' ' + cy.toFixed(2) + ')'
+    + ' scale(' + sx + ' ' + sy + ') translate(' + (-cx).toFixed(2) + ' ' + (-cy).toFixed(2) + ')';
+  const pose = SC_POSES[f.pose];
+  if (!pose) throw new Error('no face pose called "' + f.pose + '"');
+  const eye = i => {
+    const [sx, sy, dx, dy] = pose.eyes[i];
+    const cx = EYE_CX[i];
+    return '<rect class="sc-eye" x="' + (cx - E.w / 2).toFixed(2) + '" y="' + (E.cy - E.h / 2).toFixed(2)
+      + '" width="' + E.w + '" height="' + E.h + '" rx="' + (E.h / 2).toFixed(2)
+      + '" transform="' + about(cx, E.cy, sx, sy, dx, dy) + '"/>';
+  };
+  const brow = i => {
+    const [op, dy, rot] = pose.brows[i];
+    if (!op) return '';
+    const cx = EYE_CX[i];
+    /* a shade thicker than the mascot's own, and for the same reason the poses
+       are pushed: 1.9 units of brow is four device px on a face this size, and
+       four device px does not survive h.264. */
+    return '<rect class="sc-brow" x="' + (cx - W.w / 2).toFixed(2) + '" y="' + (W.cy - W.h / 2).toFixed(2)
+      + '" width="' + W.w + '" height="' + (W.h * 1.4).toFixed(2) + '" rx="' + (W.h * 0.7).toFixed(2)
+      + '" transform="translate(0 ' + dy + ') rotate(' + rot + ' ' + cx.toFixed(2) + ' ' + W.cy + ')"/>';
+  };
+  return '<svg viewBox="0 0 ' + GRID + ' ' + GRID + '" width="' + f.s + '" height="' + f.s
+    + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+    + '<rect class="sc-plate" x="' + P.x + '" y="' + P.y + '" width="' + P.s + '" height="' + P.s
+    + '" rx="' + (P.s * HEAD.radius).toFixed(2) + '"/>'
+    + eye(0) + eye(1) + brow(0) + brow(1) + '</svg>';
+}
+
+/* ---------- the brain ----------
+   generated rather than drawn, and the shape it took is the third one: a
+   silhouette from an ellipse with two cosines on its radius, a wiggle down the
+   middle for the fissure, and twelve folds running **out from the fissure**
+   rather than nesting around a centre.
+
+   that last word is the whole of it. the first pass drew the folds as concentric
+   arcs, and concentric arcs converge on a point: what rendered was a rose. a
+   cortex is folds fanning off a midline, and once they fan the shape reads as a
+   brain at a glance.
+
+   **the folds are clipped to the silhouette**, which is the other thing two
+   passes got wrong. a fold long enough to reach the edge of the head is a fold
+   that runs past it somewhere else on the same stroke, and a line escaping the
+   outline is the one thing that makes a drawing read as a mistake. so they are
+   drawn deliberately too long and cut by the outline's own path — the two can
+   never disagree about where the head ends, which is the same argument the
+   mascot's own feature clip is built on.
+
+   all of it is stroked. a filled blob glows as a blob and a stroke glows as a
+   line, and a line is the look this scene is in. */
+function brainSvg() {
+  const cx = 60, cy = 46, R = 44;
+  const p = a => {
+    const bump = 1 + 0.065 * Math.cos(5 * a + 0.5) + 0.028 * Math.cos(11 * a - 0.6);
+    const s = Math.sin(a);
+    return [cx + Math.cos(a) * R * 1.24 * bump, cy + s * R * 0.86 * bump * (s > 0 ? 0.86 : 1)];
+  };
+  const poly = pts => pts.map(([x, y], i) => (i ? 'L' : 'M') + x.toFixed(2) + ' ' + y.toFixed(2)).join(' ');
+  const out = [];
+  for (let i = 0; i <= 140; i++) out.push(p(-Math.PI / 2 + i / 140 * Math.PI * 2));
+  const shell = poly(out) + ' Z';
+  const fis = [];
+  for (let i = 0; i <= 30; i++) {
+    const u = i / 30;
+    fis.push([cx + Math.sin(u * Math.PI * 3.1) * 3.0, 2 + u * 84]);
+  }
+  const folds = [];
+  for (const sgn of [-1, 1]) {
+    for (let k = 0; k < 6; k++) {
+      const y0 = 12 + k * 13.5;
+      /* the rows bow away from the middle of the head, so the fan follows the
+         dome instead of striping it. */
+      const bend = (y0 - 46) * 0.6;
+      const seg = [];
+      for (let i = 0; i <= 36; i++) {
+        const u = i / 36;
+        seg.push([cx + sgn * (4 + u * 66),
+          y0 + bend * u * u + Math.sin(u * Math.PI * 3.0 + k * 1.7 + (sgn < 0 ? 0.9 : 0)) * 4.6]);
+      }
+      folds.push(poly(seg));
+    }
+  }
+  return '<svg viewBox="0 0 120 104" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+    + '<defs><clipPath id="sc-brain-clip"><path d="' + shell + '"/></clipPath></defs>'
+    + '<path class="sc-brain sc-brain-out" d="' + shell + '"/>'
+    + '<g clip-path="url(#sc-brain-clip)">'
+    + '<path class="sc-brain" d="' + poly(fis) + '"/>'
+    + folds.map(d => '<path class="sc-brain" d="' + d + '"/>').join('')
+    + '</g>'
+    + '<path class="sc-brain" d="M51 80 C51 96 69 96 69 80"/>'
+    + '</svg>';
+}
+
+/* ---------- the opening's markup and its styles ---------- */
+function sceneMarkup() {
+  return `<div class="sc-root" id="sc-root">
+${SCENES.map((S, k) => `  <div class="sc" id="sc${k}" data-key="${S.key}">
+    <div class="sc-in" id="sc-in${k}">
+      <div class="sc-stack">
+${S.brain ? '        <div class="sc-art">' + brainSvg() + '</div>\n' : ''}${S.lines
+    .map(L => `        <div class="sc-l"${L.scale ? ` data-scale="${L.scale}"` : ''}>${L.t}</div>`)
+    .join('\n')}
+      </div>
+${S.faces === true ? '      <div class="sc-faces">'
+    + SC_FACES.map((f, i) => `<span class="sc-face" id="sc-face${i}" style="left:${f.x}px;top:${f.y}px;`
+      + `transform:rotate(${f.rot}deg)">${faceSvg(f)}</span>`).join('')
+    + '</div>\n' : ''}    </div>
+  </div>`).join('\n')}
+</div>`;
+}
+
+function sceneCss() {
+  return `
+/* ---------- the opening ----------
+   the same rectangle the site card occupies, at z-index 1, which is under the
+   card, under the captions and under the mascot. every number a scene draws with
+   is inside this box, so the one safe area check the card already passes covers
+   the whole layer.
+
+   nothing in here animates in css. every moving value is a custom property
+   written per output frame from node, for the reason every file in demo/ writes
+   its own: one captured frame carries five or six BeginFrames and a css
+   transition resolves about five times too fast. */
+.sc-root{
+  position:absolute; left:${SCREEN.x}px; top:${SCREEN.y}px;
+  width:${SCREEN.w}px; height:${SCREEN.h}px;
+  z-index:1; pointer-events:none;
+  --sc-dx:0; --sc-dy:0; --sc-f:1; --sc-w:1;
+  --sc-ts:none; --sc-fl:none; --sc-fo:none;
+}
+.sc{position:absolute; inset:0; opacity:0; visibility:hidden; will-change:opacity}
+.sc-in{position:absolute; inset:0;
+  transform:translate3d(calc(var(--sc-dx) * 1px),calc(var(--sc-dy) * 1px),0);
+  will-change:transform}
+/* the tube is scene two's and only scene two's. it is written on the root like
+   everything else and read by one rule, so a flicker cannot leak onto a scene
+   that is not about a dying screen. */
+#sc-in1{opacity:var(--sc-f)}
+/* and the words of scene three do not exist until the line turns. */
+#sc2 .sc-l{opacity:var(--sc-w)}
+
+.sc-stack{
+  position:absolute; left:${SC_PAD}px; right:${SC_PAD}px; top:${SC_PAD}px; bottom:${SC_PAD}px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+/* the caption face, uppercased, at a size the captions never reach. the size
+   itself is measured and written by build(): a stack of three fitted to a 344px
+   box is arithmetic no stylesheet can do. */
+.sc-l{
+  font-family:var(--body); font-weight:700; text-transform:uppercase;
+  letter-spacing:0; line-height:${SC_LEAD}; white-space:nowrap;
+  color:var(--fg); text-shadow:var(--sc-ts);
+}
+.sc-art{display:block; margin-bottom:${SC_GAP}px}
+/* the brain carries the scene on its own for the second and a half before the
+   words glitch in, and at 200px it did not: a rendered frame showed a small
+   drawing at the top of the box with a third of the frame empty under it. it is
+   the subject of that beat, so it is sized like one, and the fit takes the type
+   down to whatever is left rather than the other way round.
+   (no backticks in this block: it is inside a template literal and one would end
+   the string rather than mark a name.) */
+.sc-art svg{display:block; width:236px; height:205px; overflow:visible; filter:var(--sc-fl)}
+/* 2.0 viewBox units at 236px wide off a 120 unit box is 3.9 css and 7.9 device
+   px of line, which is what a stroke needs to survive the encoder and still
+   read as drawn rather than as printed. */
+.sc-brain{fill:none; stroke:var(--fg); stroke-width:2.0; stroke-linecap:round; stroke-linejoin:round}
+.sc-brain-out{stroke-width:2.6}
+
+/* the faces. orange plate, page coloured eyes and brows, which is the mascot's
+   own model — the face reads as a hole punched in the page rather than as an
+   illustration sitting on it — with the one colour this file is allowed. */
+.sc-faces{position:absolute; inset:0}
+.sc-face{position:absolute; display:block; opacity:0; will-change:opacity}
+.sc-face svg{display:block; overflow:visible; filter:var(--sc-fo)}
+.sc-plate{fill:${SC_ORANGE}}
+.sc-eye,.sc-brow{fill:var(--bg)}`;
+}
+
 /* ---------- the composed page ----------
    the site's own tokens, the caption layer, the mascot layer, the card the site
    is filmed in, the tap ring and the end card. nothing else is in the frame. */
@@ -1234,11 +1819,13 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
 
 ${captionCss(cap, capBox)}
 ${mascotCss(mas)}
+${sceneCss()}
 </style>
 </head>
 <body>
 <div class="stage">
   <div class="tick"></div>
+${sceneMarkup()}
   <div class="screen" id="screen"><iframe id="site" src="/index.html" scrolling="no"></iframe></div>
   <div class="end" id="end-wm"><span>the</span><span>boring</span><span>tek</span></div>
   <div class="end" id="end-dom">theboringtek.com</div>
@@ -1250,7 +1837,8 @@ ${mascotMarkup(mas)}
 window.__CAP_PLAN = ${JSON.stringify(cap)};
 window.__CAP_BOX = ${JSON.stringify(capBox)};
 window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(mas))};
-window.__P11 = ${JSON.stringify({ VW, VH, DSF, SCREEN, SITE, END, CAP_BOX })};
+window.__P11 = ${JSON.stringify({ VW, VH, DSF, SCREEN, SITE, END, CAP_BOX,
+  SC: { pad: SC_PAD, lead: SC_LEAD, gap: SC_GAP, w: SCREEN.w, h: SCREEN.h } })};
 (${captionPage.toString()})();
 ${mascotRuntime()}
 (${stagePage.toString()})();
@@ -1287,6 +1875,9 @@ function stagePage() {
   const wm = document.getElementById('end-wm');
   const dom = document.getElementById('end-dom');
   const pill = document.getElementById('m-pill');
+  const scRoot = document.getElementById('sc-root');
+  const scenes = [...document.querySelectorAll('.sc')];
+  const scFaces = [...document.querySelectorAll('.sc-face')];
 
   /* michroma is proportional and the tracking is heavy, so both end card lines
      are measured on a canvas at 100px and divided down to the width they should
@@ -1306,6 +1897,59 @@ function stagePage() {
     for (const s of lines) em = Math.max(em, (cv.measureText(s).width + track * 100 * s.length) / 100);
     el.style.fontSize = (want / em).toFixed(3) + 'px';
     return +(want / em).toFixed(2);
+  }
+
+  /* ---------- the opening's type, fitted ----------
+     one size per scene, taken off the widest **unscaled** line so that the size
+     joke in scene four cannot decide how big the other two words are, then
+     brought down again if the stack is taller than the box it is in. width wins
+     on one word and height wins on three, and both are measured rather than
+     assumed: a stack fitted on width alone runs off the bottom of the card the
+     moment a scene grows a line, which is the same fault the site shots' `fit`
+     note is about.
+
+     the cap height is measured back off the canvas at the size that was written,
+     because "is this legible on a phone" is a number and this is the number. */
+  function fitScene(el) {
+    const cv = document.createElement('canvas').getContext('2d');
+    const lines = [...el.querySelectorAll('.sc-l')];
+    const boxW = P.SC.w - 2 * P.SC.pad;
+    const boxH = P.SC.h - 2 * P.SC.pad;
+    cv.font = '700 100px "Space Grotesk"';
+    let em = 0, rows = 0;
+    for (const L of lines) {
+      const k = +L.dataset.scale || 1;
+      em = Math.max(em, cv.measureText(L.textContent.toUpperCase()).width / 100 * k);
+      rows += k * P.SC.lead;
+    }
+    const art = el.querySelector('.sc-art');
+    const artH = art ? art.getBoundingClientRect().height + P.SC.gap : 0;
+    let size = boxW / em;
+    let by = 'width';
+    if (artH + size * rows > boxH) { size = (boxH - artH) / rows; by = 'height'; }
+    const out = { key: el.dataset.key, px: +size.toFixed(2), by, art: +artH.toFixed(1), lines: [] };
+    for (const L of lines) {
+      const k = +L.dataset.scale || 1;
+      const px = size * k;
+      L.style.fontSize = px.toFixed(2) + 'px';
+      cv.font = '700 ' + px.toFixed(2) + 'px "Space Grotesk"';
+      const m = cv.measureText('H');
+      const cap = m.actualBoundingBoxAscent || px * 0.7;
+      out.lines.push({ t: L.textContent, px: +px.toFixed(1), capPx: +(cap * P.DSF).toFixed(1) });
+    }
+    out.capPx = Math.min(...out.lines.map(l => l.capPx));
+    /* the ink, not the box it is laid out in. the stack is a full height flex
+       container and reporting its rect would report the card's own edges back to
+       the safe area check, which proves nothing about where the letters are. */
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-face')) {
+      const r = e.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
+      x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom);
+    }
+    out.ink = { left: +x0.toFixed(1), top: +y0.toFixed(1), right: +x1.toFixed(1), bottom: +y1.toFixed(1) };
+    return out;
   }
 
   window.__stage = {
@@ -1328,7 +1972,72 @@ function stagePage() {
         wordmarkPx: a, domPx: b,
         end: { top: +top.toFixed(1), bottom: +(top + total).toFixed(1),
           wordmark: +wh.toFixed(1), dom: +dh.toFixed(1) },
+        scenes: scenes.map(fitScene),
+        /* the layer's own depth, read back rather than trusted to the
+           stylesheet. it has to be under the card, under the captions and under
+           the mascot: everything in it is temporary and nothing in it may ever
+           be in front of the site. */
+        scZ: {
+          scene: getComputedStyle(scRoot).zIndex,
+          card: getComputedStyle(screen).zIndex,
+          cap: getComputedStyle(document.querySelector('.cap')).zIndex,
+          mascot: getComputedStyle(document.querySelector('.m-zone')).zIndex,
+        },
       };
+    },
+
+    /* ---------- one frame of the opening ----------
+       node decides everything and this writes it down, which is the split every
+       layer in this clip is built on. the scene fades are per element because
+       two of them are up at once through a handover; everything else is one
+       property on the root. */
+    scene(o) {
+      for (let k = 0; k < scenes.length; k++) {
+        const v = o.o[k];
+        scenes[k].style.opacity = v.toFixed(4);
+        scenes[k].style.visibility = v > 0.001 ? 'visible' : 'hidden';
+      }
+      for (let i = 0; i < scFaces.length; i++) scFaces[i].style.opacity = o.faces[i] ? '1' : '0';
+      const s = scRoot.style;
+      s.setProperty('--sc-dx', o.dx.toFixed(2));
+      s.setProperty('--sc-dy', o.dy.toFixed(2));
+      s.setProperty('--sc-f', o.tube.toFixed(4));
+      s.setProperty('--sc-w', o.words.toFixed(3));
+      s.setProperty('--sc-ts', o.ts);
+      s.setProperty('--sc-fl', o.fl);
+      s.setProperty('--sc-fo', o.fo);
+    },
+    /* which scene is on screen and how much of it, read back off the rendered
+       elements rather than off the numbers that were written. the whole point of
+       a read back is that it can disagree. */
+    sceneSeen() {
+      const on = [];
+      for (const el of scenes) {
+        const op = parseFloat(getComputedStyle(el).opacity) || 0;
+        if (op > 0.02) on.push({ key: el.dataset.key, o: +op.toFixed(3) });
+      }
+      const faces = scFaces.filter(e => (parseFloat(getComputedStyle(e).opacity) || 0) > 0.5).length;
+      return { on, faces, split: +(scRoot.style.getPropertyValue('--sc-dx') || 0) };
+    },
+    /* the ink of whichever scenes are up, in the frame's own coordinates, so the
+       safe area and the caption band are checked against letters rather than
+       against the box the letters were laid out in. */
+    sceneInk() {
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, n = 0;
+      for (const el of scenes) {
+        if ((parseFloat(getComputedStyle(el).opacity) || 0) <= 0.02) continue;
+        for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-face')) {
+          const cs = getComputedStyle(e);
+          if (cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.02) continue;
+          const r = e.getBoundingClientRect();
+          if (!r.width || !r.height) continue;
+          n++;
+          x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
+          x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom);
+        }
+      }
+      if (!n) return null;
+      return { left: +x0.toFixed(1), top: +y0.toFixed(1), right: +x1.toFixed(1), bottom: +y1.toFixed(1) };
     },
     /* the camera. a point in the site's own css px, centred in the card at zoom
        z. the site's fixed top bar lives at the iframe's own top, so the clamp is
@@ -1453,10 +2162,18 @@ function stagePage() {
        arithmetic — the card ends above the band — but it is checked because the
        card is what moves. */
     bandClash(top, bottom) {
-      const s = screen.getBoundingClientRect();
-      if (getComputedStyle(screen).opacity < 0.02) return { n: 0 };
-      const over = Math.min(s.bottom, bottom) - Math.max(s.top, top);
-      return { n: over > 0 ? 1 : 0, over: +over.toFixed(1) };
+      let n = 0, over = 0, what = null;
+      const test = (r, name) => {
+        if (!r) return;
+        const o = Math.min(r.bottom, bottom) - Math.max(r.top, top);
+        if (o > 0) { n++; if (o > over) { over = o; what = name; } }
+      };
+      if (getComputedStyle(screen).opacity >= 0.02) test(screen.getBoundingClientRect(), '.screen');
+      /* the opening is in the same test as the card and for the same reason: it
+         is the other thing that occupies the top of the frame, and the rule is
+         about the band rather than about the card. */
+      test(this.sceneInk(), '.sc-root');
+      return { n, over: +over.toFixed(1), what };
     },
     /* the two controls the crop hides and the steps the film does off camera.
        every one of them is the page's own handler on the page's own element:
@@ -1598,7 +2315,15 @@ function stagePage() {
         bubble: { ink: getComputedStyle(pill).borderTopColor, fill: getComputedStyle(pill).backgroundColor },
         endcard: { ink: getComputedStyle(wm).color, sub: getComputedStyle(dom).color },
         ring: { ink: getComputedStyle(document.getElementById('tap')).borderTopColor },
+        /* the opening's own two: the type, which is --fg like everything else
+           this file writes, and the orange, which is the one colour in the clip
+           that is neither ink nor paper and is therefore the one worth measuring
+           on both themes. */
+        scene: { ink: getComputedStyle(document.querySelector('.sc-l')).color },
+        orange: { ink: getComputedStyle(document.querySelector('.sc-plate')).fill },
       };
+      out.scene.ratio = ratio(out.scene.ink, bg);
+      out.orange.ratio = ratio(out.orange.ink, bg);
       out.caption.ratio = ratio(out.caption.ink, bg);
       out.hairline.ratio = ratio(out.hairline.ink, bg);
       /* the outline is drawn against the pill's own fill, not against the page:
@@ -1633,6 +2358,17 @@ function stagePage() {
       add(screen, '.screen');
       add(wm, '#end-wm');
       add(dom, '#end-dom');
+      /* the opening, measured as ink. it draws inside the card's own rectangle,
+         so it clears the borders by construction — and it jitters, so it is
+         checked rather than left to the construction. */
+      const ink = this.sceneInk();
+      if (ink) {
+        const d = { left: ink.left, top: ink.top, right: P.VW - ink.right, bottom: P.VH - ink.bottom };
+        if (Math.min(d.left, d.top, d.right, d.bottom)
+          < Math.min(out.left, out.top, out.right, out.bottom)) out.worst = '.sc-root';
+        out.left = Math.min(out.left, d.left); out.top = Math.min(out.top, d.top);
+        out.right = Math.min(out.right, d.right); out.bottom = Math.min(out.bottom, d.bottom);
+      }
       return out;
     },
     /* the tallest caption card there is, grown by the biggest scale the entrance
@@ -1919,6 +2655,30 @@ async function main() {
   for (const c of site.cues.filter(c => c.fill)) {
     console.log('    ' + c.t.toFixed(2) + 's  ' + c.fill.id.padEnd(10) + '"' + c.fill.text + '"   ' + c.note);
   }
+  /* ---- the opening ----
+     handed the card's own fade-in record rather than a copy of its numbers, so
+     the last scene's exit and the card's entrance are the same object's t0 and
+     t1 and cannot come apart. */
+  const sc = planScenes(v.beats, site.fades.find(f => f.to === 1));
+  console.log('  the opening: four scenes in the card box, one per line, '
+    + sc.xf.toFixed(2) + 's handover windows taken off the card\'s own arrival, with a '
+    + SC_CROSS.toFixed(2) + 's exchange at ' + (SC_CROSS_AT * 100).toFixed(0) + '% of each');
+  for (const s of sc.scenes) {
+    console.log('    ' + (s.k + 1) + '  ' + s.in.t0.toFixed(2) + '..' + s.out.t1.toFixed(2)
+      + '  up ' + s.crossIn.t0.toFixed(2) + '..' + s.crossIn.t1.toFixed(2)
+      + ', down ' + s.crossOut.t0.toFixed(2) + '..' + s.crossOut.t1.toFixed(2)
+      + '  ' + String(s.bursts.length).padStart(2) + ' bursts'
+      + (s.faces.length ? ', ' + s.faces.length + ' faces on '
+        + s.faces.reduce((a, w) => a + w.length, 0) + ' windows' : '')
+      + (s.dips.length ? ', ' + s.dips.length + ' tube dips' : '')
+      + (s.wordsAt != null ? ', the words glitch in at ' + s.wordsAt.toFixed(2) + 's on "' + s.wordsOn + '"' : '')
+      + '   ' + s.lines.map(l => l.t.toUpperCase()).join(' / '));
+  }
+  console.log('    the last handover window is ' + sc.cardFade.t0.toFixed(2) + '..'
+    + sc.cardFade.t1.toFixed(2) + ', which is the card\'s own arrival record, and the type '
+    + 'goes over ' + sc.scenes[3].crossOut.t0.toFixed(2) + '..'
+    + sc.scenes[3].crossOut.t1.toFixed(2) + ' inside it, so there is no blank frame');
+
   const marks = planMarks(v.beats, site);
   const mas = planMascot({
     seconds: SECONDS, marks, theme: THEME, pos: 'bottom-left',
@@ -2011,7 +2771,7 @@ async function main() {
   if (ONLY_ENCODE) {
     state = JSON.parse(fs.readFileSync(STATE, 'utf8'));
   } else {
-    state = await render(cap, mas, site, v, N, SECONDS);
+    state = await render(cap, mas, site, sc, v, N, SECONDS);
     fs.writeFileSync(STATE, JSON.stringify(state, null, 2));
   }
 
@@ -2072,8 +2832,8 @@ async function main() {
   const p = probe(file);
 
   const joked = { ...joke, dur: jokeDur, at: jokeAt, words: jokeWords };
-  report(state, v, cut, cap, mas, rep60, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joked);
-  const fail = guard(state, v, cut, cap, mas, rep60, site, cues, mix, under, after, lim, p, SECONDS, joked);
+  report(state, v, cut, cap, mas, rep60, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joked, sc);
+  const fail = guard(state, v, cut, cap, mas, rep60, site, cues, mix, under, after, lim, p, SECONDS, joked, sc);
 
   if (!KEEP && !ONLY_ENCODE) {
     fs.rmSync(FRAMES, { recursive: true, force: true });
@@ -2084,7 +2844,7 @@ async function main() {
 }
 
 /* ---------- the render ---------- */
-async function render(cap, mas, site, v, N, SECONDS) {
+async function render(cap, mas, site, sc, v, N, SECONDS) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
   for (const d of [FRAMES, SUBS, VERIFY]) {
     fs.rmSync(d, { recursive: true, force: true });
@@ -2191,6 +2951,9 @@ async function render(cap, mas, site, v, N, SECONDS) {
   console.log('      end card wordmark ' + contrast.endcard.ratio.toFixed(2) + ':1, the address '
     + contrast.endcard.subRatio.toFixed(2) + ':1');
   console.log('      the tap ring      ' + contrast.ring.ratio.toFixed(2) + ':1');
+  console.log('      the opening type  ' + contrast.scene.ratio.toFixed(2) + ':1   ' + contrast.scene.ink);
+  console.log('      the orange faces  ' + contrast.orange.ratio.toFixed(2) + ':1   ' + contrast.orange.ink
+    + ', the same colour on both themes');
 
   const cyr = await page.evaluate(() => {
     const el = document.getElementById('m-bubble-text');
@@ -2342,11 +3105,38 @@ async function render(cap, mas, site, v, N, SECONDS) {
   cam = await resolve(site.legs[0].to) || { cx: SITE.w / 2, cy: 300, z: 1 };
   await page.evaluate(c => window.__stage.cam(c.cx, c.cy, c.z), cam);
 
+  /* the opening's own frame, computed once per **output** frame and handed to
+     every subframe of it unchanged. that is the whole reason it is out here and
+     not inside the subframe loop: a two frame rgb split averaged with three
+     clean captures is a smudge, and a glitch that smudges is not a glitch. */
+  let scF = null, scOff = false;
+  const scSeen = [], scInk = [], scLate = [], scBlank = [];
+  const scDuty = SCENES.map(() => 0), scOn = SCENES.map(() => 0);
+
   for (let f = 0; f < N; f++) {
+    const t0 = f / FPS;
+    if (t0 <= sc.until + 0.05) {
+      scF = sceneFrame(sc, f, FPS);
+      /* the duty cycle, per scene: how many of the frames a scene is up for have
+         a split on them. "never continuous" is this number, and the guard has a
+         ceiling for it. */
+      for (let j = 0; j < scF.o.length; j++) {
+        if (scF.o[j] <= 0.02) continue;
+        scOn[j]++;
+        if (scF.split > 0.01) scDuty[j]++;
+      }
+    } else if (!scOff) {
+      /* one write that puts the layer away for good, rather than a call a frame
+         for the thirty six seconds after it is over. */
+      scF = sceneFrame(sc, Math.round((sc.until + 0.5) * FPS), FPS);
+      scOff = true;
+    } else scF = null;
+
     for (let k = 0; k < SUB; k++) {
       const idx = f * SUB + k;
       const t = f / FPS + k / (FPS * SUB);
       const first = k === 0;
+      if (scF) await page.evaluate(o => window.__stage.scene(o), scF);
 
       /* --- the one shot actions --- */
       for (const c of site.cues) {
@@ -2473,7 +3263,25 @@ async function render(cap, mas, site, v, N, SECONDS) {
           nav: window.__stage.navSeen(),
           lid: window.__stage.siteLid(),
           win: window.__stage.window_(),
+          sc: window.__stage.sceneSeen(),
+          scInk: window.__stage.sceneInk(),
         }));
+        /* what the opening actually rendered, read back, against what it was
+           told to. two things are worth catching and both are read off the page
+           rather than off the plan: a scene still up after the card has finished
+           arriving, which would be the layer sitting on the site, and a frame
+           inside the opening with nothing on it at all. */
+        if (s.sc) {
+          const on = s.sc.on.length > 0;
+          if (t <= sc.until + 0.05) {
+            scSeen.push({ t: +t.toFixed(2), keys: s.sc.on.map(x => x.key + ' ' + x.o).join(' + '),
+              faces: s.sc.faces, card: +fade.toFixed(3) });
+            if (!on && fade < 0.02) scBlank.push({ t: +t.toFixed(2) });
+          } else if (on) {
+            scLate.push({ t: +t.toFixed(2), keys: s.sc.on.map(x => x.key).join(',') });
+          }
+        }
+        if (s.scInk) scInk.push({ t: +t.toFixed(2), ...s.scInk });
         /* ---------- the camera, read back ----------
            node writes a transform and the page renders one, and until the scroll
            above was pinned those two disagreed by a quarter of a page with every
@@ -2498,6 +3306,16 @@ async function render(cap, mas, site, v, N, SECONDS) {
           if (!bubbleWorst || near < bubbleWorst.near) bubbleWorst = { t: +t.toFixed(2), near, ...s.bubble };
         }
         if (s.band && s.band.hit) masBandHits++;
+        /* the band, and it is asked on every sample now rather than only while
+           the card is up: the opening draws in the same rectangle the card does,
+           so the rule about the caption band is about the frame rather than
+           about the card, and a check that only ran when the card was up would
+           have had nothing to say about the first ten seconds. */
+        {
+          const bc = await page.evaluate((a, b) => window.__stage.bandClash(a, b),
+            ceiling.top, ceiling.bottom);
+          if (bc.n) bandHits.push({ t: +t.toFixed(2), over: bc.over, what: bc.what });
+        }
         if (fade > 0.02) {
           if (s.clip && s.clip.clipped) clipFaults.push({ t: +t.toFixed(2), ...s.clip });
           if (s.nav && s.nav.seen) navFaults.push({ t: +t.toFixed(2), ...s.nav });
@@ -2505,10 +3323,8 @@ async function render(cap, mas, site, v, N, SECONDS) {
              is laid out in. the box is 220px tall and the caption is anchored to
              its bottom edge, so testing the box would fail on a collision that
              does not exist — the pictogram layer made exactly that mistake once
-             and the guard read as a real check for weeks. */
-          const bc = await page.evaluate((a, b) => window.__stage.bandClash(a, b),
-            ceiling.top, ceiling.bottom);
-          if (bc.n) bandHits.push({ t: +t.toFixed(2), over: bc.over });
+             and the guard read as a real check for weeks. it is asked above, on
+             every sample, because the opening occupies the same rectangle. */
         }
         if (s.lid != null) {
           if (lidSeen.length && Math.abs(s.lid - lidSeen[lidSeen.length - 1]) > 1e-4) lidMoved++;
@@ -2585,11 +3401,16 @@ async function render(cap, mas, site, v, N, SECONDS) {
     taps, calls, fills, camTrail, shots, framing, camFaults, clipFaults, navFaults, bandHits,
     sawAccent, capMoved, maxVisible, typedInk, steps, sent,
     posts: posts - posts0, lidMoved, lidSamples: lidSeen.length,
+    sc: {
+      seen: scSeen, ink: scInk, late: scLate, blank: scBlank,
+      duty: scDuty.map((d, i) => ({ key: SCENES[i].key, frames: scOn[i], glitching: d,
+        duty: scOn[i] ? +(d / scOn[i]).toFixed(3) : 0 })),
+    },
   };
 }
 
 /* ---------- what the run prints ---------- */
-function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joke) {
+function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after, lim, best, passes, p, SECONDS, joke, sc) {
   const dev = x => Math.round(x * DSF);
   console.log('\nrendered');
   console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps  ' + p.seconds.toFixed(2) + 's  '
@@ -2676,6 +3497,67 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
     + ' in the browser default; the latin control is ' + state.cyr.control.sg
     + ' against ' + state.cyr.control.none + ', so the probe can tell two faces apart');
 
+  console.log('\n  the opening');
+  console.log('    four scenes in the card box, ' + sc.scenes[0].from.toFixed(2) + '..'
+    + sc.scenes[3].to.toFixed(2) + 's, handover windows of ' + sc.xf.toFixed(2)
+    + 's — the same window the card arrives over — with a ' + SC_CROSS.toFixed(2)
+    + 's complementary exchange at ' + (SC_CROSS_AT * 100).toFixed(0) + '% of each');
+  for (const s of sc.scenes) {
+    const m = (state.built.scenes || []).find(x => x.key === s.key) || { lines: [] };
+    console.log('      ' + (s.k + 1) + '  ' + s.in.t0.toFixed(2) + '..' + s.out.t1.toFixed(2)
+      + '  line ' + s.line + ' runs ' + s.beat.start.toFixed(2) + '..' + s.beat.end.toFixed(2)
+      + '   ' + s.lines.map(l => l.t.toUpperCase()).join(' / '));
+    console.log('           window ' + s.in.t0.toFixed(2) + '..' + s.in.t1.toFixed(2)
+      + ' then ' + s.out.t0.toFixed(2) + '..' + s.out.t1.toFixed(2)
+      + ', and it is up over ' + s.crossIn.t0.toFixed(2) + '..' + s.crossIn.t1.toFixed(2)
+      + ' and down over ' + s.crossOut.t0.toFixed(2) + '..' + s.crossOut.t1.toFixed(2)
+      + (s.k === 3 ? '  (inside the card\'s own arrival, by reference)' : ''));
+    console.log('           type: ' + m.lines.map(l => '"' + l.t + '" ' + l.px + 'px = '
+      + l.capPx + ' device px of cap').join(', ') + '  (fitted on ' + m.by + ')');
+    if (s.wordsAt != null) {
+      console.log('           the words glitch in at ' + s.wordsAt.toFixed(2) + 's, on "'
+        + s.wordsOn + '", over ' + SC_GLITCH.entry.toFixed(2) + 's');
+    }
+    if (s.faces.length) {
+      console.log('           ' + s.faces.length + ' orange faces — '
+        + SC_FACES.map(f => f.pose).join(', ') + ' — on '
+        + s.faces.reduce((a, w) => a + w.length, 0) + ' windows between them');
+    }
+    if (s.dips.length) console.log('           the tube flickers in ' + SC_TUBE.base[0]
+      + '..' + SC_TUBE.base[1] + ' with ' + s.dips.length + ' one frame dips to '
+      + SC_TUBE.dip[0] + '..' + SC_TUBE.dip[1]);
+  }
+  console.log('    the glow on the ' + THEME + ' page: '
+    + (SC_GLOW[THEME].length
+      ? SC_GLOW[THEME].map(([b, a]) => b + 'px at ' + (a * 100).toFixed(0) + '%').join(', ')
+        + ' of white, layered'
+      : 'none — ink on paper, which is what a glow on a white page would have to be'));
+  console.log('    the glitch: split ' + (THEME === 'dark' ? SC_GLITCH.splitDark : SC_GLITCH.splitLight)
+    + 'px, jitter ' + SC_GLITCH.jitter + 'px, bursts '
+    + (SC_GLITCH.burst[0] * 1000).toFixed(0) + '..' + (SC_GLITCH.burst[1] * 1000).toFixed(0)
+    + 'ms every ' + SC_GLITCH.every[0].toFixed(2) + '..' + SC_GLITCH.every[1].toFixed(2) + 's, '
+    + 'quantised to the output frame so the shutter cannot smear it');
+  console.log('    and how much of each scene is actually glitching, against a '
+    + (SC_GLITCH.dutyMax * 100).toFixed(0) + '% ceiling:');
+  for (const d of (state.sc || { duty: [] }).duty) {
+    console.log('      ' + d.key.padEnd(10) + ' ' + String(d.glitching).padStart(3) + ' of '
+      + String(d.frames).padStart(3) + ' frames  ' + (d.duty * 100).toFixed(1) + '%');
+  }
+  if (state.sc) {
+    console.log('    read back off the page: ' + state.sc.seen.length + ' samples inside the opening, '
+      + state.sc.late.length + ' after the card had arrived, ' + state.sc.blank.length
+      + ' with nothing on screen at all');
+    const ink = state.sc.ink;
+    if (ink.length) {
+      const l = Math.min(...ink.map(i => i.left)), t2 = Math.min(...ink.map(i => i.top));
+      const r = Math.max(...ink.map(i => i.right)), b2 = Math.max(...ink.map(i => i.bottom));
+      console.log('      the ink, over every sample and every jitter, runs ' + l.toFixed(0)
+        + '..' + r.toFixed(0) + ' across and ' + t2.toFixed(0) + '..' + b2.toFixed(0) + ' down — '
+        + dev(l) + ' left, ' + dev(t2) + ' top, ' + dev(VW - r) + ' right in device px, and the '
+        + 'caption ceiling is at ' + state.ceiling.top);
+    }
+  }
+
   console.log('\n  the mascot');
   console.log('    ' + mas.marks.length + ' marks, ' + mas.marks.reduce((a, m) => a + (m.bubbles || []).length, 0)
     + ' bubbles, resting turn ' + mas.bias);
@@ -2721,7 +3603,7 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
    the shape every clip in here uses: the thing must have happened, it must have
    happened everywhere it was supposed to, and every claim in the log above must
    be a measurement. */
-function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim, p, SECONDS, joke) {
+function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim, p, SECONDS, joke, sc) {
   const fail = [];
   const floor = Math.min(SAFE.left, SAFE.top, SAFE.right, SAFE.bottom);
 
@@ -2781,6 +3663,100 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
   if (state.masBandHits) fail.push('the bubble entered the caption band ' + state.masBandHits + ' times');
   if (state.bandHits.length) {
     fail.push('the site card overlapped the caption band on ' + state.bandHits.length + ' samples');
+  }
+
+  /* ---------- the opening ----------
+     the four scenes fill the card box for the first four lines and then hand it
+     to the site card. what has to be true of them is the same shape as what has
+     to be true of everything else in this file: it happened, it is legible, it
+     is where it says it is, and the handover is arithmetic rather than a hope.
+
+     the handover is the item worth reading twice. the last scene's exit is not
+     "the same numbers as" the card's arrival, it **is** the record `planSite`
+     wrote, taken by reference — so this check is asking whether that is still
+     the case rather than whether two hand written numbers still agree. */
+  const cf = site.fades.find(f => f.to === 1);
+  const last = sc.scenes[sc.scenes.length - 1];
+  if (last.out.t0 !== cf.t0 || last.out.t1 !== cf.t1) {
+    fail.push('the last scene\'s handover window is ' + last.out.t0 + '..' + last.out.t1
+      + ' and the card arrives over ' + cf.t0 + '..' + cf.t1 + ', so there is a jump or a hole '
+      + 'between the opening and the site');
+  }
+  if (last.crossOut.t0 < cf.t0 || last.crossOut.t1 > cf.t1) {
+    fail.push('the last scene leaves over ' + last.crossOut.t0 + '..' + last.crossOut.t1
+      + ', which is outside the card\'s own arrival');
+  }
+  /* and the two ends of a handover are the same exchange: scene k arrives over
+     exactly the window scene k-1 leaves over, so nothing can be on screen twice
+     and nothing can be on screen never. */
+  for (let i = 1; i < sc.scenes.length; i++) {
+    const a = sc.scenes[i - 1].crossOut, b = sc.scenes[i].crossIn;
+    if (a.t0 !== b.t0 || a.t1 !== b.t1) {
+      fail.push('scene ' + i + ' leaves over ' + a.t0 + '..' + a.t1 + ' and scene ' + (i + 1)
+        + ' arrives over ' + b.t0 + '..' + b.t1 + ', so they are not the same exchange');
+    }
+  }
+  if (state.sc) {
+    if (state.sc.late.length) {
+      fail.push('the opening was still on screen after the card had arrived, on '
+        + state.sc.late.length + ' samples, first at ' + state.sc.late[0].t + 's ('
+        + state.sc.late[0].keys + ')');
+    }
+    if (state.sc.blank.length) {
+      fail.push(state.sc.blank.length + ' sampled frames inside the opening with no scene and no '
+        + 'card on them, first at ' + state.sc.blank[0].t + 's');
+    }
+    if (!state.sc.seen.length) fail.push('the opening was never sampled on screen at all');
+    if (!state.sc.seen.some(x => x.faces > 0)) {
+      fail.push('the five orange faces were never on screen on any sample');
+    }
+    for (const d of state.sc.duty) {
+      if (!d.frames) fail.push('the scene "' + d.key + '" is never up for a single frame');
+      else if (!d.glitching) fail.push('the scene "' + d.key + '" never glitches on any frame');
+      else if (d.duty > SC_GLITCH.dutyMax) {
+        fail.push('the scene "' + d.key + '" is glitching on ' + (d.duty * 100).toFixed(1)
+          + '% of its own frames, ceiling is ' + (SC_GLITCH.dutyMax * 100).toFixed(0)
+          + '% — a burst that long is a look rather than a fault');
+      }
+    }
+  } else fail.push('the render reported nothing at all about the opening');
+  /* the type, and the same question the typed line is asked: can anybody read
+     it. this one is held to the caption's own floor rather than to a filmed
+     interface's, because it is our type at our size and there is no excuse. */
+  const built = state.built.scenes || [];
+  if (built.length !== SCENES.length) {
+    fail.push(built.length + ' scenes measured themselves and there are ' + SCENES.length);
+  }
+  for (const m of built) {
+    for (const l of m.lines) {
+      if (l.capPx < SC_MIN_CAP) {
+        fail.push('"' + l.t + '" in the ' + m.key + ' scene renders at ' + l.capPx
+          + ' device px of cap, floor is ' + SC_MIN_CAP);
+      }
+    }
+  }
+  /* the size joke has to be a joke: SMALL is set smaller than the two words
+     either side of it, and by enough that it reads as a decision. */
+  const small = built.find(m => m.key === 'small');
+  if (!small) fail.push('the size joke scene never measured itself');
+  else {
+    const mid = small.lines[1], sides = [small.lines[0], small.lines[2]];
+    if (!mid || mid.t !== 'small') fail.push('the middle line of the size joke is not "small"');
+    else if (!(mid.px < Math.min(...sides.map(s => s.px)) * 0.55)) {
+      fail.push('"small" is set at ' + mid.px + 'px against ' + sides.map(s => s.px).join(' and ')
+        + ' either side of it, which is not a size joke');
+    }
+  }
+  /* and the layer is under everything, measured rather than promised. */
+  const z = state.built.scZ;
+  if (!z) fail.push('the opening never reported its own depth');
+  else {
+    for (const [what, v2] of [['the card', z.card], ['the captions', z.cap], ['the mascot', z.mascot]]) {
+      if (!(Number(z.scene) < Number(v2))) {
+        fail.push('the opening is at z-index ' + z.scene + ' and ' + what + ' is at ' + v2
+          + ', so the layer can get in front of it');
+      }
+    }
   }
 
   /* the captions */
@@ -3020,6 +3996,13 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
       ['the end card wordmark', 'endcard.ratio'],
       ['the end card address', 'endcard.subRatio'],
       ['the tap ring', 'ring.ratio'],
+      ['the opening type', 'scene.ratio'],
+      /* the orange is the only colour in the clip that is not the page's own
+         ink or its own paper, so it is the only one that could be readable on
+         one theme and a smudge on the other. it is held to the same absolute bar
+         on both rather than to a parity, because it is one hard coded value and
+         there is nothing for a parity to compare it against. */
+      ['the orange faces', 'orange.ratio'],
     ];
     /* the parity check covers **only** these two, and that is the whole of its
        job. the five above already clear an absolute bar by four or five times,
@@ -3048,6 +4031,14 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
         const lc = (JSON.parse(fs.readFileSync(lightState, 'utf8')) || {}).contrast;
         if (!lc) console.log('    (the light render predates the contrast probe)');
         else {
+          /* the faces are the same orange on both pages, and that is not a
+             preference: a character who changes colour with the theme is two
+             characters. it is compared as the resolved colour rather than as the
+             token, so a theme block that quietly overrode it would be caught. */
+          if (lc.orange && lc.orange.ink !== c.orange.ink) {
+            fail.push('the faces are ' + c.orange.ink + ' on dark and ' + lc.orange.ink
+              + ' on light, and the orange is meant to be one colour on both');
+          }
           for (const [what, key] of PAIRED) {
             const a = at(lc, key), b = at(c, key);
             if (a == null || b == null) continue;
@@ -3102,7 +4093,9 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
     /* every bubble, whichever spelling asked for it. it used to read the runs
        only, which was correct while every bubble a viewer saw was in one, and
        stopped being correct the moment the opening grew two of its own. */
-    ...mas.marks.flatMap(m => (m.bubbles || []).map(b => b.text))];
+    ...mas.marks.flatMap(m => (m.bubbles || []).map(b => b.text)),
+    /* and the opening, which is four scenes of type a viewer reads. */
+    ...SCENES.flatMap(s => s.lines.map(l => l.t))];
   for (const s of readable) {
     if (/[—–]/.test(s) || /\s-\s/.test(s)) fail.push('a punctuation dash in: "' + s + '"');
   }
