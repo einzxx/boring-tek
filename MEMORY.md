@@ -10,13 +10,33 @@ names in here either.
   `demo/post11.mjs`, the eleventh clip, the explainer. 47.03s, 1080x1920, the
   read in the file.** It renders in two variants, light and `--dark`, out to
   `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
-  **Checked at 12fps only; the 60fps master has not been run.** **The empty top
+  **The docs caught up with the file on 2026-08-31 as `f953e58`, and the 60fps
+  finals are rendering as this is written.** See the two state bullets directly
+  below before trusting anything in `demo/out`. **The empty top
   of the frame is no longer empty** — it carries the four opening scenes, the
   report beat and the chalkboard now, all in the same card box the site is filmed
   in. **The live site did not change**; **no existing post file was edited**;
   **no dependency was added** — the list stays `puppeteer-core`, `ffmpeg-static`
   and `gsap`. **Not posted anywhere and there is no posting pack yet** — caption,
   hashtags and a track are still owed.
+  - **Where it is right now, 2026-08-31.** The docs pass landed as **`f953e58`**
+    — `MEMORY.md` and `demo/README.md` had been four rounds behind and now
+    describe the file as it stands. **Both 60fps finals are rendering**, in one
+    chained detached shell, **light first and then dark**, each with the shutter
+    open at four subframes to a frame. Logs at **`demo/out/final-light.log`** and
+    **`demo/out/final-dark.log`**; **`demo/out/final-status.txt`** gets one line
+    per variant with its exit code and only exists in full when both have landed.
+    **Neither final has been reviewed.** Nothing else may touch the running
+    renders while they are in flight.
+  - **The mp4s sitting in `demo/out` are 12fps previews with the shutter SHUT,
+    and they are not the finals.** They are written to the same two paths the
+    finals are written to — `post11-light-1080x1920.mp4` and
+    `post11-dark-1080x1920.mp4` — so **the finals overwrite them when they land**
+    and the only way to tell which is which is the timestamp against the render
+    logs. A preview was nearly reviewed as a final once already this session:
+    with the shutter shut, every judgement about motion blur, the torn bands and
+    the brick landings would have been made against the wrong frames. **Check the
+    mtime against `final-*.log` before reviewing anything in that folder.**
   - **The opening is four type scenes in the card box, one per line.** `BUSINESS`
     at 74.1px, `WHY I / NEED / AI?!` at 118.2px, a generated brain then
     `BUT I AM / BUSY` at 71.2px on the word `but`, and `ONE / small / THING` at
@@ -1795,6 +1815,35 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-08-31 — the final review is run by sub agents, and the frames never reach the caller
+
+`skills/video-review/SKILL.md` has always said it: read the frames in batches of
+eight to ten, and **if the caller has asked for sub agents, hand each batch to
+one and have it return text only**, so the images never enter the main context.
+Until now every review in this repo has been read directly, because every clip
+was short enough or the pass was narrow enough to fit.
+
+post11's final review is not. Two variants, 47.03s each, a dense pass on the four
+reworked beats — the opening scenes, the report beat, the chalkboard and the end
+card — and a coarser pass over the site stretch between them. Read directly that
+is more pictures than one context holds, and the failure mode is the bad one:
+running out half way through and leaving a verdict that covers the beats that
+happened to be read first.
+
+So the finals are reviewed with **one sub agent per batch, text back only**. Each
+returns the second, what is on screen, any caption text it can read, and anything
+that looks wrong. The caller synthesises the timeline, the checklist and the
+findings from those reports. **The frames are never in the caller's context at
+all**, which is the trick the upstream skill was built around and is worth about
+ninety per cent of it.
+
+Two things this does not change. The review is still **judged on the frame rather
+than on the run's own numbers** — a sub agent reporting what it sees is still an
+eye, and the skill's rule that the frame wins over the log stands. And it is
+still **the finals that get reviewed**, not the previews: the shutter is shut in
+a preview, so motion blur, the torn bands and the brick landings cannot be judged
+from one.
 
 ### 2026-08-31 — post11's four rounds: an opening that is type, a full stop, a page built out of blocks, and a chalkboard
 
