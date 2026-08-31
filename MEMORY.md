@@ -10,33 +10,53 @@ names in here either.
   `demo/post11.mjs`, the eleventh clip, the explainer. 47.03s, 1080x1920, the
   read in the file.** It renders in two variants, light and `--dark`, out to
   `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
-  **The docs caught up with the file on 2026-08-31 as `f953e58`, and the 60fps
-  finals are rendering as this is written.** See the two state bullets directly
-  below before trusting anything in `demo/out`. **The empty top
+  **Both 60fps finals landed green on 2026-08-31 and are on disk.** See the state
+  bullet directly below for the numbers. **The empty top
   of the frame is no longer empty** — it carries the four opening scenes, the
   report beat and the chalkboard now, all in the same card box the site is filmed
   in. **The live site did not change**; **no existing post file was edited**;
   **no dependency was added** — the list stays `puppeteer-core`, `ffmpeg-static`
   and `gsap`. **Not posted anywhere and there is no posting pack yet** — caption,
   hashtags and a track are still owed.
-  - **Where it is right now, 2026-08-31.** The docs pass landed as **`f953e58`**
-    — `MEMORY.md` and `demo/README.md` had been four rounds behind and now
-    describe the file as it stands. **Both 60fps finals are rendering**, in one
-    chained detached shell, **light first and then dark**, each with the shutter
-    open at four subframes to a frame. Logs at **`demo/out/final-light.log`** and
-    **`demo/out/final-dark.log`**; **`demo/out/final-status.txt`** gets one line
-    per variant with its exit code and only exists in full when both have landed.
-    **Neither final has been reviewed.** Nothing else may touch the running
-    renders while they are in flight.
-  - **The mp4s sitting in `demo/out` are 12fps previews with the shutter SHUT,
-    and they are not the finals.** They are written to the same two paths the
-    finals are written to — `post11-light-1080x1920.mp4` and
-    `post11-dark-1080x1920.mp4` — so **the finals overwrite them when they land**
-    and the only way to tell which is which is the timestamp against the render
-    logs. A preview was nearly reviewed as a final once already this session:
-    with the shutter shut, every judgement about motion blur, the torn bands and
-    the brick landings would have been made against the wrong frames. **Check the
-    mtime against `final-*.log` before reviewing anything in that folder.**
+  - **The 60fps finals, 2026-08-31, both green with the shutter open at four
+    subframes to a frame.** 47.03s each, and they are the files in `demo/out`
+    now — the 12fps previews that used to sit at these paths were overwritten by
+    them.
+
+    ```
+    demo/out/post11-light-1080x1920.mp4   6,686,538 bytes   6.69 MB   1.14 Mbit/s
+    demo/out/post11-dark-1080x1920.mp4    8,048,476 bytes   8.05 MB   1.37 Mbit/s
+    ```
+
+    Logs at **`demo/out/final-light.log`** and **`demo/out/final-dark.log`**, both
+    ending `all checks passed.`; **`demo/out/final-status.txt`** carries the four
+    exit codes, `LIGHT=1 DARK=1 LIGHT2=0 DARK2=0` — the first pair is the run that
+    hit the duty ceiling and the second is the re-run after the exception below.
+    **Neither final has been reviewed.** The docs pass before them was `f953e58`.
+  - **The `days` scene carries a named exception to the glitch duty ceiling, and
+    it only showed up at sixty.** `SC_GLITCH.dutyMax` is 30% and stays 30% for
+    everything else; `SC_DAYS.dutyMax` is **40%**, declared on that one scene,
+    threaded through the block into the state and out to the guard, which falls
+    back to the global for every block that does not name its own. Committed as
+    **`59a0ee4`**.
+
+    The fault on `1/2 / DAYS` is 140ms hard plus a 160ms stutter, **0.30s inside
+    a 0.90s appearance, which is 33% by construction**. At twelve frames a second
+    that quantised under the ceiling and every preview passed; at sixty it did
+    not. **A ratio guard on a short window is a different guard at a different
+    frame rate**, and that is the part worth keeping.
+
+    It is an exception rather than a new global because the ratio measures the
+    wrong thing here. The ceiling enforces "never continuous" on the four opening
+    scenes, where the glitch is a scatter of 70 to 140ms bursts through two and a
+    half seconds — there a high ratio really does mean the thing never stops
+    faulting. The days are **one deliberate fault at the head of the beat and
+    then 0.60s of clean type**, and a ratio cannot tell "a third, scattered
+    throughout" from "a third, all of it at the front, then clean". What actually
+    holds the beat honest is the absolute length check on the fault, `tvLen`
+    against 0.34s; this number only has to be loose enough not to fight it. The
+    measured duties at sixty: business 19.9%, why 15.2%, busy 16.3%, small 8.7%,
+    report 3.7%, **days 32.7%**.
   - **The opening is four type scenes in the card box, one per line.** `BUSINESS`
     at 74.1px, `WHY I / NEED / AI?!` at 118.2px, a generated brain then
     `BUT I AM / BUSY` at 71.2px on the word `but`, and `ONE / small / THING` at
@@ -2239,8 +2259,10 @@ clip is still being captioned into that band while the card is up.
   `headRect`'s plan geometry so they still describe what is on screen at the
   larger size, and post10's glitch read across. **The mascot's placement wants
   another look either way.**
-- **The 60fps pass. Neither variant has been rendered or reviewed at sixty.**
-  Every number in this entry is off a 12fps preview.
+- **The 60fps pass.** Both variants are rendered at sixty and green as of
+  2026-08-31 — see the Status bullet for the numbers — and **neither has been
+  reviewed at sixty.** Every number in this entry was measured off a 12fps
+  preview and the geometry and type numbers are unchanged by the frame rate.
 - **A posting pack and a track**, both still owed.
 
 **What the reviews found and did not fix.** In

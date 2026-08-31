@@ -34,7 +34,8 @@ All headless Chrome, all tooling. The renderers first:
   theboringtek.com cropped to the hero, the form filled and narrated field by
   field, and the corner mascot reacting the whole way through. Out to
   `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
-  **12fps previews only so far; no 60fps pass.** See The eleventh clip.
+  **Both 60fps finals are rendered and green**, 47.03s each. See The eleventh
+  clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -1644,9 +1645,13 @@ A calm friendly explainer for the service: big simple type, real captured footag
 of the live site inside a card, and the corner mascot reacting throughout.
 Positive, not rage, not dry.
 
-**Neither variant has been rendered or reviewed at 60fps.** Everything below is
-measured off 12fps previews, which is what every number in this section is. The
-60fps pass is outstanding — see the end of the section.
+**Both variants are rendered at 60fps with the shutter open at four subframes to
+a frame, and both are green.** 6.69 MB at 1.14 Mbit/s light, 8.05 MB at 1.37
+Mbit/s dark, logs at `out/final-light.log` and `out/final-dark.log`. **Neither
+has been reviewed at sixty** — the geometry and type numbers below were measured
+off 12fps previews and are unchanged by the frame rate, but nothing about motion
+blur, the torn bands or the brick landings has been watched on the finals. See
+the end of the section.
 
 Three firsts. **It is the first clip built on `lib/mascot.mjs`**, so the mascot's
 performance is a list of marks rather than a list of gaze keys. **It is the first
@@ -2435,8 +2440,20 @@ The day a second clip wants a glitch is the day it moves.
 
 ### Outstanding, and undecided
 
-- **The 60fps pass.** Neither variant has been rendered or reviewed at sixty.
-  Every number in this section is off a 12fps preview.
+- **The review of the finals.** Both variants are rendered at sixty and green,
+  and **neither has been watched.** It wants a dense pass on the four reworked
+  beats — the opening scenes, the report beat, the chalkboard and the end card —
+  and a coarser pass over the site stretch between them, with **one sub agent per
+  frame batch returning text only**, per `skills/video-review/SKILL.md`. Two
+  variants at 47.03s is more pictures than one context holds read directly. The
+  things sixty can show that twelve could not: whether the four torn bands
+  survived the shutter, the white frame's real peak, the page's 0.42s slide, the
+  five brick landings 75ms apart, and whether a fast move smears and lands sharp.
+- **Undecided: the `days` scene's duty exception.** It is committed and
+  documented — 40% on that one scene against a global 30% — but it was raised in
+  response to a red guard, which is exactly the move that should stay visible.
+  The absolute length check on the fault is what holds the beat honest; if the
+  clean tail were guarded directly the ratio would not be needed at all.
 - **Undecided: the site's own wordmark crops to `BORING / TEK` at 15.00s.** It is
   a frame in the middle of the camera travelling from the lockup down to the
   form, not a resolved shot — `resolve`'s `cleared` pass holds the shot
