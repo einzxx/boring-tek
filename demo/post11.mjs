@@ -591,31 +591,30 @@ const SC_CROSS_AT = 0.60;
    they are placed around the word rather than on it, and the box they sit in is
    the scene's own, so the arithmetic that keeps them off the type is the same
    arithmetic that keeps them inside the safe area. */
-const SC_POSES = {
-  /* per eye: [scale x, scale y, dx, dy]. per brow: [opacity, dy, degrees].
-
-     the numbers are pushed well past the corner mascot's own, and that is the
-     size difference doing it: he is 240 device px across and these are about a
-     hundred and forty, and a difference of 0.3 on an eye scale that reads at his
-     size is a rounding error at theirs. the first pass used his numbers exactly
-     and the five faces came back as five identical dots. */
-  happy:     { eyes: [[1.15, 0.85, 0, 0.4], [1.15, 0.85, 0, 0.4]], brows: [[1, -3.6, -15], [1, -3.6, 15]] },
-  surprised: { eyes: [[1.10, 2.90, 0, -1.0], [1.10, 2.90, 0, -1.0]], brows: [[1, -3.8, -6], [1, -3.8, 6]] },
-  thinking:  { eyes: [[1.00, 0.35, -3.0, -2.0], [1.00, 1.30, -3.0, -2.0]], brows: [[1, 1.2, 10], [1, -0.6, 2]] },
-  curious:   { eyes: [[1.00, 1.00, 2.6, -1.8], [1.00, 2.10, 2.6, -1.8]], brows: [[1, 1.6, -4], [1, -2.6, 14]] },
-  confused:  { eyes: [[1.00, 1.90, -0.8, -0.4], [1.00, 0.50, 1.2, 0.8]], brows: [[1, -3.0, 16], [1, 1.4, -8]] },
-};
 /* placed in the scene's own 388x420 box. the two bands they sit in are above and
    below the word, with a good twenty px of air either side of it, and every slot
    leaves room for its own rotation: a 76px square turned eight degrees is 89
    across, and it is the turned box the safe area sees. */
 const SC_FACES = [
-  { pose: 'thinking',  x: 152, y: 4,   s: 68, rot: -5 },
-  { pose: 'surprised', x: 292, y: 44,  s: 72, rot: 6 },
-  { pose: 'happy',     x: 8,   y: 74,  s: 76, rot: -8 },
-  { pose: 'curious',   x: 30,  y: 272, s: 70, rot: 9 },
-  { pose: 'confused',  x: 288, y: 262, s: 74, rot: -6 },
+  { x: 152, y: 4,   s: 68, rot: -5 },
+  { x: 292, y: 44,  s: 72, rot: 6 },
+  { x: 8,   y: 74,  s: 76, rot: -8 },
+  { x: 30,  y: 272, s: 70, rot: 9 },
+  { x: 288, y: 262, s: 74, rot: -6 },
 ];
+/* the type inside a head, in the head's own grid units. `AI` is two letters and
+   the plate is a circle of radius 30, so what has to fit is the diagonal of the
+   text box rather than its width: at this face and weight `AI` is about 0.62em
+   across and 0.737em of cap, so the corner of the box sits 0.72F from the centre
+   and 30 units of radius takes F up to about 36 before it touches the edge. 30 is
+   used, which leaves four units of air at the corner and eleven either side.
+
+   it is deliberately **not** shrunk to be safe. the brief for this is that the
+   letters have to read at this size and the heads grow if they will not, so the
+   size is picked for the letters and the head is checked against it — the run
+   prints the cap it measured and a guard holds it to the same 32 device px floor
+   every other piece of copy in this file clears. */
+const SC_AI = { text: 'AI', size: 30, baseline: 43 };
 
 /* ---------- the four scenes ----------
    the copy is written lowercase and set uppercase, which is how every other piece
@@ -1965,41 +1964,31 @@ function sceneFrame(plan, f, fps) {
   };
 }
 
-/* ---------- the five faces, as svg ----------
-   the mascot's own plate, eyes and brows, at the unit numbers `lib/mascot.mjs`
-   exports, posed by the table above. nothing in that module is imported to be
-   run — only its geometry is read — so the corner mascot and these five cannot
-   drift apart about what a head is, and nothing here can move him. */
+/* ---------- the five heads, as svg ----------
+   the mascot's own plate at the unit numbers `lib/mascot.mjs` exports, and `AI`
+   where the face was. nothing in that module is imported to be run — only its
+   geometry is read — so the corner mascot and these five cannot drift apart
+   about what a head is, and nothing here can move him.
+
+   **the eyes are gone and they are not coming back.** two slabs 13 units wide on
+   a head rendered at about 140 device px are five px of ink each, and at that
+   size a pair of them does not read as a face, it reads as a rendering fault —
+   which is what a viewing of the last cut said. what a head this small can carry
+   is one word, and the word is the one the clip is about.
+
+   the letters are white on the orange rather than the page colour the eyes were.
+   the eyes were holes punched in the plate and that is right for a feature; this
+   is type, and type that inverts with the theme would be near black inside an
+   orange disc on the dark page, which is the one place in the frame a glow
+   cannot help it. white is the same on both themes because the plate is. */
 function faceSvg(f) {
-  const P = HEAD.plate, E = HEAD.eye, W = HEAD.brow;
-  const about = (cx, cy, sx, sy, dx, dy) =>
-    'translate(' + dx + ' ' + dy + ') translate(' + cx.toFixed(2) + ' ' + cy.toFixed(2) + ')'
-    + ' scale(' + sx + ' ' + sy + ') translate(' + (-cx).toFixed(2) + ' ' + (-cy).toFixed(2) + ')';
-  const pose = SC_POSES[f.pose];
-  if (!pose) throw new Error('no face pose called "' + f.pose + '"');
-  const eye = i => {
-    const [sx, sy, dx, dy] = pose.eyes[i];
-    const cx = EYE_CX[i];
-    return '<rect class="sc-eye" x="' + (cx - E.w / 2).toFixed(2) + '" y="' + (E.cy - E.h / 2).toFixed(2)
-      + '" width="' + E.w + '" height="' + E.h + '" rx="' + (E.h / 2).toFixed(2)
-      + '" transform="' + about(cx, E.cy, sx, sy, dx, dy) + '"/>';
-  };
-  const brow = i => {
-    const [op, dy, rot] = pose.brows[i];
-    if (!op) return '';
-    const cx = EYE_CX[i];
-    /* a shade thicker than the mascot's own, and for the same reason the poses
-       are pushed: 1.9 units of brow is four device px on a face this size, and
-       four device px does not survive h.264. */
-    return '<rect class="sc-brow" x="' + (cx - W.w / 2).toFixed(2) + '" y="' + (W.cy - W.h / 2).toFixed(2)
-      + '" width="' + W.w + '" height="' + (W.h * 1.4).toFixed(2) + '" rx="' + (W.h * 0.7).toFixed(2)
-      + '" transform="translate(0 ' + dy + ') rotate(' + rot + ' ' + cx.toFixed(2) + ' ' + W.cy + ')"/>';
-  };
+  const P = HEAD.plate;
   return '<svg viewBox="0 0 ' + GRID + ' ' + GRID + '" width="' + f.s + '" height="' + f.s
     + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
     + '<rect class="sc-plate" x="' + P.x + '" y="' + P.y + '" width="' + P.s + '" height="' + P.s
     + '" rx="' + (P.s * HEAD.radius).toFixed(2) + '"/>'
-    + eye(0) + eye(1) + brow(0) + brow(1) + '</svg>';
+    + '<text class="sc-ai" x="' + (GRID / 2) + '" y="' + SC_AI.baseline + '">' + SC_AI.text + '</text>'
+    + '</svg>';
 }
 
 /* ---------- the brain ----------
@@ -2416,7 +2405,13 @@ ${Array.from({ length: SC_DAYS.bands }, (_, i) =>
 .sc-face{position:absolute; display:block; opacity:0; will-change:opacity}
 .sc-face svg{display:block; overflow:visible; filter:var(--sc-fo)}
 .sc-plate{fill:${SC_ORANGE}}
-.sc-eye,.sc-brow{fill:var(--bg)}
+/* the letters take the layer's own glow list, the same custom property the
+   opening type takes, so on the dark page they carry the deep glow and on the
+   light one they carry nothing but the split when a burst is on. one property,
+   written once a frame, and the heads cannot fall out of step with the words. */
+.sc-ai{fill:#f7f8f7; stroke:none; text-anchor:middle;
+  font-family:var(--body); font-weight:700; font-size:${SC_AI.size}px;
+  letter-spacing:.01em; text-shadow:var(--sc-ts)}
 
 /* ---------- the days, torn ----------
    four copies of the same type, each clipped to its own horizontal band. at rest
@@ -2614,6 +2609,7 @@ ${mascotMarkup(mas)}
 window.__CAP_PLAN = ${JSON.stringify(cap)};
 window.__CAP_BOX = ${JSON.stringify(capBox)};
 window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(mas))};
+const GRID_UNITS = ${GRID}, SC_AI_SIZE = ${SC_AI.size};
 window.__P11 = ${JSON.stringify({ VW, VH, DSF, SCREEN, SITE, END, CAP_BOX,
   SC: { pad: SC_PAD, lead: SC_LEAD, gap: SC_GAP, w: SCREEN.w, h: SCREEN.h } })};
 (${captionPage.toString()})();
@@ -2788,6 +2784,30 @@ function stagePage() {
         end: { top: +top.toFixed(1), bottom: +(top + total).toFixed(1),
           wordmark: +wh.toFixed(1), dom: +dh.toFixed(1) },
         scenes: scenes.map(fitScene),
+        /* the `AI` inside a head, measured on the rendered svg rather than on
+           the unit it was written in: the text is set in the head's own grid and
+           the head is scaled to its css size, so what a viewer sees is the
+           product of two numbers and only the browser knows it. */
+        ai: (() => {
+          const t = document.querySelector('.sc-ai');
+          const pl = document.querySelector('.sc-plate');
+          if (!t || !pl) return null;
+          /* the scale from grid units to css px, off the element's own screen
+             matrix rather than off its bounding rect. every head is rotated a
+             few degrees and a rect is the axis aligned box of a rotated square,
+             which is up to eight per cent wider than the square — measuring
+             through it reported the letters eight per cent bigger than they are.
+             the ctm carries the rotation, so `hypot(a, b)` is the scale with the
+             turn divided back out. */
+          const m = t.getScreenCTM();
+          const k = Math.hypot(m.a, m.b);
+          const b = t.getBBox(), q = pl.getBBox();
+          return { text: t.textContent, unit: SC_AI_SIZE,
+            px: +(SC_AI_SIZE * k).toFixed(1),
+            capPx: +(b.height * k * P.DSF).toFixed(1),
+            widthPx: +(b.width * k * P.DSF).toFixed(1),
+            plate: +(q.width * k * P.DSF).toFixed(1) };
+        })(),
         /* the chalk, measured off the rendered type rather than off the css, so
            `is this readable on a phone` is the same kind of number for the board
            as it is for the opening scenes. */
@@ -4473,9 +4493,12 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
         + s.wordsOn + '", over ' + SC_GLITCH.entry.toFixed(2) + 's');
     }
     if (s.faces.length) {
-      console.log('           ' + s.faces.length + ' orange faces — '
-        + SC_FACES.map(f => f.pose).join(', ') + ' — on '
-        + s.faces.reduce((a, w) => a + w.length, 0) + ' windows between them');
+      console.log('           ' + s.faces.length + ' orange heads, "' + SC_AI.text
+        + '" where the face was, on '
+        + s.faces.reduce((a, w) => a + w.length, 0) + ' windows between them'
+        + (state.built.ai ? ': ' + state.built.ai.px + 'px of type on a '
+          + state.built.ai.plate + ' device px head, ' + state.built.ai.capPx
+          + ' device px of cap (floor ' + SC_MIN_CAP + ')' : ''));
     }
     if (s.dips.length) console.log('           the tube flickers in ' + SC_TUBE.base[0]
       + '..' + SC_TUBE.base[1] + ' with ' + s.dips.length + ' one frame dips to '
@@ -4814,6 +4837,32 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
     }
   }
   if (!(state.built.chalk || []).length) fail.push('the chalkboard never measured its own type');
+
+  /* the letters inside a head. this is the one number the change to the heads
+     was made for: the eyes came out because they did not read at that size, and
+     what replaced them has to read at that size or the change bought nothing.
+     the head grows before the letters shrink, so a failure here is a note to
+     make SC_FACES bigger rather than SC_AI smaller. */
+  const ai = state.built.ai;
+  if (!ai) fail.push('the heads never measured the letters inside them');
+  else {
+    if (ai.text !== SC_AI.text) {
+      fail.push('a head is carrying "' + ai.text + '" and it should carry "' + SC_AI.text + '"');
+    }
+    if (ai.capPx < SC_MIN_CAP) {
+      fail.push('"' + ai.text + '" inside a head renders at ' + ai.capPx
+        + ' device px of cap, floor is ' + SC_MIN_CAP + ' — make the heads larger rather than '
+        + 'the letters smaller');
+    }
+    /* and it has to still be inside the head it is in. the plate is a circle, so
+       what has to fit is the corner of the text box against the radius. */
+    const rad = ai.plate / 2;
+    const corner = Math.hypot(ai.widthPx / 2, ai.capPx / 2);
+    if (corner > rad - 6) {
+      fail.push('"' + ai.text + '" reaches ' + corner.toFixed(1) + ' device px from the middle of a '
+        + 'head whose plate is ' + rad.toFixed(1) + ' — the letters are touching the edge');
+    }
+  }
 
   /* the type, and the same question the typed line is asked: can anybody read
      it. this one is held to the caption's own floor rather than to a filmed
