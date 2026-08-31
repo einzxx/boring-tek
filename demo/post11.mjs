@@ -644,94 +644,164 @@ const SCENES = [
    the one thing this layer cannot be. */
 const SC_MIN_CAP = 32;
 
-/* ---------- the report, and the two beats after the card leaves ----------
-   the site card goes at 34.65 and the top of the frame is empty from there to
+/* ---------- the two beats after the card leaves ----------
+   the site card goes at 34.87 and the top of the frame is empty from there to
    the end card. two of the four lines in that stretch are about something a
-   viewer is being offered, and neither had a picture: `you get your report` and
-   the list of what we build.
+   viewer is being offered, and both of them are drawn in the same box the
+   opening scenes and the site card used.
 
-   both are drawn in the same box the opening scenes and the site card used, in
-   the same layer, under the same glow and the same glitch. that is the point of
-   there being a layer rather than three one-off blocks: the box has one language
-   and everything that appears in it speaks it.
+   this is the second cut of both. the first gave the report a page that faded up
+   and the offering five flat pictograms, and the pictograms did not work: five
+   line drawings in a row read as an icon set rather than as an argument. so the
+   offering is a chalkboard mind map now, and the report is a landing rather than
+   an arrival — big type taking a hard fault, and then a real page coming in from
+   the side and building itself.
 
-   ---------- the report itself ----------
-   a document, not a screenshot: a page shape with a heading and six lines on it.
-   nothing on it says anything, because a report with legible copy on it is a
-   promise about what is in the report, and we do not make those. it is the
-   **shape** of a thing arriving.
+   ---------- the days, and the fault they arrive on ----------
+   `1/2` over `DAYS`, landing on the word `days`, with the hardest glitch in the
+   clip on it: the type is torn into four bands that slide against each other, an
+   rgb split on top of that, a noise burst over the whole box and one white frame
+   under it. it is a fifth of a second and then it is clean.
 
-   the entrance is the one piece of real animation in this file that is not a
-   fade or a crossfade, and it is built the way the mascot's states are built:
-   anticipation, snap, settle. it falls in from a third larger and above,
-   accelerating rather than easing — `p * p`, because a thing falling is not a
-   thing gliding — squashes to 0.93 on contact, and comes back to 1.0 on the
-   site's own spring with the overshoot that curve carries. the flash fires on
-   the contact frame and covers the one place the numbers jump. */
-const SC_REPORT = {
+   the tearing is four copies of the same type, each clipped to its own
+   horizontal band. at rest every band is at zero offset and the four copies
+   stack exactly, so what is on screen is one block of type; during a burst node
+   writes four different offsets and four different band edges per frame. that is
+   what a dropped frame on a panel actually looks like, and it costs nothing when
+   it is off. */
+const SC_DAYS = {
   line: 16,        /* the script line it belongs to, one based */
-  on: 'report',    /* and the word inside it that it lands on */
-  approach: 0.26,  /* how long it is falling for */
-  settle: 0.36,    /* the overshoot resolving after the hit */
-  hold: 1.00,      /* how long it holds after that before it leaves */
-  exit: 0.30,
-  /* the fall starts a fifth larger and above, and it lands **wider than it is
-     tall**: a squash on contact is what separates a thing landing from a thing
-     scaling up, and it is the same volume trick `lib/mascot.mjs` uses on the
-     head. the settle then springs both axes back to one together. */
-  from: { sx: 1.22, sy: 1.22, y: -26, r: -5, o: 0.62 },
-  hit: { sx: 1.05, sy: 0.89, y: -5, r: -1 },
+  /* the word it lands on, and it is `one` rather than `days`. the line is `in
+     one or two days`, so the fault hits on the first number, `1/2` is on screen
+     as the second one is said and `DAYS` is on screen as the word is. landing on
+     `days` itself was the first cut and it left the type 0.56s to be read before
+     the page had to be sliding in — big type nobody has time to read is a
+     flicker, not a beat. */
+  on: 'one',
+  lines: ['1/2', 'days'],
+  hold: 0.62,      /* how long it holds after the fault before it leaves */
+  exit: 0.14,      /* and it leaves on a fault too, so this is short */
+  bands: 4,
 };
 
-/* ---------- the flash ----------
-   sharp and short: up in fifty milliseconds, gone in a hundred and sixty, and it
-   peaks on the contact frame rather than near it.
+/* the fault itself. `hard` is the first stretch, where every channel is at full
+   and the bands move every frame; `tail` is the stutter after it, where it fires
+   on some frames and not others. neither is long: a tv glitch that outstays a
+   fifth of a second is a broken render rather than a fault. */
+const SC_TV = {
+  hard: 0.14, tail: 0.16,
+  tear: 34,        /* css px a torn band slides, at full heat */
+  split: 8.5,      /* the rgb separation under it, bigger than the opening's 5
+                      because this is the one hard glitch in the clip */
+  jitter: 5.5,
+  noise: 0.34,     /* the noise burst's own opacity at full heat */
+  scan: 0.20,
+};
 
-   **it is two different things on the two themes and it has to be.** on black a
-   white bloom is a flash. on white a white bloom is nothing at all — so what it
-   does there is blow the report's own ink out for two frames, which is the same
-   event read the other way round. that is why the peak is higher on light: it is
-   covering ink rather than lighting a dark page.
+/* ---------- the report ----------
+   a white page with a green check mark on it, tilted four degrees, because a
+   thing placed by a hand is not square to the frame and a thing placed by a
+   machine is.
 
-   it is a radial gradient in a 340px box centred in the card box, so its own
-   edges are already transparent long before they reach anything: the caption
-   ceiling is at 583.5 and this ends at 476. the box is measured by the safe area
-   check like everything else this file draws. */
+   it comes in **from the side**, clipped to the card box so it enters the frame
+   rather than appearing in it, and then it **builds**: the page arrives first
+   and the six things on it land one at a time, each dropping the last few pixels
+   with its own squash. that is the brick order, and it is why this is a plan
+   rather than a transition — a fade would have had the check mark and the page
+   arrive on the same instant, which is a picture rather than an event.
+
+   the page is white on both themes because paper is. the check is the site own
+   light accent, which is the green a viewer has already seen on the send
+   confirmation inside the card, and it is 4.15:1 against the page on either
+   theme because the page it sits on does not change. */
+const SC_REPORT = {
+  line: 16, on: 'report',
+  /* 0.42s and it is not a taste. the first cut slid for 0.30s on `POP`, and
+     `POP` puts most of its travel in the first fifth: at twelve frames a second
+     that is one frame of movement and three of a page sitting still, which reads
+     as a pop rather than as a slide. it travels on `DRIFT` now — the file own
+     curve for a long move — over five frames of the preview and twenty five of
+     the master, and it starts fully outside the box so the first thing a viewer
+     sees is an edge coming in. */
+  slide: 0.42,
+  from: { x: 300, r: -13 },   /* where it comes in from, in the card box own px */
+  rest: { r: -4 },            /* and the tilt it settles at */
+  brick: 0.075,    /* between one block landing and the next */
+  fall: 0.16,      /* how long a block takes to drop into place */
+  hold: 0.62,      /* after the last block, before it leaves */
+  exit: 0.30,
+};
+const SC_CHECK = '#0f8a3c';
+
+/* the white frame under the fault. it is not the report own any more — the
+   report builds now and has no single contact frame to hide — so it belongs to
+   the tv glitch, which is where a white frame belongs. it is lower than it was
+   for the same reason it exists: a fault, not a camera flash. */
 const SC_FLASH = {
-  up: 0.05, down: 0.16, size: 340,
-  peak: { dark: 0.68, light: 0.80 },
-  /* the ceiling the guard holds it to. a full white frame held for a tenth of a
-     second is what "blinding at phone size" means, and this is well under it. */
+  up: 0.03, down: 0.13, size: 340,
+  peak: { dark: 0.45, light: 0.62 },
   max: 0.88,
 };
 
-/* ---------- the offering, one picture per item ----------
-   five items in one line, each landing on the word that names it, each up only
-   until the next one takes the box. no type: the caption is already saying the
-   word underneath, and drawing it again in the box would be the same word twice.
-   what the box carries is the shape of the thing.
+/* ---------- the chalkboard ----------
+   `we do apps, websites, research, graphic design, or one small job` had five
+   flat pictograms over it and now has a mind map: `website` boxed in yellow in
+   the middle of the box, six things around it in chalk ovals, each with an arrow
+   into the centre, popping in one at a time.
 
-   they hard cut rather than crossfade, and they stutter on and off the way the
-   five faces in scene one do. it is a list being read, so it moves at the speed
-   of the reading and nothing in it holds. */
-/* the contact thump, and it is three decibels under the level `lib/sfx.mjs`
-   gives popDeep. that level is for a counted beat in a clip with no narrator on
-   it; this one lands on the word `report` while the word is being said, and at
-   -24 the instantaneous bus reading came back a decibel **over** the voice. -27
-   puts it under and the duck does the rest. it is a per clip override through
-   renderSfx's own `gains`, so nothing in the shared module moved. */
-const SC_IMPACT_DB = -27;
+   **nothing here is a clean vector and that is the whole look.** an oval is a
+   full turn plus a twelfth, so the ends overlap the way a hand does not stop
+   where it started, and its radius wobbles on two out of phase sines. a straight
+   line is not straight and it overshoots at both ends. a box is four separate
+   strokes that cross at the corners rather than one closed rectangle. and all of
+   it goes through one displacement filter driven by fractal noise, which is what
+   turns an even stroke into a chalky one and roughens the letterforms at the
+   same time — so the type reads as written rather than as set, without a
+   handwriting face this file is not allowed to load.
 
-const SC_ITEMS_LINE = 18;
-const SC_ITEM = { lead: 0.08, stutter: 0.10, blink: 0.10, tail: 0.10 };
-const SC_ITEMS = [
-  { key: 'apps', word: 'apps' },
-  { key: 'websites', word: 'websites' },
-  { key: 'research', word: 'research' },
-  { key: 'design', word: 'graphic' },
-  { key: 'onejob', word: 'one' },
+   the six labels are not the six spoken words, and they cannot be: the line
+   names four things and a mind map wants six. the three that **are** spoken land
+   on their own words through `wordAt` like every other cue in this file, and the
+   three that are not are placed in the gaps between them. the run prints which
+   is which. */
+const SC_MAP_LINE = 18;
+const SC_MAP = {
+  cx: 194, cy: 210,          /* the centre of the card box, in its own px */
+  bw: 148, bh: 54,           /* the yellow box around the centre word */
+  centre: 'website',
+  lead: 0.10,                /* how long before its word a node starts arriving */
+  pop: 0.26,                 /* and how long the pop takes, overshoot included */
+  tail: 0.10,
+};
+/* `word` is the spoken word it lands on, or null for one placed in a gap, where
+   `gap` is how far into the gap it goes. `at` is filled in by `planScenes`. */
+/* the ovals are sized to their own label at the type size below, and the two on
+   the left are pulled in from where the hexagon would put them: `research` is
+   the widest word on the board and at the far left of it, and the wobble plus
+   the displacement plus the stroke all add to its outside edge. it clears the
+   140 device px border by 66 rather than by 0. */
+const SC_NODES = [
+  { key: 'apps', t: 'apps', word: 'apps', cx: 194, cy: 50, rx: 44, ry: 26 },
+  { key: 'seo', t: 'seo', word: null, gap: 0.32, cx: 296, cy: 130, rx: 40, ry: 25 },
+  { key: 'support', t: 'support', word: null, gap: 0.75, cx: 98, cy: 130, rx: 60, ry: 26 },
+  { key: 'research', t: 'research', word: 'research', cx: 100, cy: 290, rx: 66, ry: 26 },
+  { key: 'design', t: 'design', word: 'graphic', cx: 296, cy: 290, rx: 54, ry: 26 },
+  { key: 'social', t: 'social|media', word: 'one', cx: 194, cy: 368, rx: 54, ry: 34 },
 ];
+/* chalk is white on the board and ink on paper; the centre is yellow on both and
+   it is a different yellow on each, for the reason the greens are different
+   colours in index.html — #ffd34d is 14.1:1 on the near black page and would be
+   2.1:1 on the white one, and #a8780c is 3.8:1 on white. */
+const SC_CHALK = { yellow: { dark: '#ffd34d', light: '#a8780c' } };
 
+/* the two sounds this pass needs and `lib/sfx.mjs` does not carry: a digital
+   fault and a stick of chalk. both are synthesised here, in this file, from the
+   same primitives the module own recipes use — no file is loaded, no dependency
+   is added and nothing in the shared module moved. see `glitchSfx` and
+   `chalkSfx` below. */
+const SC_GLITCH_DB = -22;
+const SC_CHALK_DB = -30;
+const SC_IMPACT_DB = -27;
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
@@ -1563,61 +1633,105 @@ function planScenes(beats, cardFade) {
     }
   }
 
-  /* ---- the report, on the word that names it ----
+  /* ---- the days, on the word `days`, and the fault they land on ----
      `wordAt` again, for the reason every cue in `planSite` uses it: keying this
-     to `beats[15].words[8]` would key it to a line nobody is allowed to edit. */
-  const bR = beats[SC_REPORT.line - 1];
-  const land = at(wordAt(bR, SC_REPORT.on).start);
-  const report = {
-    key: 'report', k: scenes.length, seed: 0x5ce0 ^ 0x9a71,
-    line: SC_REPORT.line, word: SC_REPORT.on, land,
-    approach: { t0: at(land - SC_REPORT.approach), t1: land },
-    settle: { t0: land, t1: at(land + SC_REPORT.settle) },
-    out: { t0: at(land + SC_REPORT.hold), t1: at(land + SC_REPORT.hold + SC_REPORT.exit) },
-    flash: { t0: at(land - SC_FLASH.up), peak: land, t1: at(land + SC_FLASH.down),
+     to `beats[15].words[4]` would key it to a line nobody is allowed to edit. */
+  const bD = beats[SC_DAYS.line - 1];
+  const daysAt = at(wordAt(bD, SC_DAYS.on).start);
+  const days = {
+    key: 'days', k: scenes.length, seed: 0x5ce0 ^ 0x7d19,
+    line: SC_DAYS.line, word: SC_DAYS.on, at: daysAt,
+    tv: { t0: daysAt, hard: at(daysAt + SC_TV.hard), t1: at(daysAt + SC_TV.hard + SC_TV.tail) },
+    out: { t0: at(daysAt + SC_TV.hard + SC_DAYS.hold),
+      t1: at(daysAt + SC_TV.hard + SC_DAYS.hold + SC_DAYS.exit) },
+    flash: { t0: at(daysAt - SC_FLASH.up), peak: daysAt, t1: at(daysAt + SC_FLASH.down),
       to: THEME === 'dark' ? SC_FLASH.peak.dark : SC_FLASH.peak.light },
-    /* the contact frame is a glitch frame, and one more lands in the hold so the
-       page is not a still picture for a whole second. */
-    bursts: [{ t: land, len: SC_GLITCH.entry, force: 1 },
-      { t: at(land + 0.62), len: SC_GLITCH.burst[0], force: 0.55 }],
-    tube: false, faces: [], dips: [],
+    bursts: [], tube: false, faces: [], dips: [],
   };
 
-  /* ---- the offering, one item per word ----
-     each is up until the next takes the box, so the pictures move at the speed
-     of the reading. the last one is cut against the end card's own arrival
-     rather than against its own line: the card is drawn in this same rectangle
-     and the two may never be on screen together. */
-  const bI = beats[SC_ITEMS_LINE - 1];
-  const endIn = at(beats[beats.length - 1].start - 0.30);
-  const lands = SC_ITEMS.map(it => at(wordAt(bI, it.word).start));
-  const items = SC_ITEMS.map((it, i) => {
-    const on = at(lands[i] - SC_ITEM.lead);
-    const off = i + 1 < lands.length
-      ? at(lands[i + 1] - SC_ITEM.lead)
-      : at(Math.min(bI.end + SC_ITEM.tail, endIn - 0.14));
-    if (off <= on) {
-      throw new Error('offering item "' + it.key + '" has no room: ' + on + '..' + off);
-    }
-    return {
-      ...it, k: scenes.length + 1 + i, seed: (0x0ffe0 ^ (i * 0x9e3779b1)) >>> 0,
-      at: lands[i], on, off,
-      bursts: [{ t: on, len: SC_GLITCH.burst[0], force: 1 }],
-      tube: false, faces: [], dips: [],
-    };
-  });
-  if (report.out.t1 >= items[0].on) {
-    throw new Error('the report is still leaving at ' + report.out.t1
-      + ' and the first offering item arrives at ' + items[0].on);
+  /* ---- the report, sliding in and building ----
+     the page lands on the word that names it and the bricks follow it, so the
+     one thing keyed to the script is the one thing a viewer hears named. */
+  const bR = beats[SC_REPORT.line - 1];
+  const land = at(wordAt(bR, SC_REPORT.on).start);
+  /* the page itself is block zero and it does not queue with the rest: it is
+     the thing that slides in, so its window **is** the slide. the first cut had
+     it on the same stagger as its own contents, which meant the slide had
+     nothing to slide — three hundred milliseconds of an empty box and then a
+     finished page, which is the opposite of the point. the five that build are
+     the heading, the three lines and the check. */
+  const bricks = [{ i: 0, t0: at(land - SC_REPORT.slide), t1: land, page: true }];
+  for (let i2 = 1; i2 < 6; i2++) {
+    bricks.push({ i: i2, t0: at(land + 0.06 + (i2 - 1) * SC_REPORT.brick),
+      t1: at(land + 0.06 + (i2 - 1) * SC_REPORT.brick + SC_REPORT.fall) });
   }
-  if (items[items.length - 1].off > endIn) {
-    throw new Error('the last offering item is up at ' + items[items.length - 1].off
+  const lastBrick = bricks[bricks.length - 1].t1;
+  const report = {
+    key: 'report', k: scenes.length + 1, seed: 0x5ce0 ^ 0x9a71,
+    line: SC_REPORT.line, word: SC_REPORT.on, land,
+    slide: { t0: at(land - SC_REPORT.slide), t1: land },
+    bricks,
+    out: { t0: at(lastBrick + SC_REPORT.hold), t1: at(lastBrick + SC_REPORT.hold + SC_REPORT.exit) },
+    /* one small fault as it comes in, so the page belongs to the same box the
+       torn type just left. nothing after that: a report is not glitchy. */
+    bursts: [{ t: at(land - SC_REPORT.slide), len: SC_GLITCH.burst[0], force: 0.8 }],
+    tube: false, faces: [], dips: [],
+  };
+  if (days.out.t1 >= report.slide.t0) {
+    throw new Error('the days are still leaving at ' + days.out.t1
+      + ' and the report starts sliding in at ' + report.slide.t0);
+  }
+
+  /* ---- the chalkboard, one node at a time ----
+     three of the six are named out loud and land on their own word; the other
+     three are placed in the gap between the two around them, at the fraction
+     `gap` names. the map therefore tracks the reading without pretending the
+     line says six things when it says four. */
+  const bM = beats[SC_MAP_LINE - 1];
+  const endIn = at(beats[beats.length - 1].start - 0.30);
+  const spoken = SC_NODES.map(n => (n.word ? at(wordAt(bM, n.word).start) : null));
+  const nodes = SC_NODES.map((n, i2) => {
+    let a = spoken[i2];
+    if (a == null) {
+      /* the anchors either side of it, so a node in a gap moves when the read
+         moves rather than sitting on a number typed here. */
+      let before = bM.start;
+      for (let q = i2 - 1; q >= 0; q--) if (spoken[q] != null) { before = spoken[q]; break; }
+      let after = null;
+      for (let q = i2 + 1; q < spoken.length; q++) if (spoken[q] != null) { after = spoken[q]; break; }
+      if (after == null) after = bM.end;
+      a = at(before + (after - before) * n.gap);
+    }
+    return { ...n, i: i2, at: a, on: at(a - SC_MAP.lead) };
+  });
+  for (let i2 = 1; i2 < nodes.length; i2++) {
+    if (nodes[i2].on <= nodes[i2 - 1].on + 0.10) {
+      throw new Error('the "' + nodes[i2].key + '" node arrives ' + nodes[i2].on
+        + ', on top of "' + nodes[i2 - 1].key + '" at ' + nodes[i2 - 1].on);
+    }
+  }
+  /* the centre is there before anything points at it. it arrives at the head of
+     the line rather than on a word, because it is the thing the line is about
+     rather than one of the things in it. */
+  const mapIn = at(bM.start + 0.06);
+  const map = {
+    key: 'map', k: scenes.length + 2, seed: 0x5ce0 ^ 0x3a1f,
+    line: SC_MAP_LINE, centreAt: mapIn, nodes,
+    on: mapIn, off: at(Math.min(bM.end + SC_MAP.tail, endIn - 0.14)),
+    bursts: [{ t: mapIn, len: SC_GLITCH.burst[0], force: 0.7 }],
+    tube: false, faces: [], dips: [],
+  };
+  if (report.out.t1 >= map.on) {
+    throw new Error('the report is still leaving at ' + report.out.t1
+      + ' and the chalkboard arrives at ' + map.on);
+  }
+  if (map.off > endIn) {
+    throw new Error('the chalkboard is up at ' + map.off
       + ' and the end card starts arriving at ' + endIn);
   }
 
-  const blocks = [...scenes, report, ...items];
-  const last = items[items.length - 1].off;
-  return { scenes, report, items, blocks, endIn, last,
+  const blocks = [...scenes, days, report, map];
+  return { scenes, days, report, map, blocks, endIn, last: map.off,
     until: cardFade.t1, xf, cardFade };
 }
 
@@ -1640,58 +1754,109 @@ function sceneFrame(plan, f, fps) {
     o[s.k] = +Math.min(up, dn).toFixed(4);
   }
 
-  /* ---- the report: anticipation, snap, settle ----
-     the approach accelerates rather than eases, because a thing falling is not
-     a thing gliding, and it is deliberately not on one of the file's three
-     curves: `p * p` is what gravity looks like over a quarter of a second. the
-     hit is a squash and the settle is the site's own spring, which overshoots
-     and comes back — the bounce is the curve rather than a second keyframe. */
-  const R = plan.report;
-  const F = SC_REPORT.from, H = SC_REPORT.hit;
-  let rp = { sx: 1, sy: 1, y: 0, r: 0 };
+  let rp = { x: 0, y: 0, r: 0 };
   let flash = 0;
-  if (t >= R.approach.t0 - 1e-9 && t <= R.out.t1 + 1e-9) {
-    if (t < R.land) {
-      const p = clampTo((t - R.approach.t0) / (R.approach.t1 - R.approach.t0), 0, 1);
-      const q = p * p;
-      rp = { sx: lerp(F.sx, H.sx, q), sy: lerp(F.sy, H.sy, q),
-        y: lerp(F.y, H.y, q), r: lerp(F.r, H.r, q) };
-      o[R.k] = +(F.o * q).toFixed(4);
-    } else if (t < R.settle.t1) {
-      const e = POP(clampTo((t - R.settle.t0) / (R.settle.t1 - R.settle.t0), 0, 1));
-      rp = { sx: lerp(H.sx, 1, e), sy: lerp(H.sy, 1, e), y: lerp(H.y, 0, e), r: lerp(H.r, 0, e) };
-      o[R.k] = 1;
-    } else if (t < R.out.t0) {
+
+  /* ---- the days, and the fault ----
+     the tearing is a function of the **output frame**, held across every
+     subframe of it, for post10 reason: a band that moves inside one frame of
+     the shutter is averaged back into a blur, and a blur is the one thing a
+     torn panel is not. the bands are recomputed every frame while the fault is
+     hard and on about half of them while it stutters out. */
+  const D = plan.days;
+  const bands = [];
+  for (let i2 = 0; i2 < SC_DAYS.bands; i2++) {
+    bands.push({ t: i2 * 100 / SC_DAYS.bands, b: 100 - (i2 + 1) * 100 / SC_DAYS.bands, x: 0 });
+  }
+  let noise = 0, scan = 0, tv = 0;
+  if (t >= D.at - 1e-9 && t <= D.out.t1 + 1e-9) {
+    if (t < D.out.t0) o[D.k] = 1;
+    else {
+      /* it leaves on a fault as well, so the exit is a stutter rather than a
+         fade: on for a frame, off for a frame, gone. */
+      const f0 = Math.ceil(D.out.t0 * fps - 1e-9);
+      o[D.k] = prng((D.seed ^ 0xd1e ^ ((f + 1) * 2654435761)) >>> 0)() < 0.55 ? 0 : 1;
+      if (f >= Math.ceil(D.out.t1 * fps - 1e-9) - 1) o[D.k] = 0;
+      if (f === f0) o[D.k] = 1;
+    }
+    if (t <= D.tv.t1) {
+      const hard = t <= D.tv.hard;
+      const p = clampTo((t - D.tv.hard) / Math.max(D.tv.t1 - D.tv.hard, 1e-6), 0, 1);
+      const r = prng((D.seed ^ ((f + 1) * 0x9e3779b1)) >>> 0);
+      /* full while it is hard, then a decaying stutter that fires on some
+         frames and not others, which is what stops the tail reading as a fade. */
+      tv = hard ? 1 : (r() < 0.55 ? (1 - p) * 0.8 : 0);
+      if (tv > 0.01) {
+        let edge = 0;
+        for (let i2 = 0; i2 < bands.length; i2++) {
+          const next = i2 === bands.length - 1 ? 100 : edge + (100 - edge) / (bands.length - i2)
+            * (0.55 + r() * 0.9);
+          bands[i2] = {
+            t: +edge.toFixed(2), b: +(100 - next).toFixed(2),
+            x: +((r() * 2 - 1) * SC_TV.tear * tv).toFixed(2),
+          };
+          edge = next;
+        }
+        noise = SC_TV.noise * tv * (0.6 + r() * 0.4);
+        scan = SC_TV.scan * tv;
+      }
+    }
+  }
+  if (t >= D.flash.t0 - 1e-9 && t <= D.flash.t1 + 1e-9) {
+    flash = t < D.at
+      ? D.flash.to * clampTo((t - D.flash.t0) / Math.max(D.at - D.flash.t0, 1e-6), 0, 1)
+      : D.flash.to * (1 - GLIDE(clampTo((t - D.at) / Math.max(D.flash.t1 - D.at, 1e-6), 0, 1)));
+  }
+
+  /* ---- the report: it slides in, then it is built ----
+     the slide is one ease on two numbers and the build is six, and they are kept
+     apart on purpose: the page arriving and the things on it landing are two
+     events, and a viewer reads them as two only if they happen at two times. */
+  const R = plan.report;
+  const bricks = R.bricks.map(() => ({ o: 0, y: 0, s: 1 }));
+  if (t >= R.slide.t0 - 1e-9 && t <= R.out.t1 + 1e-9) {
+    if (t < R.out.t0) {
+      const e = DRIFT(clampTo((t - R.slide.t0) / (R.slide.t1 - R.slide.t0), 0, 1));
+      rp = { x: lerp(SC_REPORT.from.x, 0, e), y: 0, r: lerp(SC_REPORT.from.r, SC_REPORT.rest.r, e) };
+      /* no fade on the way in. the page is opaque from the first frame and the
+         card box own clip is what hides it until its edge is inside the frame,
+         which is what makes it slide rather than appear. */
       o[R.k] = 1;
     } else {
       const e = GLIDE(clampTo((t - R.out.t0) / (R.out.t1 - R.out.t0), 0, 1));
-      rp = { sx: lerp(1, 0.93, e), sy: lerp(1, 0.93, e), y: 0, r: 0 };
+      rp = { x: lerp(0, -70, e), y: 0, r: lerp(SC_REPORT.rest.r, -9, e) };
       o[R.k] = +(1 - e).toFixed(4);
     }
-  }
-  /* the flash, and the one number in it that matters is that it peaks **on** the
-     contact frame rather than near it: it is what the squash is hidden inside,
-     and a flash a frame late is a flash you notice separately from the hit. */
-  if (t >= R.flash.t0 - 1e-9 && t <= R.flash.t1 + 1e-9) {
-    flash = t < R.land
-      ? R.flash.to * clampTo((t - R.flash.t0) / Math.max(R.land - R.flash.t0, 1e-6), 0, 1)
-      : R.flash.to * (1 - GLIDE(clampTo((t - R.land) / Math.max(R.flash.t1 - R.land, 1e-6), 0, 1)));
+    /* every brick falls the last few pixels and squashes when it gets there.
+       `POP` overshoots, so the settle is in the curve rather than in a second
+       keyframe, which is the same way the mascot states are built. */
+    for (const b of R.bricks) {
+      if (t < b.t0) continue;
+      /* the page is carried by the slide above and takes no drop of its own:
+         two transforms on one thing is one of them winning silently. */
+      if (b.page) { bricks[b.i] = { o: 1, y: 0, s: 1 }; continue; }
+      const q = clampTo((t - b.t0) / (b.t1 - b.t0), 0, 1);
+      const e = POP(q);
+      bricks[b.i] = {
+        o: +clampTo(q * 2.4, 0, 1).toFixed(3),
+        y: +lerp(-14, 0, e).toFixed(2),
+        s: +lerp(1.14, 1, e).toFixed(4),
+      };
+    }
   }
 
-  /* ---- the offering, hard on and hard off ----
-     no fade at either end. they stutter in the way the five faces in scene one
-     stutter, and they take a one frame dropout on the way out so leaving looks
-     like the same kind of event as arriving. */
-  for (const it of plan.items) {
-    if (t < it.on - 1e-9 || t >= it.off) continue;
-    const n = Math.max(1, Math.round(SC_ITEM.stutter * fps));
-    const f0 = Math.round(it.on * fps);
-    let v = 1;
-    if (f < f0 + n - 1) v = prng((it.seed ^ ((f + 1) * 2654435761)) >>> 0)() < 0.42 ? 0 : 1;
-    const fb = Math.round((it.off - SC_ITEM.blink) * fps);
-    const nb = Math.max(1, Math.round(0.05 * fps));
-    if (f >= fb && f < fb + nb) v = 0;
-    o[it.k] = v;
+  /* ---- the chalkboard, one node at a time ----
+     a pop with a small overshoot and nothing else. it is a list of six things
+     going up on a board, so what it must not do is perform. */
+  const M = plan.map;
+  const mapNodes = M.nodes.map(() => 0);
+  let mapCentre = 0;
+  if (t >= M.on - 1e-9 && t < M.off) {
+    o[M.k] = 1;
+    mapCentre = POP(clampTo((t - M.centreAt) / SC_MAP.pop, 0, 1));
+    for (const n of M.nodes) {
+      mapNodes[n.i] = t < n.on ? 0 : POP(clampTo((t - n.on) / SC_MAP.pop, 0, 1));
+    }
   }
 
   let heat = 0, split = 0, dx = 0, dy = 0, bleed = 0;
@@ -1717,6 +1882,17 @@ function sceneFrame(plan, f, fps) {
       split = h * (1.4 + r() * Math.max(cap - 1.4, 0.2));
       bleed = s.tube ? h * SC_GLITCH.bleed * (0.45 + r() * 0.55) : 0;
     }
+  }
+
+  /* the fault own split and jitter go through the same two channels the
+     opening bursts use, so the look composed below has one code path and the
+     hard glitch is the same kind of event as the small ones, only bigger. */
+  if (tv > 0.01) {
+    const r = prng((plan.days.seed ^ 0x7ea2 ^ ((f + 1) * 2246822519)) >>> 0);
+    split = Math.max(split, tv * (2.5 + r() * (SC_TV.split - 2.5)));
+    dx = (r() * 2 - 1) * SC_TV.jitter * tv;
+    dy = (r() * 2 - 1) * SC_TV.jitter * 0.5 * tv;
+    heat = Math.max(heat, tv);
   }
 
   let tube = 1;
@@ -1777,7 +1953,9 @@ function sceneFrame(plan, f, fps) {
 
   return {
     o, faces, words: +words.toFixed(3),
-    rp: { sx: +rp.sx.toFixed(4), sy: +rp.sy.toFixed(4), y: +rp.y.toFixed(2), r: +rp.r.toFixed(3) },
+    rp: { x: +rp.x.toFixed(2), y: +rp.y.toFixed(2), r: +rp.r.toFixed(3) },
+    bricks, bands, noise: +noise.toFixed(4), scan: +scan.toFixed(4), tv: +tv.toFixed(3),
+    map: mapNodes.map(v => +v.toFixed(4)), mapCentre: +mapCentre.toFixed(4),
     flash: +flash.toFixed(4),
     dx: +dx.toFixed(2), dy: +dy.toFixed(2), tube: +tube.toFixed(4),
     split: +split.toFixed(2), heat: +heat.toFixed(3),
@@ -1888,77 +2066,248 @@ function brainSvg() {
     + '</svg>';
 }
 
-/* ---------- the report ----------
-   a page with a heading and six lines on it, and the lines are bars rather than
-   letters on purpose: type on this page would be copy nobody wrote, in a
-   document we are promising to send. the shape is the promise. the widths are
-   uneven because a paragraph is uneven, and the last one is short because that
-   is where a paragraph stops. */
+/* ---------- the two sounds this file synthesises for itself ----------
+   `lib/sfx.mjs` carries eleven recipes and neither of these is one of them, and
+   the brief for this pass is one file. so they are built here, out of the same
+   two primitives every recipe in that module is built out of — a seeded noise
+   source and an exponential decay — and handed to the bus through the same
+   `renderSfx` report so the run prints them next to everything else.
+
+   nothing about that is a workaround. a sound that belongs to one clip belongs
+   in that clip file; the module carries the ones more than one clip uses, and
+   the day a second clip wants a glitch is the day this moves.
+
+   ---- the fault ----
+   a dropped packet is not a noise burst, it is a **stutter**: four or five very
+   short gates cut out of band passed noise, each one a different width and a
+   different band, with silence between them. that is what makes it read as
+   digital rather than as a cymbal. a falling square blip underneath gives it a
+   pitch to fall off, which is the part the ear reads as `something broke`. */
+function glitchSfx({ len = 0.16, seed = 0x917c4 } = {}) {
+  const n = Math.round(len * SR), b = new Float32Array(n);
+  const r = prng(seed);
+  /* the gates, laid down as fractions of the length so the shape survives any
+     length this is asked for. */
+  let at = 0.02;
+  while (at < 0.94) {
+    const w = 0.02 + r() * 0.075;
+    const a = Math.round(at * n), z = Math.min(n, Math.round((at + w) * n));
+    /* one band per gate, and they walk downward, which is what makes four
+       bursts read as one event coming apart rather than four events. */
+    const hp = 900 + r() * 3800 * (1 - at);
+    let y = 0, prev = 0;
+    const k = Math.exp(-2 * Math.PI * hp / SR);
+    for (let i = a; i < z; i++) {
+      const x = r() * 2 - 1;
+      y = k * (y + x - prev); prev = x;              /* one pole high pass */
+      const q = (i - a) / Math.max(z - a, 1);
+      b[i] += y * (1 - q * q) * 0.9;
+    }
+    at += w + 0.015 + r() * 0.06;
+  }
+  /* the blip, falling a fifth over the whole length, square so it is obviously
+     generated rather than struck. */
+  let ph = 0;
+  for (let i = 0; i < n; i++) {
+    const q = i / n;
+    ph += 2 * Math.PI * (220 - 140 * q) / SR;
+    b[i] += (Math.sin(ph) > 0 ? 0.34 : -0.34) * Math.exp(-4.5 * q) * (q < 0.6 ? 1 : 0);
+  }
+  let peak = 0;
+  for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(b[i]));
+  if (peak > 0) for (let i = 0; i < n; i++) b[i] /= peak;
+  /* ten milliseconds off each end, because a buffer that starts or stops on a
+     non zero sample is a click nobody asked for. */
+  const e = Math.round(0.006 * SR);
+  for (let i = 0; i < e; i++) { b[i] *= i / e; b[n - 1 - i] *= i / e; }
+  return b;
+}
+
+/* ---- a stick of chalk ----
+   thirty five milliseconds, and it is nearly all high frequency: chalk on a
+   board has no body at all, it is the sound of grit skipping. band passed noise
+   with a very fast decay and a tiny bit of ring around 2.6k, which is the
+   board answering. */
+function chalkSfx({ len = 0.038, seed = 0x0c8a17 } = {}) {
+  const n = Math.round(len * SR), b = new Float32Array(n);
+  const r = prng(seed);
+  let y = 0, prev = 0;
+  const k = Math.exp(-2 * Math.PI * 2400 / SR);
+  let ph = 0;
+  for (let i = 0; i < n; i++) {
+    const q = i / n;
+    const x = r() * 2 - 1;
+    y = k * (y + x - prev); prev = x;
+    ph += 2 * Math.PI * 2600 / SR;
+    b[i] = (y * 0.95 + Math.sin(ph) * 0.12) * Math.exp(-16 * q);
+  }
+  let peak = 0;
+  for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(b[i]));
+  if (peak > 0) for (let i = 0; i < n; i++) b[i] /= peak;
+  const e = Math.round(0.003 * SR);
+  for (let i = 0; i < e; i++) { b[i] *= i / e; b[n - 1 - i] *= i / e; }
+  return b;
+}
+
+/* one buffer into the bus at one time, at one level, and it reports itself the
+   way `renderSfx` reports everything else so the run prints one list. */
+function addSfx(sfx, src, t, gainDb, kind, from) {
+  const g = Math.pow(10, gainDb / 20);
+  const at = Math.round(t * SR);
+  let peak = 0;
+  for (let i = 0; i < src.length; i++) {
+    const j = at + i;
+    if (j < 0 || j >= sfx.buf.length) continue;
+    const v = src[i] * g;
+    sfx.buf[j] += v;
+    peak = Math.max(peak, Math.abs(v));
+  }
+  sfx.report.push({ t: +t.toFixed(3), kind, from: from || '',
+    seconds: +(src.length / SR).toFixed(3), gain: gainDb,
+    peak: +Math.max(-120, dbfs(peak)).toFixed(1), cut: 0 });
+  sfx.report.sort((a, b) => a.t - b.t);
+}
+
+/* ---------- the report, as bricks ----------
+   a white page, six things on it, and every one of them is addressable: the
+   markup gives each block its own `data-b` index so `sceneFrame` can land them
+   one at a time. that is the whole reason this is not one path — a drawing that
+   arrives in one piece cannot be built.
+
+   the order is the order a person would put it together: the page, its heading,
+   four lines of nothing in particular, and then the check mark, which is last
+   because it is the answer. */
 function reportSvg() {
-  const line = (y, w) => '<rect class="sc-rl" x="18" y="' + y + '" width="' + w
-    + '" height="3.4" rx="1.7"/>';
+  const b = (i, s) => s.replace('<', '<').replace('class="', 'data-b="' + i + '" class="');
+  const bar = (i, y, w) => b(i, '<rect class="sc-rl" x="18" y="' + y + '" width="' + w
+    + '" height="4.2" rx="2.1"/>');
   return '<svg viewBox="0 0 120 156" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
-    + '<rect class="sc-rp" x="6" y="4" width="108" height="148" rx="6"/>'
-    + '<rect class="sc-rh" x="18" y="24" width="52" height="6.4" rx="3.2"/>'
-    + [[48, 84], [62, 76], [76, 84], [90, 58], [104, 84], [118, 44]]
-      .map(([y, w]) => line(y, w)).join('')
+    + b(0, '<rect class="sc-rp" x="4" y="3" width="112" height="150" rx="6"/>')
+    + b(1, '<rect class="sc-rh" x="18" y="22" width="52" height="7" rx="3.5"/>')
+    + bar(2, 46, 84) + bar(3, 60, 72) + bar(4, 74, 84)
+    /* the check mark, in the site own accent, on the white page. it is drawn
+       big and low because it is the thing the page is about, not a detail on
+       it: a report that comes back with a tick on it is the whole promise of
+       the line it lands under. */
+    + b(5, '<path class="sc-rc" d="M40 116 L54 130 L82 96"/>')
     + '</svg>';
 }
 
-/* ---------- the five offering shapes ----------
-   one per item, stroked, in a 120 unit box, and every one of them is the most
-   ordinary drawing of its own noun there is. a list read at three words a second
-   is not the place to be clever: the picture has about half a second to be
-   recognised and then it is gone. */
-function itemSvg(key) {
-  const S = (d, extra) => '<path class="sc-it" d="' + d + '"' + (extra || '') + '/>';
-  const R = (x, y, w, h, r, cls) => '<rect class="' + (cls || 'sc-it') + '" x="' + x + '" y="' + y
-    + '" width="' + w + '" height="' + h + '" rx="' + r + '"/>';
-  const C = (cx, cy, r) => '<circle class="sc-it" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
-  const svg = body => '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"'
-    + ' aria-hidden="true" focusable="false">' + body + '</svg>';
+/* ---------- the chalk primitives ----------
+   three functions and none of them draws a straight anything. they are seeded,
+   so the board is the same board on every run and on both themes, and they are
+   pure geometry — the chalky *texture* is one displacement filter over the lot,
+   declared once in `sceneMarkup`.
 
-  if (key === 'apps') {
-    /* a phone with a grid on it. three by three, because two reads as a pair of
-       buttons and four is a texture at this size. */
-    const cells = [];
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) cells.push(R(42 + c * 14, 30 + r * 16, 10, 10, 2.4, 'sc-it-fill'));
-    }
-    return svg(R(34, 8, 52, 104, 9) + cells.join('') + R(52, 98, 16, 3, 1.5, 'sc-it-fill'));
-  }
-  if (key === 'websites') {
-    /* a browser: a frame, a bar with three dots in it, and three lines of
-       something under it. the dots are what make it a browser rather than a
-       card, and they are the one place in this set with a filled shape. */
-    return svg(R(8, 22, 104, 76, 6)
-      + S('M8 40 L112 40')
-      + [18, 27, 36].map(x => '<circle class="sc-it-fill" cx="' + x + '" cy="31" r="2.6"/>').join('')
-      + [[54, 62], [68, 86], [82, 44]].map(([y, w]) => R(20, y, w, 3.4, 1.7, 'sc-it-fill')).join(''));
-  }
-  if (key === 'research') {
-    /* a magnifier, and two short lines inside the lens so it is looking at
-       something rather than at nothing. */
-    return svg(C(50, 50, 30)
-      + S('M72 72 L100 100', ' stroke-width="6"')
-      + R(36, 44, 28, 3.4, 1.7, 'sc-it-fill')
-      + R(36, 54, 20, 3.4, 1.7, 'sc-it-fill'));
-  }
-  if (key === 'design') {
-    /* a circle, a triangle and a square in a row. it is the oldest mark there is
-       for this and that is exactly why it is used: nothing has to be worked out. */
-    return svg(C(22, 60, 17)
-      + S('M60 40 L78 80 L42 80 Z')
-      + R(84, 43, 34, 34, 3));
-  }
-  if (key === 'onejob') {
-    /* one small thing, done. it is drawn small in a big box, which is the same
-       joke scene four makes with the word SMALL and the reason this item is last
-       in the line as well as last here. */
-    return svg(R(44, 44, 32, 32, 5) + S('M51 60 L58 67 L70 52'));
-  }
-  throw new Error('no offering shape called "' + key + '"');
+   `oval` goes a full turn plus a twelfth so its ends overlap; `stroke` bows,
+   wanders and overshoots at both ends; `boxOf` is four strokes that cross at the
+   corners rather than one closed rect. together that is what stops the map
+   reading as a diagram somebody generated. */
+function chalkPoly(pts) {
+  return pts.map(([x, y], i) => (i ? 'L' : 'M') + x.toFixed(2) + ' ' + y.toFixed(2)).join(' ');
 }
+function chalkOval(cx, cy, rx, ry, seed) {
+  const r = prng(seed), pts = [];
+  const w1 = 0.045 + r() * 0.035, w2 = 0.028 + r() * 0.026, p1 = r() * 6.3, p2 = r() * 6.3;
+  for (let i = 0; i <= 60; i++) {
+    const a = -0.4 + (i / 60) * Math.PI * 2 * 1.08;
+    const k = 1 + w1 * Math.sin(a * 3 + p1) + w2 * Math.sin(a * 5 + p2);
+    pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]);
+  }
+  return chalkPoly(pts);
+}
+function chalkStroke(x0, y0, x1, y1, seed, over = 3) {
+  const r = prng(seed), pts = [];
+  const dx = x1 - x0, dy = y1 - y0, L = Math.max(Math.hypot(dx, dy), 1e-6);
+  const nx = -dy / L, ny = dx / L;
+  const ex = (dx / L) * over * (r() * 0.6 + 0.4), ey = (dy / L) * over * (r() * 0.6 + 0.4);
+  const bow = (r() * 2 - 1) * Math.min(L * 0.03, 3.2);
+  for (let i = 0; i <= 14; i++) {
+    const t = -0.02 + (i / 14) * 1.04;
+    const w = Math.sin(Math.PI * clampTo(t, 0, 1)) * bow + (r() * 2 - 1) * 0.7;
+    pts.push([x0 - ex + dx * t + nx * w, y0 - ey + dy * t + ny * w]);
+  }
+  return chalkPoly(pts);
+}
+function chalkBox(x, y, w, h, seed) {
+  return [
+    chalkStroke(x, y, x + w, y, seed ^ 1, 5),
+    chalkStroke(x + w, y, x + w, y + h, seed ^ 2, 5),
+    chalkStroke(x + w, y + h, x, y + h, seed ^ 3, 5),
+    chalkStroke(x, y + h, x, y, seed ^ 4, 5),
+  ];
+}
+function chalkArrow(x0, y0, x1, y1, seed) {
+  const a = Math.atan2(y1 - y0, x1 - x0), hl = 11, sp = 0.42;
+  return [
+    chalkStroke(x0, y0, x1, y1, seed, 1.5),
+    chalkStroke(x1, y1, x1 - Math.cos(a - sp) * hl, y1 - Math.sin(a - sp) * hl, seed ^ 7, 1),
+    chalkStroke(x1, y1, x1 - Math.cos(a + sp) * hl, y1 - Math.sin(a + sp) * hl, seed ^ 11, 1),
+  ];
+}
+
+/* ---------- the mind map ----------
+   one svg the size of the card box, so every number in `SC_NODES` is in the same
+   px the rest of this layer is written in and nothing has to be scaled to be
+   placed.
+
+   each node is its own `<g data-n="i">`, holding its arrow, its oval and its
+   label, so `sceneFrame` can pop them one at a time about their own centres. the
+   arrows are inside the node they belong to rather than in a layer of their own:
+   an arrow that arrives before the thing it points at is an arrow pointing at
+   nothing. */
+function mapSvg() {
+  const M = SC_MAP;
+  const node = (n, i) => {
+    const dx = M.cx - n.cx, dy = M.cy - n.cy, L = Math.hypot(dx, dy);
+    const ux = dx / L, uy = dy / L;
+    /* leave the oval at its own edge and stop short of the box, both measured
+       off the shapes rather than guessed, so a node that moves keeps its arrow. */
+    const er = 1 / Math.hypot(ux / (n.rx + 7), uy / (n.ry + 7));
+    const bx = Math.min(Math.abs((M.bw / 2 + 13) / (ux || 1e-6)),
+      Math.abs((M.bh / 2 + 13) / (uy || 1e-6)));
+    const parts = chalkArrow(n.cx + ux * er, n.cy + uy * er, M.cx - ux * bx, M.cy - uy * bx,
+      0x2000 + i * 977).map(d => '<path class="ck" d="' + d + '"/>');
+    parts.push('<path class="ck" d="' + chalkOval(n.cx, n.cy, n.rx, n.ry, 0x3000 + i * 613) + '"/>');
+    const rows = n.t.split('|');
+    rows.forEach((row, j) => {
+      parts.push('<text class="ck-t" x="' + n.cx + '" y="'
+        + (n.cy + (j - (rows.length - 1) / 2) * 25 + 8).toFixed(1) + '">' + row + '</text>');
+    });
+    /* the pop is written as a transform on this group, about the node own
+       centre, so an overshoot grows the oval and its label together. */
+    return '<g class="ck-n" data-n="' + i + '" style="transform-origin:' + n.cx + 'px ' + n.cy + 'px">'
+      + parts.join('') + '</g>';
+  };
+  const centre = chalkBox(M.cx - M.bw / 2, M.cy - M.bh / 2, M.bw, M.bh, 0x4000)
+    .map(d => '<path class="ck-y" d="' + d + '"/>').join('')
+    + '<text class="ck-yt" x="' + M.cx + '" y="' + (M.cy + 10.5) + '">' + M.centre + '</text>';
+  return '<svg viewBox="0 0 ' + SCREEN.w + ' ' + SCREEN.h + '" width="' + SCREEN.w
+    + '" height="' + SCREEN.h + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+    + '<defs><filter id="sc-chalk" x="-8%" y="-8%" width="116%" height="116%">'
+    + '<feTurbulence type="fractalNoise" baseFrequency="0.048" numOctaves="4" seed="7" result="n"/>'
+    + '<feDisplacementMap in="SourceGraphic" in2="n" scale="3.6"'
+    + ' xChannelSelector="R" yChannelSelector="G"/>'
+    + '</filter></defs>'
+    + '<g filter="url(#sc-chalk)">'
+    + SC_NODES.map(node).join('')
+    + '<g class="ck-c" style="transform-origin:' + M.cx + 'px ' + M.cy + 'px">' + centre + '</g>'
+    + '</g></svg>';
+}
+
+/* the noise burst that goes over the tv glitch. fractal noise at a high base
+   frequency is grain; it is rendered once into one rect and its opacity is all
+   that moves, so the filter is evaluated on the frames it is visible on and on
+   no others. */
+function noiseSvg() {
+  return '<svg viewBox="0 0 ' + SCREEN.w + ' ' + SCREEN.h + '" width="' + SCREEN.w
+    + '" height="' + SCREEN.h + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+    + '<defs><filter id="sc-noise" x="0" y="0" width="100%" height="100%">'
+    + '<feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="19"/>'
+    + '</filter></defs>'
+    + '<rect width="100%" height="100%" filter="url(#sc-noise)"/></svg>';
+}
+
 
 /* ---------- the opening's markup and its styles ---------- */
 function sceneMarkup() {
@@ -1975,16 +2324,26 @@ ${S.faces === true ? '      <div class="sc-faces">'
       + `transform:rotate(${f.rot}deg)">${faceSvg(f)}</span>`).join('')
     + '</div>\n' : ''}    </div>
   </div>`).join('\n')}
-  <div class="sc" id="sc${SCENES.length}" data-key="report">
+  <div class="sc" id="sc${SCENES.length}" data-key="days">
     <div class="sc-in">
+${Array.from({ length: SC_DAYS.bands }, (_, i) => `      <div class="sc-tear" id="sc-tear${i}">
+        <div class="sc-stack">
+${SC_DAYS.lines.map(t => `          <div class="sc-l">${t}</div>`).join('\n')}
+        </div>
+      </div>`).join('\n')}
+    </div>
+  </div>
+  <div class="sc" id="sc${SCENES.length + 1}" data-key="report" data-clip="1">
+    <div class="sc-in sc-clip">
       <div class="sc-stack"><div class="sc-art sc-page" id="sc-page">${reportSvg()}</div></div>
     </div>
   </div>
-${SC_ITEMS.map((it, i) => `  <div class="sc" id="sc${SCENES.length + 1 + i}" data-key="${it.key}">
+  <div class="sc" id="sc${SCENES.length + 2}" data-key="map">
     <div class="sc-in">
-      <div class="sc-stack"><div class="sc-art sc-item">${itemSvg(it.key)}</div></div>
+      <div class="sc-map">${mapSvg()}</div>
     </div>
-  </div>`).join('\n')}
+  </div>
+  <div class="sc-noise" id="sc-noise">${noiseSvg()}</div>
   <div class="sc-flash" id="sc-flash"></div>
 </div>`;
 }
@@ -2006,7 +2365,10 @@ function sceneCss() {
   width:${SCREEN.w}px; height:${SCREEN.h}px;
   z-index:1; pointer-events:none;
   --sc-dx:0; --sc-dy:0; --sc-f:1; --sc-w:1;
-  --rp-sx:1; --rp-sy:1; --rp-y:0; --rp-r:0;
+  --rp-x:0; --rp-y:0; --rp-r:0; --tv-scan:0;
+${Array.from({ length: SC_DAYS.bands }, (_, i) =>
+  `  --tv-t${i}:${(i * 100 / SC_DAYS.bands).toFixed(2)}%; `
+  + `--tv-b${i}:${(100 - (i + 1) * 100 / SC_DAYS.bands).toFixed(2)}%; --tv-x${i}:0;`).join('\n')}
   --sc-ts:none; --sc-fl:none; --sc-fo:none;
 }
 .sc{position:absolute; inset:0; opacity:0; visibility:hidden; will-change:opacity}
@@ -2056,31 +2418,87 @@ function sceneCss() {
 .sc-plate{fill:${SC_ORANGE}}
 .sc-eye,.sc-brow{fill:var(--bg)}
 
-/* ---------- the report and the five offering shapes ----------
-   the same ink, the same glow and the same split as everything else in this box.
-   the report carries one transform of its own on top of the layer's jitter,
-   which is why it has an element between the jitter and the drawing rather than
-   being transformed by the same rule: two transforms on one element is one of
-   them winning silently. */
+/* ---------- the days, torn ----------
+   four copies of the same type, each clipped to its own horizontal band. at rest
+   the four insets are the four quarters and the four offsets are zero, so what
+   renders is one block of type with three invisible seams in it. during a fault
+   node writes eight different numbers and the block comes apart. */
+.sc-tear{position:absolute; inset:0; will-change:transform,clip-path}
+${Array.from({ length: SC_DAYS.bands }, (_, i) => `#sc-tear${i}{`
+  + `clip-path:inset(var(--tv-t${i}) 0 var(--tv-b${i}) 0);`
+  + `transform:translate3d(calc(var(--tv-x${i}) * 1px),0,0)}`).join('\n')}
+
+/* ---------- the report ----------
+   the page is clipped to the card box so it enters the frame from the side
+   rather than appearing inside it, and the clip is what keeps a page that starts
+   250px to the right of its resting place inside the platform safe area.
+
+   the two transforms are on two elements on purpose: the slide and the tilt
+   belong to the page, and every brick carries its own drop, and one element
+   cannot hold two transforms without one of them winning silently. */
+.sc-clip{overflow:hidden}
 .sc-page svg{display:block; width:212px; height:276px; overflow:visible; filter:var(--sc-fl);
-  transform:translateY(calc(var(--rp-y) * 1px)) scale(var(--rp-sx),var(--rp-sy))
+  transform:translate(calc(var(--rp-x) * 1px),calc(var(--rp-y) * 1px))
     rotate(calc(var(--rp-r) * 1deg));
   transform-origin:50% 50%; will-change:transform}
-.sc-item svg{display:block; width:248px; height:248px; overflow:visible; filter:var(--sc-fl)}
-.sc-page,.sc-item{margin-bottom:0}
-/* stroked, like the brain, and for the brain's reason: a filled shape glows as a
-   blob and a stroke glows as a line. the two fills in the set are the browser's
-   dots and the bars of text, which are objects rather than outlines. */
-.sc-rp,.sc-rh,.sc-rl,.sc-it,.sc-it-fill{
-  fill:none; stroke:var(--fg); stroke-width:2.0; stroke-linecap:round; stroke-linejoin:round}
-.sc-rp{stroke-width:2.6}
-.sc-rh,.sc-rl,.sc-it-fill{fill:var(--fg); stroke:none}
-.sc-it{stroke-width:3.0}
+.sc-page,.sc-map{margin-bottom:0}
+/* paper, on both themes, because paper does not have a theme. the stroke is what
+   makes it a page rather than a white rectangle on the light render, where the
+   fill is very nearly the page colour. */
+.sc-rp{fill:#f5f7f6; stroke:var(--fg); stroke-width:2.2}
+.sc-rh,.sc-rl{fill:#0b0d10; stroke:none}
+.sc-rc{fill:none; stroke:${SC_CHECK}; stroke-width:9; stroke-linecap:round; stroke-linejoin:round}
+[data-b]{transform-box:fill-box; transform-origin:50% 50%; will-change:transform,opacity}
+
+/* ---------- the chalkboard ----------
+   one svg at the card box own size, so SC_NODES is written in the same px as
+   everything else in this layer. the displacement filter is declared inside it
+   and applied to one group, which is what makes an even stroke chalky and
+   roughens the letterforms at the same time. */
+.sc-map{display:block}
+.sc-map svg{display:block; overflow:visible; filter:var(--sc-fl)}
+.ck-n,.ck-c{will-change:transform,opacity}
+.ck{fill:none; stroke:var(--fg); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+/* 23px, and it is a floor rather than a taste: at 19 the labels measured 28
+   device px of cap against the 32 this file holds every piece of copy to, and
+   the run failed on all seven of them. */
+.ck-t{fill:var(--fg); stroke:none; text-anchor:middle;
+  font-family:var(--body); font-weight:500; font-size:23px}
+.ck-y{fill:none; stroke:${SC_CHALK.yellow.light}; stroke-width:3.0;
+  stroke-linecap:round; stroke-linejoin:round}
+.ck-yt{fill:${SC_CHALK.yellow.light}; stroke:none; text-anchor:middle;
+  font-family:var(--body); font-weight:700; font-size:28px;
+  letter-spacing:.02em; text-transform:uppercase}
+/* the one place in this file where a colour is written twice: chalk yellow has
+   to be a different yellow on a black board than on white paper, for the reason
+   index.html carries two greens. */
+[data-theme=dark] .ck-y{stroke:${SC_CHALK.yellow.dark}}
+[data-theme=dark] .ck-yt{fill:${SC_CHALK.yellow.dark}}
+
+/* ---------- the noise burst ----------
+   over the whole box and under nothing, on the fault frames only. it is hidden
+   rather than transparent when it is off, because a turbulence filter at zero
+   opacity is still a turbulence filter being evaluated. */
+.sc-noise{position:absolute; inset:0; opacity:0; visibility:hidden;
+  pointer-events:none; will-change:opacity;
+  /* feathered, because an un-masked noise rect is a grey rectangle with a hard
+     edge on the light page: it read as a panel rather than as a burst. the mask
+     turns the box into a vignette of grain and takes the edge off the card box
+     boundary at the same time. */
+  mask-image:radial-gradient(circle at 50% 50%, #000 48%, transparent 92%);
+  -webkit-mask-image:radial-gradient(circle at 50% 50%, #000 48%, transparent 92%)}
+.sc-noise svg{display:block; opacity:.55}
+.sc-noise::after{content:''; position:absolute; inset:0;
+  background:repeating-linear-gradient(0deg,
+    rgba(255,255,255,var(--tv-scan)) 0 1px, rgba(255,255,255,0) 1px 3px)}
+[data-theme=light] .sc-noise::after{
+  background:repeating-linear-gradient(0deg,
+    rgba(11,13,16,var(--tv-scan)) 0 1px, rgba(11,13,16,0) 1px 3px)}
 
 /* ---------- the flash ----------
    a radial gradient with a transparent edge, in a box the safe area check can
    measure. it paints white on both themes: on black that is a bloom and on white
-   it is the report's own ink being blown out, which is the same event. */
+   it is whatever is under it being blown out, which is the same event. */
 .sc-flash{
   position:absolute;
   left:${(SCREEN.w - SC_FLASH.size) / 2}px; top:${(SCREEN.h - SC_FLASH.size) / 2}px;
@@ -2238,6 +2656,12 @@ function stagePage() {
   const scenes = [...document.querySelectorAll('.sc')];
   const scFaces = [...document.querySelectorAll('.sc-face')];
   const scFlash = document.getElementById('sc-flash');
+  const scNoise = document.getElementById('sc-noise');
+  const scBricks = [...document.querySelectorAll('[data-b]')]
+    .sort((a, b) => +a.dataset.b - +b.dataset.b);
+  const scMapNodes = [...document.querySelectorAll('.ck-n')]
+    .sort((a, b) => +a.dataset.n - +b.dataset.n);
+  const scMapCentre = document.querySelector('.ck-c');
 
   /* michroma is proportional and the tracking is heavy, so both end card lines
      are measured on a canvas at 100px and divided down to the width they should
@@ -2272,7 +2696,15 @@ function stagePage() {
      because "is this legible on a phone" is a number and this is the number. */
   function fitScene(el) {
     const cv = document.createElement('canvas').getContext('2d');
-    const lines = [...el.querySelectorAll('.sc-l')];
+    /* the torn block holds four identical copies of its own type, one per band,
+       and fitting eight lines into a box meant for two would have set the days
+       at a quarter of their size. one copy is measured and every copy is
+       written, which is also the only way the four can stay stacked. */
+    const bands = [...el.querySelectorAll('.sc-tear')];
+    const lines = bands.length
+      ? [...bands[0].querySelectorAll('.sc-l')]
+      : [...el.querySelectorAll('.sc-l')];
+    const all = [...el.querySelectorAll('.sc-l')];
     const boxW = P.SC.w - 2 * P.SC.pad;
     const boxH = P.SC.h - 2 * P.SC.pad;
     cv.font = '700 100px "Space Grotesk"';
@@ -2297,10 +2729,10 @@ function stagePage() {
     let by = 'width';
     if (artH + size * rows > boxH) { size = (boxH - artH) / rows; by = 'height'; }
     const out = { key: el.dataset.key, px: +size.toFixed(2), by, art: +artH.toFixed(1), lines: [] };
+    for (const L of all) L.style.fontSize = (size * (+L.dataset.scale || 1)).toFixed(2) + 'px';
     for (const L of lines) {
       const k = +L.dataset.scale || 1;
       const px = size * k;
-      L.style.fontSize = px.toFixed(2) + 'px';
       cv.font = '700 ' + px.toFixed(2) + 'px "Space Grotesk"';
       const m = cv.measureText('H');
       const cap = m.actualBoundingBoxAscent || px * 0.7;
@@ -2315,13 +2747,23 @@ function stagePage() {
      the safe area check, which proves nothing about where the letters are. */
   function inkOf(el) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face')) {
+    for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face, .sc-map svg')) {
       const r = e.getBoundingClientRect();
       if (!r.width || !r.height) continue;
       x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
       x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom);
     }
     if (x1 < x0) return null;
+    /* a block that declares itself clipped is measured through its clip. the
+       report slides in from 250px outside the card box and a rect that ignored
+       the `overflow: hidden` it is inside would report ink at a border it is
+       not within a hundred px of. */
+    if (el.dataset && el.dataset.clip) {
+      const c = scRoot.getBoundingClientRect();
+      x0 = Math.max(x0, c.left); y0 = Math.max(y0, c.top);
+      x1 = Math.min(x1, c.right); y1 = Math.min(y1, c.bottom);
+      if (x1 <= x0 || y1 <= y0) return null;
+    }
     return { left: +x0.toFixed(1), top: +y0.toFixed(1), right: +x1.toFixed(1), bottom: +y1.toFixed(1) };
   }
 
@@ -2346,6 +2788,18 @@ function stagePage() {
         end: { top: +top.toFixed(1), bottom: +(top + total).toFixed(1),
           wordmark: +wh.toFixed(1), dom: +dh.toFixed(1) },
         scenes: scenes.map(fitScene),
+        /* the chalk, measured off the rendered type rather than off the css, so
+           `is this readable on a phone` is the same kind of number for the board
+           as it is for the opening scenes. */
+        chalk: [...document.querySelectorAll('.ck-yt, .ck-t')].map(e => {
+          const cs = getComputedStyle(e);
+          const cv = document.createElement('canvas').getContext('2d');
+          cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+          const m = cv.measureText('H');
+          const cap = m.actualBoundingBoxAscent || parseFloat(cs.fontSize) * 0.7;
+          return { t: e.textContent, px: +parseFloat(cs.fontSize).toFixed(1),
+            capPx: +(cap * P.DSF).toFixed(1) };
+        }),
         /* the layer's own depth, read back rather than trusted to the
            stylesheet. it has to be under the card, under the captions and under
            the mascot: everything in it is temporary and nothing in it may ever
@@ -2372,11 +2826,37 @@ function stagePage() {
       }
       for (let i = 0; i < scFaces.length; i++) scFaces[i].style.opacity = o.faces[i] ? '1' : '0';
       scFlash.style.opacity = o.flash.toFixed(4);
+      /* the noise burst is hidden rather than transparent when it is off: a
+         turbulence filter at zero opacity is still a turbulence filter being
+         evaluated on every frame of a forty seven second clip. */
+      scNoise.style.visibility = o.noise > 0.002 ? 'visible' : 'hidden';
+      scNoise.style.opacity = o.noise.toFixed(4);
+      /* the six blocks of the report, each with its own drop and squash. */
+      for (let i = 0; i < scBricks.length; i++) {
+        const b = o.bricks[i] || { o: 0, y: 0, s: 1 };
+        scBricks[i].style.opacity = b.o.toFixed(3);
+        scBricks[i].style.transform = 'translate(0,' + b.y + 'px) scale(' + b.s + ')';
+      }
+      /* and the seven things on the board. */
+      for (let i = 0; i < scMapNodes.length; i++) {
+        const v = o.map[i] || 0;
+        scMapNodes[i].style.opacity = (v > 0 ? 1 : 0).toFixed(0);
+        scMapNodes[i].style.transform = 'scale(' + v.toFixed(4) + ')';
+      }
+      if (scMapCentre) {
+        scMapCentre.style.opacity = (o.mapCentre > 0 ? 1 : 0).toFixed(0);
+        scMapCentre.style.transform = 'scale(' + o.mapCentre.toFixed(4) + ')';
+      }
       const s = scRoot.style;
-      s.setProperty('--rp-sx', o.rp.sx.toFixed(4));
-      s.setProperty('--rp-sy', o.rp.sy.toFixed(4));
+      s.setProperty('--rp-x', o.rp.x.toFixed(2));
       s.setProperty('--rp-y', o.rp.y.toFixed(2));
       s.setProperty('--rp-r', o.rp.r.toFixed(3));
+      s.setProperty('--tv-scan', o.scan.toFixed(4));
+      for (let i = 0; i < o.bands.length; i++) {
+        s.setProperty('--tv-t' + i, o.bands[i].t + '%');
+        s.setProperty('--tv-b' + i, o.bands[i].b + '%');
+        s.setProperty('--tv-x' + i, String(o.bands[i].x));
+      }
       s.setProperty('--sc-dx', o.dx.toFixed(2));
       s.setProperty('--sc-dy', o.dy.toFixed(2));
       s.setProperty('--sc-f', o.tube.toFixed(4));
@@ -2396,7 +2876,8 @@ function stagePage() {
       }
       const faces = scFaces.filter(e => (parseFloat(getComputedStyle(e).opacity) || 0) > 0.5).length;
       return { on, faces, split: +(scRoot.style.getPropertyValue('--sc-dx') || 0),
-        flash: +(parseFloat(getComputedStyle(scFlash).opacity) || 0).toFixed(4) };
+        flash: +(parseFloat(getComputedStyle(scFlash).opacity) || 0).toFixed(4),
+        noise: +(parseFloat(getComputedStyle(scNoise).opacity) || 0).toFixed(4) };
     },
     /* the ink of whichever scenes are up, in the frame's own coordinates, so the
        safe area and the caption band are checked against letters rather than
@@ -2405,14 +2886,21 @@ function stagePage() {
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, n = 0;
       for (const el of scenes) {
         if ((parseFloat(getComputedStyle(el).opacity) || 0) <= 0.02) continue;
-        for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face')) {
+        const clip = el.dataset && el.dataset.clip ? scRoot.getBoundingClientRect() : null;
+        for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face, .sc-map svg')) {
           const cs = getComputedStyle(e);
           if (cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.02) continue;
           const r = e.getBoundingClientRect();
           if (!r.width || !r.height) continue;
+          let a = r.left, b = r.top, c = r.right, d = r.bottom;
+          if (clip) {
+            a = Math.max(a, clip.left); b = Math.max(b, clip.top);
+            c = Math.min(c, clip.right); d = Math.min(d, clip.bottom);
+            if (c <= a || d <= b) continue;
+          }
           n++;
-          x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
-          x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom);
+          x0 = Math.min(x0, a); y0 = Math.min(y0, b);
+          x1 = Math.max(x1, c); y1 = Math.max(y1, d);
         }
       }
       if (!n) return null;
@@ -3062,22 +3550,28 @@ async function main() {
     + 'goes over ' + sc.scenes[3].crossOut.t0.toFixed(2) + '..'
     + sc.scenes[3].crossOut.t1.toFixed(2) + ' inside it, so there is no blank frame');
 
-  console.log('  the report lands on the word "' + sc.report.word + '" at '
-    + sc.report.land.toFixed(2) + 's: falls from ' + sc.report.approach.t0.toFixed(2)
-    + ', squashes to ' + SC_REPORT.hit.sx.toFixed(2) + 'x' + SC_REPORT.hit.sy.toFixed(2)
-    + ' on contact, settles by ' + sc.report.settle.t1.toFixed(2)
-    + ', holds to ' + sc.report.out.t0.toFixed(2) + ' and is gone by ' + sc.report.out.t1.toFixed(2));
-  console.log('    the flash runs ' + sc.report.flash.t0.toFixed(2) + '..'
-    + sc.report.flash.t1.toFixed(2) + 's and peaks at ' + sc.report.flash.to.toFixed(2)
-    + ' on the contact frame — ' + (SC_FLASH.up * 1000).toFixed(0) + 'ms up, '
-    + (SC_FLASH.down * 1000).toFixed(0) + 'ms down, on the ' + THEME + ' page');
-  console.log('  the offering, one shape per item, each on the word that names it:');
-  for (const it of sc.items) {
-    console.log('    ' + it.key.padEnd(9) + ' "' + it.word + '" at ' + it.at.toFixed(2)
-      + 's, up ' + it.on.toFixed(2) + '..' + it.off.toFixed(2)
-      + ' (' + (it.off - it.on).toFixed(2) + 's)');
+  console.log('  the days land on the word "' + sc.days.word + '" at ' + sc.days.at.toFixed(2)
+    + 's, torn into ' + SC_DAYS.bands + ' bands: ' + (SC_TV.hard * 1000).toFixed(0)
+    + 'ms hard, then a ' + (SC_TV.tail * 1000).toFixed(0) + 'ms stutter, and gone by '
+    + sc.days.out.t1.toFixed(2));
+  console.log('    the fault: tear ' + SC_TV.tear + 'px, split ' + SC_TV.split + 'px, jitter '
+    + SC_TV.jitter + 'px, noise ' + SC_TV.noise + ', scanlines ' + SC_TV.scan
+    + ', and one white frame peaking at ' + sc.days.flash.to.toFixed(2) + ' on the ' + THEME + ' page');
+  console.log('  the report slides in from ' + sc.report.slide.t0.toFixed(2) + ', lands on "'
+    + sc.report.word + '" at ' + sc.report.land.toFixed(2) + ' and builds in six blocks:');
+  console.log('    the page rides the slide, then five blocks at '
+    + sc.report.bricks.slice(1).map(b => b.t0.toFixed(2)).join(', ')
+    + '  (' + (SC_REPORT.brick * 1000).toFixed(0) + 'ms apart, '
+    + (SC_REPORT.fall * 1000).toFixed(0) + 'ms each), held to ' + sc.report.out.t0.toFixed(2)
+    + ' and gone by ' + sc.report.out.t1.toFixed(2));
+  console.log('  the chalkboard: "' + SC_MAP.centre + '" at ' + sc.map.centreAt.toFixed(2)
+    + 's, then six nodes, up to ' + sc.map.off.toFixed(2));
+  for (const n of sc.map.nodes) {
+    console.log('    ' + n.key.padEnd(8) + ' pops at ' + n.on.toFixed(2) + 's  '
+      + (n.word ? 'on the spoken word "' + n.word + '"' : 'in the gap, ' + n.gap.toFixed(2)
+        + ' of the way between the words either side of it'));
   }
-  console.log('    the last one clears at ' + sc.last.toFixed(2)
+  console.log('    the board clears at ' + sc.map.off.toFixed(2)
     + ' and the end card starts arriving at ' + sc.endIn.toFixed(2));
 
   const marks = planMarks(v.beats, site);
@@ -3125,12 +3619,24 @@ async function main() {
     .concat(site.rings.map(r => ({ t: r.t, kind: r.kind })))
     .concat(site.keys.map(t => ({ t, kind: 'key' })))
     .concat([{ t: site.confirmAt, kind: 'ding' }])
+    /* the page coming in from the side, and the check mark landing on it. the
+       four bars in between get nothing: six sounds inside half a second is a
+       drum fill, and this is a document being assembled. */
     .concat([
-      { t: +(sc.report.land - 0.20).toFixed(4), kind: 'whoosh', opts: { len: 0.30 } },
-      { t: sc.report.land, kind: 'popDeep' },
-    ])
-    .concat(sc.items.map(it => ({ t: it.at, kind: 'pop' })));
+      { t: sc.report.slide.t0, kind: 'whoosh', opts: { len: 0.30 } },
+      { t: sc.report.bricks[5].t0, kind: 'popDeep' },
+    ]);
   const sfx = renderSfx(cues, SECONDS, { gains: { popDeep: SC_IMPACT_DB } });
+  /* and the two this file synthesises for itself: one fault on the frame the
+     type tears, and a stick of chalk on each of the seven things that go up on
+     the board. */
+  addSfx(sfx, glitchSfx({ len: SC_TV.hard + 0.02 }), sc.days.at, SC_GLITCH_DB,
+    'glitch', 'synthesised in post11');
+  const chalkBuf = chalkSfx();
+  addSfx(sfx, chalkBuf, sc.map.centreAt, SC_CHALK_DB, 'chalk', 'the centre');
+  for (const n of sc.map.nodes) {
+    addSfx(sfx, chalkBuf, n.on, SC_CHALK_DB, 'chalk', n.key);
+  }
   console.log('  sound: ' + cues.length + ' cues — '
     + Object.entries(cues.reduce((a, c) => (a[c.kind] = (a[c.kind] || 0) + 1, a), {}))
       .map(([k, n]) => n + ' ' + k).join(', ') + ', and no music');
@@ -3525,7 +4031,7 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
   let scF = null, scOff = false;
   const scSeen = [], scInk = [], scLate = [], scBlank = [], scOnCard = [];
   const scDuty = sc.blocks.map(() => 0), scOn = sc.blocks.map(() => 0);
-  let flashPeak = 0, flashAt = null;
+  let flashPeak = 0, flashAt = null, tore = 0, noised = 0;
 
   for (let f = 0; f < N; f++) {
     const t0 = f / FPS;
@@ -3535,7 +4041,7 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
        the middle, rather than a call a frame for the half of the clip that is
        the site. */
     const live = t0 <= sc.until + 0.05
-      || (t0 >= sc.report.approach.t0 - 0.10 && t0 <= sc.last + 0.10);
+      || (t0 >= sc.days.flash.t0 - 0.10 && t0 <= sc.last + 0.10);
     if (live) {
       scF = sceneFrame(sc, f, FPS);
       scOff = false;
@@ -3547,14 +4053,18 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
         scOn[j]++;
         if (scF.split > 0.01) scDuty[j]++;
       }
-      /* the flash, as it was written rather than as it was intended. */
+      /* the flash, the tearing and the noise, as they were written rather than
+         as they were intended. a channel that is planned and never rendered is
+         the failure mode a plan cannot see. */
       if (scF.flash > flashPeak) { flashPeak = scF.flash; flashAt = +t0.toFixed(3); }
+      if (scF.bands.some(b => Math.abs(b.x) > 0.5)) tore++;
+      if (scF.noise > 0.01) noised++;
     } else if (!scOff) {
       /* one write that puts the layer away, rather than a call a frame for the
          stretch it has nothing in. */
       scF = sceneFrame(sc, Math.round((t0 + 0.5) * FPS), FPS);
       for (let j = 0; j < scF.o.length; j++) scF.o[j] = 0;
-      scF.flash = 0;
+      scF.flash = 0; scF.noise = 0;
       scOff = true;
     } else scF = null;
 
@@ -3846,7 +4356,7 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
     posts: posts - posts0, lidMoved, lidSamples: lidSeen.length,
     sc: {
       seen: scSeen, ink: scInk, late: scLate, blank: scBlank, onCard: scOnCard,
-      flash: { peak: +flashPeak.toFixed(4), at: flashAt },
+      flash: { peak: +flashPeak.toFixed(4), at: flashAt }, tore, noised,
       duty: scDuty.map((d, i) => ({ key: sc.blocks[i].key, frames: scOn[i], glitching: d,
         duty: scOn[i] ? +(d / scOn[i]).toFixed(3) : 0 })),
     },
@@ -3987,26 +4497,33 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
     console.log('      ' + d.key.padEnd(10) + ' ' + String(d.glitching).padStart(3) + ' of '
       + String(d.frames).padStart(3) + ' frames  ' + (d.duty * 100).toFixed(1) + '%');
   }
-  console.log('    the report: falls from ' + sc.report.approach.t0.toFixed(2) + ', lands on "'
-    + sc.report.word + '" at ' + sc.report.land.toFixed(2) + ', settles by '
-    + sc.report.settle.t1.toFixed(2) + ', gone by ' + sc.report.out.t1.toFixed(2));
-  console.log('      the entry is ' + SC_REPORT.from.sx.toFixed(2) + ' scale at y '
-    + SC_REPORT.from.y + ' accelerating on p squared, a squash to '
-    + SC_REPORT.hit.sx.toFixed(2) + 'x' + SC_REPORT.hit.sy.toFixed(2)
-    + ' on contact, then the spring back to 1');
-  console.log('      the flash peaks at ' + (state.sc ? state.sc.flash.peak.toFixed(3) : '?')
-    + ' (written ' + sc.report.flash.to.toFixed(2) + ', ceiling ' + SC_FLASH.max + ') at '
-    + (state.sc && state.sc.flash.at != null ? state.sc.flash.at.toFixed(2) : '?')
-    + 's against a land at ' + sc.report.land.toFixed(2)
-    + ', ' + (SC_FLASH.up * 1000).toFixed(0) + 'ms up and ' + (SC_FLASH.down * 1000).toFixed(0) + 'ms down');
-  console.log('    the offering, one shape per item:');
-  for (const it of sc.items) {
-    console.log('      ' + it.key.padEnd(9) + ' on "' + it.word + '" at ' + it.at.toFixed(2)
-      + 's, up ' + it.on.toFixed(2) + '..' + it.off.toFixed(2)
-      + '  ' + (it.off - it.on).toFixed(2) + 's');
+  console.log('    the days: "' + SC_DAYS.lines.join(' / ').toUpperCase() + '" land on "'
+    + sc.days.word + '" at ' + sc.days.at.toFixed(2) + ', torn into ' + SC_DAYS.bands
+    + ' bands for ' + (SC_TV.hard * 1000).toFixed(0) + 'ms hard plus a '
+    + (SC_TV.tail * 1000).toFixed(0) + 'ms stutter, gone by ' + sc.days.out.t1.toFixed(2));
+  console.log('      the fault: tear ' + SC_TV.tear + 'px, split ' + SC_TV.split
+    + 'px, jitter ' + SC_TV.jitter + 'px, noise ' + SC_TV.noise + ', scanlines ' + SC_TV.scan);
+  console.log('      the white frame peaks at ' + (state.sc ? state.sc.flash.peak.toFixed(3) : '?')
+    + ' (written ' + sc.days.flash.to.toFixed(2) + ', ceiling ' + SC_FLASH.max + ') at '
+    + (state.sc && state.sc.flash.at != null ? state.sc.flash.at.toFixed(2) : '?') + 's');
+  console.log('    the report: slides in from ' + sc.report.slide.t0.toFixed(2) + ' at x+'
+    + SC_REPORT.from.x + ' and ' + SC_REPORT.from.r + ' degrees, lands on "' + sc.report.word
+    + '" at ' + sc.report.land.toFixed(2) + ', settles at ' + SC_REPORT.rest.r + ' degrees');
+  console.log('      the page rides the slide; the five things on it land at '
+    + sc.report.bricks.slice(1).map(b => b.t0.toFixed(2)).join(', ')
+    + ', each falling ' + (SC_REPORT.fall * 1000).toFixed(0) + 'ms with its own squash;'
+    + ' gone by ' + sc.report.out.t1.toFixed(2));
+  console.log('    the chalkboard: "' + SC_MAP.centre + '" at ' + sc.map.centreAt.toFixed(2)
+    + ', six nodes, cleared at ' + sc.map.off.toFixed(2)
+    + ' against an end card at ' + sc.endIn.toFixed(2));
+  for (const n of sc.map.nodes) {
+    console.log('      ' + n.key.padEnd(8) + ' ' + n.on.toFixed(2) + 's  '
+      + (n.word ? 'on "' + n.word + '"' : 'in the gap at ' + n.gap.toFixed(2)));
   }
-  console.log('      the last clears at ' + sc.last.toFixed(2) + ' and the end card arrives at '
-    + sc.endIn.toFixed(2));
+  if (state.built && state.built.chalk) {
+    console.log('      the chalk measures ' + state.built.chalk.map(c => c.t + ' '
+      + c.capPx + 'dp').join(', ') + ' of cap (floor ' + SC_MIN_CAP + ')');
+  }
   if (state.sc) {
     console.log('    read back off the page: ' + state.sc.seen.length + ' samples with the layer on, '
       + state.sc.late.length + ' opening scenes after the card had arrived, '
@@ -4194,60 +4711,109 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
       }
     }
   } else fail.push('the render reported nothing at all about the opening');
-  /* ---------- the report and the offering ----------
-     both are hung off words rather than off numbers, so what has to be checked
-     is that they still land on those words after any retiming, that the flash is
-     on the contact frame and is not a white-out, and that the five items are
-     five, in the script's own order, each with room to be seen. */
+  /* ---------- the days, the report and the chalkboard ----------
+     all three are hung off words rather than off numbers, so what has to be
+     checked is that they still land on those words after any retiming, that the
+     fault is a fault rather than a white-out, that the page is built rather than
+     faded, and that the three of them queue rather than overlap. */
+  const dWord = wordAt(v.beats[SC_DAYS.line - 1], SC_DAYS.on);
+  if (Math.abs(sc.days.at - dWord.start) > 0.5 / FPS) {
+    fail.push('the days land at ' + sc.days.at + ' and the word "' + SC_DAYS.on
+      + '" is said at ' + dWord.start.toFixed(3));
+  }
+  if (sc.days.flash.peak !== sc.days.at) {
+    fail.push('the white frame is at ' + sc.days.flash.peak + ' and the fault is at '
+      + sc.days.at + ' — it is part of the glitch and it has to be on it');
+  }
+  /* short and sharp, and this is the number that says so: the whole fault,
+     hard plus stutter, against a ceiling. */
+  const tvLen = +(SC_TV.hard + SC_TV.tail).toFixed(3);
+  if (tvLen > 0.34) {
+    fail.push('the tv glitch runs ' + tvLen + 's, which is long enough to read as a broken '
+      + 'render rather than as a fault');
+  }
   const rWord = wordAt(v.beats[SC_REPORT.line - 1], SC_REPORT.on);
   if (Math.abs(sc.report.land - rWord.start) > 0.5 / FPS) {
     fail.push('the report lands at ' + sc.report.land + ' and the word "' + SC_REPORT.on
       + '" is said at ' + rWord.start.toFixed(3));
   }
-  if (sc.report.flash.peak !== sc.report.land) {
-    fail.push('the flash peaks at ' + sc.report.flash.peak + ' and the report lands at '
-      + sc.report.land + ' — the flash is what the squash hides inside and it has to be on it');
+  if (sc.report.bricks.length !== 6) {
+    fail.push('the report builds in ' + sc.report.bricks.length + ' blocks and the drawing has 6');
+  }
+  if (!sc.report.bricks[0].page || sc.report.bricks[0].t0 !== sc.report.slide.t0) {
+    fail.push('block zero is not the page riding the slide, so the page has nothing to slide in');
+  }
+  for (let i2 = 1; i2 < sc.report.bricks.length; i2++) {
+    if (sc.report.bricks[i2].t0 <= sc.report.bricks[i2 - 1].t0) {
+      fail.push('the report blocks are not in order at ' + i2);
+    }
+  }
+  /* the page slides in rather than appearing: it has to start outside the box
+     it ends up in, and it has to be clipped or it would be outside the frame. */
+  if (SC_REPORT.from.x < SCREEN.w / 3) {
+    fail.push('the report starts ' + SC_REPORT.from.x + 'px off its resting place, which is not '
+      + 'far enough to read as coming in from the side');
+  }
+  if (Math.abs(SC_REPORT.rest.r) < 1.5) {
+    fail.push('the report settles at ' + SC_REPORT.rest.r + ' degrees, which is square to the '
+      + 'frame — it is meant to look placed by a hand');
   }
   if (state.sc) {
     const fp = state.sc.flash;
     if (fp.peak > SC_FLASH.max) {
-      fail.push('the flash reached ' + fp.peak + ' and the ceiling is ' + SC_FLASH.max
-        + ' — that is a white-out rather than a flash');
+      fail.push('the white frame reached ' + fp.peak + ' and the ceiling is ' + SC_FLASH.max
+        + ' — that is a white-out rather than a fault');
     }
-    /* and it has to have actually fired: a flash nobody rendered is a plan. */
-    if (fp.peak < sc.report.flash.to * 0.5) {
-      fail.push('the flash was written to peak at ' + sc.report.flash.to
+    if (fp.peak < sc.days.flash.to * 0.5) {
+      fail.push('the white frame was written to peak at ' + sc.days.flash.to
         + ' and the highest any rendered frame reached is ' + fp.peak);
     }
+    if (!state.sc.tore) fail.push('no rendered frame had a torn band on it');
+    if (!state.sc.noised) fail.push('the noise burst was never on screen');
   }
-  if (sc.items.length !== SC_ITEMS.length) {
-    fail.push(sc.items.length + ' offering shapes and there are ' + SC_ITEMS.length + ' items');
+  if (sc.map.nodes.length !== SC_NODES.length) {
+    fail.push(sc.map.nodes.length + ' chalk nodes and there are ' + SC_NODES.length);
   }
-  for (let i = 0; i < sc.items.length; i++) {
-    const it = sc.items[i];
-    const w = wordAt(v.beats[SC_ITEMS_LINE - 1], it.word);
-    if (Math.abs(it.at - w.start) > 0.5 / FPS) {
-      fail.push('the "' + it.key + '" shape lands at ' + it.at + ' and its word "' + it.word
+  for (const n of sc.map.nodes) {
+    if (!n.word) continue;
+    const w = wordAt(v.beats[SC_MAP_LINE - 1], n.word);
+    if (Math.abs(n.at - w.start) > 0.5 / FPS) {
+      fail.push('the "' + n.key + '" node lands at ' + n.at + ' and its word "' + n.word
         + '" is said at ' + w.start.toFixed(3));
     }
-    /* long enough to be seen, short enough to still be a list. */
-    if (it.off - it.on < 0.30) {
-      fail.push('the "' + it.key + '" shape is up for ' + (it.off - it.on).toFixed(2)
-        + 's, which is not long enough to be read');
-    }
-    if (i && it.on < sc.items[i - 1].at) {
-      fail.push('the offering shapes are out of order: "' + it.key + '" arrives before "'
-        + sc.items[i - 1].key + '" has been named');
+  }
+  for (let i2 = 1; i2 < sc.map.nodes.length; i2++) {
+    const gap = sc.map.nodes[i2].on - sc.map.nodes[i2 - 1].on;
+    if (gap < 0.18) {
+      fail.push('"' + sc.map.nodes[i2].key + '" pops ' + gap.toFixed(2) + 's after "'
+        + sc.map.nodes[i2 - 1].key + '", which is two things arriving at once');
     }
   }
-  if (sc.last > sc.endIn) {
-    fail.push('the last offering shape is up at ' + sc.last + ' and the end card starts arriving at '
+  if (sc.map.centreAt >= sc.map.nodes[0].on) {
+    fail.push('the centre of the map arrives at ' + sc.map.centreAt + ' and the first node points '
+      + 'at it from ' + sc.map.nodes[0].on + ' — an arrow into nothing');
+  }
+  if (sc.map.off > sc.endIn) {
+    fail.push('the chalkboard is up at ' + sc.map.off + ' and the end card starts arriving at '
       + sc.endIn + ' — they share the same rectangle');
   }
-  if (sc.report.out.t1 >= sc.items[0].on) {
-    fail.push('the report is still leaving at ' + sc.report.out.t1
-      + ' and the first offering shape arrives at ' + sc.items[0].on);
+  if (sc.days.out.t1 >= sc.report.slide.t0) {
+    fail.push('the days are still leaving at ' + sc.days.out.t1
+      + ' and the report starts sliding in at ' + sc.report.slide.t0);
   }
+  if (sc.report.out.t1 >= sc.map.on) {
+    fail.push('the report is still leaving at ' + sc.report.out.t1
+      + ' and the chalkboard arrives at ' + sc.map.on);
+  }
+  /* the chalk has to be readable at phone size, on the same floor the opening
+     scenes and the mascot bubble hold to. */
+  for (const c of (state.built.chalk || [])) {
+    if (c.capPx < SC_MIN_CAP) {
+      fail.push('the chalk word "' + c.t + '" renders at ' + c.capPx
+        + ' device px of cap, floor is ' + SC_MIN_CAP);
+    }
+  }
+  if (!(state.built.chalk || []).length) fail.push('the chalkboard never measured its own type');
 
   /* the type, and the same question the typed line is asked: can anybody read
      it. this one is held to the caption's own floor rather than to a filmed
