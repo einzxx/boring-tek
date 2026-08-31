@@ -681,6 +681,33 @@ const SC_DAYS = {
   hold: 0.62,      /* how long it holds after the fault before it leaves */
   exit: 0.14,      /* and it leaves on a fault too, so this is short */
   bands: 4,
+  /* ---------- a scene level exception to the duty ceiling ----------
+     `SC_GLITCH.dutyMax` is 30% and it stays 30% for everything else. This one
+     scene is allowed 40%, and the reason is that the ratio is measuring the
+     wrong thing here.
+
+     The ceiling exists to enforce "never continuous" on the four opening
+     scenes, where the glitch is a **scatter** of 70 to 140ms bursts through a
+     scene that is up for two and a half seconds: there, a high ratio really does
+     mean the thing never stops faulting.
+
+     The days are not that. They are **one deliberate fault at the head of the
+     beat** — 140ms hard and a 160ms stutter, 0.30s in total — and then 0.60s of
+     clean type. That is 33% by construction, and a ratio cannot tell "a third,
+     scattered throughout" from "a third, all of it at the front, then clean".
+     Only the second is true here, and it is the whole shape of the beat.
+
+     It only showed up at sixty. At twelve the same 0.30s fault quantised under
+     the ceiling and the preview passed, which is worth writing down on its own:
+     **a ratio guard on a short window is a different guard at a different frame
+     rate.** The length of the fault is checked separately and absolutely — see
+     `tvLen` in `guard` — and that check is the one that actually holds this
+     beat honest. This number only has to be loose enough not to fight it.
+
+     Nothing else in the file may raise its own ceiling by copying this. It is
+     named here, on the one scene it applies to, so that a second exception has
+     to be argued for rather than inherited. */
+  dutyMax: 0.40,
 };
 
 /* the fault itself. `hard` is the first stretch, where every channel is at full
@@ -1646,6 +1673,8 @@ function planScenes(beats, cardFade) {
     flash: { t0: at(daysAt - SC_FLASH.up), peak: daysAt, t1: at(daysAt + SC_FLASH.down),
       to: THEME === 'dark' ? SC_FLASH.peak.dark : SC_FLASH.peak.light },
     bursts: [], tube: false, faces: [], dips: [],
+    /* the one block with a ceiling of its own. see SC_DAYS. */
+    dutyMax: SC_DAYS.dutyMax,
   };
 
   /* ---- the report, sliding in and building ----
@@ -4378,7 +4407,11 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
       seen: scSeen, ink: scInk, late: scLate, blank: scBlank, onCard: scOnCard,
       flash: { peak: +flashPeak.toFixed(4), at: flashAt }, tore, noised,
       duty: scDuty.map((d, i) => ({ key: sc.blocks[i].key, frames: scOn[i], glitching: d,
-        duty: scOn[i] ? +(d / scOn[i]).toFixed(3) : 0 })),
+        duty: scOn[i] ? +(d / scOn[i]).toFixed(3) : 0,
+        /* the ceiling this block is held to, written next to the number it is
+           held against, so the log and the guard cannot be reading two different
+           thresholds. */
+        max: sc.blocks[i].dutyMax == null ? SC_GLITCH.dutyMax : sc.blocks[i].dutyMax })),
     },
   };
 }
@@ -4515,7 +4548,7 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
     + 'ms every ' + SC_GLITCH.every[0].toFixed(2) + '..' + SC_GLITCH.every[1].toFixed(2) + 's, '
     + 'quantised to the output frame so the shutter cannot smear it');
   console.log('    and how much of each scene is actually glitching, against a '
-    + (SC_GLITCH.dutyMax * 100).toFixed(0) + '% ceiling:');
+    + (SC_GLITCH.dutyMax * 100).toFixed(0) + '% ceiling, and the one named exception:');
   for (const d of (state.sc || { duty: [] }).duty) {
     console.log('      ' + d.key.padEnd(10) + ' ' + String(d.glitching).padStart(3) + ' of '
       + String(d.frames).padStart(3) + ' frames  ' + (d.duty * 100).toFixed(1) + '%');
@@ -4727,9 +4760,10 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
     for (const d of state.sc.duty) {
       if (!d.frames) fail.push('the scene "' + d.key + '" is never up for a single frame');
       else if (!d.glitching) fail.push('the scene "' + d.key + '" never glitches on any frame');
-      else if (d.duty > SC_GLITCH.dutyMax) {
+      else if (d.duty > (d.max == null ? SC_GLITCH.dutyMax : d.max)) {
         fail.push('the scene "' + d.key + '" is glitching on ' + (d.duty * 100).toFixed(1)
-          + '% of its own frames, ceiling is ' + (SC_GLITCH.dutyMax * 100).toFixed(0)
+          + '% of its own frames, ceiling is '
+          + ((d.max == null ? SC_GLITCH.dutyMax : d.max) * 100).toFixed(0)
           + '% — a burst that long is a look rather than a fault');
       }
     }
