@@ -179,16 +179,50 @@ const LINES = [
                                      then a suffix, which is how a person says an
                                      address.
 
-     so the comma stays and the rate is -18%, and the caption still draws
-     `theboringtek.com` — the address as it is actually written. that is the only
-     place in this clip where the spoken copy and the drawn copy are not the same
-     words, and it is a named exception with a guard of its own rather than a
-     hole in one. see SAY_AS below.
+     ---- and then a fourth attempt, because the third lost the `the` ----
+
+     the complaint was that the line reads `boring tek dot com`, and the take's
+     own waveform says why, which is not what anybody guessed. **the `the` is
+     there and it is loud enough**: 153ms at -17.6 dB, two decibels under the
+     loudest word in the line. what is wrong is that the gap in front of it is
+     **15ms, exactly the same as every other gap in the run** — so `go to the`
+     comes out as one unstressed cluster, the ear takes `the` as the article of
+     `go to the ___`, and the name it hears starts at `boring`.
+
+     so this is a grouping fault rather than a level fault, and the fix is a
+     boundary. three were synthesised at the same rate and pitch and measured on
+     the waveform under each word:
+
+       `go to the ...`     15ms in front of `the`, and it is -2.0 dB under the
+                           loudest word. no boundary at all. this is the fault.
+       `go to, the ...`    320ms in front of it, but the comma also **drops** it
+                           to -4.7 under the loudest. the pause is right and the
+                           stress goes the wrong way.
+       `go to. the ...`    **503ms** in front of it and 15ms to `boring`, and it
+                           comes back up to -0.8 under the loudest word in the
+                           line. after a full stop the synthesiser restarts the
+                           phrase and gives its first word a real onset, so the
+                           `the` is both separated from `go to` and stressed as
+                           the head of the name.
+
+     the full stop wins on both numbers, so it is what ships. it is spoken copy
+     only: `bareWord` strips a trailing stop after the cards are cut, so nothing
+     draws `go to.` — the caption gets two cards, `go to` and then
+     `theboringtek.com` on its own, which is the better cut anyway for the one
+     line a viewer has to be able to write down.
+
+     it costs 0.58s: the take goes 2.95s to 3.53s and the clip goes with it. that
+     is the only retiming in this pass and it is reported by the run.
+
+     the caption still draws `theboringtek.com` — the address as it is actually
+     written. that is the only place in this clip where the spoken copy and the
+     drawn copy are not the same words, and it is a named exception with a guard
+     of its own rather than a hole in one. see SAY_AS below.
 
      the comma never reaches a caption: `SAY_AS` matches on bare words, so it
      collapses the run whether or not the synthesiser was handed punctuation, and
      the collapse happens before `cardBreak` ever sees the line. */
-  { text: 'go to the boring tek, dot com',
+  { text: 'go to. the boring tek, dot com',
     rate: '-18%', pitch: '-1Hz', gap: 0.30, screen: 'site' },
   { text: 'press the button',
     rate: '-2%', pitch: '+1Hz', gap: 0.52, screen: 'site' },
@@ -609,6 +643,94 @@ const SCENES = [
    that ever measured under it would be type nobody can read on a phone, which is
    the one thing this layer cannot be. */
 const SC_MIN_CAP = 32;
+
+/* ---------- the report, and the two beats after the card leaves ----------
+   the site card goes at 34.65 and the top of the frame is empty from there to
+   the end card. two of the four lines in that stretch are about something a
+   viewer is being offered, and neither had a picture: `you get your report` and
+   the list of what we build.
+
+   both are drawn in the same box the opening scenes and the site card used, in
+   the same layer, under the same glow and the same glitch. that is the point of
+   there being a layer rather than three one-off blocks: the box has one language
+   and everything that appears in it speaks it.
+
+   ---------- the report itself ----------
+   a document, not a screenshot: a page shape with a heading and six lines on it.
+   nothing on it says anything, because a report with legible copy on it is a
+   promise about what is in the report, and we do not make those. it is the
+   **shape** of a thing arriving.
+
+   the entrance is the one piece of real animation in this file that is not a
+   fade or a crossfade, and it is built the way the mascot's states are built:
+   anticipation, snap, settle. it falls in from a third larger and above,
+   accelerating rather than easing — `p * p`, because a thing falling is not a
+   thing gliding — squashes to 0.93 on contact, and comes back to 1.0 on the
+   site's own spring with the overshoot that curve carries. the flash fires on
+   the contact frame and covers the one place the numbers jump. */
+const SC_REPORT = {
+  line: 16,        /* the script line it belongs to, one based */
+  on: 'report',    /* and the word inside it that it lands on */
+  approach: 0.26,  /* how long it is falling for */
+  settle: 0.36,    /* the overshoot resolving after the hit */
+  hold: 1.00,      /* how long it holds after that before it leaves */
+  exit: 0.30,
+  /* the fall starts a fifth larger and above, and it lands **wider than it is
+     tall**: a squash on contact is what separates a thing landing from a thing
+     scaling up, and it is the same volume trick `lib/mascot.mjs` uses on the
+     head. the settle then springs both axes back to one together. */
+  from: { sx: 1.22, sy: 1.22, y: -26, r: -5, o: 0.62 },
+  hit: { sx: 1.05, sy: 0.89, y: -5, r: -1 },
+};
+
+/* ---------- the flash ----------
+   sharp and short: up in fifty milliseconds, gone in a hundred and sixty, and it
+   peaks on the contact frame rather than near it.
+
+   **it is two different things on the two themes and it has to be.** on black a
+   white bloom is a flash. on white a white bloom is nothing at all — so what it
+   does there is blow the report's own ink out for two frames, which is the same
+   event read the other way round. that is why the peak is higher on light: it is
+   covering ink rather than lighting a dark page.
+
+   it is a radial gradient in a 340px box centred in the card box, so its own
+   edges are already transparent long before they reach anything: the caption
+   ceiling is at 583.5 and this ends at 476. the box is measured by the safe area
+   check like everything else this file draws. */
+const SC_FLASH = {
+  up: 0.05, down: 0.16, size: 340,
+  peak: { dark: 0.68, light: 0.80 },
+  /* the ceiling the guard holds it to. a full white frame held for a tenth of a
+     second is what "blinding at phone size" means, and this is well under it. */
+  max: 0.88,
+};
+
+/* ---------- the offering, one picture per item ----------
+   five items in one line, each landing on the word that names it, each up only
+   until the next one takes the box. no type: the caption is already saying the
+   word underneath, and drawing it again in the box would be the same word twice.
+   what the box carries is the shape of the thing.
+
+   they hard cut rather than crossfade, and they stutter on and off the way the
+   five faces in scene one do. it is a list being read, so it moves at the speed
+   of the reading and nothing in it holds. */
+/* the contact thump, and it is three decibels under the level `lib/sfx.mjs`
+   gives popDeep. that level is for a counted beat in a clip with no narrator on
+   it; this one lands on the word `report` while the word is being said, and at
+   -24 the instantaneous bus reading came back a decibel **over** the voice. -27
+   puts it under and the duck does the rest. it is a per clip override through
+   renderSfx's own `gains`, so nothing in the shared module moved. */
+const SC_IMPACT_DB = -27;
+
+const SC_ITEMS_LINE = 18;
+const SC_ITEM = { lead: 0.08, stutter: 0.10, blink: 0.10, tail: 0.10 };
+const SC_ITEMS = [
+  { key: 'apps', word: 'apps' },
+  { key: 'websites', word: 'websites' },
+  { key: 'research', word: 'research' },
+  { key: 'design', word: 'graphic' },
+  { key: 'onejob', word: 'one' },
+];
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -1441,7 +1563,62 @@ function planScenes(beats, cardFade) {
     }
   }
 
-  return { scenes, until: cardFade.t1, xf, cardFade };
+  /* ---- the report, on the word that names it ----
+     `wordAt` again, for the reason every cue in `planSite` uses it: keying this
+     to `beats[15].words[8]` would key it to a line nobody is allowed to edit. */
+  const bR = beats[SC_REPORT.line - 1];
+  const land = at(wordAt(bR, SC_REPORT.on).start);
+  const report = {
+    key: 'report', k: scenes.length, seed: 0x5ce0 ^ 0x9a71,
+    line: SC_REPORT.line, word: SC_REPORT.on, land,
+    approach: { t0: at(land - SC_REPORT.approach), t1: land },
+    settle: { t0: land, t1: at(land + SC_REPORT.settle) },
+    out: { t0: at(land + SC_REPORT.hold), t1: at(land + SC_REPORT.hold + SC_REPORT.exit) },
+    flash: { t0: at(land - SC_FLASH.up), peak: land, t1: at(land + SC_FLASH.down),
+      to: THEME === 'dark' ? SC_FLASH.peak.dark : SC_FLASH.peak.light },
+    /* the contact frame is a glitch frame, and one more lands in the hold so the
+       page is not a still picture for a whole second. */
+    bursts: [{ t: land, len: SC_GLITCH.entry, force: 1 },
+      { t: at(land + 0.62), len: SC_GLITCH.burst[0], force: 0.55 }],
+    tube: false, faces: [], dips: [],
+  };
+
+  /* ---- the offering, one item per word ----
+     each is up until the next takes the box, so the pictures move at the speed
+     of the reading. the last one is cut against the end card's own arrival
+     rather than against its own line: the card is drawn in this same rectangle
+     and the two may never be on screen together. */
+  const bI = beats[SC_ITEMS_LINE - 1];
+  const endIn = at(beats[beats.length - 1].start - 0.30);
+  const lands = SC_ITEMS.map(it => at(wordAt(bI, it.word).start));
+  const items = SC_ITEMS.map((it, i) => {
+    const on = at(lands[i] - SC_ITEM.lead);
+    const off = i + 1 < lands.length
+      ? at(lands[i + 1] - SC_ITEM.lead)
+      : at(Math.min(bI.end + SC_ITEM.tail, endIn - 0.14));
+    if (off <= on) {
+      throw new Error('offering item "' + it.key + '" has no room: ' + on + '..' + off);
+    }
+    return {
+      ...it, k: scenes.length + 1 + i, seed: (0x0ffe0 ^ (i * 0x9e3779b1)) >>> 0,
+      at: lands[i], on, off,
+      bursts: [{ t: on, len: SC_GLITCH.burst[0], force: 1 }],
+      tube: false, faces: [], dips: [],
+    };
+  });
+  if (report.out.t1 >= items[0].on) {
+    throw new Error('the report is still leaving at ' + report.out.t1
+      + ' and the first offering item arrives at ' + items[0].on);
+  }
+  if (items[items.length - 1].off > endIn) {
+    throw new Error('the last offering item is up at ' + items[items.length - 1].off
+      + ' and the end card starts arriving at ' + endIn);
+  }
+
+  const blocks = [...scenes, report, ...items];
+  const last = items[items.length - 1].off;
+  return { scenes, report, items, blocks, endIn, last,
+    until: cardFade.t1, xf, cardFade };
 }
 
 /* ---------- one output frame of the opening ----------
@@ -1455,7 +1632,7 @@ function rgbOf(hex) {
 }
 function sceneFrame(plan, f, fps) {
   const t = f / fps;
-  const o = [0, 0, 0, 0];
+  const o = plan.blocks.map(() => 0);
   for (const s of plan.scenes) {
     if (t < s.in.t0 - 1e-9 || t > s.out.t1 + 1e-9) continue;
     const up = GLIDE(clampTo((t - s.crossIn.t0) / (s.crossIn.t1 - s.crossIn.t0), 0, 1));
@@ -1463,11 +1640,72 @@ function sceneFrame(plan, f, fps) {
     o[s.k] = +Math.min(up, dn).toFixed(4);
   }
 
+  /* ---- the report: anticipation, snap, settle ----
+     the approach accelerates rather than eases, because a thing falling is not
+     a thing gliding, and it is deliberately not on one of the file's three
+     curves: `p * p` is what gravity looks like over a quarter of a second. the
+     hit is a squash and the settle is the site's own spring, which overshoots
+     and comes back — the bounce is the curve rather than a second keyframe. */
+  const R = plan.report;
+  const F = SC_REPORT.from, H = SC_REPORT.hit;
+  let rp = { sx: 1, sy: 1, y: 0, r: 0 };
+  let flash = 0;
+  if (t >= R.approach.t0 - 1e-9 && t <= R.out.t1 + 1e-9) {
+    if (t < R.land) {
+      const p = clampTo((t - R.approach.t0) / (R.approach.t1 - R.approach.t0), 0, 1);
+      const q = p * p;
+      rp = { sx: lerp(F.sx, H.sx, q), sy: lerp(F.sy, H.sy, q),
+        y: lerp(F.y, H.y, q), r: lerp(F.r, H.r, q) };
+      o[R.k] = +(F.o * q).toFixed(4);
+    } else if (t < R.settle.t1) {
+      const e = POP(clampTo((t - R.settle.t0) / (R.settle.t1 - R.settle.t0), 0, 1));
+      rp = { sx: lerp(H.sx, 1, e), sy: lerp(H.sy, 1, e), y: lerp(H.y, 0, e), r: lerp(H.r, 0, e) };
+      o[R.k] = 1;
+    } else if (t < R.out.t0) {
+      o[R.k] = 1;
+    } else {
+      const e = GLIDE(clampTo((t - R.out.t0) / (R.out.t1 - R.out.t0), 0, 1));
+      rp = { sx: lerp(1, 0.93, e), sy: lerp(1, 0.93, e), y: 0, r: 0 };
+      o[R.k] = +(1 - e).toFixed(4);
+    }
+  }
+  /* the flash, and the one number in it that matters is that it peaks **on** the
+     contact frame rather than near it: it is what the squash is hidden inside,
+     and a flash a frame late is a flash you notice separately from the hit. */
+  if (t >= R.flash.t0 - 1e-9 && t <= R.flash.t1 + 1e-9) {
+    flash = t < R.land
+      ? R.flash.to * clampTo((t - R.flash.t0) / Math.max(R.land - R.flash.t0, 1e-6), 0, 1)
+      : R.flash.to * (1 - GLIDE(clampTo((t - R.land) / Math.max(R.flash.t1 - R.land, 1e-6), 0, 1)));
+  }
+
+  /* ---- the offering, hard on and hard off ----
+     no fade at either end. they stutter in the way the five faces in scene one
+     stutter, and they take a one frame dropout on the way out so leaving looks
+     like the same kind of event as arriving. */
+  for (const it of plan.items) {
+    if (t < it.on - 1e-9 || t >= it.off) continue;
+    const n = Math.max(1, Math.round(SC_ITEM.stutter * fps));
+    const f0 = Math.round(it.on * fps);
+    let v = 1;
+    if (f < f0 + n - 1) v = prng((it.seed ^ ((f + 1) * 2654435761)) >>> 0)() < 0.42 ? 0 : 1;
+    const fb = Math.round((it.off - SC_ITEM.blink) * fps);
+    const nb = Math.max(1, Math.round(0.05 * fps));
+    if (f >= fb && f < fb + nb) v = 0;
+    o[it.k] = v;
+  }
+
   let heat = 0, split = 0, dx = 0, dy = 0, bleed = 0;
-  for (const s of plan.scenes) {
+  for (const s of plan.blocks) {
     if (o[s.k] < 0.02) continue;
     for (const b of s.bursts) {
-      const f0 = Math.round(b.t * fps), n = Math.max(1, Math.round(b.len * fps));
+      /* ceil, not round, and it is not a preference. the visibility test above is
+         `t >= on`, so a block's first frame is `ceil(on * fps)` — and a burst
+         placed with `round` lands on the frame *before* that whenever the
+         fraction is under a half, which is a glitch fired at a thing that is not
+         on screen yet. three of the five offering shapes came back with no
+         glitch on any frame and this was why. one rule for both, so they cannot
+         disagree. */
+      const f0 = Math.ceil(b.t * fps - 1e-9), n = Math.max(1, Math.round(b.len * fps));
       if (f < f0 || f >= f0 + n) continue;
       const h = b.force * (1 - (f - f0) / (n + 0.8));
       if (h <= heat) continue;
@@ -1539,6 +1777,8 @@ function sceneFrame(plan, f, fps) {
 
   return {
     o, faces, words: +words.toFixed(3),
+    rp: { sx: +rp.sx.toFixed(4), sy: +rp.sy.toFixed(4), y: +rp.y.toFixed(2), r: +rp.r.toFixed(3) },
+    flash: +flash.toFixed(4),
     dx: +dx.toFixed(2), dy: +dy.toFixed(2), tube: +tube.toFixed(4),
     split: +split.toFixed(2), heat: +heat.toFixed(3),
     ts: ts.length ? ts.join(',') : 'none',
@@ -1648,6 +1888,78 @@ function brainSvg() {
     + '</svg>';
 }
 
+/* ---------- the report ----------
+   a page with a heading and six lines on it, and the lines are bars rather than
+   letters on purpose: type on this page would be copy nobody wrote, in a
+   document we are promising to send. the shape is the promise. the widths are
+   uneven because a paragraph is uneven, and the last one is short because that
+   is where a paragraph stops. */
+function reportSvg() {
+  const line = (y, w) => '<rect class="sc-rl" x="18" y="' + y + '" width="' + w
+    + '" height="3.4" rx="1.7"/>';
+  return '<svg viewBox="0 0 120 156" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+    + '<rect class="sc-rp" x="6" y="4" width="108" height="148" rx="6"/>'
+    + '<rect class="sc-rh" x="18" y="24" width="52" height="6.4" rx="3.2"/>'
+    + [[48, 84], [62, 76], [76, 84], [90, 58], [104, 84], [118, 44]]
+      .map(([y, w]) => line(y, w)).join('')
+    + '</svg>';
+}
+
+/* ---------- the five offering shapes ----------
+   one per item, stroked, in a 120 unit box, and every one of them is the most
+   ordinary drawing of its own noun there is. a list read at three words a second
+   is not the place to be clever: the picture has about half a second to be
+   recognised and then it is gone. */
+function itemSvg(key) {
+  const S = (d, extra) => '<path class="sc-it" d="' + d + '"' + (extra || '') + '/>';
+  const R = (x, y, w, h, r, cls) => '<rect class="' + (cls || 'sc-it') + '" x="' + x + '" y="' + y
+    + '" width="' + w + '" height="' + h + '" rx="' + r + '"/>';
+  const C = (cx, cy, r) => '<circle class="sc-it" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
+  const svg = body => '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"'
+    + ' aria-hidden="true" focusable="false">' + body + '</svg>';
+
+  if (key === 'apps') {
+    /* a phone with a grid on it. three by three, because two reads as a pair of
+       buttons and four is a texture at this size. */
+    const cells = [];
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) cells.push(R(42 + c * 14, 30 + r * 16, 10, 10, 2.4, 'sc-it-fill'));
+    }
+    return svg(R(34, 8, 52, 104, 9) + cells.join('') + R(52, 98, 16, 3, 1.5, 'sc-it-fill'));
+  }
+  if (key === 'websites') {
+    /* a browser: a frame, a bar with three dots in it, and three lines of
+       something under it. the dots are what make it a browser rather than a
+       card, and they are the one place in this set with a filled shape. */
+    return svg(R(8, 22, 104, 76, 6)
+      + S('M8 40 L112 40')
+      + [18, 27, 36].map(x => '<circle class="sc-it-fill" cx="' + x + '" cy="31" r="2.6"/>').join('')
+      + [[54, 62], [68, 86], [82, 44]].map(([y, w]) => R(20, y, w, 3.4, 1.7, 'sc-it-fill')).join(''));
+  }
+  if (key === 'research') {
+    /* a magnifier, and two short lines inside the lens so it is looking at
+       something rather than at nothing. */
+    return svg(C(50, 50, 30)
+      + S('M72 72 L100 100', ' stroke-width="6"')
+      + R(36, 44, 28, 3.4, 1.7, 'sc-it-fill')
+      + R(36, 54, 20, 3.4, 1.7, 'sc-it-fill'));
+  }
+  if (key === 'design') {
+    /* a circle, a triangle and a square in a row. it is the oldest mark there is
+       for this and that is exactly why it is used: nothing has to be worked out. */
+    return svg(C(22, 60, 17)
+      + S('M60 40 L78 80 L42 80 Z')
+      + R(84, 43, 34, 34, 3));
+  }
+  if (key === 'onejob') {
+    /* one small thing, done. it is drawn small in a big box, which is the same
+       joke scene four makes with the word SMALL and the reason this item is last
+       in the line as well as last here. */
+    return svg(R(44, 44, 32, 32, 5) + S('M51 60 L58 67 L70 52'));
+  }
+  throw new Error('no offering shape called "' + key + '"');
+}
+
 /* ---------- the opening's markup and its styles ---------- */
 function sceneMarkup() {
   return `<div class="sc-root" id="sc-root">
@@ -1663,6 +1975,17 @@ ${S.faces === true ? '      <div class="sc-faces">'
       + `transform:rotate(${f.rot}deg)">${faceSvg(f)}</span>`).join('')
     + '</div>\n' : ''}    </div>
   </div>`).join('\n')}
+  <div class="sc" id="sc${SCENES.length}" data-key="report">
+    <div class="sc-in">
+      <div class="sc-stack"><div class="sc-art sc-page" id="sc-page">${reportSvg()}</div></div>
+    </div>
+  </div>
+${SC_ITEMS.map((it, i) => `  <div class="sc" id="sc${SCENES.length + 1 + i}" data-key="${it.key}">
+    <div class="sc-in">
+      <div class="sc-stack"><div class="sc-art sc-item">${itemSvg(it.key)}</div></div>
+    </div>
+  </div>`).join('\n')}
+  <div class="sc-flash" id="sc-flash"></div>
 </div>`;
 }
 
@@ -1683,6 +2006,7 @@ function sceneCss() {
   width:${SCREEN.w}px; height:${SCREEN.h}px;
   z-index:1; pointer-events:none;
   --sc-dx:0; --sc-dy:0; --sc-f:1; --sc-w:1;
+  --rp-sx:1; --rp-sy:1; --rp-y:0; --rp-r:0;
   --sc-ts:none; --sc-fl:none; --sc-fo:none;
 }
 .sc{position:absolute; inset:0; opacity:0; visibility:hidden; will-change:opacity}
@@ -1730,7 +2054,42 @@ function sceneCss() {
 .sc-face{position:absolute; display:block; opacity:0; will-change:opacity}
 .sc-face svg{display:block; overflow:visible; filter:var(--sc-fo)}
 .sc-plate{fill:${SC_ORANGE}}
-.sc-eye,.sc-brow{fill:var(--bg)}`;
+.sc-eye,.sc-brow{fill:var(--bg)}
+
+/* ---------- the report and the five offering shapes ----------
+   the same ink, the same glow and the same split as everything else in this box.
+   the report carries one transform of its own on top of the layer's jitter,
+   which is why it has an element between the jitter and the drawing rather than
+   being transformed by the same rule: two transforms on one element is one of
+   them winning silently. */
+.sc-page svg{display:block; width:212px; height:276px; overflow:visible; filter:var(--sc-fl);
+  transform:translateY(calc(var(--rp-y) * 1px)) scale(var(--rp-sx),var(--rp-sy))
+    rotate(calc(var(--rp-r) * 1deg));
+  transform-origin:50% 50%; will-change:transform}
+.sc-item svg{display:block; width:248px; height:248px; overflow:visible; filter:var(--sc-fl)}
+.sc-page,.sc-item{margin-bottom:0}
+/* stroked, like the brain, and for the brain's reason: a filled shape glows as a
+   blob and a stroke glows as a line. the two fills in the set are the browser's
+   dots and the bars of text, which are objects rather than outlines. */
+.sc-rp,.sc-rh,.sc-rl,.sc-it,.sc-it-fill{
+  fill:none; stroke:var(--fg); stroke-width:2.0; stroke-linecap:round; stroke-linejoin:round}
+.sc-rp{stroke-width:2.6}
+.sc-rh,.sc-rl,.sc-it-fill{fill:var(--fg); stroke:none}
+.sc-it{stroke-width:3.0}
+
+/* ---------- the flash ----------
+   a radial gradient with a transparent edge, in a box the safe area check can
+   measure. it paints white on both themes: on black that is a bloom and on white
+   it is the report's own ink being blown out, which is the same event. */
+.sc-flash{
+  position:absolute;
+  left:${(SCREEN.w - SC_FLASH.size) / 2}px; top:${(SCREEN.h - SC_FLASH.size) / 2}px;
+  width:${SC_FLASH.size}px; height:${SC_FLASH.size}px;
+  border-radius:50%; pointer-events:none; opacity:0; will-change:opacity;
+  background:radial-gradient(circle,
+    rgba(255,255,255,1) 0%, rgba(255,255,255,.62) 30%,
+    rgba(255,255,255,.20) 56%, rgba(255,255,255,0) 76%);
+}`;
 }
 
 /* ---------- the composed page ----------
@@ -1878,6 +2237,7 @@ function stagePage() {
   const scRoot = document.getElementById('sc-root');
   const scenes = [...document.querySelectorAll('.sc')];
   const scFaces = [...document.querySelectorAll('.sc-face')];
+  const scFlash = document.getElementById('sc-flash');
 
   /* michroma is proportional and the tracking is heavy, so both end card lines
      are measured on a canvas at 100px and divided down to the width they should
@@ -1923,7 +2283,16 @@ function stagePage() {
       rows += k * P.SC.lead;
     }
     const art = el.querySelector('.sc-art');
-    const artH = art ? art.getBoundingClientRect().height + P.SC.gap : 0;
+    const artH = art ? art.getBoundingClientRect().height + (lines.length ? P.SC.gap : 0) : 0;
+    /* a block with no type in it — the report, the five offering shapes — has
+       nothing to fit and says so, rather than dividing the box by a zero em and
+       writing Infinity into a font size. */
+    if (!lines.length) {
+      const out0 = { key: el.dataset.key, px: null, by: 'nothing to fit', art: +artH.toFixed(1),
+        lines: [], capPx: null };
+      out0.ink = inkOf(el);
+      return out0;
+    }
     let size = boxW / em;
     let by = 'width';
     if (artH + size * rows > boxH) { size = (boxH - artH) / rows; by = 'height'; }
@@ -1938,18 +2307,22 @@ function stagePage() {
       out.lines.push({ t: L.textContent, px: +px.toFixed(1), capPx: +(cap * P.DSF).toFixed(1) });
     }
     out.capPx = Math.min(...out.lines.map(l => l.capPx));
-    /* the ink, not the box it is laid out in. the stack is a full height flex
-       container and reporting its rect would report the card's own edges back to
-       the safe area check, which proves nothing about where the letters are. */
+    out.ink = inkOf(el);
+    return out;
+  }
+  /* the ink, not the box it is laid out in. the stack is a full height flex
+     container and reporting its rect would report the card's own edges back to
+     the safe area check, which proves nothing about where the letters are. */
+  function inkOf(el) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-face')) {
+    for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face')) {
       const r = e.getBoundingClientRect();
       if (!r.width || !r.height) continue;
       x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
       x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom);
     }
-    out.ink = { left: +x0.toFixed(1), top: +y0.toFixed(1), right: +x1.toFixed(1), bottom: +y1.toFixed(1) };
-    return out;
+    if (x1 < x0) return null;
+    return { left: +x0.toFixed(1), top: +y0.toFixed(1), right: +x1.toFixed(1), bottom: +y1.toFixed(1) };
   }
 
   window.__stage = {
@@ -1998,7 +2371,12 @@ function stagePage() {
         scenes[k].style.visibility = v > 0.001 ? 'visible' : 'hidden';
       }
       for (let i = 0; i < scFaces.length; i++) scFaces[i].style.opacity = o.faces[i] ? '1' : '0';
+      scFlash.style.opacity = o.flash.toFixed(4);
       const s = scRoot.style;
+      s.setProperty('--rp-sx', o.rp.sx.toFixed(4));
+      s.setProperty('--rp-sy', o.rp.sy.toFixed(4));
+      s.setProperty('--rp-y', o.rp.y.toFixed(2));
+      s.setProperty('--rp-r', o.rp.r.toFixed(3));
       s.setProperty('--sc-dx', o.dx.toFixed(2));
       s.setProperty('--sc-dy', o.dy.toFixed(2));
       s.setProperty('--sc-f', o.tube.toFixed(4));
@@ -2017,7 +2395,8 @@ function stagePage() {
         if (op > 0.02) on.push({ key: el.dataset.key, o: +op.toFixed(3) });
       }
       const faces = scFaces.filter(e => (parseFloat(getComputedStyle(e).opacity) || 0) > 0.5).length;
-      return { on, faces, split: +(scRoot.style.getPropertyValue('--sc-dx') || 0) };
+      return { on, faces, split: +(scRoot.style.getPropertyValue('--sc-dx') || 0),
+        flash: +(parseFloat(getComputedStyle(scFlash).opacity) || 0).toFixed(4) };
     },
     /* the ink of whichever scenes are up, in the frame's own coordinates, so the
        safe area and the caption band are checked against letters rather than
@@ -2026,7 +2405,7 @@ function stagePage() {
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, n = 0;
       for (const el of scenes) {
         if ((parseFloat(getComputedStyle(el).opacity) || 0) <= 0.02) continue;
-        for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-face')) {
+        for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face')) {
           const cs = getComputedStyle(e);
           if (cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.02) continue;
           const r = e.getBoundingClientRect();
@@ -2358,9 +2737,13 @@ function stagePage() {
       add(screen, '.screen');
       add(wm, '#end-wm');
       add(dom, '#end-dom');
+      /* the flash is a box with a transparent edge, so what it can reach is its
+         own border box and that is what is measured. it never moves. */
+      add(scFlash, '#sc-flash');
       /* the opening, measured as ink. it draws inside the card's own rectangle,
-         so it clears the borders by construction — and it jitters, so it is
-         checked rather than left to the construction. */
+         so it clears the borders by construction — and it jitters, and the
+         report grows a fifth on its way in, so it is checked rather than left to
+         the construction. */
       const ink = this.sceneInk();
       if (ink) {
         const d = { left: ink.left, top: ink.top, right: P.VW - ink.right, bottom: P.VH - ink.bottom };
@@ -2679,6 +3062,24 @@ async function main() {
     + 'goes over ' + sc.scenes[3].crossOut.t0.toFixed(2) + '..'
     + sc.scenes[3].crossOut.t1.toFixed(2) + ' inside it, so there is no blank frame');
 
+  console.log('  the report lands on the word "' + sc.report.word + '" at '
+    + sc.report.land.toFixed(2) + 's: falls from ' + sc.report.approach.t0.toFixed(2)
+    + ', squashes to ' + SC_REPORT.hit.sx.toFixed(2) + 'x' + SC_REPORT.hit.sy.toFixed(2)
+    + ' on contact, settles by ' + sc.report.settle.t1.toFixed(2)
+    + ', holds to ' + sc.report.out.t0.toFixed(2) + ' and is gone by ' + sc.report.out.t1.toFixed(2));
+  console.log('    the flash runs ' + sc.report.flash.t0.toFixed(2) + '..'
+    + sc.report.flash.t1.toFixed(2) + 's and peaks at ' + sc.report.flash.to.toFixed(2)
+    + ' on the contact frame — ' + (SC_FLASH.up * 1000).toFixed(0) + 'ms up, '
+    + (SC_FLASH.down * 1000).toFixed(0) + 'ms down, on the ' + THEME + ' page');
+  console.log('  the offering, one shape per item, each on the word that names it:');
+  for (const it of sc.items) {
+    console.log('    ' + it.key.padEnd(9) + ' "' + it.word + '" at ' + it.at.toFixed(2)
+      + 's, up ' + it.on.toFixed(2) + '..' + it.off.toFixed(2)
+      + ' (' + (it.off - it.on).toFixed(2) + 's)');
+  }
+  console.log('    the last one clears at ' + sc.last.toFixed(2)
+    + ' and the end card starts arriving at ' + sc.endIn.toFixed(2));
+
   const marks = planMarks(v.beats, site);
   const mas = planMascot({
     seconds: SECONDS, marks, theme: THEME, pos: 'bottom-left',
@@ -2713,11 +3114,23 @@ async function main() {
      every one of them is derived from a plan that already existed rather than
      typed against the picture, so changing a word in the script moves the voice,
      the captions, the camera, the mascot and the sounds together. */
+  /* the report and the offering bring three more, and all three are recipes
+     `lib/sfx.mjs` already carries — nothing was added to that module and no file
+     was loaded. the whoosh is the page falling and it is placed so its own hump
+     peaks just before the contact rather than on it; the popDeep is the contact,
+     on the frame the flash peaks; and a pop lands on each of the five offering
+     shapes, because five visual events with nothing under them would be the only
+     silent events in the clip. */
   const cues = mascotCues(mas)
     .concat(site.rings.map(r => ({ t: r.t, kind: r.kind })))
     .concat(site.keys.map(t => ({ t, kind: 'key' })))
-    .concat([{ t: site.confirmAt, kind: 'ding' }]);
-  const sfx = renderSfx(cues, SECONDS);
+    .concat([{ t: site.confirmAt, kind: 'ding' }])
+    .concat([
+      { t: +(sc.report.land - 0.20).toFixed(4), kind: 'whoosh', opts: { len: 0.30 } },
+      { t: sc.report.land, kind: 'popDeep' },
+    ])
+    .concat(sc.items.map(it => ({ t: it.at, kind: 'pop' })));
+  const sfx = renderSfx(cues, SECONDS, { gains: { popDeep: SC_IMPACT_DB } });
   console.log('  sound: ' + cues.length + ' cues — '
     + Object.entries(cues.reduce((a, c) => (a[c.kind] = (a[c.kind] || 0) + 1, a), {}))
       .map(([k, n]) => n + ' ' + k).join(', ') + ', and no music');
@@ -3110,14 +3523,23 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
      not inside the subframe loop: a two frame rgb split averaged with three
      clean captures is a smudge, and a glitch that smudges is not a glitch. */
   let scF = null, scOff = false;
-  const scSeen = [], scInk = [], scLate = [], scBlank = [];
-  const scDuty = SCENES.map(() => 0), scOn = SCENES.map(() => 0);
+  const scSeen = [], scInk = [], scLate = [], scBlank = [], scOnCard = [];
+  const scDuty = sc.blocks.map(() => 0), scOn = sc.blocks.map(() => 0);
+  let flashPeak = 0, flashAt = null;
 
   for (let f = 0; f < N; f++) {
     const t0 = f / FPS;
-    if (t0 <= sc.until + 0.05) {
+    /* the layer is live in two stretches with thirty seconds of nothing between
+       them: the opening, and then the report and the offering after the site
+       card has gone. it is written on every frame of both and put away once in
+       the middle, rather than a call a frame for the half of the clip that is
+       the site. */
+    const live = t0 <= sc.until + 0.05
+      || (t0 >= sc.report.approach.t0 - 0.10 && t0 <= sc.last + 0.10);
+    if (live) {
       scF = sceneFrame(sc, f, FPS);
-      /* the duty cycle, per scene: how many of the frames a scene is up for have
+      scOff = false;
+      /* the duty cycle, per block: how many of the frames a block is up for have
          a split on them. "never continuous" is this number, and the guard has a
          ceiling for it. */
       for (let j = 0; j < scF.o.length; j++) {
@@ -3125,10 +3547,14 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
         scOn[j]++;
         if (scF.split > 0.01) scDuty[j]++;
       }
+      /* the flash, as it was written rather than as it was intended. */
+      if (scF.flash > flashPeak) { flashPeak = scF.flash; flashAt = +t0.toFixed(3); }
     } else if (!scOff) {
-      /* one write that puts the layer away for good, rather than a call a frame
-         for the thirty six seconds after it is over. */
-      scF = sceneFrame(sc, Math.round((sc.until + 0.5) * FPS), FPS);
+      /* one write that puts the layer away, rather than a call a frame for the
+         stretch it has nothing in. */
+      scF = sceneFrame(sc, Math.round((t0 + 0.5) * FPS), FPS);
+      for (let j = 0; j < scF.o.length; j++) scF.o[j] = 0;
+      scF.flash = 0;
       scOff = true;
     } else scF = null;
 
@@ -3273,13 +3699,30 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
            inside the opening with nothing on it at all. */
         if (s.sc) {
           const on = s.sc.on.length > 0;
-          if (t <= sc.until + 0.05) {
+          const keys = s.sc.on.map(x => x.key).join(',');
+          if (on || t <= sc.until + 0.05) {
             scSeen.push({ t: +t.toFixed(2), keys: s.sc.on.map(x => x.key + ' ' + x.o).join(' + '),
-              faces: s.sc.faces, card: +fade.toFixed(3) });
-            if (!on && fade < 0.02) scBlank.push({ t: +t.toFixed(2) });
-          } else if (on) {
-            scLate.push({ t: +t.toFixed(2), keys: s.sc.on.map(x => x.key).join(',') });
+              faces: s.sc.faces, flash: s.sc.flash, card: +fade.toFixed(3) });
           }
+          /* three separate faults, and they were one loose check before the
+             report and the offering existed. an opening scene surviving past the
+             card's arrival is the first; **anything** in this layer being up
+             while the site card is on screen is the second, because they share a
+             rectangle; and anything still up when the end card starts arriving is
+             the third, for the same reason. */
+          if (on && t > sc.until + 0.05 && s.sc.on.some(x => sc.scenes.some(y => y.key === x.key))) {
+            scLate.push({ t: +t.toFixed(2), keys });
+          }
+          /* the opening's last scene crossing with the arriving site card is the
+             one designed overlap in the clip and it has its own guard above. what
+             may never share this rectangle is the report or an offering shape,
+             because neither has a handover with anything — they arrive into an
+             empty box and they have to leave it empty. */
+          const late = s.sc.on.filter(x => !sc.scenes.some(y => y.key === x.key))
+            .map(x => x.key).join(',');
+          if (late && fade > 0.02) scOnCard.push({ t: +t.toFixed(2), keys: late, card: +fade.toFixed(3) });
+          if (late && t >= sc.endIn) scOnCard.push({ t: +t.toFixed(2), keys: late, end: true });
+          if (!on && fade < 0.02 && t <= sc.until + 0.05) scBlank.push({ t: +t.toFixed(2) });
         }
         if (s.scInk) scInk.push({ t: +t.toFixed(2), ...s.scInk });
         /* ---------- the camera, read back ----------
@@ -3402,8 +3845,9 @@ async function render(cap, mas, site, sc, v, N, SECONDS) {
     sawAccent, capMoved, maxVisible, typedInk, steps, sent,
     posts: posts - posts0, lidMoved, lidSamples: lidSeen.length,
     sc: {
-      seen: scSeen, ink: scInk, late: scLate, blank: scBlank,
-      duty: scDuty.map((d, i) => ({ key: SCENES[i].key, frames: scOn[i], glitching: d,
+      seen: scSeen, ink: scInk, late: scLate, blank: scBlank, onCard: scOnCard,
+      flash: { peak: +flashPeak.toFixed(4), at: flashAt },
+      duty: scDuty.map((d, i) => ({ key: sc.blocks[i].key, frames: scOn[i], glitching: d,
         duty: scOn[i] ? +(d / scOn[i]).toFixed(3) : 0 })),
     },
   };
@@ -3543,10 +3987,31 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
     console.log('      ' + d.key.padEnd(10) + ' ' + String(d.glitching).padStart(3) + ' of '
       + String(d.frames).padStart(3) + ' frames  ' + (d.duty * 100).toFixed(1) + '%');
   }
+  console.log('    the report: falls from ' + sc.report.approach.t0.toFixed(2) + ', lands on "'
+    + sc.report.word + '" at ' + sc.report.land.toFixed(2) + ', settles by '
+    + sc.report.settle.t1.toFixed(2) + ', gone by ' + sc.report.out.t1.toFixed(2));
+  console.log('      the entry is ' + SC_REPORT.from.sx.toFixed(2) + ' scale at y '
+    + SC_REPORT.from.y + ' accelerating on p squared, a squash to '
+    + SC_REPORT.hit.sx.toFixed(2) + 'x' + SC_REPORT.hit.sy.toFixed(2)
+    + ' on contact, then the spring back to 1');
+  console.log('      the flash peaks at ' + (state.sc ? state.sc.flash.peak.toFixed(3) : '?')
+    + ' (written ' + sc.report.flash.to.toFixed(2) + ', ceiling ' + SC_FLASH.max + ') at '
+    + (state.sc && state.sc.flash.at != null ? state.sc.flash.at.toFixed(2) : '?')
+    + 's against a land at ' + sc.report.land.toFixed(2)
+    + ', ' + (SC_FLASH.up * 1000).toFixed(0) + 'ms up and ' + (SC_FLASH.down * 1000).toFixed(0) + 'ms down');
+  console.log('    the offering, one shape per item:');
+  for (const it of sc.items) {
+    console.log('      ' + it.key.padEnd(9) + ' on "' + it.word + '" at ' + it.at.toFixed(2)
+      + 's, up ' + it.on.toFixed(2) + '..' + it.off.toFixed(2)
+      + '  ' + (it.off - it.on).toFixed(2) + 's');
+  }
+  console.log('      the last clears at ' + sc.last.toFixed(2) + ' and the end card arrives at '
+    + sc.endIn.toFixed(2));
   if (state.sc) {
-    console.log('    read back off the page: ' + state.sc.seen.length + ' samples inside the opening, '
-      + state.sc.late.length + ' after the card had arrived, ' + state.sc.blank.length
-      + ' with nothing on screen at all');
+    console.log('    read back off the page: ' + state.sc.seen.length + ' samples with the layer on, '
+      + state.sc.late.length + ' opening scenes after the card had arrived, '
+      + state.sc.onCard.length + ' frames sharing the box with the site card or the end card, '
+      + state.sc.blank.length + ' with nothing on screen at all');
     const ink = state.sc.ink;
     if (ink.length) {
       const l = Math.min(...ink.map(i => i.left)), t2 = Math.min(...ink.map(i => i.top));
@@ -3587,9 +4052,13 @@ function report(state, v, cut, cap, mas, rep, site, cues, sfx, mix, under, after
       + Math.max(...v.beats.map(b => b.wps)).toFixed(2) + ' against a flat 2.3',
     'the gaps': v.gaps.map(g => g.toFixed(2)).join(' ') + ' s, measured on the waveform',
     'music': 'none in this pass',
-    'the bus under the voice': (-under.worst.db).toFixed(1) + ' dB under at its closest in '
-      + under.windows + ' windows a word is being spoken in, and the stricter '
-      + 'instantaneous reading is ' + (-under.instant.db).toFixed(1) + ' dB',
+    /* both readings carry the second they were taken at now. a number with no
+       timestamp on it is a number nobody can go and look at, and the instant
+       reading in particular is one sample in a forty seven second file. */
+    'the bus under the voice': (-under.worst.db).toFixed(1) + ' dB under at its closest ('
+      + under.worst.at.toFixed(2) + 's) in ' + under.windows + ' windows a word is being spoken '
+      + 'in, and the stricter instantaneous reading is ' + (-under.instant.db).toFixed(1)
+      + ' dB at ' + under.instant.at.toFixed(2) + 's',
     'loudness': after.lufs.toFixed(1) + ' LUFS delivered (target ' + TARGET_LUFS + '), best of '
       + passes.length + ' pass(es) at ' + (best.lift >= 0 ? '+' : '') + best.lift + ' dB',
     'true peak': (after.truePeak == null ? '?' : after.truePeak.toFixed(1))
@@ -3706,6 +4175,11 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
       fail.push(state.sc.blank.length + ' sampled frames inside the opening with no scene and no '
         + 'card on them, first at ' + state.sc.blank[0].t + 's');
     }
+    if (state.sc.onCard.length) {
+      fail.push('this layer and the site card or the end card were in the same rectangle on '
+        + state.sc.onCard.length + ' samples, first at ' + state.sc.onCard[0].t + 's ('
+        + state.sc.onCard[0].keys + ')');
+    }
     if (!state.sc.seen.length) fail.push('the opening was never sampled on screen at all');
     if (!state.sc.seen.some(x => x.faces > 0)) {
       fail.push('the five orange faces were never on screen on any sample');
@@ -3720,12 +4194,67 @@ function guard(state, v, cut, cap, mas, rep, site, cues, mix, under, after, lim,
       }
     }
   } else fail.push('the render reported nothing at all about the opening');
+  /* ---------- the report and the offering ----------
+     both are hung off words rather than off numbers, so what has to be checked
+     is that they still land on those words after any retiming, that the flash is
+     on the contact frame and is not a white-out, and that the five items are
+     five, in the script's own order, each with room to be seen. */
+  const rWord = wordAt(v.beats[SC_REPORT.line - 1], SC_REPORT.on);
+  if (Math.abs(sc.report.land - rWord.start) > 0.5 / FPS) {
+    fail.push('the report lands at ' + sc.report.land + ' and the word "' + SC_REPORT.on
+      + '" is said at ' + rWord.start.toFixed(3));
+  }
+  if (sc.report.flash.peak !== sc.report.land) {
+    fail.push('the flash peaks at ' + sc.report.flash.peak + ' and the report lands at '
+      + sc.report.land + ' — the flash is what the squash hides inside and it has to be on it');
+  }
+  if (state.sc) {
+    const fp = state.sc.flash;
+    if (fp.peak > SC_FLASH.max) {
+      fail.push('the flash reached ' + fp.peak + ' and the ceiling is ' + SC_FLASH.max
+        + ' — that is a white-out rather than a flash');
+    }
+    /* and it has to have actually fired: a flash nobody rendered is a plan. */
+    if (fp.peak < sc.report.flash.to * 0.5) {
+      fail.push('the flash was written to peak at ' + sc.report.flash.to
+        + ' and the highest any rendered frame reached is ' + fp.peak);
+    }
+  }
+  if (sc.items.length !== SC_ITEMS.length) {
+    fail.push(sc.items.length + ' offering shapes and there are ' + SC_ITEMS.length + ' items');
+  }
+  for (let i = 0; i < sc.items.length; i++) {
+    const it = sc.items[i];
+    const w = wordAt(v.beats[SC_ITEMS_LINE - 1], it.word);
+    if (Math.abs(it.at - w.start) > 0.5 / FPS) {
+      fail.push('the "' + it.key + '" shape lands at ' + it.at + ' and its word "' + it.word
+        + '" is said at ' + w.start.toFixed(3));
+    }
+    /* long enough to be seen, short enough to still be a list. */
+    if (it.off - it.on < 0.30) {
+      fail.push('the "' + it.key + '" shape is up for ' + (it.off - it.on).toFixed(2)
+        + 's, which is not long enough to be read');
+    }
+    if (i && it.on < sc.items[i - 1].at) {
+      fail.push('the offering shapes are out of order: "' + it.key + '" arrives before "'
+        + sc.items[i - 1].key + '" has been named');
+    }
+  }
+  if (sc.last > sc.endIn) {
+    fail.push('the last offering shape is up at ' + sc.last + ' and the end card starts arriving at '
+      + sc.endIn + ' — they share the same rectangle');
+  }
+  if (sc.report.out.t1 >= sc.items[0].on) {
+    fail.push('the report is still leaving at ' + sc.report.out.t1
+      + ' and the first offering shape arrives at ' + sc.items[0].on);
+  }
+
   /* the type, and the same question the typed line is asked: can anybody read
      it. this one is held to the caption's own floor rather than to a filmed
      interface's, because it is our type at our size and there is no excuse. */
   const built = state.built.scenes || [];
-  if (built.length !== SCENES.length) {
-    fail.push(built.length + ' scenes measured themselves and there are ' + SCENES.length);
+  if (built.length !== sc.blocks.length) {
+    fail.push(built.length + ' blocks measured themselves and there are ' + sc.blocks.length);
   }
   for (const m of built) {
     for (const l of m.lines) {
