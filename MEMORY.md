@@ -6,12 +6,13 @@ names in here either.
 
 ## Status
 
-- **Built 2026-08-30, rebuilt across four more rounds to 2026-08-31:
+- **Built 2026-08-30, rebuilt across five more rounds to 2026-08-31:
   `demo/post11.mjs`, the eleventh clip, the explainer. 47.03s, 1080x1920, the
   read in the file.** It renders in two variants, light and `--dark`, out to
   `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
-  **Both 60fps finals landed green on 2026-08-31 and are on disk.** See the state
-  bullet directly below for the numbers. **The empty top
+  **The 60fps finals landed green on 2026-08-31 and are no longer on disk** — the
+  fifth round overwrote them with its 12fps previews and they want a re-render.
+  See the two state bullets directly below. **The empty top
   of the frame is no longer empty** — it carries the four opening scenes, the
   report beat and the chalkboard now, all in the same card box the site is filmed
   in. **The live site did not change**; **no existing post file was edited**;
@@ -19,20 +20,64 @@ names in here either.
   and `gsap`. **Not posted anywhere and there is no posting pack yet** — caption,
   hashtags and a track are still owed.
   - **The 60fps finals, 2026-08-31, both green with the shutter open at four
-    subframes to a frame.** 47.03s each, and they are the files in `demo/out`
-    now — the 12fps previews that used to sit at these paths were overwritten by
-    them.
+    subframes to a frame — and both are gone.** 47.03s each. They were what sat
+    in `demo/out` until the brain removal below, whose 12fps previews wrote to the
+    same two paths and overwrote them. **The clip renders to one path per variant
+    every time**, which is the pipeline working as designed, and it has now
+    happened in both directions on the same day: the previews these finals
+    replaced went the same way.
+
+    What is on those paths now is the **12fps preview pair from the brain
+    removal**, 3.96 MB light and 4.54 MB dark, logs at
+    `demo/out/p11-light-noslot.log` and `p11-dark-noslot.log`, both ending
+    `all checks passed.` What was on them, for the re-render to be compared
+    against:
 
     ```
     demo/out/post11-light-1080x1920.mp4   6,686,538 bytes   6.69 MB   1.14 Mbit/s
     demo/out/post11-dark-1080x1920.mp4    8,048,476 bytes   8.05 MB   1.37 Mbit/s
     ```
 
-    Logs at **`demo/out/final-light.log`** and **`demo/out/final-dark.log`**, both
-    ending `all checks passed.`; **`demo/out/final-status.txt`** carries the four
-    exit codes, `LIGHT=1 DARK=1 LIGHT2=0 DARK2=0` — the first pair is the run that
-    hit the duty ceiling and the second is the re-run after the exception below.
-    **Neither final has been reviewed.** The docs pass before them was `f953e58`.
+    Their logs survive, at **`demo/out/final-light.log`** and
+    **`demo/out/final-dark.log`**, both ending `all checks passed.`;
+    **`demo/out/final-status.txt`** carries the four exit codes,
+    `LIGHT=1 DARK=1 LIGHT2=0 DARK2=0` — the first pair is the run that hit the
+    duty ceiling and the second is the re-run after the exception below.
+    **Neither final was ever reviewed**, and the finals a review would now be of
+    do not exist: **both variants want `--blur` run again** before anything is
+    watched or posted. The docs pass before them was `f953e58`.
+  - **The drawn brain came out of scene three on 2026-08-31 and an empty slot is
+    holding its place.** Committed as `b00dd32`. It did not read as a brain: a
+    generated silhouette with a fissure and twelve folds fanning off it is a
+    drawing of *something*, and a viewer working out what a shape is has stopped
+    reading the words under it. `brainSvg` and its styles are gone and **nothing
+    replaced them** — **einz is supplying his own image for that slot**.
+
+    So the box it stood in stays, at the size it stood in, drawing nothing:
+    `.sc-slot`, **236x205 css px** off the new `SC_SLOT`, plus the same 20px
+    `SC_GAP`. `fitScene` measures the slot exactly the way it measured the
+    drawing, which is the whole of why `BUT I AM / BUSY` did not move: still
+    **71.2px, 100 device px of cap, fitted on height**, same place, same glow,
+    same 0.18s glitch entrance. Dropping a picture in moves nothing else on the
+    frame. The slot is **deliberately out of both ink selectors** — an empty box
+    that reported a rectangle would leave the safe area check guarding a border
+    with no letters anywhere near it.
+
+    **The one retime is the cue word, `but` to `some`, and it is not a taste.**
+    The words landed on `but`, 1.34s into line three, because that is where the
+    line turns from what they know into what they have not got — and it worked
+    only because the drawing carried the head of the beat on its own. Without it
+    the same cue leaves the card box holding **nothing from 4.99s to 6.35s**,
+    which is the exact fault this layer exists to remove. `some` is the first
+    word of the line, so the words are up from the first frame it is spoken on,
+    and it is still keyed to a word through `wordAt` rather than to a number.
+    Measured on the light preview: the card box is blank for **one 12fps frame**,
+    the one between the crossfade finishing and the entrance firing, darkest
+    pixel 234 of 255 — about two frames at sixty.
+
+    Read frame by frame on both themes across 4.90..7.80. The type sits slightly
+    low with clean air above it and reads as a composition on white and on black,
+    not as something that failed to load. **Both 12fps previews green.**
   - **The `days` scene carries a named exception to the glitch duty ceiling, and
     it only showed up at sixty.** `SC_GLITCH.dutyMax` is 30% and stays 30% for
     everything else; `SC_DAYS.dutyMax` is **40%**, declared on that one scene,
@@ -58,8 +103,8 @@ names in here either.
     measured duties at sixty: business 19.9%, why 15.2%, busy 16.3%, small 8.7%,
     report 3.7%, **days 32.7%**.
   - **The opening is four type scenes in the card box, one per line.** `BUSINESS`
-    at 74.1px, `WHY I / NEED / AI?!` at 118.2px, a generated brain then
-    `BUT I AM / BUSY` at 71.2px on the word `but`, and `ONE / small / THING` at
+    at 74.1px, `WHY I / NEED / AI?!` at 118.2px, an empty reserved slot over
+    `BUT I AM / BUSY` at 71.2px on the word `some`, and `ONE / small / THING` at
     121.1 and 41.2px — the size joke, guarded to stay under 55% of the words
     either side of it. **104 to 170 device px of cap** against a 32 floor.
     Everything drawn in code: no asset, no third font.

@@ -34,8 +34,9 @@ All headless Chrome, all tooling. The renderers first:
   theboringtek.com cropped to the hero, the form filled and narrated field by
   field, and the corner mascot reacting the whole way through. Out to
   `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
-  **Both 60fps finals are rendered and green**, 47.03s each. See The eleventh
-  clip.
+  **Both 60fps finals rendered green, 47.03s each, and both have since been
+  overwritten** by the 12fps previews from the brain removal, which write to the
+  same two paths. **They want `--blur` run again.** See The eleventh clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -1645,13 +1646,19 @@ A calm friendly explainer for the service: big simple type, real captured footag
 of the live site inside a card, and the corner mascot reacting throughout.
 Positive, not rage, not dry.
 
-**Both variants are rendered at 60fps with the shutter open at four subframes to
-a frame, and both are green.** 6.69 MB at 1.14 Mbit/s light, 8.05 MB at 1.37
-Mbit/s dark, logs at `out/final-light.log` and `out/final-dark.log`. **Neither
-has been reviewed at sixty** — the geometry and type numbers below were measured
-off 12fps previews and are unchanged by the frame rate, but nothing about motion
-blur, the torn bands or the brick landings has been watched on the finals. See
-the end of the section.
+**Both variants rendered at 60fps with the shutter open at four subframes to a
+frame, and both were green.** 6.69 MB at 1.14 Mbit/s light, 8.05 MB at 1.37
+Mbit/s dark, logs at `out/final-light.log` and `out/final-dark.log`.
+
+**Neither file is still there.** The clip renders to one path per variant every
+time, and the 12fps previews from the brain removal below wrote to those two
+paths. What sits at them now is that preview pair, 3.96 MB light and 4.54 MB
+dark, logs at `out/p11-light-noslot.log` and `out/p11-dark-noslot.log`. The
+finals' own logs survive; the finals do not. **Both variants want `--blur` run
+again**, and until they are, there is nothing at sixty to watch: the geometry and
+type numbers below were measured off 12fps previews and are unchanged by the
+frame rate, but nothing about motion blur, the torn bands or the brick landings
+has been seen on a final. See the end of the section.
 
 Three firsts. **It is the first clip built on `lib/mascot.mjs`**, so the mascot's
 performance is a list of marks rather than a list of gaze keys. **It is the first
@@ -2177,9 +2184,10 @@ scene   on screen        line                              fitted    device px o
 ```
 
 Everything is drawn in code: no image, no asset, no third font. The words are the
-caption face uppercased, the five small heads are the mascot's own geometry read
-out of `lib/mascot.mjs`, and the brain in scene three is a path generated from a
-formula. The layer sits at **z-index 1** — under the card, under the captions and
+caption face uppercased and the five small heads are the mascot's own geometry
+read out of `lib/mascot.mjs`. Scene three holds an **empty reserved slot** over
+its words and draws nothing in it — see below. The layer sits at **z-index 1** —
+under the card, under the captions and
 under the mascot — so it cannot get in front of anything however wrong a number
 in it goes, and the run reads that depth back off the page rather than trusting
 the stylesheet.
@@ -2195,6 +2203,44 @@ six frames.
 
 Scene four's exit is inside the card's own arrival, and the identity is guarded
 rather than typed.
+
+#### The empty slot in scene three, and the brain that was in it
+
+Scene three used to draw a **brain** above its words: a silhouette from an ellipse
+with two cosines on its radius, a wiggle down the middle for the fissure, and
+twelve folds fanning out from that midline rather than nesting around a centre,
+all of it clipped to the outline so no stroke could escape the head. Three passes
+went into the shape. **It came out anyway, and nothing replaced it.** It did not
+read as a brain — it read as a drawing of something, and a viewer working out
+what a shape is has stopped reading the words under it.
+
+What is left is the box it occupied, at the size it occupied, **drawing
+nothing**: `.sc-slot`, 236x205 css px off `SC_SLOT`, plus the same 20px `SC_GAP`
+under it. No fill, no stroke, no border, so on both themes it is the page.
+**Einz is supplying his own image for that slot**, and holding the box is what
+makes that a drop-in: the image lands in a layout already built around it.
+
+`fitScene` measures the slot exactly the way it measured the drawing, which is
+the whole of why the type did not move — `BUT I AM / BUSY` is still 71.2px, 100
+device px of cap, fitted on height, in the same place with the same glow. The
+slot is **deliberately out of both ink selectors**, `inkOf` and `sceneInk`: it
+draws nothing, so a rectangle taken off it would be a rectangle the safe area
+check then holds a border against with no letters anywhere near it.
+
+**The cue word moved with it, `but` to `some`.** The words used to glitch in
+1.34s into the line, on the word where it turns from what they know into what
+they have not got, and that worked because the drawing carried the head of the
+beat on its own. Without it the same cue leaves the card box holding nothing from
+**4.99s to 6.35s**, which is the fault this whole layer exists to remove. `some`
+is the first word of line three, so the words are up from the first frame it is
+spoken on, and it is still keyed through `wordAt` like every other cue. Measured
+on the light preview, the card box is blank for **one 12fps frame** — the one
+between the crossfade finishing and the entrance firing — and its darkest pixel
+is 234 of 255. At sixty that is about two frames.
+
+Read frame by frame on both themes across 4.90..7.80: the type sits slightly low
+with clean air above it and reads as a composition on white and on black, not as
+something that failed to load.
 
 #### The glow and the glitch
 
@@ -2218,8 +2264,9 @@ It runs **10.7% to 18.8% of each scene's frames** against a 30% ceiling, and the
 ceiling is a guard: "never continuous" is that number.
 
 Scene two carries a tube flicker of its own, 0.86..1.0 with one frame dips to
-0.54..0.74. Scene three's words glitch in on the word `but`, keyed through
-`wordAt` like every cue in `planSite`.
+0.54..0.74. Scene three's words glitch in on the word `some`, keyed through
+`wordAt` like every cue in `planSite`. That cue was `but` while a drawing carried
+the head of that beat — see the empty slot above.
 
 #### The orange heads, and why they say AI
 
@@ -2350,8 +2397,8 @@ run failed on all seven of them.
 ```
  0.00  BUSINESS, whole on frame zero, and frame zero is a glitch frame
  2.44  handover into WHY I / NEED / AI?!
- 4.83  handover into the brain
- 6.35  BUT I AM / BUSY glitches in on the word `but`
+ 4.83  handover into BUT I AM / BUSY, an empty slot held above the words
+ 5.01  the words glitch in on the word `some`
  7.57  handover into ONE / SMALL / THING
  9.74  the type goes as the site card arrives  (the card's own fade record)
 10.03  the site card, hero lockup
@@ -2440,8 +2487,14 @@ The day a second clip wants a glitch is the day it moves.
 
 ### Outstanding, and undecided
 
-- **The review of the finals.** Both variants are rendered at sixty and green,
-  and **neither has been watched.** It wants a dense pass on the four reworked
+- **The re-render of the finals.** Both variants rendered at sixty and green, and
+  **both were then overwritten by the brain removal's 12fps previews**, which go
+  to the same two paths. `--blur` wants running again on each before anything is
+  watched or posted, and the re-render is the first one that carries the empty
+  slot and the `some` cue.
+- **The review of the finals.** Nothing has been watched at sixty, and after the
+  overwrite above there is nothing at sixty to watch. Once the re-render lands it
+  wants a dense pass on the four reworked
   beats — the opening scenes, the report beat, the chalkboard and the end card —
   and a coarser pass over the site stretch between them, with **one sub agent per
   frame batch returning text only**, per `skills/video-review/SKILL.md`. Two
