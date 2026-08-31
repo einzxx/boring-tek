@@ -1633,7 +1633,7 @@ node post11.mjs --plan          every plan printed, and nothing rendered
 node post11.mjs --encode-only   re-encode from kept frames
 ```
 
-**46.47s, 1080x1920, the read in the file**, in two variants:
+**47.03s, 1080x1920, the read in the file**, in two variants:
 
 ```
 demo/out/post11-light-1080x1920.mp4
@@ -1888,10 +1888,11 @@ Nineteen lines. `screen` is what the frame is doing: `site` shows the card,
 The cut hangs off it: send tap 32.69, the tick 33.24, the reframe onto it
 33.28..33.62, the card's exit 34.09..34.31, the end card from 42.67.
 
-### The domain read, and why the comma
+### The domain read, and the full stop that fixed it
 
-Three forms were synthesised and their **word timings compared**, because this is
-a pacing problem and pacing is measurable. What each one did:
+Four attempts, and every one of them was decided on **measured word timings**
+rather than on how the string looked, because this is a pacing problem and pacing
+is measurable. What each one did, all at -18% and -1Hz:
 
 ```
 theboringtek dot com      theboringtek(0.93) dot(0.27) com(0.48)
@@ -1899,17 +1900,43 @@ theboringtek dot com      theboringtek(0.93) dot(0.27) com(0.48)
 the boring tek dot com    the(0.15) boring(0.48) tek(0.35) dot(0.26) com(0.42)
                           gaps 0.015 0.015 0.015 0.015
 the boring tek, dot com   the(0.15) boring(0.47) tek(0.50) dot(0.24) com(0.46)
-                          gaps 0.015 0.015 0.244 0.015          <- kept, at -18%
+                          gaps 0.015 0.015 0.244 0.015
+go to. the boring tek,    the(0.12) boring(0.40) tek(0.49) dot(0.23) com(0.49)
+dot com                   gap before `the` 0.503, gap to `boring` 0.015   <- kept
 ```
 
 The first hands the synthesiser one word boundary for twelve letters, so there is
 no pacing **inside** the run at all and a slower rate only makes the run longer.
-That is the original fault. The second gives five units an identical 0.015s
-apart, so the name never groups and nothing separates it from the suffix: the
-address reads as five items on a list. The third is the only one with phrasing in
-it — a **0.244s gap** after `tek` against 0.015 everywhere else, and `tek` itself
-held at 0.50s rather than clipped at 0.35. Two units, a name and then a suffix,
-which is how a person says an address.
+The second gives five units an identical 0.015s apart, so the name never groups.
+The third put phrasing in it — a 0.244s gap after `tek` — and shipped.
+
+And then a viewing said the line reads **`boring tek dot com`**: the `the` was
+being lost. The take's own waveform said why, and it was not what it looked like.
+
+**The `the` was there and it was loud enough**: 153ms at -17.6 dB, two decibels
+under the loudest word in the line. What was wrong is that the gap in front of it
+was **15ms, exactly the same as every other gap in the run** — so `go to the`
+came out as one unstressed cluster, the ear took `the` as the article of
+`go to the ___`, and the name it heard started at `boring`. **A grouping fault,
+not a level one**, which is why slowing the rate had never touched it.
+
+Three candidates were synthesised and measured per word on the decoded audio:
+
+```
+go to the ...     15ms in front of `the`,  -2.0 dB under the loudest word
+go to, the ...   320ms in front of it,     -4.7 dB   the comma pauses and quietens
+go to. the ...   503ms in front of it,     -0.8 dB   <- both numbers win
+```
+
+After a full stop the synthesiser **restarts the phrase and gives its first word
+a real onset**, so the `the` is both separated from `go to` and stressed as the
+head of the name. It is spoken copy only: `bareWord` strips a trailing stop after
+the cards are cut, so nothing draws `go to.` — the caption became **two cards,
+`go to` and then `theboringtek.com` on its own**, which is the better cut anyway
+for the one line a viewer has to be able to write down.
+
+It cost 0.58s. The take went 2.95s to 3.53s and the clip went 46.47s to 47.03s.
+**That is the only retiming any of these four rounds caused.**
 
 ### The caption guard's one named exception
 
@@ -2128,20 +2155,302 @@ has to fall inside some beat's own sound. The send may never resolve before
 `send it` has finished. And `STUB` has to agree with the stubbed post in
 `injected()`, read off that function's own source.
 
-### Outstanding, and not started
+### The opening — four scenes in the card box
 
-- **The opening motion pass.** The mascot should play **big and centred above the
-  caption band through the opening**, up to and including the domain line, then
-  **glitch out of the centre and glitch back in at the bottom left corner on the
-  button tap** — hard cut, a short burst, rgb split and jitter, post10's glitch
-  language — and work from the corner unchanged after that. **Not begun.** It
-  needs a per frame transform on `.m-zone` driven from node, the head, bubble and
-  band guards re-pointed at DOM measured rects instead of `headRect`'s plan
-  geometry so they still describe what is on screen at the larger size, and
-  post10's glitch read across. **The mascot's placement still wants another look
-  either way.**
+The top two thirds of the frame was empty for the first four lines and the
+pictogram layer built for it had been taken out again. It carries **four type
+scenes now, one per line**, drawn in the same rectangle the site card will
+occupy, so the handover is one thing leaving and another arriving in the same box
+rather than a composition changing shape.
+
+```
+scene   on screen        line                              fitted    device px of cap
+1       BUSINESS         ai for business is everywhere      74.1px   104
+2       WHY I/NEED/AI?!  some people do not know why       118.2px   166
+3       BUT I AM/BUSY    some know exactly, but no time     71.2px   100
+4       ONE/small/THING  and some just need one small      121.1px   170 and 58
+```
+
+Everything is drawn in code: no image, no asset, no third font. The words are the
+caption face uppercased, the five small heads are the mascot's own geometry read
+out of `lib/mascot.mjs`, and the brain in scene three is a path generated from a
+formula. The layer sits at **z-index 1** — under the card, under the captions and
+under the mascot — so it cannot get in front of anything however wrong a number
+in it goes, and the run reads that depth back off the page rather than trusting
+the stylesheet.
+
+**The handover window is not this layer's to choose.** It is `planSite`'s own card
+fade record, taken by reference, so all four crossfades and the one cut in the
+clip are the same 0.52s and moving `CARD_LEAD` moves them together. What is this
+layer's is where inside that window the opacity moves: a **0.16s complementary
+exchange at 60% of the window**, so the sum is always one — never a blank frame —
+and only one frame of the preview is mixed at all. The first cut faded over the
+whole 0.52s and put `BUSINESS` and `NEED` on top of each other, both legible, for
+six frames.
+
+Scene four's exit is inside the card's own arrival, and the identity is guarded
+rather than typed.
+
+#### The glow and the glitch
+
+```
+dark    8px at 28%, 22px at 15%, 48px at 7% of white, layered
+light   none. a white glow on a white page is nothing and a black one is a
+        drop shadow, which the brand bans outright
+glitch  split 5.0px dark / 2.6px light, jitter 3.2px,
+        bursts 70..140ms every 0.50..1.10s
+```
+
+A burst is **a length in seconds quantised to whatever frame grid is rendering**,
+which is the only shape that survives being previewed at twelve and shipped at
+sixty: written in frames it would be a quarter second on the preview and fifty
+milliseconds on the master. And it is computed **once per output frame and held
+across every subframe**, for post10's reason — with the shutter open a one frame
+split written against `t` is averaged with three clean captures and lands at a
+quarter strength.
+
+It runs **10.7% to 18.8% of each scene's frames** against a 30% ceiling, and the
+ceiling is a guard: "never continuous" is that number.
+
+Scene two carries a tube flicker of its own, 0.86..1.0 with one frame dips to
+0.54..0.74. Scene three's words glitch in on the word `but`, keyed through
+`wordAt` like every cue in `planSite`.
+
+#### The orange heads, and why they say AI
+
+Five small heads scattered around `BUSINESS`, glitching hard on and off, in the
+one colour this file is allowed that is neither ink nor paper: `#d1600a`, 3.90:1
+on the white page and 5.17:1 on the black one, **the same orange on both** because
+a character that changed colour with the theme is two characters.
+
+They had faces — five poses off `lib/mascot.mjs`'s own state table, eyes and
+brows. **They do not any more.** Two slabs 13 grid units wide on a head rendered
+at about 128 device px are five px of ink each, and at that size a pair of them
+does not read as a face, it reads as a rendering fault. So the eyes and the brows
+came out, and the pose table with them: with nothing to pose, five named emotions
+were five names for nothing.
+
+In their place, **`AI`**. The plate is a circle of radius 30 units, so what has to
+fit is the diagonal of the text box rather than its width — at this face and
+weight the letters are about 0.62em across and 0.737em of cap, which puts the box
+corner at 0.72F from the middle and takes F to about 36 before it touches the
+edge. 30 is used, and the heads did not need to grow:
+
+```
+31.9px of type on a 127.5 device px plate, 80.0 device px of cap  (floor 32)
+```
+
+The letters are **white on the orange on both themes** rather than the page colour
+the eyes were. The eyes were holes punched in the plate, which is right for a
+feature; this is type, and type that inverted with the theme would be near black
+inside an orange disc on the dark page, which is the one place a glow cannot help
+it. They take the layer's own `--sc-ts` glow list, the same property the opening
+words take, so they carry the deep glow on dark and nothing but the split on
+light.
+
+### The report beat — a fault, then a page built out of blocks
+
+`in one or two days you get your report` had an empty box over it, then a page
+that faded up, and now has two events.
+
+**`1/2` over `DAYS` lands on the word `one`** — on `one` rather than on `days`
+because landing on `days` left the type 0.56s to be read before the page had to
+be sliding in, and big type nobody has time to read is a flicker. It arrives on
+the hardest glitch in the clip:
+
+```
+tear 34px across 4 bands   split 8.5px   jitter 5.5px
+noise 0.34 with scanlines at 0.20   one white frame at 0.68 dark / 0.80 light
+140ms hard, then a 160ms stutter, and clean
+```
+
+The tearing is **four copies of the same type, each clipped to its own horizontal
+band**. At rest the four insets are the four quarters and the four offsets are
+zero, so the copies stack exactly and what renders is one block of type with three
+invisible seams in it; during a fault node writes eight different numbers per
+frame and the block comes apart. It costs nothing when it is off.
+
+Then **the page slides in from the right**, clipped to the card box so it enters
+the frame rather than appearing in it. It travels on `DRIFT` over 0.42s: the
+first cut used `POP` over 0.30s, and `POP` puts most of its travel in the first
+fifth, so at twelve frames a second that was one frame of movement and three of a
+page sitting still.
+
+And then it **builds**. The page is block zero and rides the slide; the heading,
+three lines and the green check land one at a time, **75ms apart, each dropping
+14px and squashing on arrival**. The check is last because it is the answer. The
+whole thing settles at **-4 degrees**, because a thing placed by a hand is not
+square to the frame and a thing placed by a machine is.
+
+The page is **white on both themes because paper is**, and the check is the site's
+own light accent — the same tick a viewer saw inside the card at 34.00s — at
+4.15:1 against the paper on either theme, because the page it sits on does not
+change.
+
+The first cut of this had **the page itself on the same stagger as its own
+contents**, which meant the slide had nothing to slide: three hundred milliseconds
+of an empty box and then a finished page.
+
+### The chalkboard — the offering, second cut
+
+`we do apps, websites, research, graphic design, or one small job` had five drawn
+pictograms over it — a phone, a browser, a magnifier, three shapes, a ticked box.
+**They are gone.** Five line drawings in a row read as an icon set rather than as
+an argument.
+
+What replaced them is a **chalkboard mind map**: `website` boxed in yellow in the
+middle of the card box, six things around it in chalk ovals, each with an arrow
+into the centre, popping in one at a time with a small overshoot and a dry chalk
+tick.
+
+**Nothing in it is a clean vector and that is the whole look.** An oval is a full
+turn plus a twelfth, so its ends overlap the way a hand does not stop where it
+started, and its radius wobbles on two out of phase sines. A line is not straight
+and it overshoots at both ends. A box is four separate strokes that cross at the
+corners rather than one closed rectangle. And all of it goes through one
+**fractal noise displacement filter**, which turns an even stroke into a chalky
+one and roughens the letterforms at the same time — so the type reads as written
+rather than as set, without a handwriting face this file is not allowed to load.
+
+#### The per item anchoring rule
+
+The six labels are **not** the six spoken words, and they cannot be: the line
+names four things and a mind map wants six. So:
+
+- a node that **is** named out loud lands on its own word through `wordAt`,
+- a node that is not is placed at a named fraction of the gap between the two
+  anchors either side of it, so it moves when the read moves.
+
+```
+website   38.69s   the head of the line
+apps      38.83s   on the spoken word `apps`
+seo       39.33s   in the gap, 0.32 of the way
+support   40.00s   in the gap, 0.75 of the way
+research  40.39s   on the spoken word `research`
+design    41.18s   on the spoken word `graphic`
+social    42.35s   on the spoken word `one`
+```
+
+Chalk is white on the board and ink on paper. The centre is yellow on both and
+**a different yellow on each**, for the reason `index.html` carries two greens:
+`#ffd34d` is 14.1:1 on the near black page and would be 2.1:1 on the white one;
+`#a8780c` is 3.8:1 on white.
+
+The labels measure **32 device px of cap** and the centre 40, against the 32 floor
+every piece of copy in this file clears. They were 19px and measured 28, and the
+run failed on all seven of them.
+
+### The beat list as it stands
+
+```
+ 0.00  BUSINESS, whole on frame zero, and frame zero is a glitch frame
+ 2.44  handover into WHY I / NEED / AI?!
+ 4.83  handover into the brain
+ 6.35  BUT I AM / BUSY glitches in on the word `but`
+ 7.57  handover into ONE / SMALL / THING
+ 9.74  the type goes as the site card arrives  (the card's own fade record)
+10.03  the site card, hero lockup
+13.58  the cta shakes, one tap
+14.75  the form opens
+19.05  ru, lv, back to en, three greetings
+21.15  the hand types the joke line under a second voice
+26.10  the size step
+27.64  the last step, five fields on the words that name them
+32.90  send            34.15  the check mark, and `done` on it
+34.87  the card leaves
+35.04  1/2 / DAYS, the hard tv glitch
+36.04  the page slides in       36.46  it lands on `report`
+36.52  five blocks land, 75ms apart, the green check last
+37.90  gone
+38.69  the chalkboard, seven things over four and a half seconds
+43.10  the board clears
+43.24  the end card
+47.03  out
+```
+
+### The guards this clip added
+
+Every one of these is a check that fails the render, not a note:
+
+- **The opening.** The last scene's handover window **is** the card's own fade
+  record, by identity; the two ends of every exchange are the same two numbers;
+  no opening scene survives the card's arrival; no frame inside the opening is
+  empty; every line clears 32 device px of cap; `SMALL` is set under 55% of the
+  words either side of it; and the layer's z-index is under the card, the
+  captions and the mascot, **read back off the page**.
+- **The letters in a head.** They are the letters they should be, they clear the
+  cap floor, and the corner of their box clears the plate's radius with six
+  device px to spare. A failure on the middle one is a note to make the heads
+  larger rather than the letters smaller, and the message says so.
+- **The chalk.** Every label clears the cap floor. This is the guard that caught
+  the 19px type.
+- **The report.** The days land on their word and the white frame is on the fault
+  frame; the whole fault has a length ceiling; block zero is the page riding the
+  slide; the page starts far enough outside to read as a slide and settles off
+  square; the six blocks are in order.
+- **The chalkboard.** The three spoken nodes are on their words, no two nodes
+  arrive within 0.18s of each other, and the centre is there before the first
+  arrow points at it.
+- **The rectangle.** Nothing in this layer shares the box with the site card or
+  the end card. The opening's crossfade with the card is the one designed overlap
+  and it has its own check.
+- **Rendered, not planned.** A torn band and a noise frame have to have actually
+  been written to a frame, and the white frame's rendered peak is compared with
+  the one that was planned. A channel that is planned and never rendered is the
+  failure mode a plan cannot see.
+
+#### Two bugs these guards found
+
+**`Math.round` where the visibility test uses `>=`.** Burst frames were placed
+with `round` while a block becomes visible on `ceil(on * fps)`, so a burst whose
+fraction was under a half fired **on the frame before its own block appeared**.
+Three of the five offering shapes came back with no glitch on any frame. Both use
+`ceil` now, so they cannot disagree.
+
+**A bounding rect is not a scale.** The `AI` cap was first measured by taking the
+grid-unit-to-css scale off the svg's bounding rect — and every head is rotated a
+few degrees, so the rect is the axis aligned box of a rotated square, up to eight
+per cent wider. It reported the letters eight per cent bigger than they are. The
+scale comes off the text element's own **`getScreenCTM`** now: `hypot(a, b)` is
+the scale with the turn divided back out.
+
+### Two sounds this file synthesises for itself
+
+`lib/sfx.mjs` carries eleven recipes and neither of these is one of them, and the
+brief for that pass was one file. So a **stuttered digital fault** and a **stick
+of chalk** are built in `post11.mjs` out of the same two primitives every recipe
+in that module is built out of — a seeded noise source and an exponential decay —
+and handed to the bus through the same `renderSfx` report, so the run prints them
+next to everything else.
+
+The fault is not a noise burst, it is a **stutter**: four or five very short gates
+cut out of band passed noise, each a different width and a different band walking
+downward, with silence between them, and a falling square blip underneath to give
+it a pitch to fall off. The chalk is 35ms of high passed noise with a very fast
+decay and a little ring at 2.6k — chalk on a board has no body at all, it is grit
+skipping.
+
+No file is loaded, no dependency is added and nothing in the shared module moved.
+The day a second clip wants a glitch is the day it moves.
+
+### Outstanding, and undecided
+
 - **The 60fps pass.** Neither variant has been rendered or reviewed at sixty.
   Every number in this section is off a 12fps preview.
+- **Undecided: the site's own wordmark crops to `BORING / TEK` at 15.00s.** It is
+  a frame in the middle of the camera travelling from the lockup down to the
+  form, not a resolved shot — `resolve`'s `cleared` pass holds the shot
+  **endpoints** clear of the h1, `.tag` and `.m-zone`, and a travelling shot has
+  to pass through whatever is between its two ends. Pre-existing, found by a
+  frame by frame review, and **nobody has decided whether it is a fault or a
+  camera move.** It reads as a camera move. Fixing it would mean either routing
+  the travel around the h1, which the page's own layout barely allows, or cutting
+  rather than travelling. Written down so the decision gets made rather than
+  forgotten.
+- **The mascot's placement.** The opening motion pass — the mascot big and
+  centred through the opening, then glitching to the corner on the button tap —
+  was specified and then overtaken: the opening is four type scenes now and the
+  corner is where he stays. **The placement still wants another look either way.**
 - **A posting pack and a track.** Caption, tweet and three tags per platform,
   none of them decided; and the clip ships with no music by design, so Einz picks
   one later.

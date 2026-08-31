@@ -6,79 +6,143 @@ names in here either.
 
 ## Status
 
-- **Built 2026-08-30: `demo/post11.mjs`, the eleventh clip, the explainer.**
-  **36.93s, 60fps, 1080x1920, 2216 frames, 4.12 MB (0.89 Mbit/s), the read
-  inside the mp4**, rendered with the shutter open at four subframes in **15.5
-  minutes**. **Six rounds of fixes landed across two days and it is 46.47s now,
-  checked at 12fps only.** Every fault a viewing found is closed, including the
-  silent stretch where the form used to finish itself: the voice narrates the
-  form to the send now. The empty top of the frame is empty on purpose and the
-  space is Einz's to fill. **It renders in two variants since 08-31, light and
-  `--dark`, out to `demo/out/post11-light-1080x1920.mp4` and
-  `post11-dark-1080x1920.mp4`.** **Neither has been rendered or reviewed at
-  60fps: 12fps previews only.** The next thing it owes is the **opening motion
-  pass**, which is not begun. See post11's six rounds under Decisions. **The
-  first clip built on `demo/lib/mascot.mjs`**, **the first that puts the live
-  site inside a card** rather than filling the frame with it, and **the first
-  that renders both themes off one plan**: big type, real footage of
-  theboringtek.com cropped to the hero, and the corner mascot reacting the whole
-  way through. **The live site did not change** — `index.html`, `CNAME`,
-  `robots.txt`, `sitemap.xml`, the language stubs and `assets/` were all
-  untouched, and **no existing post file was edited**. **No dependency was
-  added**; the list stays `puppeteer-core`, `ffmpeg-static` and `gsap`. **Not
-  posted anywhere, on any platform, and there is no posting pack yet** — caption
-  and hashtags are still owed.
+- **Built 2026-08-30, rebuilt across four more rounds to 2026-08-31:
+  `demo/post11.mjs`, the eleventh clip, the explainer. 47.03s, 1080x1920, the
+  read in the file.** It renders in two variants, light and `--dark`, out to
+  `demo/out/post11-light-1080x1920.mp4` and `post11-dark-1080x1920.mp4`.
+  **Checked at 12fps only; the 60fps master has not been run.** **The empty top
+  of the frame is no longer empty** — it carries the four opening scenes, the
+  report beat and the chalkboard now, all in the same card box the site is filmed
+  in. **The live site did not change**; **no existing post file was edited**;
+  **no dependency was added** — the list stays `puppeteer-core`, `ffmpeg-static`
+  and `gsap`. **Not posted anywhere and there is no posting pack yet** — caption,
+  hashtags and a track are still owed.
+  - **The opening is four type scenes in the card box, one per line.** `BUSINESS`
+    at 74.1px, `WHY I / NEED / AI?!` at 118.2px, a generated brain then
+    `BUT I AM / BUSY` at 71.2px on the word `but`, and `ONE / small / THING` at
+    121.1 and 41.2px — the size joke, guarded to stay under 55% of the words
+    either side of it. **104 to 170 device px of cap** against a 32 floor.
+    Everything drawn in code: no asset, no third font.
+  - **The handover window is `planSite`'s own card fade record, taken by
+    reference**, so all four crossfades and the one cut in the clip are the same
+    0.52s and moving `CARD_LEAD` moves them together. Inside it the opacity moves
+    over a **0.16s complementary exchange at 60%**, so the sum is always one:
+    never a blank frame, and only one frame of the preview mixed. The first cut
+    faded over the whole window and put `BUSINESS` and `NEED` on top of each
+    other, both legible, for six frames.
+  - **The glow is 8/22/48px of white at 28/15/7% on dark and nothing at all on
+    light**, because a white glow on a white page is nothing and a black one is a
+    drop shadow the brand bans. **The glitch is a length in seconds quantised to
+    whatever frame grid is rendering**, computed once per output frame and held
+    across every subframe, so a burst is the same duration at twelve and at sixty
+    and the shutter cannot smear it. It runs **10.7% to 18.8% of each scene's
+    frames** against a 30% ceiling, and the ceiling is a guard.
+  - **The five orange heads say `AI` and have no faces.** They had five poses off
+    `lib/mascot.mjs`'s own state table; two eye slabs on a head rendered at 128
+    device px are five px of ink each and read as a rendering fault rather than
+    as a face, so the eyes, the brows and the pose table all came out. `AI`
+    measures **80.0 device px of cap on a 127.5 device px plate**, two and a half
+    times the floor, so the heads did not need to grow. The orange is `#d1600a`,
+    **the same on both themes**, 3.90:1 on white and 5.17:1 on black.
+  - **The domain read was wrong three times and the fourth is a full stop.** The
+    complaint was that line five reads `boring tek dot com`. The waveform said
+    why and it was not what it looked like: the `the` **was** there and loud
+    enough — 153ms at -17.6 dB, two under the loudest word — but the gap in front
+    of it was **15ms, the same as every other gap in the run**, so `go to the`
+    came out as one unstressed cluster and the name the ear heard started at
+    `boring`. A grouping fault, not a level one. `go to. the boring tek, dot com`
+    puts **503ms in front of it and brings it up to 0.8 under the loudest word**,
+    because after a full stop the synthesiser restarts the phrase. Spoken copy
+    only: nothing draws the stop, and the caption became two cards, `go to` and
+    then `theboringtek.com` on its own. **It cost 0.58s and that is the only
+    retiming any of the four rounds caused.**
+  - **The report beat is a fault and then a page built out of blocks.** `1/2` over
+    `DAYS` lands on the word `one` — on `one` rather than `days` because `days`
+    left the type 0.56s to be read — under the hardest glitch in the clip: **four
+    torn bands, 8.5px of split, a noise burst with scanlines and one white
+    frame**, 140ms hard then a 160ms stutter. The tearing is four copies of the
+    type each clipped to its own band, stacking exactly at rest. Then the page
+    **slides in from the right on `DRIFT` over 0.42s**, clipped to the card box so
+    it enters the frame, and **builds**: heading, three lines and a green check,
+    75ms apart, each dropping 14px with its own squash, settling at **-4
+    degrees**. White paper on both themes; the check is the site's own light
+    accent at 4.15:1 against it.
+  - **The offering is a chalkboard mind map.** Five drawn pictograms were dropped
+    — five line drawings in a row read as an icon set rather than an argument.
+    `website` is boxed in yellow in the middle and six things pop in around it
+    with arrows into the centre. Nothing in it is a clean vector: ovals overshoot
+    their own ends, lines bow and overshoot, the box is four crossing strokes, and
+    one fractal noise displacement filter makes the strokes chalky and roughens
+    the letterforms so the type reads as written **without a handwriting face**.
+    **Three of the six land on their own spoken word through `wordAt`; the other
+    three sit at a named fraction of the gap between the anchors either side**,
+    so they move when the read moves. Chalk is white on the board and ink on
+    paper; the centre yellow is `#ffd34d` on dark and `#a8780c` on light, for the
+    reason index.html carries two greens.
+  - **Two sounds are synthesised in `post11.mjs` itself**: a stuttered digital
+    fault and a stick of chalk, built out of the same seeded noise and
+    exponential decay every recipe in `lib/sfx.mjs` is built out of, and handed
+    to the bus through the same `renderSfx` report. **Nothing in the shared
+    module moved and no file was loaded.** The day a second clip wants a glitch
+    is the day it moves.
+  - **Nineteen takes, one per line**, 2.01 to 5.57 words a second against a flat
+    2.3, gaps measured on the waveform. Delivered at **-14.2 LUFS / -1.1 dBTP**
+    with **no music** in this pass, which is Einz's call and gets a track later.
+  - **No dead air, and it is a guard rather than a claim.** `HOLE_MAX` is 1.20s
+    for any hole that is not the typing one, against a longest of 0.95s;
+    `TYPE_TAIL_MAX` is 1.50s for how far the typing hole may run past the last
+    keystroke, against 1.33s. The check mark has to be drawn while a word is
+    being said. Both numbers are tighter than the single 1.70 they replaced.
   - **It is one composed page rather than post9's four passes.** The site is an
-    **iframe served from the same origin** inside a clipped card and the camera
-    is a transform on the iframe element, so the mascot, the captions and the
-    footage are on one clock with no cuts. The nav is excluded by the crop
-    rather than by a promise: the bar is `position: fixed` at the iframe's own
-    top and the card never shows it. **0 sampled frames with the nav in the
-    card, 0 with the subline in it and cut.**
+    **iframe served from the same origin** inside a clipped card and the camera is
+    a transform on the iframe element, so the mascot, the captions and the footage
+    are on one clock with no cuts. The nav is excluded by the crop rather than by
+    a promise. **0 sampled frames with the nav in the card, 0 with the subline in
+    it and cut.**
   - **A camera that is a transform can be lied to by a scroll, and it was.**
     `element.focus()` scrolls **every scrollable ancestor**, across the frame
-    boundary, so focusing a form field scrolled the clipped card in the outer
-    document by 251px and the send shot rendered a quarter of a page from where
-    every number said it was. Pinned, and **the render now compares the rendered
-    window against the camera it wrote on every sample.** See Decisions.
-  - **`document.fonts.check(font, text)` said Space Grotesk can set `привет`,
-    and it cannot.** The cyrillic answer is measured rather than asked for now,
-    with a latin control. The pill drops to the mono stack, which renders **36
-    device px of cap** against a 32 floor. **No fourth font family was added.**
-  - **The form is really filled in and the send is really a send.** Six real
-    taps, the page doing its own routing, the copy re-rendering in russian and
-    latvian with the ticks surviving, and **exactly 2 posts intercepted** —
-    nothing left the browser.
-  - **Fourteen takes, one per line, each with its own rate and pitch**: 2.01 to
-    5.57 words a second against a flat 2.3, gaps measured on the waveform.
-    Delivered at **-14.2 LUFS / -1.0 dBTP** with **no music** in this pass, which
-    is Einz's call and gets a track later.
-  - **The brief said thirty seconds and the script is eighty six words.** Read at
-    a pace a person would use that is about thirty five seconds, and the two
-    deliberate holes — the typing and the confirmation — are most of the rest.
-    The script won; nothing was cut to hit a number. That is the one place the
-    brief's numbers and the brief's copy disagreed.
-  - **It cost `lib/mascot.mjs` one addition and it is opt in**: a mark may carry
-    a **list** of bubbles on a shorter profile, which is what lets three
-    greetings land on three languages inside one line. The single bubble path is
-    byte for byte what it was and the self test proves it. See Decisions.
-  - **Three rounds of fixes, and they are all in.** The domain is spoken as
-    four words and still drawn as one string, through a named exception the
-    guard was taught rather than a guard that was loosened. The typed line is
-    read by a fourth, comedy voice, a us woman. The typing, each field fill, the
-    send and the confirmation all have sound. **The form is narrated to the end**
-    and every field is filled on the word that names it, so the stretch that
-    sounded dead is gone and it is a guard rather than a claim: exactly two holes
-    in the read, the typing and the confirmation, or the render fails. The ending
-    is **send, tick, report, offering, end card**. The end card is the logo as it
-    is drawn, three stacked lines, centred as a measured group. **The offering
-    is a second service rather than a description of the report**: `and if you
-    want it built` goes in front of the list, so the four nouns are what we
-    build rather than what the report contains. The corner has
-    twelve marks and seven bubbles, carries the opening on its own, and there is
-    no sour state anywhere in the clip. **The empty top of the frame is empty on
-    purpose**: a pictogram layer was built for it and taken out again, and the
-    space is Einz's. **12fps only; the 60fps master has not been run.**
+    boundary, so focusing a form field scrolled the clipped card by 251px. Pinned,
+    and the render now compares the rendered window against the camera it wrote on
+    every sample.
+  - **The form is really filled in and the send is really a send**: six real taps,
+    the page doing its own routing, the copy re-rendering in russian and latvian
+    with the ticks surviving, and **exactly 2 posts intercepted**.
+  - **`document.fonts.check(font, text)` said Space Grotesk can set `привет`, and
+    it cannot.** Measured rather than asked for now, with a latin control. The
+    pill drops to the mono stack at **36 device px of cap** against a 32 floor.
+    **No fourth font family was added.**
+  - **The guards added across the four rounds**, and every one fails the render:
+    the handover window is the card's own record by identity and the two ends of
+    every exchange are the same numbers; no opening scene survives the card's
+    arrival and no frame inside the opening is empty; the layer's z-index is under
+    the card, the captions and the mascot, **read back off the page**; `AI` clears
+    the cap floor and its box corner clears the plate's radius, with the failure
+    message saying to grow the heads rather than shrink the letters; every chalk
+    label clears the cap floor; the days land on their word and the white frame is
+    on the fault frame; block zero is the page riding the slide; the six blocks
+    are in order; the three spoken chalk nodes are on their words and no two nodes
+    arrive within 0.18s; nothing in this layer shares the box with the site card
+    or the end card; and **a torn band and a noise frame have to have actually
+    been rendered**, not merely planned.
+  - **Two bugs those guards found.** **`Math.round` where the visibility test uses
+    `>=`**: burst frames were placed with `round` while a block becomes visible on
+    `ceil(on * fps)`, so a burst whose fraction was under a half fired on the
+    frame **before** its own block appeared, and three of five shapes rendered
+    with no glitch at all. Both use `ceil` now. And **a bounding rect is not a
+    scale**: the `AI` cap was first measured through the svg's bounding rect, and
+    every head is rotated a few degrees, so the rect is the axis aligned box of a
+    rotated square — up to eight per cent wider. It reported the letters eight per
+    cent bigger than they are. The scale comes off the text element's own
+    **`getScreenCTM`** now, where `hypot(a, b)` is the scale with the turn divided
+    back out.
+  - **Open and undecided: the site's own wordmark crops to `BORING / TEK` at
+    15.00s.** It is a frame in the middle of the camera travelling from the lockup
+    down to the form, not a resolved shot — the `cleared` logic holds the shot
+    **endpoints** clear of the h1 and a travelling shot has to pass through it.
+    Pre-existing, found by a frame by frame review, and **nobody has decided
+    whether it is a fault or a camera move.** It reads as a camera move; it is
+    written down here so the decision is made rather than forgotten.
+
 - **The mascot render has not been reviewed at 60fps yet, 2026-08-30.** What has
   been looked at is the **light theme at the twelve frame preview**, plus still
   frames from a turn sweep and from every state. **The dark theme has not been
@@ -1731,6 +1795,67 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-08-31 — post11's four rounds: an opening that is type, a full stop, a page built out of blocks, and a chalkboard
+
+Four briefs in a row, all of them `demo/post11.mjs` only, no new files.
+
+**The opening.** The card box was empty for the first four lines and it now
+carries four type scenes. The thing worth writing down is the handover: the
+window is `planSite`'s own card fade record **taken by reference**, so the four
+crossfades and the one cut in the clip cannot come apart, and the guard checks
+identity rather than two hand written numbers agreeing. Inside it the exchange is
+0.16s at 60% of the window and complementary, so the sum is one at every instant.
+The first cut faded over the whole 0.52s and a rendered frame showed `BUSINESS`
+and `NEED` both legible on top of each other for six frames. **A dissolve long
+enough to read is a double exposure, not a handover.**
+
+**The heads lost their faces.** Five poses off the mascot's own state table read
+as five identical dots at 128 device px, then as a rendering fault once they were
+pushed. The answer was not better poses, it was **fewer things**: eyes, brows and
+the pose table out, `AI` in, at 80.0 device px of cap. The rule the brief set —
+grow the head before you shrink the letters — is now the failure message on the
+guard.
+
+**The domain, fourth attempt.** Three rounds had assumed the `the` was being
+swallowed. The waveform said it was there and loud enough and that the **gap in
+front of it was 15ms, the same as every other gap in the run**. It was a grouping
+fault, not a level fault, which is why three rounds of slowing the rate had never
+touched it. A full stop puts 503ms in front of it and **raises** it to 0.8 under
+the loudest word, because the synthesiser restarts the phrase after one. The
+lesson is the older one this repo keeps relearning: **measure the take, do not
+read the string.**
+
+**The report beat.** Two events instead of one picture: type taking a hard fault,
+then a page sliding in and building itself out of six blocks. Two first cuts
+failed on the same shape of mistake — **the page was on the same stagger as its
+own contents**, so the slide had nothing to slide, and the slide used `POP` over
+0.30s, which puts most of its travel in one frame at twelve. Both are the same
+lesson: an entrance is only an entrance if there are frames in it.
+
+**The chalkboard.** Five drawn pictograms were dropped because five line drawings
+in a row read as an icon set rather than as an argument. What replaced them is a
+mind map where **nothing is a clean vector** — ovals overshoot their ends, lines
+bow, the box is four crossing strokes, and one fractal noise displacement filter
+does the chalk texture and roughens the letterforms so the type reads as written
+without a handwriting face this repo is not allowed to load. Six labels against
+four spoken things: the three that are named land on their word, the three that
+are not sit at a named fraction of the gap between the anchors either side.
+
+**Two bugs the guards found, and both were invisible to the eye.** Burst frames
+placed with `Math.round` against a visibility test of `>=` fired **before** their
+own block existed, and three of five shapes rendered with no glitch at all.
+And the `AI` cap was measured through a bounding rect on a rotated element,
+which is the axis aligned box of a rotated square and eight per cent too wide;
+`getScreenCTM` divides the turn back out. **A number nobody checks against a
+second method is a number nobody has checked.**
+
+**Two sounds now live in a post file.** `lib/sfx.mjs` carries the recipes more
+than one clip uses; a stuttered fault and a stick of chalk are built in
+`post11.mjs` from the same primitives and handed to the bus through the same
+report. The day a second clip wants a glitch is the day it moves. That is a rule
+about where a thing lives, not a workaround.
+
 
 ### 2026-08-30 — post11, the explainer: the site in a card, and a camera that lied
 
