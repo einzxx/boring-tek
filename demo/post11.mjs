@@ -488,9 +488,10 @@ const CARD_LEAD = 0.42;
    a composition changing shape.
 
    everything here is drawn in code. no image, no asset, no third font: the words
-   are the caption face at a size the captions never reach, the five small faces
-   are the mascot's own geometry read out of `lib/mascot.mjs`, and the brain is a
-   path generated from a formula. **the corner mascot is not touched by any of
+   are the caption face at a size the captions never reach, and the five small
+   faces are the mascot's own geometry read out of `lib/mascot.mjs`. scene three
+   holds an empty reserved box above its words and draws nothing in it — see
+   `SC_SLOT`. **the corner mascot is not touched by any of
    it** — he keeps his marks, his size and his corner — and this layer sits at
    `z-index: 1`, under him, under the captions and under the card, so it cannot
    get in front of anything however wrong a number in here goes.
@@ -515,7 +516,28 @@ const CARD_LEAD = 0.42;
    claiming it. */
 const SC_PAD = 22;         /* css px of air inside the card box */
 const SC_LEAD = 1.06;      /* the line height of a stacked scene */
-const SC_GAP = 20;         /* between the brain and the words under it */
+const SC_GAP = 20;         /* between the reserved slot and the words under it */
+
+/* ---------- the slot in scene three, and why it is empty ----------
+   scene three used to draw a brain here: a silhouette with a fissure and twelve
+   folds fanning off it, generated from a formula. it came out and nothing
+   replaced it, because it did not read as a brain — it read as a drawing of
+   something, and a viewer who has to work out what a shape is has stopped
+   reading the words under it.
+
+   what is left is the box it occupied, at the size it occupied, and **nothing
+   is drawn in it**. that is deliberate rather than leftover: einz is putting his
+   own image in this slot, and holding the box means the image lands in the
+   place the layout is already built around. the words keep the size they were
+   fitted at, the position they were fitted to and the gap above them, so
+   dropping a picture in here moves nothing else on the frame.
+
+   it is not ink and it is not measured as ink. `.sc-slot` is deliberately out of
+   the two selectors that collect this layer's ink for the safe area check, so an
+   empty box cannot report a rectangle the render then guards as if letters were
+   in it. what it **is** in is the fit: `fitScene` measures it exactly the way it
+   measured the drawing, which is the whole of how the type stays put. */
+const SC_SLOT = { w: 236, h: 205 };
 
 /* the burnt orange, and it is deliberately not the amber ramp the brand retired:
    that ramp was a set of accents and this is one colour used for one thing.
@@ -629,11 +651,19 @@ const SC_AI = { text: 'AI', size: 30, baseline: 43 };
 const SCENES = [
   { key: 'business', line: 1, faces: true, lines: [{ t: 'business' }] },
   { key: 'why', line: 2, tube: true, lines: [{ t: 'why i' }, { t: 'need' }, { t: 'ai?!' }] },
-  /* the brain arrives with the line and the words glitch in on the word `but`,
-     which is where the line turns from what they know into what they have not
-     got. it is keyed to the word rather than to a number, the same way every cue
-     in `planSite` is. */
-  { key: 'busy', line: 3, brain: true, wordsOn: 'but',
+  /* the words glitch in on the first word of the line, and that is a retime
+     rather than a taste. they used to land on `but`, 1.34s into the line, which
+     is where it turns from what they know into what they have not got — and it
+     worked because the drawing above them carried the head of the beat on its
+     own. the drawing is gone, so the same cue would leave the card box holding
+     nothing for a second and a half, which is the one thing this layer exists to
+     stop. the cue moves to `some` and the words are up from the first frame the
+     line is spoken on: the entrance is the same 0.18s glitch it always was, on
+     the same words, at the same size and in the same place.
+
+     it is keyed to the word rather than to a number, the same way every cue in
+     `planSite` is, so it still moves when the read moves. */
+  { key: 'busy', line: 3, slot: true, wordsOn: 'some',
     lines: [{ t: 'but i am' }, { t: 'busy' }] },
   { key: 'small', line: 4,
     lines: [{ t: 'one' }, { t: 'small', scale: 0.34 }, { t: 'thing' }] },
@@ -2020,70 +2050,6 @@ function faceSvg(f) {
     + '</svg>';
 }
 
-/* ---------- the brain ----------
-   generated rather than drawn, and the shape it took is the third one: a
-   silhouette from an ellipse with two cosines on its radius, a wiggle down the
-   middle for the fissure, and twelve folds running **out from the fissure**
-   rather than nesting around a centre.
-
-   that last word is the whole of it. the first pass drew the folds as concentric
-   arcs, and concentric arcs converge on a point: what rendered was a rose. a
-   cortex is folds fanning off a midline, and once they fan the shape reads as a
-   brain at a glance.
-
-   **the folds are clipped to the silhouette**, which is the other thing two
-   passes got wrong. a fold long enough to reach the edge of the head is a fold
-   that runs past it somewhere else on the same stroke, and a line escaping the
-   outline is the one thing that makes a drawing read as a mistake. so they are
-   drawn deliberately too long and cut by the outline's own path — the two can
-   never disagree about where the head ends, which is the same argument the
-   mascot's own feature clip is built on.
-
-   all of it is stroked. a filled blob glows as a blob and a stroke glows as a
-   line, and a line is the look this scene is in. */
-function brainSvg() {
-  const cx = 60, cy = 46, R = 44;
-  const p = a => {
-    const bump = 1 + 0.065 * Math.cos(5 * a + 0.5) + 0.028 * Math.cos(11 * a - 0.6);
-    const s = Math.sin(a);
-    return [cx + Math.cos(a) * R * 1.24 * bump, cy + s * R * 0.86 * bump * (s > 0 ? 0.86 : 1)];
-  };
-  const poly = pts => pts.map(([x, y], i) => (i ? 'L' : 'M') + x.toFixed(2) + ' ' + y.toFixed(2)).join(' ');
-  const out = [];
-  for (let i = 0; i <= 140; i++) out.push(p(-Math.PI / 2 + i / 140 * Math.PI * 2));
-  const shell = poly(out) + ' Z';
-  const fis = [];
-  for (let i = 0; i <= 30; i++) {
-    const u = i / 30;
-    fis.push([cx + Math.sin(u * Math.PI * 3.1) * 3.0, 2 + u * 84]);
-  }
-  const folds = [];
-  for (const sgn of [-1, 1]) {
-    for (let k = 0; k < 6; k++) {
-      const y0 = 12 + k * 13.5;
-      /* the rows bow away from the middle of the head, so the fan follows the
-         dome instead of striping it. */
-      const bend = (y0 - 46) * 0.6;
-      const seg = [];
-      for (let i = 0; i <= 36; i++) {
-        const u = i / 36;
-        seg.push([cx + sgn * (4 + u * 66),
-          y0 + bend * u * u + Math.sin(u * Math.PI * 3.0 + k * 1.7 + (sgn < 0 ? 0.9 : 0)) * 4.6]);
-      }
-      folds.push(poly(seg));
-    }
-  }
-  return '<svg viewBox="0 0 120 104" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
-    + '<defs><clipPath id="sc-brain-clip"><path d="' + shell + '"/></clipPath></defs>'
-    + '<path class="sc-brain sc-brain-out" d="' + shell + '"/>'
-    + '<g clip-path="url(#sc-brain-clip)">'
-    + '<path class="sc-brain" d="' + poly(fis) + '"/>'
-    + folds.map(d => '<path class="sc-brain" d="' + d + '"/>').join('')
-    + '</g>'
-    + '<path class="sc-brain" d="M51 80 C51 96 69 96 69 80"/>'
-    + '</svg>';
-}
-
 /* ---------- the two sounds this file synthesises for itself ----------
    `lib/sfx.mjs` carries eleven recipes and neither of these is one of them, and
    the brief for this pass is one file. so they are built here, out of the same
@@ -2333,7 +2299,7 @@ function sceneMarkup() {
 ${SCENES.map((S, k) => `  <div class="sc" id="sc${k}" data-key="${S.key}">
     <div class="sc-in" id="sc-in${k}">
       <div class="sc-stack">
-${S.brain ? '        <div class="sc-art">' + brainSvg() + '</div>\n' : ''}${S.lines
+${S.slot ? '        <div class="sc-slot"></div>\n' : ''}${S.lines
     .map(L => `        <div class="sc-l"${L.scale ? ` data-scale="${L.scale}"` : ''}>${L.t}</div>`)
     .join('\n')}
       </div>
@@ -2413,19 +2379,13 @@ ${Array.from({ length: SC_DAYS.bands }, (_, i) =>
   color:var(--fg); text-shadow:var(--sc-ts);
 }
 .sc-art{display:block; margin-bottom:${SC_GAP}px}
-/* the brain carries the scene on its own for the second and a half before the
-   words glitch in, and at 200px it did not: a rendered frame showed a small
-   drawing at the top of the box with a third of the frame empty under it. it is
-   the subject of that beat, so it is sized like one, and the fit takes the type
-   down to whatever is left rather than the other way round.
+/* the reserved box in scene three. it has a size and nothing else: no fill, no
+   stroke, no background, no border, so on both themes it is the page. what it
+   does is take up room, which is the entire job — see SC_SLOT.
    (no backticks in this block: it is inside a template literal and one would end
    the string rather than mark a name.) */
-.sc-art svg{display:block; width:236px; height:205px; overflow:visible; filter:var(--sc-fl)}
-/* 2.0 viewBox units at 236px wide off a 120 unit box is 3.9 css and 7.9 device
-   px of line, which is what a stroke needs to survive the encoder and still
-   read as drawn rather than as printed. */
-.sc-brain{fill:none; stroke:var(--fg); stroke-width:2.0; stroke-linecap:round; stroke-linejoin:round}
-.sc-brain-out{stroke-width:2.6}
+.sc-slot{display:block; width:${SC_SLOT.w}px; height:${SC_SLOT.h}px;
+  margin-bottom:${SC_GAP}px}
 
 /* the faces. orange plate, page coloured eyes and brows, which is the mascot's
    own model — the face reads as a hole punched in the page rather than as an
@@ -2739,7 +2699,11 @@ function stagePage() {
       em = Math.max(em, cv.measureText(L.textContent.toUpperCase()).width / 100 * k);
       rows += k * P.SC.lead;
     }
-    const art = el.querySelector('.sc-art');
+    /* the report's page, or scene three's empty reserved box. both are things
+       above the type that the type has to fit under, and the fit does not care
+       which of the two it is looking at — that is the point of holding the box
+       after the drawing in it came out. */
+    const art = el.querySelector('.sc-art, .sc-slot');
     const artH = art ? art.getBoundingClientRect().height + (lines.length ? P.SC.gap : 0) : 0;
     /* a block with no type in it — the report, the five offering shapes — has
        nothing to fit and says so, rather than dividing the box by a zero em and
@@ -2769,7 +2733,11 @@ function stagePage() {
   }
   /* the ink, not the box it is laid out in. the stack is a full height flex
      container and reporting its rect would report the card's own edges back to
-     the safe area check, which proves nothing about where the letters are. */
+     the safe area check, which proves nothing about where the letters are.
+
+     `.sc-slot` is out of this list on purpose and for the same reason: it draws
+     nothing, so a rectangle taken off it would be a rectangle the safe area
+     check then holds a border against with no ink anywhere near it. */
   function inkOf(el) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     for (const e of el.querySelectorAll('.sc-l, .sc-art, .sc-art svg, .sc-face, .sc-map svg')) {
