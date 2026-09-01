@@ -56,6 +56,15 @@ All headless Chrome, all tooling. The renderers first:
   default**, and three new recipes in `lib/sfx.mjs` carry the sound: a formant
   synth mumble on every open of the mouth, a sigh and a beep. Out to
   `demo/out/post13-dark-1080x1920.mp4`. See The thirteenth clip.
+- **`post14.mjs`** renders a 9.95 second news flash, vertical, **light only,
+  and it is the first clip that puts somebody else's mark on the screen and
+  the first that moves the mascot.** He is big in the middle of an empty white
+  page with `fable 5.1 out` in a thought bubble, the signal tears twice and he
+  is back in his corner at his ordinary size, the anthropic logo glitches in at
+  the top and turns once over the rest of the clip, and three facts are read
+  warm and quick over captions in the middle of the frame. The logo is
+  `demo/assets/anthropic-logo.png`, placed as an image and not touched. Out to
+  `demo/out/post14-light-1080x1920.mp4`. See The fourteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -3351,6 +3360,304 @@ Everything post12 checks, minus the puff and the giggle, plus:
   a bigger grid.
 - **The review is in `demo/out/review-post13.md`**, which is gitignored like
   everything else in there.
+
+## The fourteenth clip — the news flash, and somebody else's mark
+
+```
+cd demo
+node post14.mjs                 # 1080x1920, 60fps, shutter closed
+DEMO_FPS=12 node post14.mjs     # the fast preview pass
+node post14.mjs --blur          # 60fps with the shutter open, four subframes
+node post14.mjs --plan          # every plan printed, nothing rendered
+node post14.mjs --keep-frames   # leave the jpegs on disk
+node post14.mjs --encode-only   # re-encode from kept frames
+```
+
+**9.95 seconds, light only, one output path, overwritten every run:**
+`demo/out/post14-light-1080x1920.mp4`. Fourteen beat stills land in
+`demo/out/verify-post14/`, which is how the cut is read as a strip rather than
+scrubbed as a video. The 60fps master with the shutter open rendered green at
+1.23 MB, log at `out/post14-final.log`.
+
+Every clip before this one is about us. This one is about somebody else's
+release, and the reason to make it is that a feed rewards being early about a
+thing people already care about. Short, bright, and the brand content is three
+words at the end, exactly where post12 and post13 put theirs.
+
+Two firsts: **it is the first clip that puts somebody else's mark on the
+screen**, and **the first that moves the mascot.**
+
+### The logo is an asset, and it is placed rather than drawn
+
+`demo/assets/anthropic-logo.png` is dropped in as an `<img>` at its own aspect
+ratio and nothing is done to its pixels: no crop, no filter, no recolour, no
+redraw. 496x496 with an alpha channel, rendered at 76 css px square, which is
+152 device px, centred at (270, 156) css.
+
+**The asset is the clay one rather than a black one.** The brief calls it the
+black version; the file is `#e37d5b` at full alpha, which is anthropic's own
+clay. The brief also says do not alter it and never recolour it, and those two
+instructions point in opposite directions, so the one that is a constraint won
+over the one that is a description: it is placed exactly as it is. One `filter`
+would make it black if that is what is wanted.
+
+**The clearance is measured on the turned box, not on the square.** A square
+spinning about its centre sweeps a circle of its own diagonal, so what has to
+clear the platform's top line is `size * root two / 2` above the centre and not
+`size / 2`. At 76 css that is 53.7 css of reach, which puts the top of the sweep
+at 204 device px against a 180 floor.
+
+Four things are asserted about it at render, off the element rather than off the
+css that sizes it: the drawn box carries the file's own aspect ratio, the
+computed `filter` is `none`, `object-fit` cannot crop it, and the **sweep**
+clears every border on every sample. The turn is checked on frames too: it goes
+round at least 300 degrees, never more than 360, and never backwards.
+
+The one thing that touches it is the glitch, for the three frames the glitch is
+on: an rgb split and the frame's own jitter, which is what the brief asks for in
+as many words. **The torn bands are drawn under it** — `z-index` 5 against the
+image's 6 — so a band can never cross the mark.
+
+**Its split is 0.42 of the ink's, and that is a rendered frame's correction.**
+The mascot is a 360px solid disc and 4.5px of fringing on it is a hairline; the
+mark is nine strokes about eight px wide, so the same offset put a full width red
+copy beside every one of them and the thing stopped reading as clay and started
+reading as pink. Same channel, same two colours, same three frames, at the scale
+it is actually drawn at.
+
+**And its birth is a frame.** post12's rule. The first cut faded it up over
+0.10s and the fault frames caught it at a third of its opacity under a colour
+split, which is a pale pink ghost of somebody else's logo. It is off, then it is
+on, and the fault on the same frame is what makes that an arrival.
+
+### The zone — one plan, two placements
+
+The module places one head, once, out of `plan.box` and `plan.size`, and this
+clip needs him in two places at two sizes. So **the plan is the corner one** —
+post11's exact placement, size 128, bottom left inside the safe area, which is
+what every guard in `lib/mascot.mjs` is written about — and the opening is that
+same mascot moved and scaled by a transform on his zone.
+
+It is one css rule at the id level and the module is not touched: `.m-zone`
+carries no transform of its own, so there is nothing to fight. The origin is the
+element's centre, which is also the plate's centre, so the scale changes the
+extent and the translate is simply where the head goes.
+
+| | placement | head |
+|---|---|---|
+| the opening | centred on (270, 500) css | 180 css, **360 device px** |
+| the corner | the module's own bottom left | 120 css, 240 device px |
+
+What it costs is that `headRect` no longer answers on its own — it works the ink
+out of `plan.box` and knows nothing about a transform laid over the element — so
+`zoneRect` composes the two and the clearance guard reads that. The head is still
+computed rather than measured, for the module's own reason. Worst in the corner:
+166 left, 241 bottom, on every one of 597 frames. Worst big and centred: 350 /
+826 / 360 / 763.
+
+**The opening is deliberately over the module's phone window** of 220 to 280
+device px, and that is a different question rather than a violation: a head alone
+in the middle of an empty frame is a hero shot, and the window is about a head
+sharing a frame with words. The plan is checked against it, because the corner is
+where he is for eight of the ten seconds.
+
+### The thought had to move, and there is no head size that fixes it
+
+The module hangs the thought off the head's right shoulder, which is right for a
+mascot standing in a corner and impossible for one standing in the middle. The
+cluster measures 233 css px, the frame is 400 css wide inside the safe area, and
+a head centred at 270 leaves 130 to its right. **There is no head size that fixes
+it** — at a diameter of nought the pill still does not fit, because the cluster is
+wider than the half frame.
+
+So for the opening beat only it is re-anchored **above** him, dots trailing down
+toward his crown and the pill climbing up and right, which is what a thought
+bubble over a centred character has always looked like. It is a translate on
+`#m-bubble`, and the module writes nothing to that element except its visibility,
+so nothing is overridden and nothing is forked. It is counter scaled back to
+natural size as well, so the pill is the same physical size in both placements
+and the caps floor is the same number in both.
+
+### The opening costs 1.62s and it is arithmetic
+
+`delighted` takes 0.50s to arrive and a bubble may not start before the head has
+settled. The quick bubble profile then lives 0.80s. So the earliest a thought can
+be finished is 0.50 + 0.02 + 0.80 = 1.32, and `planMascot` insists a bubble fits
+inside its own mark's hold, which puts the next mark at 1.62. Every number in the
+opening is that floor rather than a choice.
+
+**The opening bubble runs on the quick profile and the second one does not.** The
+ordinary profile lives 1.68s and would put the next mark at 2.30, which is a
+quarter of the clip spent before a word is said. The cost is written down rather
+than hidden: **the opening pill is fully up for 0.30s**, because `BUBBLE.quick`'s
+hold is floored and capped at the same 0.30 and no amount of room changes it.
+Counting the fade either side it is over half opacity for about 0.6s at 52 device
+px of type, and the first caption says `claude fable 5.1` fourteen hundredths of
+a second later. It is the one place in the clip a viewer is asked to read fast.
+`love it`, at 4.62s, has room and gets the ordinary profile: 0.90s of full pill.
+
+### The cut
+
+```
+ 0.00   he is big and centred, delighted
+ 0.52   the thought starts climbing
+ 0.82   the pill is full: "fable 5.1 out"
+ 1.36   fault one. split, shake, three ink bands, one ink flash, all of it on him
+ 1.48   he is cut
+ 1.62   fault two. he is back bottom left at corner size
+ 1.72   fault three. the mark is born at the top and starts turning
+ 1.71   claude fable 5.1 is out                              +12% / +3Hz
+ 3.63   smarter, cheaper to run, fewer false blocks          +18% / +1Hz
+ 5.72   the pill is full: "love it"
+ 6.33   and claude code sessions can now talk to each other   +8% / +3Hz
+ 7.20   he agrees, and the ding lands at 7.67
+ 8.55   the end card starts arriving
+ 9.95   out
+```
+
+**He does not leave on the frame the hit lands.** The fault is on him for an
+eighth of a second first, and that is the whole of what makes the hit read: the
+first cut took him on the hit frame itself and a rendered frame said what that is
+— a page with three bars and some grain on it and no reason for any of it. The
+fault has to land on him and then he is gone. It costs 0.12s.
+
+**The two mascot windows are chained rather than adjacent.** Two windows snapped
+separately to the same grid do not necessarily touch: at sixty the first one's
+own length rounded to 1.633 and the second one's start rounded to 1.617, which is
+an overlap, and at twelve they happened to meet. So the first window's end **is**
+the second's start, at whatever rate is rendering.
+
+**And a chained window never dies.** `heatAt` decays to nothing by nine tenths of
+the way through, which is right for a fault that ends and wrong for one that
+hands over. The stretch he is missing from lives inside it, and the last frames
+before he came back were clean white paper with nothing on them at all. A window
+running into the next has a floor of 0.62 under it now.
+
+### The rates are positive, and that is a decision
+
+The house default is `calm` at -8%, which is a person reading a statement to
+camera and is right for an explainer. This is a news flash. The two outer lines
+run bright and quick and the middle one, which is the only one that is a list,
+runs quickest of the three, so its two commas are phrasing rather than two stops.
+The pitch goes the other way — up, nearly flat, up — so the reading rises, levels
+and rises again instead of climbing all the way through.
+
+Measured on the takes: 2.73 to 4.67 words a second against a flat 2.3, gaps of
+0.14 and 0.16s.
+
+### The frame
+
+| | css px of 540x960 |
+|---|---|
+| the mark | centred on `270,156`, 76 square, sweeping a 107 css circle |
+| the caption band | `70,320`, `400x210`, bottom anchored, ink about 490..530 |
+| the mascot | bottom left, the module's own placement, 240 device px of head |
+| the end card | centred on 325, `BORING` 240 css wide, the address 190 under it |
+
+**The end card is smaller than post11's 330** because this frame is fuller than
+that one: the mark is turning at the top and the last caption is still leaving at
+the bottom, so the group has about 230 css px of room rather than the whole
+frame. 240 puts the caps at 66 device px against post13's own 56 floor.
+
+**And the fit had a bug in it that only a frame could show.** The block carries a
+`max-width` so the safe area check measures ink rather than the frame, and at the
+100px probe size that clamp is what the measurement returned: the fit divided 300
+by 400 instead of by 557 and came back with a wordmark three sizes too big and an
+address running off the side of the frame. The clamp comes off while the probe is
+up and goes straight back on.
+
+### The glitch is the light theme's, and the numbers are not post12's walked down
+
+On black the split is 9.5 css px of red and cyan around a white head and it reads
+as a look; on white it is dark fringing on dark ink and 4.5 is already loud.
+Three things differ from the dark clips and each is about paper:
+
+- **The bands are the fault rather than a displaced copy of one.** post12 and
+  post13 black a band out and redraw a shifted copy of what is under it; there is
+  nothing here that can be copied, because the mascot is one dom subtree driven
+  out of the module's runtime and there is no second of it. So on paper the band
+  is a bar of ink at 0.82, slammed across the frame and offset sideways. A few
+  near black bars across a white page for three frames is a dropout.
+- **The grain multiplies rather than screens.** Screen blended noise on white is
+  nothing at all.
+- **The flash is ink.** What a signal collapsing looks like on a white page is
+  the page going dark for a frame. It is 330 css px across, centred on the head,
+  and there is exactly one of it.
+
+**There is no local duty ceiling and that is deliberate.** post11 has one because
+its glitch is a scatter through a scene that is up for two and a half seconds,
+where a high ratio really does mean the thing never stops faulting. This clip's
+whole fault is three deliberate hits at the front, one of which is meant to be
+continuous — a ratio cannot tell "a quarter, scattered" from "a quarter, all of it
+in the first two seconds". What holds the beat honest is the absolute length of
+each window, capped at a third of a second, plus a 12% ceiling on the clip as a
+whole. Measured: 27 of 597 frames, 4.5%.
+
+### The turn is not GLIDE, and a frame is why
+
+The mark turns once over eight seconds and the first cut ran it on the house in
+out. **Every bezier whose second control point ends at one arrives at zero
+speed**, so the last second and a half of the clip had a mark that had stopped,
+over an end card that is already still, which is the frozen frame the review
+checklist asks about by name. `TURNING` is the same family with the second
+control point at 0.82: it still eases in, it still slows toward the end, and it
+is turning at three fifths of its own average when the clip runs out.
+
+### The mix, and the ceiling winning
+
+**-15.5 LUFS integrated, 2.5 LU range, true peak -1.5 dBFS on the mp4, the
+limiter pulling 4.61 dB.** No music. Six cues: two `pop`, one on each thought
+arriving, one `ding` on the agreement beat, and three `glitch`, one per fault at
+the window's own start. Every one of them is a time something else already
+decided.
+
+**The ceiling won over the loudness target, and that is post12's argument.** This
+read has 17 dB of crest on it, so the last three decibels of -14 are bought
+entirely with limiting: the pass that reaches -15.5 costs 4.6 dB of gain
+reduction and every one after it costs a whole decibel more for a fifth of a
+decibel of loudness. The loop stops at the last pass inside 5 dB rather than at
+the one closest to target, and the run prints which of the two decided it.
+
+**The loop also works to a lower ceiling than the guard reads**, because the
+guard reads the mp4 and the loop writes a wav: aac is a lossy round trip and it
+overshoots the samples it was made from. The first render came back at -0.9 on a
+file the limiter had held at -1.0. Half a decibel of headroom is what it costs.
+
+### The guards this clip added
+
+- The **mark**: aspect ratio against the file's own, computed `filter` is `none`,
+  `object-fit` cannot crop, the sweep clears every border on every sample, it
+  does not move (skipped on frames the whole stage is being shaken, because the
+  jitter moves everything and a sample inside a fault says nothing), and the turn
+  is between 300 and 360 degrees and never backwards.
+- The **zone**: the head clears every border at both placements, on every frame,
+  through the composed transform; the big placement is really centred, checked on
+  the arithmetic rather than on a frame, because idle drift moves him a css px
+  either way; and the big head is at least a fifth bigger than the corner one, or
+  the change of size is not one a viewer would notice.
+- The **cut**: he is on from frame zero at the big placement, on for the frames
+  the fault is on him, off across the gap, and back at the corner placement on
+  the frame the second hit lands. The gap is read on the master's grid, because
+  at twelve the same 0.14s quantises to one frame.
+- The **end card against the last caption**: they are allowed to coexist, which
+  is post11's cut, and the check is that they never touch — measured on the end
+  card's own ink against the caption's own ink.
+- **No caption while he is big**, read back off frames rather than assumed.
+- The usual: no card straddles two lines, drawn is spoken, one card at a time, no
+  accent on a caption, no punctuation dash anywhere a viewer can read, no hole in
+  the read over a second, no identical frames.
+
+### Outstanding
+
+- **The clip has no posting pack.** Caption, tweet and three tags per platform
+  are all undecided, and this one has a timing question the others do not: it is
+  about somebody else's release and it is worth less every day it sits.
+- **`demo/assets/anthropic-logo.png` is not tracked.** It is somebody else's
+  trademark in a public repo, which is a call rather than an implementation
+  detail, and `.gitignore` is not this file's to edit. `post14.mjs` throws with a
+  named error if the file is not there.
+- **The review is in `demo/out/review-post14-light-1080x1920.md`**, which is
+  gitignored like everything else in there.
 
 ## The og card
 

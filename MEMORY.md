@@ -6,6 +6,40 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-02: `demo/post14.mjs`, the fourteenth clip, the fable 5.1 news
+  flash. 9.95s, 1080x1920, light only, out to
+  `demo/out/post14-light-1080x1920.mp4`.** The first clip that is about somebody
+  else's release rather than about us, **the first that puts somebody else's mark
+  on the screen**, and **the first that moves the mascot.** He is big in the
+  middle of an empty white page with `fable 5.1 out` in a thought bubble, the
+  signal tears twice and he is back in his corner at his ordinary size, the
+  anthropic logo glitches in at the top and turns once over the rest of the clip,
+  and three facts are read warm and quick over captions in the middle of the
+  frame. Then post11's light end card.
+  - **The 60fps master with the shutter open is rendered and green**, 1.23 MB,
+    log at `demo/out/post14-final.log`. The 12fps preview was reviewed frame by
+    frame first and found four faults, all fixed before the master; the review is
+    at `demo/out/review-post14-light-1080x1920.md`, which is gitignored.
+  - **The logo is `demo/assets/anthropic-logo.png`, placed as an image and never
+    touched** — no crop, no filter, no recolour, no redraw. **It is the clay
+    version, not a black one**, and that is a call the brief's own two
+    instructions forced. See the decision.
+  - **`demo/assets/anthropic-logo.png` is NOT committed.** It is somebody else's
+    trademark in a public repo and that is Einz's call rather than an
+    implementation detail. `.gitignore` is untouched, per the rule, so the file
+    shows as untracked until it is decided either way. `post14.mjs` throws with a
+    named error if it is missing.
+  - **`lib/mascot.mjs` is untouched.** The two placements are a transform on
+    `#m-zone` that this clip adds at the id level, and the thought is re-anchored
+    for the opening beat with a translate on `#m-bubble` — the module writes
+    nothing to that element except its visibility.
+  - **It ships at -15.5 LUFS rather than -14, and the run says why**: the limiter
+    ceiling won over the loudness target. post10 and post12 both shipped under
+    target for the same reason.
+  - **Not posted, and it has no posting pack.** This one has a timing question the
+    others do not: it is about somebody else's release and it is worth less every
+    day it sits.
+
 - **Built 2026-09-01: `demo/post13.mjs`, the thirteenth clip, the yap. 4.98s,
   1080x1920, dark only, out to `demo/out/post13-dark-1080x1920.mp4`.**
   post12 is a joke about a robot; this is a joke about us. The mascot talks and
@@ -1390,6 +1424,13 @@ Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
+- **`demo/post14.mjs` is the fourteenth clip and the light one.** 9.95s,
+  1080x1920, 60fps, out to `demo/out/post14-light-1080x1920.mp4`. Three firsts
+  between them: somebody else's mark on the screen, the mascot moved rather than
+  planned in one place, and a clip about somebody else's release. It needs
+  `demo/assets/anthropic-logo.png`, which is untracked. Full write up under The
+  fourteenth clip in `demo/README.md`.
+
 - **The demo video pipeline is done and shipped** (`2bcfb62`, pushed 2026-08-24).
   `demo/record.mjs` renders a 24.1 second reel of the live site to mp4. It drives the
   real `index.html` from this repo over localhost.
@@ -2026,6 +2067,154 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-02 — the anthropic mark is placed as it is, clay and all, because "never recolour" beats "the black version"
+
+post14's brief names the asset twice and the two namings disagree. It calls it
+"transparent, black version" and it says "do not redraw or alter the logo, place
+it as an image only" and "the logo must never be cropped, distorted or
+recoloured". The file is `#e37d5b` at full alpha, which is anthropic's own clay
+and is not black.
+
+**One of those is a description of the file and the other is a constraint on what
+may be done to it, and the constraint wins.** A description can be wrong about a
+file; a constraint is an instruction about behaviour. Turning it black would mean
+adding a `filter` to it, which is the one thing three separate lines of the brief
+forbid. So it is placed exactly as it is, the clip reports the discrepancy in its
+own header, and one `filter: brightness(0)` would change it if that is what was
+meant.
+
+**The promise that nothing was done to it is measured rather than asserted.** Four
+things are read off the element at render: the drawn box carries the file's own
+aspect ratio, the computed `filter` is `none`, `object-fit` cannot crop it, and
+the sweep the turning square covers clears every platform border on every sample.
+
+**The one thing that touches it is the glitch, and the brief asks for that in as
+many words**: an rgb split and the frame's own jitter, for the three frames the
+glitch is on. That is a fault laid over the picture rather than a treatment of the
+mark. It is also given **0.42 of the split the ink gets**, which came off a
+rendered frame: the mascot is a 360px solid disc and 4.5px of fringing on it is a
+hairline, but the mark is nine strokes about eight px wide, so the same offset put
+a full width red copy beside every one of them and the thing stopped reading as
+clay and started reading as pink. And the torn bands are drawn **under** it, so a
+band can never cross it.
+
+### 2026-09-02 — the mascot moves, and it is a transform on his zone rather than a second plan
+
+post11's backlog has wanted this since it was written: the mascot big and centred
+for an opening, then in his corner for the rest. `lib/mascot.mjs` places one head
+once, out of `plan.box` and `plan.size`, and both are baked into the css it
+emits.
+
+**The plan is the corner one and the opening is that same plan under a
+transform.** post11's exact placement, size 128, bottom left inside the safe area,
+which is what every guard in the module is written about. The opening is one css
+rule the clip adds at the id level: `.m-zone` carries no transform of its own, so
+there is nothing to fight, and the origin is the element's centre, which is also
+the plate's centre, so the scale changes the extent and the translate is where the
+head goes. **The module is untouched.**
+
+What it costs is that `headRect` no longer answers on its own, because it works
+the ink out of `plan.box` and knows nothing about a transform laid over the
+element. `zoneRect` composes the two and the clearance guard reads that. The head
+is still computed rather than measured, for the module's own reason: a browser's
+rect for a rotated shape is the box of its geometry rather than of its ink.
+
+**The opening head is 360 device px, over the module's 220 to 280 window, and that
+is a different question rather than a violation.** The window is about a head
+sharing a frame with words. A head alone in the middle of an empty frame is a hero
+shot. The plan is checked against the window because the corner is where he is for
+eight of the ten seconds, and the opening is checked against the platform borders
+instead.
+
+### 2026-09-02 — a centred mascot cannot wear the module's thought bubble, and the arithmetic is why
+
+The module hangs the thought off the head's right shoulder, which is right for a
+mascot in a corner. Centred it is impossible, and not marginally: the cluster
+measures **233 css px**, the frame is **400 css px** wide inside the safe area,
+and a head centred at 270 leaves 130 to its right. **There is no head size that
+fixes it** — at a diameter of nought the pill still does not fit, because the
+cluster is wider than the half frame.
+
+So for that one beat the cluster is re-anchored **above** him, dots trailing down
+toward his crown and the pill climbing up and right. It is a translate on
+`#m-bubble`, which the module writes nothing to except its visibility, plus a
+counter scale back to natural size so the pill is the same physical size in both
+placements and the caps floor is the same number in both. Two different bubble
+sizes in one clip would read as two different bubbles.
+
+### 2026-09-02 — the opening beat costs 1.62s and every number in it is a floor
+
+`delighted` takes 0.50s to arrive; a bubble may not start before the head has
+settled, because a bubble arriving while the head is still moving is two events on
+one frame and neither reads; the quick bubble profile lives 0.80s. So the earliest
+a thought can be finished is 1.32, and `planMascot` insists a bubble fits inside
+its own mark's hold, which puts the next mark at 1.62.
+
+**The cost is that the opening pill is fully up for 0.30s**, because
+`BUBBLE.quick`'s hold is floored and capped at the same 0.30 and no amount of room
+changes it. The ordinary profile buys 0.42s of full pill and costs 0.50s of clip,
+which does not fit inside the brief's ten seconds with this script. It is written
+down rather than hidden: counting the fade either side the pill is over half
+opacity for about 0.6s at 52 device px of type, and the first caption says
+`claude fable 5.1` fourteen hundredths of a second later. It is the one place in
+the clip a viewer is asked to read fast.
+
+### 2026-09-02 — four faults in post14 that only a frame could show
+
+Every guard in the file was green on all four.
+
+**The end card was three sizes too big and the address ran off the frame.** The
+block carries a `max-width` so the safe area check measures ink rather than the
+frame, and at the 100px probe size that clamp is what the measurement returned:
+the fit divided 300 by 400 instead of by 557. The clamp comes off while the probe
+is up and goes straight back on.
+
+**The last frames of the stretch he is missing from were clean white paper.** The
+fault's envelope decays to nothing by nine tenths of the way through, which is
+right for a fault that ends and wrong for one that hands over to the next hit. A
+window that runs into the next now has a floor under it. The liveness guard did
+not catch it because the signature reads the mascot's channels, which go on moving
+while he is invisible.
+
+**The mark read as pink.** It was fading in over 0.10s so the fault frames caught
+it at a third of its opacity, and it was getting the ink's full split. Its birth
+is a frame now and its split is 0.42.
+
+**The mark had stopped turning for the last second and a half.** `GLIDE`'s second
+control point sits at one, and **every bezier that ends there arrives at zero
+speed** — which is worth knowing on its own, because it is true of every eased
+move in this repo that runs to the end of a clip. The turn runs on a bezier whose
+second control point is 0.82 instead, so it is still moving when the clip runs
+out.
+
+### 2026-09-02 — a chained glitch window, because two windows snapped to a grid do not necessarily touch
+
+post14 needs the stretch the mascot is missing from to have no clean frame in it,
+so the first fault has to end exactly where the second begins. Written as two
+lengths and snapped separately to the frame grid, they do not: at sixty the
+first's own length rounded to 1.633 and the second's start rounded to 1.617, which
+is an overlap, and at twelve they happened to meet. So a window may be declared
+`chain`, and its end **is** the next one's start, at whatever rate is rendering.
+
+### 2026-09-02 — post14's limiter ceiling wins over the loudness target, and the wav ceiling is lower than the guard
+
+Two mix decisions and both are post12's argument in a new shape.
+
+**The ceiling won.** This read has 17 dB of crest on it, so the last three
+decibels of -14 LUFS are bought entirely with limiting: the pass that reaches
+-15.5 costs 4.6 dB of gain reduction and every one after it costs a whole decibel
+more for a fifth of a decibel of loudness. That is not louder, it is denser, and
+on ten seconds of one voice it is audible as pumping. The loop stops at the last
+pass inside 5 dB rather than at the one closest to target, and the run prints
+which of the two decided the gain.
+
+**And the loop works to a lower ceiling than the guard reads.** The guard reads
+the mp4 and the loop writes a wav, and aac is a lossy round trip that overshoots
+the samples it was made from: the first render came back at -0.9 dBTP on a file
+the limiter had held at -1.0. The loop targets -1.5 on the wav now. Half a decibel
+of headroom is what it costs, and it is worth writing down because every clip in
+here measures loudness on the mp4 and limits on a wav.
 
 ### 2026-09-01 — the mascot gets a hand, and it is opt in because the face is finished
 
@@ -5356,6 +5545,16 @@ of them.
   three tags per platform, none of them decided. And it owes **a track** — the
   clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
   now seven clips behind and still unbuilt.**
+- **post14, "the fable 5.1 news flash", is built at 60fps and not posted** —
+  2026-09-02, `demo/post14.mjs`. 9.95s, light, out to
+  `demo/out/post14-light-1080x1920.mp4`, every check passing and the video-review
+  pass clean after four fixes. It owes **a posting pack** — caption, tweet and
+  three tags per platform, none decided — and it owes **a call on whether
+  `demo/assets/anthropic-logo.png` gets committed**, which is a public repo
+  question rather than a build one. **It is the one clip on the shelf with a
+  clock on it**: it is about somebody else's release and it is worth less every
+  day it sits. It jumped post3 as well, so **post3, "missed calls", is now eight
+  clips behind and still unbuilt.**
 - **Parked and not queued: the `unterberg.ai` direction**- **Parked and not queued: the `unterberg.ai` direction** — fake ui mockups in the
   paper style, big type end cards, and the comment magnet loop. Studied 2026-08-27,
   written up under Socials, **discuss before building.** The third one cannot start
