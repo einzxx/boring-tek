@@ -204,23 +204,28 @@ const LOGO = {
 };
 
 /* ---------- the end card ----------
-   post11's light end card, unchanged in shape: THE / BORING / TEK stacked on
-   three lines the way the logo is actually drawn and the way index.html sets
-   it, with the address under it in the lockup subline's treatment, and nothing
-   else on it.
+   THE / BORING / TEK stacked on three lines the way the logo is actually drawn
+   and the way index.html sets it, and **nothing else on it.**
 
-   `centreY` is not the middle of the frame. the mark is still turning at the
-   top of it and the caption band is still under it, so the group is centred in
-   the room between the two: the sweep reaches 210 css and the tallest caption
-   reaches 432, so 320 is the middle of what is left. */
+   post11, post12 and post13 all put the address under the wordmark in the
+   lockup subline's treatment, which is the one place the brand allows michroma
+   small. this one does not. the address was there and it is gone: at 190 css
+   wide it is 11 css px of type, which is 18 device px of cap on a phone —
+   legible if you go looking, invisible if you are scrolling, and it was the
+   only thing on the card asking to be read that could not be. what is left is
+   three words at 66 device px of cap, which anybody can read from across a
+   room, and the brand name is the thing the last frame is for.
+
+   it also takes the two numbers that were about the pair of them out of the
+   file: there is no gap to keep between two blocks and no second width to fit,
+   so the group **is** the wordmark and centring it is one measurement rather
+   than three. */
 const END = {
   /* the width `BORING` occupies, in css px. smaller than post11's 330 because
      this frame is fuller than that one: the mark is turning at the top and the
      mascot is in his corner at the bottom. 240 puts the caps at 66 device px,
      which is over post13's own 56 floor with room to spare. */
   wordmarkW: 240,
-  domW: 190,
-  gap: 30,          /* clear air between the wordmark block and the address */
   /* ---------- the middle of the frame, and it is the frame's ----------
      it was 325, which is the middle of the room between the mark's sweep and the
      caption band, and on a rendered frame that reads as an end card sitting high
@@ -229,8 +234,8 @@ const END = {
      540x960 makes that 480, and it is the **frame's** middle rather than the
      safe band's, which is 470: the platforms take more off the bottom than the
      top, and a wordmark nudged up by five pixels to satisfy that is a wordmark
-     nobody centred. 480 with a 190 css group spans 385..575, which is clear of
-     the mark's sweep by 130 and of the mascot's corner by 135.
+     nobody centred. 480 with a 150 css group spans 405..555, which is clear of
+     the mark's sweep by 151 and of the mascot's corner by 155.
 
      what it costs is that the group now sits **where the captions are**, so the
      end card may not arrive until the last card is gone. that is derived in
@@ -1259,10 +1264,10 @@ ${mascotCss(mas)}
 }
 
 /* ---- the end card ----
-   post11's, on the light page. both blocks hug their own ink rather than
-   spanning the frame: a full width box reports the frame's own edges back to
-   the safe area check and proves nothing about where the letters are. the three
-   lines are three blocks in one element so the group can be centred by
+   post11's, on the light page, minus its address. the block hugs its own ink
+   rather than spanning the frame: a full width box reports the frame's own edges
+   back to the safe area check and proves nothing about where the letters are.
+   the three lines are three blocks in one element so the group can be centred by
    measuring one height, and 1.16 is the site's own stacked lockup leading. */
 .end{position:absolute; left:50%; text-align:center; opacity:var(--end-o,0);
   z-index:4; pointer-events:none; width:max-content;
@@ -1271,9 +1276,6 @@ ${mascotCss(mas)}
   text-transform:uppercase; letter-spacing:0; line-height:1.16; white-space:nowrap;
   transform:translate(-50%,-50%) scale(var(--end-s,1))}
 #end-wm span{display:block}
-#end-dom{font-family:var(--display); font-weight:400; color:var(--sub);
-  text-transform:uppercase; letter-spacing:.18em; line-height:1; white-space:nowrap;
-  text-indent:.18em; transform:translate(-50%,-50%) scale(var(--end-s,1))}
 
 /* ---- the tear ----
    bands of ink slammed across the frame and offset sideways. on black post12
@@ -1323,7 +1325,6 @@ ${THOUGHT.dots.map((d, i) => '  <div class="t-dot" data-tdot="' + i
     </div>
   </div>
   <div class="end" id="end-wm"><span>the</span><span>boring</span><span>tek</span></div>
-  <div class="end" id="end-dom">theboringtek.com</div>
 ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' + i + '"></div>').join('\n')}
   <img id="logo" src="/logo.png" alt="">
   <div class="noise" aria-hidden="true"></div>
@@ -1372,7 +1373,6 @@ function scenePage() {
   const bub = document.getElementById('m-bubble');
   const logo = document.getElementById('logo');
   const wm = document.getElementById('end-wm');
-  const dom = document.getElementById('end-dom');
   const tears = [...document.querySelectorAll('.tear')];
   const tdots = [...document.querySelectorAll('.t-dot')];
   const mdots = [...document.querySelectorAll('.m-dot')];
@@ -1402,42 +1402,40 @@ function scenePage() {
          the fit divided 300 by 400 instead of by 557 and came back with a
          wordmark three sizes too big. it is restored immediately, so nothing
          downstream sees it off. */
-      const wmClamp = wm.style.maxWidth, domClamp = dom.style.maxWidth;
-      wm.style.maxWidth = 'none'; dom.style.maxWidth = 'none';
+      const wmClamp = wm.style.maxWidth;
+      wm.style.maxWidth = 'none';
       wm.style.fontSize = '100px';
       const wmSize = 100 * P.END.wordmarkW / widest(wm);
       wm.style.fontSize = wmSize.toFixed(2) + 'px';
-      dom.style.fontSize = '100px';
-      const domSize = 100 * P.END.domW / dom.getBoundingClientRect().width;
-      dom.style.fontSize = domSize.toFixed(2) + 'px';
-      wm.style.maxWidth = wmClamp; dom.style.maxWidth = domClamp;
+      wm.style.maxWidth = wmClamp;
 
-      const wmH = wm.getBoundingClientRect().height;
-      const domH = dom.getBoundingClientRect().height;
-      const total = wmH + P.END.gap + domH;
-      const top = P.END.centreY - total / 2;
-      wm.style.top = (top + wmH / 2) + 'px';
-      dom.style.top = (top + wmH + P.END.gap + domH / 2) + 'px';
+      /* the group is the block, so its centre is the centre it was given. the
+         translate is what puts it there: the element's own top is set to the
+         line its middle should sit on and `translate(-50%,-50%)` does the rest,
+         which is one number rather than a stack of three. */
+      const total = wm.getBoundingClientRect().height;
+      wm.style.top = P.END.centreY + 'px';
 
       const cv = document.createElement('canvas').getContext('2d');
       const cs = getComputedStyle(wm);
       cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
       const m = cv.measureText('H');
 
-      /* where the group actually landed. both blocks are translated by half
-         their own size to sit on the line they were given, so the only honest
-         way to ask where the group is is to measure the two rects the browser
-         produced rather than to do the arithmetic again on this side. */
-      const wr = wm.getBoundingClientRect(), dr = dom.getBoundingClientRect();
+      /* where the group actually landed. it is translated by half its own size
+         to sit on the line it was given, so the only honest way to ask where it
+         is is to measure the rect the browser produced rather than to do the
+         arithmetic again on this side — which is the mistake this check was
+         making when there were two blocks in it. */
+      const wr = wm.getBoundingClientRect();
 
       const lr = logo.getBoundingClientRect();
       return {
         end: {
-          wmSize: +wmSize.toFixed(2), domSize: +domSize.toFixed(2),
+          wmSize: +wmSize.toFixed(2),
           capPx: +((m.actualBoundingBoxAscent || 0) * P.DSF).toFixed(1),
           font: cv.font, totalCss: +total.toFixed(1),
-          groupTop: +wr.top.toFixed(2), groupBottom: +dr.bottom.toFixed(2),
-          groupMid: +((wr.top + dr.bottom) / 2).toFixed(2),
+          groupTop: +wr.top.toFixed(2), groupBottom: +wr.bottom.toFixed(2),
+          groupMid: +((wr.top + wr.bottom) / 2).toFixed(2),
         },
         /* the panel, as it actually drew. the two numbers that matter are the
            cap height of the line, which is the only unit a "does it read at
@@ -1494,7 +1492,7 @@ function scenePage() {
        than on the row that centres them. */
     endSafe() {
       const out = [];
-      for (const el of [wm, dom]) {
+      for (const el of [wm]) {
         const r = el.getBoundingClientRect();
         out.push({
           left: +(r.left * P.DSF).toFixed(1), top: +(r.top * P.DSF).toFixed(1),
@@ -1713,8 +1711,9 @@ async function render(cap, mas, v, N, SECONDS) {
     + ' natural, drawn ' + built.logo.drawnW + 'x' + built.logo.drawnH + ' css ('
     + (built.logo.drawnW * DSF) + ' device px), filter ' + built.logo.filter);
   console.log('  the end card: wordmark ' + built.end.wmSize + 'css px, caps '
-    + built.end.capPx + ' device px, address ' + built.end.domSize + ', group '
-    + built.end.totalCss + 'css tall, centred on ' + END.centreY);
+    + built.end.capPx + ' device px, no address, ' + built.end.totalCss
+    + 'css tall, its own middle on ' + built.end.groupMid + ' against a frame middle of '
+    + VH / 2);
 
   /* the head's clearance, off every frame rather than sampled, because the
      geometry is known and it costs nothing to do it properly. both placements

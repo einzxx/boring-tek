@@ -15,7 +15,12 @@ names in here either.
   signal tears twice and he is back in his corner at his ordinary size, the
   anthropic logo glitches in at the top and turns once over the rest of the clip,
   and three facts are read warm and quick over captions in the middle of the
-  frame. Then post11's light end card.
+  frame. Then the wordmark, stacked on three lines, centred on the middle of the
+    frame, **with no address under it** — the one thing this clip drops that
+    post11, post12 and post13 all carry, and the note under Decisions says why.
+  - **The end card is the wordmark and nothing else.** No `theboringtek.com`
+    under it: at 18 device px of cap it was the only thing on the card asking to
+    be read that could not be. See the decision.
   - **It shipped at 9.95s and a fix round took it to 13.03s.** Five notes, and
     every one of the 3.08 seconds is one of them: the opening holds 2.52s with
     the thought on the ordinary bubble profile and **three** dots climbing a
@@ -2076,6 +2081,31 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-02 — post14's end card drops the address, and the reason is a cap height
+
+post11, post12 and post13 all end on the wordmark stacked three lines with
+`theboringtek.com` under it in the lockup subline's treatment, which is the one
+place the brand allows michroma small. post14 does not.
+
+**At 190 css wide the address is 11 css px of type, which is 18 device px of cap
+on a phone.** The floor every piece of copy in this repo is held to is 32, and
+the address has never been held to it — post11's is 12 css px and passes because
+the guard only ever read the wordmark. It is legible if you go looking for it and
+invisible if you are scrolling, which makes it the only thing on the last frame
+asking to be read that cannot be. Three words at 66 device px can be read from
+across a room, and the brand name is what the last frame is for.
+
+**It is not a general rule and the other three clips keep theirs.** They are
+darker, slower and longer, and post11 in particular spends a whole line of its
+read on saying the address out loud, so the card is a reminder of something the
+viewer already heard. This one never says it. A line nobody can read, of an
+address nobody was told, is decoration.
+
+What it buys back is arithmetic: there is no gap to keep between two blocks and
+no second width to fit, so the group **is** the wordmark, its centre is the
+centre it was given, and the check that it lands on the middle of the frame is
+one measured rect rather than three numbers added up twice.
 
 ### 2026-09-02 — post14's second cut: five notes, 3.08 seconds, and what each one bought
 

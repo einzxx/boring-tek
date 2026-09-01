@@ -3561,12 +3561,21 @@ Measured on the takes: 2.73 to 4.67 words a second against a flat 2.3, gaps of
 | the mark | centred on `270,156`, 76 square, sweeping a 107 css circle |
 | the caption band | `70,320`, `400x210`, bottom anchored, ink about 490..530 |
 | the mascot | bottom left, the module's own placement, 240 device px of head |
-| the end card | centred on 325, `BORING` 240 css wide, the address 190 under it |
+| the end card | centred on 480, `BORING` 240 css wide, and nothing under it |
 
 **The end card is smaller than post11's 330** because this frame is fuller than
-that one: the mark is turning at the top and the last caption is still leaving at
-the bottom, so the group has about 230 css px of room rather than the whole
-frame. 240 puts the caps at 66 device px against post13's own 56 floor.
+that one: the mark is turning at the top and the mascot is in his corner at the
+bottom. 240 puts the caps at 66 device px against post13's own 56 floor.
+
+**And there is no address under it.** post11, post12 and post13 all put
+`theboringtek.com` below the wordmark in the lockup subline's treatment, which is
+the one place the brand allows michroma small. This one does not: at 190 css wide
+that line is 11 css px of type, which is 18 device px of cap on a phone —
+legible if you go looking for it, invisible if you are scrolling, and the only
+thing on the card asking to be read that could not be. What is left is three
+words at 66 device px, which reads from across a room. It also takes the two
+numbers that were about the pair of them out of the file, so the group **is** the
+wordmark and centring it is one measurement rather than three.
 
 **And the fit had a bug in it that only a frame could show.** The block carries a
 `max-width` so the safe area check measures ink rather than the frame, and at the
