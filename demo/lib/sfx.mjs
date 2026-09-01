@@ -585,7 +585,160 @@ export const VOICES = {
     }
     return ends(normalise(bp(b, 180, 7000)), 4);
   },
+
+  /* ---------- the seventeenth: one syllable of the mumble ----------
+     post13's whole soundtrack, one pulse at a time. the brief asks for the
+     teacher in an old cartoon: bla bla bla, low, wobbly, syllable like pulses,
+     and never a word.
+
+     **that voice is a trombone with a plunger over the bell**, and the thing
+     that makes it read as speech without being speech is not the pitch, it is
+     the **formants** — the two resonances a mouth puts on a buzz, which move
+     while the mouth moves and which are the whole of what a vowel is. so this
+     is a formant synth rather than a filtered oscillator: a buzz of sixteen
+     harmonics of a low `f0`, each one weighted by two gaussian windows sitting
+     on `f1` and `f2`, and both windows **slide** across the syllable. slide
+     them from one vowel toward another and the ear hears a mouth changing
+     shape, which is a syllable. hold them still and it is a chord.
+
+     four things keep it a mumble rather than a word.
+
+     **it is low.** `f0` sits at about 130 hertz, which is a chest voice, and
+     `lpHz` is 1150 — under the second formant of most vowels and well under
+     every consonant there is. a consonant is a burst of top end and there is no
+     top end here to put one in, so it can never accidentally say something.
+
+     **it wobbles.** a slow sine on `f0` and a second one on the formants, on
+     periods that are not multiples of each other, so no two hundredths of it
+     are the same. a steady formant pair is a synthesiser saying aaah.
+
+     **every syllable is a different shape.** `shape` indexes a small table of
+     vowel moves and the clip walks it, so consecutive pulses are bla, bleh,
+     bluh rather than one buffer repeated. that is one integer, and it is what
+     stops the mumble reading as a loop.
+
+     **and it has no attack.** twenty milliseconds in and forty out, both on a
+     raised cosine. a syllable of speech starts with a mouth opening, which is a
+     swell; a click at the front would be a consonant, and the moment there is a
+     consonant there is a word.
+
+     `len` is the caller's, and post13 hands it the length of the hand's own
+     open, so the sound lasts exactly as long as the mouth is doing something. */
+  mumble({ len = 0.24, shape = 0, f0 = 132, bend = 0.14, harmonics = 16,
+    wobHz = 5.6, wobDepth = 0.045, fWobHz = 3.7, fWobDepth = 0.06,
+    bw1 = 190, bw2 = 260,
+    lpHz = 1150, attack = 0.020, release = 0.040 } = {}) {
+    const N = MUMBLE_VOWELS.length;
+    const V = MUMBLE_VOWELS[((shape % N) + N) % N];
+    const b = n(len);
+    let ph = 0, wp = 0, fp = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = i / b.length;
+      wp += 2 * Math.PI * wobHz / SR;
+      fp += 2 * Math.PI * fWobHz / SR;
+      /* the pitch bends across the syllable the way an unstressed one does, and
+         the direction comes off the vowel table, so a run of them has a contour
+         over several syllables rather than one shape repeated. */
+      const f = f0 * (1 + bend * V.bend * q) * (1 + wobDepth * Math.sin(wp));
+      ph += 2 * Math.PI * f / SR;
+      const w = 1 + fWobDepth * Math.sin(fp);
+      const F1 = (V.f1[0] + (V.f1[1] - V.f1[0]) * q) * w;
+      const F2 = (V.f2[0] + (V.f2[1] - V.f2[0]) * q) * w;
+      let s = 0;
+      for (let k = 1; k <= harmonics; k++) {
+        const hz = f * k;
+        if (hz > SR / 2) break;
+        const g1 = Math.exp(-Math.pow((hz - F1) / bw1, 2));
+        const g2 = Math.exp(-Math.pow((hz - F2) / bw2, 2)) * 0.55;
+        /* a buzz falls off about six dB an octave before a mouth ever gets to
+           it, which is the 1/k. the formants are what put it back. */
+        s += Math.sin(ph * k) * (g1 + g2 + 0.05) / k;
+      }
+      const env = hump(Math.min(1, i / (attack * SR)) * 0.5)
+        * hump(Math.min(1, (b.length - i) / (release * SR)) * 0.5);
+      b[i] = s * env;
+    }
+    return ends(normalise(lp(b, lpHz)), 4);
+  },
+
+  /* ---------- the eighteenth: the tired sigh ----------
+     a small robot letting the air out. `hi` is two notes going up; this is one
+     note coming down, which is the same voice saying the opposite thing. that
+     is the whole design, and it is why it is not a new instrument.
+
+     it falls a long way, about 560 hertz to 300, and the fall is **fast first
+     and slow after** — `q` to the power of 0.62 rather than `q` — because that
+     is what running out of something sounds like. the envelope has no attack
+     worth the name and a long tail, so it sags rather than beeps. a small
+     vibrato dies out across it, which is a sound running out of energy rather
+     than being switched off, and there is a whisper of noise under it at a
+     tenth of the level, which is the breath. that noise is the only one in this
+     file outside a glitch and a whoosh, and at that level it is felt rather
+     than heard.
+
+     low passed at 2400, under the house ceiling and well under the giggle's,
+     because a sigh with any brightness in it is a whistle. */
+  sigh({ len = 0.40, f0 = 560, f1 = 300, third = 0.22, breath = 0.10,
+    vibHz = 6.5, vibDepth = 0.028, lpHz = 2400, seed = 0x6ac194 } = {}) {
+    const b = n(len), rnd = noise(seed);
+    let ph = 0, vp = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = i / b.length;
+      vp += 2 * Math.PI * vibHz / SR;
+      const drop = Math.pow(q, 0.62);
+      const vib = 1 + vibDepth * (1 - q) * Math.sin(vp);
+      ph += 2 * Math.PI * (f0 + (f1 - f0) * drop) * vib / SR;
+      const env = hump(Math.min(1, q / 0.14) * 0.5) * Math.pow(1 - q, 1.3);
+      b[i] = (Math.sin(ph) + Math.sin(ph * 3) * third + rnd() * breath) * env;
+    }
+    return ends(normalise(lp(b, lpHz)), 4);
+  },
+
+  /* ---------- the nineteenth: the annoyed beep ----------
+     two flat notes, the second a tone under the first, forty milliseconds
+     apart. **flat is the point.** every other voice in this file glides, and a
+     thing that refuses to glide reads as a thing that cannot be bothered. it is
+     the sound of `unimpressed`, which is the state it plays over.
+
+     the waveform is a sine with a square blended into it at `edge`, which puts
+     the odd harmonics in without the buzz a whole square would carry: enough
+     grain to read as irritation, not enough to read as a fault. low passed at
+     3000, which keeps it inside the set. */
+  annoyed({ one = 0.052, gap = 0.040, two = 0.062, f0 = 430, ratio = 0.89,
+    edge = 0.32, third = 0.18, tau = 0.045, lpHz = 3000 } = {}) {
+    const b = n(one + gap + two);
+    const note = (from, dur, hz) => {
+      const a0 = Math.round(from * SR), nn = Math.round(dur * SR);
+      let ph = 0;
+      for (let i = 0; i < nn && a0 + i < b.length; i++) {
+        ph += 2 * Math.PI * hz / SR;
+        const s = Math.sin(ph);
+        b[a0 + i] += (s * (1 - edge) + (s > 0 ? edge : -edge) + Math.sin(ph * 3) * third)
+          * decay(i, tau) * Math.min(1, i / (0.003 * SR));
+      }
+    };
+    note(0, one, f0);
+    note(one + gap, two, f0 * ratio);
+    return ends(normalise(lp(b, lpHz)), 3);
+  },
 };
+
+/* ---------- the vowels the mumble walks ----------
+   four moves rather than four vowels, because a syllable is a mouth changing
+   shape and a still mouth is a hum. each row is where the two formants start
+   and where they end, in hertz, plus which way the pitch bends across it.
+
+   these are the ordinary places for these vowels in a low male voice, pulled
+   together a little on purpose: real speech separates them further, and this
+   has to read as *nearly* words. take `f2` past about 1300 and the ear starts
+   hearing an "ee", which is specific enough that the next thing it wants is a
+   consonant. */
+const MUMBLE_VOWELS = [
+  { f1: [430, 320], f2: [1020, 800], bend: 1 },     /* uh toward oo */
+  { f1: [330, 540], f2: [820, 1150], bend: -1 },    /* oo toward ah */
+  { f1: [540, 400], f2: [1180, 920], bend: 1 },     /* ah toward uh */
+  { f1: [370, 480], f2: [780, 1080], bend: -0.5 },  /* oh toward eh */
+];
 
 /* ---------- the four farts ----------
    options for `VOICES.fart`, and `parp` is what the function already defaults
@@ -689,6 +842,19 @@ export const GAINS = {
      glitch is the loudest in the set after the coin, because it is a cut and a
      cut is meant to make you flinch. */
   hi: -26, fart: -27, giggle: -25, glitch: -23,
+
+  /* ---------- and post13's three, which are a bed and two punctuation marks --
+     the mumble is not an effect, it is the floor of that clip: thirteen
+     syllables end to end under everything else. so it sits four decibels under
+     the giggle and five under the glitch, which is where a thing you are meant
+     to stop hearing after two seconds belongs. it is also the only sound in
+     this file that plays more than a dozen times in five seconds, which is the
+     same argument `key` is set on and the same answer.
+
+     the sigh and the annoyed beep are the two moments he is a character rather
+     than a noise, so they are over the bed by three and four decibels — enough
+     to be an event against it, not enough to be the glitch. */
+  mumble: -29, sigh: -26, annoyed: -25,
 };
 const db = v => Math.pow(10, v / 20);
 export const dbfs = v => (v <= 1e-9 ? -Infinity : 20 * Math.log10(v));

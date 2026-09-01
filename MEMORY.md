@@ -6,6 +6,39 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-01: `demo/post13.mjs`, the thirteenth clip, the yap. 4.98s,
+  1080x1920, dark only, out to `demo/out/post13-dark-1080x1920.mp4`.**
+  post12 is a joke about a robot; this is a joke about us. The mascot talks and
+  talks and gets tired of his own talking. **He has no mouth, so a hand stands in
+  for one** — it sits low on the face where a mouth would be and yaps under a
+  `when ai is tired of humans` label while his eyes go from alive to a slow blink
+  to narrow to drooped to one of them rolling off to the side looking for an
+  exit. Then post12's tear takes him and the label off and puts the wordmark up
+  for 1.40s.
+  - **The hand is `lib/mascot.mjs`'s, not the clip's, and it is opt in and off by
+    default.** `hand: true` on the plan and `yap: true` on a mark. It is anatomy,
+    and a clip that drew its own mouth would be a clip that invented a face.
+  - **Every clip written before it renders unchanged, and proving that turned out
+    to be two claims needing two proofs.** The module is byte identical — 9,063
+    frames of `mascotFrame` at sixty across thirty plans, plus every plan, css,
+    markup, page plan and report. The *render* is not byte identical and never
+    was: this renderer varies run to run. See the decision.
+  - **Three new voices in `lib/sfx.mjs`, now nineteen sounds**: `mumble`, `sigh`
+    and `annoyed`. The mumble is a formant synth rather than a filtered tone, and
+    one syllable fires per yap cycle, for exactly as long as that cycle's mouth
+    is open. Nothing existing in the module moved.
+  - **The brief's five eye beats went onto three marks**, because a fourth mark
+    is 1.06s of floor the clip does not have. The slow blink is the one beat that
+    could not go where the brief puts it and it comes off the idle layer with a
+    chosen seed instead. See the decision.
+  - **4.98s against a four to five second brief**, which is the first clip in a
+    while to land inside its own length brief. `-16.2 LUFS integrated, true peak
+    -1.6 dBFS`. **The 60fps final rendered green with the shutter open at four
+    subframes to a frame.**
+  - Outstanding: a posting pack, and the fact that **the hand reads as a mouth
+    rather than as a hand** — it passes the brief's own acceptance test and the
+    review says the rest plainly.
+
 - **Built 2026-09-01, then reworked twice the same day: `demo/post12.mjs`, the
   twelfth clip, the sting. 5.55s, 1080x1920, dark only, out to
   `demo/out/post12-dark-1080x1920.mp4`.**
@@ -47,7 +80,7 @@ names in here either.
       and there is now a guard saying there is exactly one white frame in the
       clip.
     - **The end card holds 1.40s rather than 0.40.**
-  - **`lib/sfx.mjs` grew four voices and is now sixteen sounds**: `hi`, `fart`,
+  - **`lib/sfx.mjs` grew four voices and was sixteen sounds after this clip**: `hi`, `fart`,
     `giggle` and `glitch`. They are the first four in that file that stand in for
     a character rather than for paper, ink, metal or a mechanism — `chirp` opened
     that door in post11 and these walk through it. Nothing existing in the module
@@ -1737,7 +1770,14 @@ motion engine and is the only dependency any of this has gained since. Full deta
   over in eight and a sound that outlasts its own move is a sound the viewer
   starts listening to. It sits at -26dB, with the click rather than with the
   coin: it is a mechanism acknowledging an instruction, not an object landing.
-- **`lib/sfx.mjs` has twelve sounds since 2026-08-30, not nine.** `key` and `press`
+- **`lib/sfx.mjs` has nineteen sounds since 2026-09-01.** Twelve furniture, seven
+  character: post12 added `hi`, `fart`, `giggle` and `glitch`, post13 added
+  `mumble`, `sigh` and `annoyed`. The seven are the only ones allowed to be funny
+  and the rule that keeps them in the house is that none of them is bright — the
+  giggle is the highest and it is still low passed under four kilohertz. `mumble`
+  is the only formant synth in the file and it is the only one that had to be:
+  what makes a noise read as speech is two resonances moving, not a pitch.
+- **It had twelve since 2026-08-30, and nine before that.** `key` and `press`
   are both the `click` recipe resized. `key` is one keystroke: three and a half
   milliseconds of noise banded 1.3k to 4.2k for the cap and a 124Hz pulse under it for
   the board, gone in 55ms, at -34dB, which is under the sweep because it is the only
@@ -1827,7 +1867,16 @@ read. **The three style test clips were re-rendered** against the changed engine
 
 - **`demo/lib/mascot.mjs` — the mascot reactor, added 2026-08-30.** A rig, not a sprite
   sheet: a card, two eyes with independent x, y and both scales, two lids, two brows, a
-  shadow and a glow, all of them channels on one gsap timeline.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
+  shadow and a glow, all of them channels on one gsap timeline. **And, since
+  2026-09-01, a hand — opt in, off unless a plan says `hand: true`.** He has no
+  mouth and the page spec says he never will, so when a clip needs him talking a
+  hand stands in for one: two flat slabs in the iris's own ink, hinged at a wrist
+  on the left of the face, the fingers held flat and the thumb tapping up and
+  down under them. `yap: true` on a mark runs the loop from that mark to the next
+  one and `plan.yap` comes back as a list of cycles with their own times, which
+  is what lets a clip put a syllable of sound on the frame the mouth opens on.
+  **With it off nothing about this module changes** and that is asserted rather
+  than claimed — see the decision.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
   frames from the mark to the arrival, then how far past the mark it goes, then
   the settle: `neutral` 0f / 7f / +10.7% / 150ms, `curious` 5f / 12f / +13.1% /
   167ms, `surprised` 6f / 11f / +14.2% / 233ms, `thinking` 4f / 12f / +12.5% /
@@ -1977,6 +2026,192 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-01 — the mascot gets a hand, and it is opt in because the face is finished
+
+post13 needs him to be *talking*, and the head is a plate and two slabs and the
+page spec says so. A mouth is the one piece of anatomy that would turn a face
+into a character, so a **hand stands in for one**: two flat slabs hinged at a
+wrist, low on the face where a mouth would be, a little off centre, opening and
+shutting. That is the yawning emoji's gesture and it reads as a mouth for the
+same reason that one does.
+
+**It went into `lib/mascot.mjs` rather than into the clip, and it is off unless a
+plan says `hand: true`.** In the module because it is anatomy: a clip that drew
+its own mouth would be a clip that invented a face, and the next clip would
+invent a different one. Off by default because eleven clips were written against
+this module before it existed and none of them should move.
+
+**Three things a rendered frame corrected, and they are the whole design.**
+
+- **The fingers barely move and the thumb does the work.** Opening the two slabs
+  by similar amounts makes a chevron, and a chevron on a face is an arrowhead:
+  two cuts came back reading as `>` and then as `<`. What a yapping hand actually
+  does is asymmetric — the four fingers are held flat and the thumb taps up and
+  down underneath, which is why the gesture reads as a jaw at all. Fingers 6
+  degrees, thumb 35. It costs nothing in gape, because the gape is the sum.
+- **The wrist is on the left and the hand points right**, the way the emoji holds
+  it, so the fingertips point across the face and the opening faces the empty
+  half of the chin.
+- **It is centred two units left of the face's own centre and under both eyes.**
+  The first placement was under the left eye with the right half of the chin
+  empty and it read as a stray mark.
+
+**The pop curve is the wrong curve for a gesture that repeats**, and that is the
+mechanically interesting fault. The first cut opened on `btk.pop`, which is what
+every state's entrance arrives on and which the brief's "house easing, small
+overshoot" points straight at. Pop reaches 1.1 by 36% of its own duration, so
+over an 85ms open at sixty it puts the whole move into **one frame** — measured,
+the gape went 0.05 to 0.89 between two consecutive frames. Pop is written for a
+move that happens once and is allowed to snap. The open is on `drift` to 8% past
+the gape with a second tween bringing it back: same read, same house easing, and
+the speed is now a number in a table rather than a property of a curve tuned for
+something else.
+
+**The yap is a plan, not a repeat.** Every cycle is written down with its own
+times before a browser opens, because a clip puts one syllable of mumble on each
+cycle's own start and an infinite gsap repeat has no times in it to read — and
+because consecutive marks that both yap have to be one continuous mumble, so the
+windows are merged before the cycles are laid across them.
+
+**One thing it does not clear: `surprised`.** That state takes an eye to two and
+a half times its height and brings its lower edge to 43.3 grid units, about half
+a unit into the fingers at a full gape. Written down beside `HAND` rather than
+guarded — no clip pairs a startled face with a talking one, and the honest fix is
+a bigger grid.
+
+### 2026-09-01 — "renders unchanged" is two claims, and a hash answers neither
+
+The hand is opt in and the promise attached to that is that every clip written
+before it renders exactly as it did. **Proving it turned out to be the most
+interesting part of the change**, because "exactly" is two different claims.
+
+**The module half is exact and it is easy.** `demo/out/handoff-diff.mjs` imports
+the module as it was — a copy out of git history — and the module as it is, and
+compares thirty plans covering every state, both themes, the turn at both ends, a
+bubble, a run of bubbles, a card radius, a caption band, post11's seed and
+post12's own centred plan. The whole plan as json, **every frame at sixty as
+json**, the motion report, the css, the markup, the page plan and both printed
+summaries. 9,063 frames, byte identical. The only differences are the three keys
+the change adds and each is asserted to be off. `mascotRuntime` legitimately
+differs by about 1,700 characters — the page half now looks for a hand element —
+and on a page with no hand in the markup that lookup returns null.
+
+**The render half is not exact, because this renderer is not deterministic.**
+post12 rendered twice with nothing changed at all comes back with different
+bytes. Two causes, both outside the module: headless Chrome's thirty pixel
+gaussian behind the head lands a least significant bit either way, and the load
+loop spins on a real network fetch for Michroma, so the page becomes ready after
+a whole number of virtual steps that is not always the *same* whole number —
+which slides the vignette's css animation and re-dithers its gradient.
+
+**Two wrong instruments came first and both gave confident answers.**
+
+*A hash.* It said all thirteen artefacts changed. It says that when nothing has
+changed, so it says nothing. Two of the thirteen then looked like a real
+regression until the same two changed again between two runs of identical code.
+
+*The worst mse of a pair of runs.* Render four times on each module, compare
+every run against every other, ask whether the worst pair across the two groups
+is inside the worst pair within them. It said no, and it was wrong twice over.
+With four runs a group there are six pairs inside each group and sixteen across
+them, so the across side draws from the tail of the same distribution nearly
+three times as often. And mse is an average over two million pixels: it goes up
+when *more* pixels move by a hair, which is exactly what a re-dithered gradient
+does and is not the question.
+
+**The right instrument is the biggest single pixel difference.** A mascot off by
+a hundredth of a pixel puts hundreds of counts along the edge of a white disc on
+black. A gradient quantising differently puts one or two counts over a lot of the
+frame and never more. Over eight renders and 336 still comparisons: two runs of
+identical code differ by at most **2 counts of 255**, and runs across the change
+differ by at most **2 counts of 255**. Same ceiling both sides. A few per cent
+more of the frame dithers across the change — the longer served page biasing that
+load loop — and it lands on the vignette rather than on the face.
+
+The lesson is general and it is the one to keep: **before comparing two renders,
+find out what the renderer does to itself.** Every instrument here was measuring
+a real difference; only the last one was measuring the difference in question.
+
+### 2026-09-01 — a birth is a frame, and the preview could not see the fault
+
+post12's rule is that the wordmark is born on the same frame the mascot is cut,
+so the frame exchanges one thing for another and is never empty. It says that by
+setting `wmIn` to `END.at` and letting both round to a frame on their own — and
+**that only works when the rounding happens to go up.** post12's 4.06 at sixty
+rounds to frame 244 at 4.0667, which is after 4.06. post13's 3.49 rounds to frame
+209 at 3.4833, which is before — so the head went on 209, the wordmark started on
+210, and there was one frame of black with a bloom on it and nothing else. The
+exact fault post12 fixed by hand, back again by arithmetic on a different number.
+
+**The twelve frame preview could not see it**: at twelve, 3.49 rounds to 3.5,
+which is after, so the preview renders it correctly. It was caught on the sixty
+pass by the guard that says the wordmark must be born on the cut frame, which is
+written against `frameAt` rather than against the numbers in `END` — and that is
+the whole reason it is.
+
+The fix is `onGrid`'s own principle applied to a birth rather than to a burst:
+derive the ramp off the cut **frame** rather than off the cut time, at whatever
+rate is rendering, starting on the frame before it. Nought on the last frame he
+is on, already on for the frame he leaves, at twelve and at sixty, one source of
+truth, no rounding to get lucky with. **The general rule, and post12 should get
+it the next time it is touched: anything that has to land on the same frame as
+something else is a frame index, not a second.**
+
+### 2026-09-01 — post13's slow blink comes off the idle layer, and the arithmetic is why
+
+The brief's eye story is five beats: alive, a slow blink, narrow, droop half
+shut, one eye rolls off. Four of them are states or the turn channel. **The slow
+blink is not.**
+
+There is no slow blink in the state table on its own — the idle ones are a
+quarter of a second and this wants half — and the only one that exists is written
+into `unimpressed`, at 0.86 into its own hold. With three marks inside five
+seconds that lands at 3.28, which is under the stutters and half torn off by the
+hit. For it to finish before the fault starts, the clip would have to run 5.3
+seconds against a four to five second brief. A fourth mark costs 1.06s of floor,
+which is worse. The arithmetic is not close and it is not a judgement call.
+
+So the blink comes off the layer that already makes blinks. **The plan seed is
+chosen rather than default**, out of a search over forty thousand for a first
+idle blink that lands inside the neutral beat and sits at the slow end of
+`IDLE.blink`'s own ranges. Seed 63 puts it at 0.756s and it takes 0.3635s, within
+two thousandths of the longest blink the rig can generate and about half again
+the median. Two guards check the time and the length, so a seed changed for some
+other reason cannot quietly delete a beat.
+
+It is not a cheat — an idle blink is the mascot's own blink — and `unimpressed`
+still does its slow one at 3.40, where the tear catches it, so the last thing he
+does before the frame breaks is start to shut his eyes. That is a better ending
+than the one that was planned and it is an accident.
+
+### 2026-09-01 — post13's mumble is a formant synth, because a vowel is two resonances
+
+The brief asked for the teacher in an old cartoon: bla bla bla, low, wobbly,
+syllable like pulses, never a word. **That voice is a trombone with a plunger
+over the bell**, and the thing that makes a noise read as speech is not the
+pitch, it is the **formants** — the two resonances a mouth puts on a buzz, which
+move while the mouth moves and which are the whole of what a vowel is.
+
+So `mumble` is sixteen harmonics of a 132 Hz buzz, each weighted by two gaussian
+windows sitting on `f1` and `f2`, and both windows slide across the syllable.
+Slide them from one vowel toward another and the ear hears a mouth changing
+shape; hold them still and it is a chord. A filtered oscillator cannot do that,
+which is why every other sound in the file is one and this is not.
+
+Four things keep it a mumble rather than a word. It is **low** — the low pass is
+1150 Hz, under the second formant of most vowels and well under every consonant
+there is, so there is no top end to put one in. It **wobbles**, on two periods
+that are not multiples of each other. **Every syllable is a different shape** —
+`shape` indexes four vowel moves and the clip walks them. And it has **no
+attack**: 20ms in on a raised cosine, because a click at the front would be a
+consonant and the moment there is a consonant there is a word.
+
+**And it is on the mouth rather than on a grid.** Each syllable's start is a yap
+cycle's start and its length is that cycle's own `voiced`, so the sound lasts
+exactly as long as the gesture that makes it, no two syllables are the same
+length, and a guard asserts the pairing cue by cue. Same argument as
+`cuesFromCaptions`: derived, so there is nothing to keep in sync.
 
 ### 2026-09-01 — cutting post12's opening cost a mark, and found two guards reading the wrong thing
 

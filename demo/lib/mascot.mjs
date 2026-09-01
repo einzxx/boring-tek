@@ -385,6 +385,182 @@ export function shadowAt(lift) {
    blurred copies of the plate, so nothing glows that is not the head. */
 export const GLOW = { mid: { blur: 11, o: 0.20 }, wide: { blur: 30, o: 0.13 } };
 
+/* ---------- the hand ----------
+   **opt in, and off unless a plan says `hand: true`.** nothing in the markup,
+   the css, the timeline or the frame exists when it is off, so every clip
+   written before it renders exactly as it did — that is asserted rather than
+   hoped for, by diffing this module against its own previous version frame by
+   frame.
+
+   he has no mouth. the head is a plate and two slabs and the page spec says so,
+   and a mouth is the one piece of anatomy that would turn a face into a
+   character. so when a clip needs him to be *talking* rather than reacting, a
+   hand stands in for one: it sits low on the face where a mouth would be, a
+   little off centre, and it opens and shuts. that is the yawning emoji's
+   gesture, and it reads as a mouth for the same reason that one does — a hinged
+   pair of shapes opening and closing at the mouth line is a mouth, whatever it
+   is made of.
+
+   **it is two parts and one hinge.** the fingers are the long slab and the
+   thumb is the short one, both rounded to half their own height and both filled
+   with `--eye`, which is the ink the irises are drawn in: same colour, same
+   corner radius, same flat weight, so it belongs to the face rather than
+   sitting on it. there is no arm, no palm and no fifth finger. they overlap
+   `back` units past the hinge so the wrist is one shape rather than two bars
+   meeting.
+
+   at rest the pair lies almost flat and reads as a closed hand held up to the
+   face. open, the fingers swing up and the thumb drops, and the light of the
+   face shows between them as a wedge. **the gape is the face showing through**,
+   not a hole cut in it, which is what keeps the hand a hand.
+
+   the numbers are in grid units like everything else here, and they were placed
+   against the geometry rather than by eye: the hinge sits 19.2 units below the
+   plate's centre, which is midway between the eye line and the chin, and the
+   whole shape spans 18.0 to 37.0 across a plate whose centre is 32 — a little
+   left, the way the emoji holds it. at a full gape the fingers' far corner
+   still clears the eye above it by three and a half units and the thumb's
+   clears the silhouette by four, and `mascotFrame` measures both on every frame
+   against the same signed distance every other feature is measured with. */
+export const HAND = {
+  /* ---------- where it sits, and it was moved once ----------
+     the first placement had the wrist at 35.6 and the shape running out to 18,
+     which put the whole hand under the left eye with the right half of the chin
+     empty — and a rendered frame said what the geometry did not: it read as a
+     stray chevron rather than as a mouth. **a mouth is under both eyes.** it is
+     centred on 29.9 now, two grid units left of the face's own centre, which is
+     the emoji's off centre hold and is about ten device px at this head size:
+     enough to be a hand rather than a diagram, not enough to be a mark that
+     wandered off.
+
+     it also came up a unit and grew by three, and both are the same note. the
+     head is 60 units across and the hand now spans 20.5 of them, a third of the
+     face, which is the width of the two eyes and their gap. below the eye line
+     rather than beside it, and big enough that the shape it makes is the thing
+     you see rather than a detail on a white disc. */
+  /* **the wrist is on the left and the hand points right**, which is the second
+     thing a rendered frame corrected. with the wrist on the right the shape
+     opens away from the face's centre and reads as an arrowhead; with it on the
+     left the hand comes in from the cheek the way the emoji holds it, the
+     fingertips point across the face, and the opening faces the empty half of
+     the chin. same two slabs, same hinge, mirrored, and it is the difference
+     between a hand and a symbol. */
+  hinge: { x: 20.4, y: 48.5 },
+  /* the two slabs reach this far *behind* the hinge and overlap there, so the
+     wrist is one rounded lump rather than two bars meeting at a point. it is the
+     cheapest thing in this table and it is most of what stops the open pose
+     reading as a chevron. */
+  back: 2.6,
+  /* four fingers held together, so it is the longer and the thicker of the two,
+     and it is within half a unit of the eye's own height — same ink, same
+     weight, same rounding. the thumb is shorter and thinner because a thumb is. */
+  fingers: { len: 19.0, h: 4.6 },
+  thumb: { len: 14.6, h: 3.0 },
+  /* degrees, and **positive is up** in every one of them, which is the reading
+     the table is worth having. the slabs lie along +x from the hinge, so an svg
+     rotation by a positive angle would take the tip *down* — everything that
+     draws or measures the hand therefore turns by the negative of these, in one
+     place each, and the table stays in the units a person thinks in. shut is
+     not quite shut: three
+     degrees of gap is the difference between a hand held closed and a bar.
+
+     **the gape is asymmetric and the face is why.** the eyes sit at 38.5 and
+     the plate ends at 62, so there is nine units of room above the hinge before
+     the fingertip is in the eye and eleven below it before the thumb is off the
+     chin — and the plate is a circle, so the room below narrows fast as the
+     thumb also travels left. so the thumb does more of the opening than the
+     fingers do, which is also what a hand doing this actually does: the jaw
+     drops further than the fingers rise.
+
+     the two numbers were placed against those two limits rather than chosen. at
+     a full gape with the pop overshoot on top, the fingertip's near corner sits
+     2.7 grid units clear of the bottom of a resting eye and the thumb's far
+     corner sits 2.4 inside the silhouette, or 0.8 at a full turn either way.
+     **the one pose this does not clear is `surprised`**, which takes the eye to
+     two and a half times its height and brings its lower edge down to 43.3,
+     about half a unit into the fingers. no clip pairs the two — a face that is
+     startled is not a face that is still talking — and it is written down here
+     rather than guarded, because the honest fix is a smaller head or a bigger
+     grid and neither is on the table. */
+  /* ---------- the fingers barely move and the thumb does the work ----------
+     the third thing a rendered frame corrected, and the biggest. opening the two
+     slabs by similar amounts makes a chevron, and a chevron on a face is an
+     arrowhead: two cuts of this part came back reading as `>` and then as `<`
+     rather than as a mouth. what a yapping hand actually does is the opposite of
+     symmetric — the four fingers are held flat and the **thumb** taps up and
+     down underneath them, which is why the gesture reads as a jaw at all. so the
+     fingers swing six degrees, which is enough to be alive and not enough to be
+     an arm of a V, and the thumb swings thirty five.
+
+     it costs nothing in gape, because the gape is the sum of the two, and it
+     buys the whole read: a level bar with something hinging away under it is a
+     mouth, and two bars splaying apart is a symbol. */
+  shut: { fingers: 1.0, thumb: -1.0 },
+  open: { fingers: 6.0, thumb: -35.0 },
+  /* a mouth on a turning head travels with the face, and it travels less than
+     the eyes do because it is nearer the centre line. it takes this share of
+     the near eye's own travel and none of its foreshortening — a hand is in
+     front of the face rather than on it.
+
+     it was 0.45 and a rendered frame moved it: at 0.45 the eyes crowd the far
+     side of the face on a turn and the mouth stays where it was, which reads as
+     two things rather than one head. 0.6 is between the far eye's travel and
+     the near one's, and at a full turn either way the thumb's outer corner —
+     the piece of this part nearest the silhouette — still sits two and a half
+     grid units inside it. */
+  turnShare: 0.6,
+};
+
+/* ---------- the yap ----------
+   the loop, and it is a plan rather than a repeat: every cycle is written down
+   with its own times before a browser is opened, so a clip can put a syllable
+   of sound on the frame the hand opens on and the two cannot drift. that is the
+   same argument the ding and the caption pops already make. an infinite gsap
+   repeat has no times in it to read.
+
+   one cycle is three tweens and a gap: **open** on `drift`, which leaves fast
+   and coasts in, so the mouth flies open and arrives rather than easing into
+   it; **settle**, a short slide back from the overshoot on the calm curve; and
+   **shut** on the calm curve, a shade slower than the open. that ordering is
+   the "quick and a bit lazy" of the brief — a hand that shut as fast as it
+   opened would be a mechanism.
+
+   **the overshoot is geometry rather than a curve, and that is a fault this
+   part paid for.** the obvious first cut opened on `btk.pop`, which is the
+   house curve that overshoots and is what every state's entrance arrives on.
+   it is the wrong curve here and the numbers say so plainly: pop reaches 1.1 by
+   36% of its own duration, so over an 85ms open at sixty it puts the whole move
+   into **one frame** — measured, the gape went 0.05 to 0.89 between two
+   consecutive frames, which is not a hand opening, it is a hand teleporting.
+   pop is written for a move that happens once and is allowed to snap. a gesture
+   that repeats three times a second cannot borrow it. so the open goes to
+   `over` of the gape on `drift` and a second tween brings it back — same read,
+   same house easing, and the speed is now a number in this table rather than a
+   property of a curve tuned for something else.
+
+   the numbers below put the **thumb tip's** fastest frame at about seven css px
+   at sixty — the thumb rather than the fingers, because it is the one that does
+   the opening. that is twice a blink's lid, which is the rig's own fastest move
+   on its own, and half what the glitch shakes the whole frame by. the open takes
+   nine frames at sixty and the fastest of them carries about a third of it,
+   which is the same share `btk.shut` gives a blink. `mascotMotion` measures the
+   faster of the two tips and the self test holds it to a ceiling.
+
+   `gapeJit` and `periodJit` are what stop it being a loop. every cycle draws
+   its own gape and its own length off a seeded prng, so no two are the same and
+   the mumble that rides on them is uneven in exactly the way talking is. the
+   seed is the plan's own, xored, so it never disturbs the blink and saccade
+   schedules that were generated before it. */
+export const YAP = {
+  openFor: 0.150,
+  over: 1.08,           /* how far past the gape the open goes before it settles */
+  settleFor: 0.045,
+  shutFor: 0.130,
+  gap: 0.020,
+  gapeJit: 0.22,        /* a cycle opens between (1 - this) and 1 of the full gape */
+  periodJit: 0.14,      /* and runs between (1 - this) and (1 + this) of its length */
+};
+
 /* ---------- the thought bubble ----------
    two or three words. the guard throws above four, which is the ceiling; two or
    three is the copy rule and `describeMascot` says so when a bubble reaches the
@@ -839,6 +1015,10 @@ export function planMascot(opts = {}) {
        bottom right looks left, and either can be overridden by saying so. */
     bias: null,
     band: null,                 /* the caption box to keep the bubble out of */
+    /* the hand, off unless a clip asks for it. see HAND above: with it off
+       nothing about this module changes, which is a property the diff harness
+       checks rather than a claim made here. */
+    hand: false,
     seed: 0x6b0a11,
     ...opts,
   };
@@ -869,6 +1049,18 @@ export function planMascot(opts = {}) {
         throw new Error('mark ' + m.i + ' sets turn on "' + m.state
           + '", which turns on its own — drop one of the two');
       }
+    }
+    /* a yap is the hand talking, so a yap with no hand is a mark asking for
+       something that is not drawn. it is a plan error rather than a silent no
+       op: the whole point of the part being opt in is that asking for it is
+       explicit. */
+    if (m.yap && !o.hand) {
+      throw new Error('mark ' + m.i + ' asks for a yap, and this plan has no hand on it'
+        + ' — pass `hand: true`');
+    }
+    if (m.yap != null && m.yap !== true && !(Number(m.yap) > 0)) {
+      throw new Error('mark ' + m.i + '\'s yap is ' + m.yap
+        + ' — it is either `true` for "until the next mark" or a length in seconds');
     }
   }
 
@@ -1001,6 +1193,99 @@ export function planMascot(opts = {}) {
     return rec;
   });
 
+  /* ---------- the yap, as a plan ----------
+     the marks say where it runs and this works out every cycle inside those
+     windows, before a browser is opened. two reasons it is a list rather than
+     an infinite repeat on the timeline.
+
+     **the sound has to land on the picture.** a clip puts one syllable of
+     mumble on each cycle's own `at`, so the mouth and the voice are the same
+     event rather than two things laid on the same grid — the same argument
+     `cuesFromCaptions` makes and the reason nothing in this repo is synced by
+     hand. an infinite repeat has no times in it to read.
+
+     **and the windows have to join.** consecutive marks that both yap are one
+     continuous mumble, not one train per mark with a stutter at every mark
+     boundary, so the windows are merged first and the cycles are laid across
+     the merged run. `yap: true` means "from this mark until the next one", or
+     until the end of the clip on the last mark; a number means that many
+     seconds from the mark.
+
+     a cycle is only kept if it can **finish** inside its window. a hand caught
+     half open on the last frame of a yap is a hand that stopped rather than a
+     mouth that closed. */
+  let yap = null;
+  if (marks.some(m => m.yap)) {
+    const windows = [];
+    for (let k = 0; k < out.length; k++) {
+      const y = marks[k].yap;
+      if (!y) continue;
+      const from = out[k].t;
+      const until = y === true
+        ? (k + 1 < out.length ? out[k + 1].t : seconds)
+        : +(from + Number(y)).toFixed(4);
+      if (!(until > from + 0.05)) {
+        throw new Error('mark ' + k + '\'s yap runs from ' + from.toFixed(2) + 's to '
+          + until.toFixed(2) + 's, which is no room to open a hand in');
+      }
+      windows.push({ from: +from.toFixed(4), until: +Math.min(until, seconds).toFixed(4) });
+    }
+    windows.sort((a, b) => a.from - b.from);
+    const merged = [];
+    for (const w of windows) {
+      const last = merged[merged.length - 1];
+      if (last && w.from <= last.until + 1e-6) last.until = Math.max(last.until, w.until);
+      else merged.push({ ...w });
+    }
+    /* its own prng off the plan's own seed, so adding a yap to a clip cannot
+       move a blink or a saccade that was generated before it. */
+    const r = prng(o.seed ^ 0x51f0a3);
+    const cycles = [];
+    for (const w of merged) {
+      let t = w.from;
+      for (;;) {
+        const s = +(1 + (r() * 2 - 1) * YAP.periodJit).toFixed(4);
+        const openFor = +(YAP.openFor * s).toFixed(4);
+        const settleFor = +(YAP.settleFor * s).toFixed(4);
+        const shutFor = +(YAP.shutFor * s).toFixed(4);
+        const gap = +(YAP.gap * s).toFixed(4);
+        const shutAt = +(t + openFor + settleFor + shutFor).toFixed(4);
+        if (shutAt > w.until) break;
+        cycles.push({
+          i: cycles.length, at: +t.toFixed(4), gape: +(1 - r() * YAP.gapeJit).toFixed(4),
+          openFor, settleFor, shutFor, gap,
+          peak: +(t + openFor).toFixed(4),
+          closing: +(t + openFor + settleFor).toFixed(4),
+          shutAt,
+          out: +(shutAt + gap).toFixed(4),
+          /* how long the mouth is doing something on this cycle, which is what
+             a syllable of sound is given as its own length. */
+          voiced: +(openFor + settleFor + shutFor).toFixed(4),
+        });
+        t = cycles[cycles.length - 1].out;
+      }
+    }
+    if (!cycles.length) {
+      throw new Error('the yap windows are too short to fit one cycle of the hand');
+    }
+    /* two cycles may never be on at once: the hand is one hand. it cannot
+       happen the way the loop above is written, and it is asserted anyway,
+       because the thing downstream reads this list as "one syllable each". */
+    for (let i = 1; i < cycles.length; i++) {
+      if (cycles[i].at < cycles[i - 1].shutAt - 1e-9) {
+        throw new Error('yap cycles ' + (i - 1) + ' and ' + i + ' overlap');
+      }
+    }
+    const periods = cycles.map(c => c.voiced + c.gap);
+    yap = {
+      windows: merged, cycles,
+      count: cycles.length,
+      period: { lo: +Math.min(...periods).toFixed(4), hi: +Math.max(...periods).toFixed(4) },
+      gape: { lo: +Math.min(...cycles.map(c => c.gape)).toFixed(4),
+        hi: +Math.max(...cycles.map(c => c.gape)).toFixed(4) },
+    };
+  }
+
   /* the head, in the frame. the plate is 60 of the 64 grid, so the svg box is
      bigger than the head by two units a side and the placement has to work in
      plate edges rather than in box edges or the mascot sits four pixels inside
@@ -1016,6 +1301,9 @@ export function planMascot(opts = {}) {
     pos: o.pos, box, plate: { w: +plate.w.toFixed(3), off: +plate.off.toFixed(3) },
     headPx: +(plate.w * STAGE.dsf).toFixed(1),
     stage: STAGE, safe: SAFE, band: o.band,
+    /* both are null-ish when the part is off, and every consumer keys off
+       `plan.hand` rather than off the geometry being importable. */
+    hand: !!o.hand, yap,
     marks: out,
     idle: {
       blinks: blinkPlan(seconds, o.seed),
@@ -1082,6 +1370,10 @@ function channels(plan) {
        which is the same gesture and is a function of time rather than of when a
        class was added. */
     bub: [{ o: 0, sc: 0.2 }, { o: 0, sc: 0.2 }, { o: 0, sc: 0.7, y: 0 }],
+    /* the hand's one number: nought is shut, one is the full gape. nothing
+       writes it unless the plan carries a yap, so on every clip without a hand
+       it sits at nought and is read by nothing. */
+    yap: { v: 0 },
     pad: { v: 0 },
   };
 }
@@ -1316,6 +1608,24 @@ function engineFor(plan) {
     }
   }
 
+  /* ---------- the yap ----------
+     two tweens per cycle and nothing between them: open on the pop curve, which
+     is where the overshoot on each open comes from, then shut on the calm one,
+     which is half again as long. the hold at the top and the gap at the bottom
+     are simply frames with no tween on them, so the channel sits where the last
+     one left it — that is the lazy part, and it costs nothing.
+
+     the whole block is behind `plan.yap`, so a plan with no hand builds the
+     timeline it always built. */
+  if (plan.yap) {
+    for (const c of plan.yap.cycles) {
+      const top = +(c.gape * YAP.over).toFixed(4);
+      put(ch.yap, { v: 0 }, { v: top }, c.at, c.openFor, H.drift);
+      put(ch.yap, { v: top }, { v: c.gape }, c.peak, c.settleFor, H.glide);
+      put(ch.yap, { v: c.gape }, { v: 0 }, c.closing, c.shutFor, H.glide);
+    }
+  }
+
   /* ---------- the states ----------
      where the turn has got to is carried across the marks, because it is the
      one channel no exit resets. a state's builder is handed it as its own
@@ -1390,7 +1700,7 @@ function engineFor(plan) {
 export function mascotFrame(plan, t) {
   const eng = engineFor(plan);
   eng.tl.time(t, false);
-  const { a, b, eye, lid, brow, idle, bub } = eng.ch;
+  const { a, b, eye, lid, brow, idle, bub, yap } = eng.ch;
 
   const breathe = 1 + IDLE.breathe.amp * (idle.br - 0.5) * 2;
   /* the two turn values. the card takes the lagged one and the eyes take the
@@ -1500,6 +1810,44 @@ export function mascotFrame(plan, t) {
     }
   }
 
+  /* ---------- the hand ----------
+     one number in, two angles out, and that is the whole part: `yap.v` is nought
+     shut and one at the full gape, and each slab's angle is a straight
+     interpolation between its own two. the pop curve on the open pushes `v` a
+     tenth past one, which is deliberately **not** clamped to one — that
+     overshoot is the snap in the gesture, and the ceiling here is only a
+     backstop against a curve nobody has written yet.
+
+     it slides with the turn at its own share of the near eye's travel and takes
+     none of the foreshortening the far eye takes. a hand is held in front of a
+     face rather than painted on it, so it does not wrap around the form; it
+     goes with the head and it goes less far than the eyes, because it is nearer
+     the centre line than they are.
+
+     and its corners are measured against the head's own silhouette, the same
+     signed distance the irises and the brows are measured with. the markup
+     clips the features to the plate so nothing *can* paint outside it; this is
+     the other half of that, and it is what says whether the clip is quietly
+     hiding a pose that does not fit. */
+  let hand = null;
+  if (plan.hand) {
+    const v = clamp(yap.v, 0, 1.3);
+    const ang = part => HAND.shut[part] + (HAND.open[part] - HAND.shut[part]) * v;
+    const hx = sgn * aq * TURN.shift * HAND.turnShare;
+    hand = { open: n(v), x: n(hx), fingers: n(ang('fingers')), thumb: n(ang('thumb')) };
+    for (const [part, deg] of [[HAND.fingers, hand.fingers], [HAND.thumb, hand.thumb]]) {
+      /* negated, because the table says "up" and the slab lies along +x. */
+      const th2 = -deg * Math.PI / 180, c3 = Math.cos(th2), s3 = Math.sin(th2);
+      for (const dx of [-HAND.back, part.len]) {
+        for (const dy of [-part.h / 2, part.h / 2]) {
+          outside = Math.max(outside, headSD(
+            HAND.hinge.x + hx + dx * c3 - dy * s3,
+            HAND.hinge.y + dx * s3 + dy * c3, plan));
+        }
+      }
+    }
+  }
+
   const sh = shadowAt(card.lift);
   const now = plan.marks.find(m => t >= m.t && t < m.out);
   /* whichever bubble is up, over every mark and every bubble on it. a mark may
@@ -1551,6 +1899,9 @@ export function mascotFrame(plan, t) {
     /* the shadow slides with the mass, on the lagged turn, so it is under the
        head rather than under where the head is looking. */
     shadow: { sc: n(sh.sc), blur: n(sh.blur), o: n(sh.o), x: n(TURN.shadowShift * tb) },
+    /* null on every plan without a hand, which is every plan written before
+       there was one. */
+    hand,
     glow: plan.theme === 'dark' ? 1 : 0,
     /* `o` is the loudest of the three parts and it is what every guard and every
        visibility test downstream reads, so a cluster mid stagger counts as on
@@ -1711,7 +2062,7 @@ export function mascotMotion(plan, fps, seconds) {
     cardM: { d: 0, t: 0 }, cardR: { d: 0, t: 0 }, cardS: { d: 0, t: 0 },
     eyeM: { d: 0, t: 0 }, eyeS: { d: 0, t: 0 }, lid: { d: 0, t: 0 },
     brow: { d: 0, t: 0 }, lift: { d: 0, t: 0 }, bub: { d: 0, t: 0 },
-    turn: { d: 0, t: 0 },
+    turn: { d: 0, t: 0 }, hand: { d: 0, t: 0 },
   };
   const bump = (k, d, t) => { if (d > worst[k].d) worst[k] = { d: +d.toFixed(4), t: +t.toFixed(3) }; };
 
@@ -1728,6 +2079,17 @@ export function mascotMotion(plan, fps, seconds) {
      does not fit being quietly trimmed rather than a pose that is wrong on
      screen — which is still a fault, and this is what says so. */
   let outside = -Infinity, outsideAt = 0;
+  /* the hand's own report. how wide it ever opens, how far it ever shuts, and
+     how many times it went from one to the other — which is the number a clip
+     checks its syllables against, counted off the drawn angles rather than off
+     the plan that asked for them. */
+  let handHi = 0, handLo = Infinity, handOpens = 0, handRising = false;
+  /* and the number the speed argument is actually had in: how far the
+     fingertip travels between two frames, in css px. the gape is a nought to
+     one channel and a fraction of it per frame says nothing about whether a
+     viewer sees a step — the tip's own travel does, and it is the same unit the
+     shake and the blink are argued in. */
+  let handStep = 0, handStepAt = 0, handTip = null;
 
   for (let f = 0; f < N; f++) {
     const t = f / fps;
@@ -1742,6 +2104,34 @@ export function mascotMotion(plan, fps, seconds) {
     minGap = Math.min(minGap, fr.turn.gap);
     if (fr.turn.clamped) clampedFrames++;
     if (fr.turn.outside > outside) { outside = fr.turn.outside; outsideAt = t; }
+    if (fr.hand) {
+      handHi = Math.max(handHi, fr.hand.open);
+      handLo = Math.min(handLo, fr.hand.open);
+      /* an open is counted when the gape crosses half way up, and it is not
+         counted again until it has come back under a quarter. a hysteresis
+         rather than a turning point, because the pop curve's own settle puts
+         two turning points on every open and only one of them is a syllable. */
+      if (!handRising && fr.hand.open > 0.5) { handRising = true; handOpens++; }
+      else if (handRising && fr.hand.open < 0.25) handRising = false;
+      /* both tips, and the faster of the two is the answer. which one that is
+         depends on the table: with the fingers held flat and the thumb doing the
+         opening it is the thumb, and a version of this that only watched the
+         fingers would report a hand that barely moves. */
+      const tip = [HAND.fingers, HAND.thumb].map((part, k) => {
+        const a = -(k ? fr.hand.thumb : fr.hand.fingers) * Math.PI / 180;
+        return {
+          x: (HAND.hinge.x + fr.hand.x + part.len * Math.cos(a)) * plan.unit,
+          y: (HAND.hinge.y + part.len * Math.sin(a)) * plan.unit,
+        };
+      });
+      if (handTip) {
+        for (let k = 0; k < 2; k++) {
+          const d = Math.hypot(tip[k].x - handTip[k].x, tip[k].y - handTip[k].y);
+          if (d > handStep) { handStep = d; handStepAt = t; }
+        }
+      }
+      handTip = tip;
+    }
     for (let k = 0; k < plan.marks.length; k++) {
       const m = plan.marks[k];
       if (t >= m.t && t <= m.leaving) {
@@ -1758,6 +2148,7 @@ export function mascotMotion(plan, fps, seconds) {
       /* a turn that stepped would be the one thing that gives the cheat away,
          because a flat turn has no depth to hide a jump behind. */
       bump('turn', Math.abs(fr.turn.lead - prev.turn.lead), t);
+      if (fr.hand && prev.hand) bump('hand', Math.abs(fr.hand.open - prev.hand.open), t);
       for (let k = 0; k < 2; k++) {
         bump('eyeM', Math.hypot(fr.eyes[k].x - prev.eyes[k].x, fr.eyes[k].y - prev.eyes[k].y), t);
         bump('eyeS', Math.max(Math.abs(fr.eyes[k].sx - prev.eyes[k].sx), Math.abs(fr.eyes[k].sy - prev.eyes[k].sy)), t);
@@ -1776,7 +2167,8 @@ export function mascotMotion(plan, fps, seconds) {
          freeze a viewer can actually see. */
       const moved = Math.abs(fr.card.x - prev.card.x) + Math.abs(fr.card.y - prev.card.y)
         + Math.abs(fr.card.rot - prev.card.rot) + Math.abs(fr.card.sy - prev.card.sy) * 40
-        + Math.abs(fr.eyes[0].lid - prev.eyes[0].lid) + Math.abs(fr.eyes[0].x - prev.eyes[0].x);
+        + Math.abs(fr.eyes[0].lid - prev.eyes[0].lid) + Math.abs(fr.eyes[0].x - prev.eyes[0].x)
+        + (fr.hand && prev.hand ? Math.abs(fr.hand.open - prev.hand.open) : 0);
       if (moved < 1e-4) { still++; if (still >= 3) frozen++; } else still = 0;
     }
     prev = fr;
@@ -1856,6 +2248,25 @@ export function mascotMotion(plan, fps, seconds) {
       clampedFrames,
     },
     outside: { units: +outside.toFixed(3), at: +outsideAt.toFixed(3) },
+    hand: plan.hand ? {
+      opens: handOpens,
+      gape: { lo: +(handLo === Infinity ? 0 : handLo).toFixed(3), hi: +handHi.toFixed(3) },
+      stepCss: +handStep.toFixed(2), stepAt: +handStepAt.toFixed(3),
+      cycles: plan.yap ? plan.yap.count : 0,
+      period: plan.yap ? plan.yap.period : null,
+      /* the length of the slab in device px, worked out the same way the head's
+         is: grid units times the plan's own unit times the device scale. the
+         page measures the rendered rect and the two are checked against each
+         other by whoever renders. */
+      lenPx: +((HAND.fingers.len + HAND.back) * plan.unit * STAGE.dsf).toFixed(1),
+      thickPx: +(HAND.fingers.h * plan.unit * STAGE.dsf).toFixed(1),
+      thumbPx: +((HAND.thumb.len + HAND.back) * plan.unit * STAGE.dsf).toFixed(1),
+      /* how far apart the two tips get at the widest gape, which is the number
+         that decides whether it reads as a mouth or as a bar. */
+      gapePx: +((HAND.fingers.len * Math.sin(HAND.open.fingers * Math.PI / 180)
+        + HAND.thumb.len * Math.sin(-HAND.open.thumb * Math.PI / 180)
+        - HAND.fingers.h / 2 - HAND.thumb.h / 2) * plan.unit * STAGE.dsf).toFixed(1),
+    } : null,
     blinks: {
       count: keys.length,
       unique: new Set(keys).size,
@@ -1920,12 +2331,31 @@ export function mascotMarkup(plan) {
 
      the clip path is the plate's own geometry, to the unit, so the two can
      never disagree about where the head ends. */
+  /* ---------- the hand, and only if the plan asked for one ----------
+     two rounded slabs lying along -x from the hinge, each reaching `back` units
+     past it so the wrist is one shape rather than two bars butted together. the
+     rounding is half the slab's own height, which is exactly how the iris is
+     drawn, and the fill is the iris's own token — so it is the same ink, the
+     same weight and the same corner as the eyes above it.
+
+     they are drawn last inside the clipped group, so they sit over the eyes if
+     a pose ever brings the two together. nothing about them is animated in the
+     markup: the page writes one rotation per slab per frame. */
+  const H2 = HAND;
+  const hand = () => {
+    const bar = (cls, part) => `<rect class="${cls}" x="${n(H2.hinge.x - H2.back)}"`
+      + ` y="${n(H2.hinge.y - part.h / 2)}" width="${n(part.len + H2.back)}"`
+      + ` height="${n(part.h)}" rx="${n(part.h / 2)}"/>`;
+    return `<g class="m-hand" id="m-hand">`
+      + bar('m-finger', H2.fingers) + bar('m-thumb', H2.thumb) + `</g>`;
+  };
   const clip = `<clipPath id="m-head"><rect x="${P.x}" y="${P.y}" width="${P.s}" height="${P.s}" rx="${n(rx)}"/></clipPath>`;
   const face = `<svg class="m-face" viewBox="0 0 ${GRID} ${GRID}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">`
     + `<defs>${clip}</defs>`
     + plate
     + `<g class="m-features" clip-path="url(#m-head)">`
     + eye(0) + eye(1) + brow(0) + brow(1)
+    + (plan.hand ? hand() : '')
     + `</g></svg>`;
   const glowSvg = c => `<svg class="m-glow ${c}" viewBox="0 0 ${GRID} ${GRID}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${plate}</svg>`;
 
@@ -1980,7 +2410,11 @@ export function mascotCss(plan) {
    the eye it is coming down on. */
 .m-lid{fill:var(--face)}
 .m-brow{fill:var(--eye); opacity:0}
-.m-eye{will-change:transform}
+.m-eye{will-change:transform}${plan.hand ? `
+/* the hand. the iris's own fill, so the mouth that is not a mouth is drawn in
+   the same ink as the eyes and belongs to the same face. it is a rotation per
+   slab per frame and nothing else, written by apply(). */
+.m-finger,.m-thumb{fill:var(--eye); will-change:transform}` : ''}
 
 /* the glow. two blurred copies of the plate behind it, dark theme only, and it
    is around the head only because the copies are the head. post10's phosphor
@@ -2066,6 +2500,11 @@ export function mascotPagePlan(plan) {
     theme: plan.theme, stage: plan.stage, safe: plan.safe, band: plan.band,
     grid: GRID, eyeCx: EYE_CX, eye: HEAD.eye, brow: HEAD.brow,
     glow: GLOW, shadow: SHADOW, headPx: { ...HEAD_PX },
+    /* the hinge, and nothing else about the hand: the page rotates two slabs
+       about it and decides nothing. null when there is no hand, and the page
+       half checks the element rather than this, so an older page runtime and a
+       newer plan cannot disagree. */
+    hand: plan.hand ? { hinge: HAND.hinge } : null,
   };
 }
 
@@ -2088,6 +2527,12 @@ export function mascotPage() {
   const lids = eyes.map(e => e.querySelector('.m-lid'));
   const brows = [...card.querySelectorAll('.m-brow')];
   const glows = [...card.querySelectorAll('.m-glow')];
+  /* the hand, or nothing. the markup only carries it when the plan asked for
+     one, so every clip without a hand finds null here and this half of the
+     runtime never runs. it is checked on the element rather than on the plan so
+     the two can never disagree about whether there is something to write to. */
+  const finger = card.querySelector('.m-finger');
+  const thumb = card.querySelector('.m-thumb');
 
   /* the origin sandwich, written out rather than left to transform-box: a
      translate inside an svg is in user units, so this is exact at any scale and
@@ -2122,6 +2567,16 @@ export function mascotPage() {
         strokePx: +(parseFloat(cs.borderTopWidth) * P.stage.dsf).toFixed(1),
         bubbleGapPx: +((dr.left - r.right) * P.stage.dsf).toFixed(1),
         eyes: eyes.length, brows: brows.length, glows: glows.length, dots: dots.length,
+        /* the hand as it actually painted: whether it is there at all, and how
+           long and how thick it is in device px, which is the only unit a
+           "does it read at phone size" argument can be had in. it is measured
+           off the rendered rects rather than off the geometry table, because
+           the table is in grid units and the question is about pixels. */
+        hand: finger ? {
+          lenPx: +(finger.getBoundingClientRect().width * P.stage.dsf).toFixed(1),
+          thickPx: +(finger.getBoundingClientRect().height * P.stage.dsf).toFixed(1),
+          thumbPx: +(thumb.getBoundingClientRect().width * P.stage.dsf).toFixed(1),
+        } : null,
         theme: document.documentElement.getAttribute('data-theme'),
       };
     },
@@ -2154,6 +2609,17 @@ export function mascotPage() {
         brows[k].style.opacity = b.o.toFixed(4);
         brows[k].setAttribute('transform',
           about(P.eyeCx[k], P.brow.cy, b.x, b.y, b.rot, 1, 1));
+      }
+
+      /* the hand: two rotations about the one hinge, plus the turn's own slide
+         on both of them. the origin sandwich is the same one the eyes and the
+         brows use, so a rotation inside the svg is exact at any scale. */
+      if (finger && f.hand) {
+        const hh = P.hand.hinge;
+        /* negated: the angles say "up" and the slabs lie along +x from the
+           hinge, where an svg rotation by a positive angle goes down. */
+        finger.setAttribute('transform', about(hh.x, hh.y, f.hand.x, 0, -f.hand.fingers, 1, 1));
+        thumb.setAttribute('transform', about(hh.x, hh.y, f.hand.x, 0, -f.hand.thumb, 1, 1));
       }
 
       glows[0].style.opacity = (f.glow * P.glow.wide.o).toFixed(4);
@@ -2249,6 +2715,15 @@ export function describeMascot(plan) {
         + '..' + b.out.toFixed(2)).join(''));
     out.push('              ' + m.label);
   }
+  if (plan.yap) {
+    out.push('    hand: ' + plan.yap.count + ' yap cycles over '
+      + plan.yap.windows.map(w => w.from.toFixed(2) + '..' + w.until.toFixed(2)).join(', ')
+      + ', period ' + (plan.yap.period.lo * 1000).toFixed(0) + ' to '
+      + (plan.yap.period.hi * 1000).toFixed(0) + 'ms, gape '
+      + plan.yap.gape.lo.toFixed(2) + ' to ' + plan.yap.gape.hi.toFixed(2));
+  } else if (plan.hand) {
+    out.push('    hand: on, and nothing yaps it');
+  }
   for (const note of plan.notes) out.push('    note: ' + note);
   return out.join('\n');
 }
@@ -2281,6 +2756,13 @@ export function describeMotion(rep) {
   out.push('  mask: worst feature ink ' + (rep.outside.units <= 0
     ? (-rep.outside.units).toFixed(2) + ' units inside the head silhouette'
     : 'OUTSIDE the head by ' + rep.outside.units.toFixed(2) + ' units at ' + rep.outside.at.toFixed(2) + 's'));
+  if (rep.hand) {
+    out.push('  hand: ' + rep.hand.opens + ' opens off the drawn angles against '
+      + rep.hand.cycles + ' planned, gape ' + rep.hand.gape.lo.toFixed(2) + ' to '
+      + rep.hand.gape.hi.toFixed(2) + ', ' + rep.hand.lenPx + 'px long, '
+      + rep.hand.thickPx + 'px thick, opening to ' + rep.hand.gapePx + 'px, '
+      + 'fastest frame moves the tip ' + rep.hand.stepCss.toFixed(2) + ' css px');
+  }
   out.push('  frozen: ' + rep.frozenFrames + ' frames inside a run of three or more still ones');
   return out.join('\n');
 }
@@ -2763,6 +3245,96 @@ function selfTest() {
   for (let f = 0; f < 200; f++) fwd.push(JSON.stringify(mascotFrame(plan, f / 60)));
   for (let f = 199; f >= 0; f--) back[f] = JSON.stringify(mascotFrame(plan, f / 60));
   ok('seeking is the same animation in both directions', fwd.every((v, i) => v === back[i]));
+
+  /* ---------- the hand ----------
+     the part is opt in, so the first thing checked is that it is *off*: a plan
+     that did not ask for one draws nothing, plans nothing and returns nothing,
+     and that is the property every clip written before it depends on. */
+  const noHand = planMascot({ marks: [{ t: 0.4, state: 'neutral' }], seconds: 3 });
+  ok('no hand unless a plan asks for one',
+    noHand.hand === false && noHand.yap == null
+    && mascotFrame(noHand, 1.0).hand === null
+    && !mascotMarkup(noHand).includes('m-hand')
+    && !mascotCss(noHand).includes('m-finger')
+    && mascotPagePlan(noHand).hand === null
+    && mascotMotion(noHand, 60, 3).hand === null);
+  ok('a yap with no hand is refused', (() => {
+    try { planMascot({ marks: [{ t: 0.4, state: 'neutral', yap: true }], seconds: 3 }); return false; }
+    catch (e) { return /no hand/.test(e.message); }
+  })());
+
+  const hp = planMascot({
+    hand: true, seconds: 6,
+    marks: [{ t: 0.0, state: 'neutral', yap: true }, { t: 2.2, state: 'thinking', yap: true }],
+  });
+  ok('the yap is a list of cycles, and it joins across marks',
+    hp.yap.count > 12 && hp.yap.cycles[0].at === 0
+    && hp.yap.windows.length === 1
+    && hp.yap.cycles.every((c, i) => i === 0 || c.at >= hp.yap.cycles[i - 1].shutAt - 1e-9),
+    hp.yap.count + ' cycles in ' + hp.yap.windows.length + ' window');
+  ok('no two cycles are the same cycle',
+    new Set(hp.yap.cycles.map(c => c.gape + '/' + c.voiced)).size > hp.yap.count * 0.8);
+  ok('every cycle shuts inside its own window',
+    hp.yap.cycles.every(c => c.shutAt <= hp.yap.windows[0].until + 1e-9));
+
+  /* the gesture itself, off the drawn angles rather than off the plan: it opens
+     all the way, it comes all the way back, and the pop curve pushes it past its
+     own gape on the way up, which is the overshoot. */
+  let hi = 0, lo = Infinity, over = 0;
+  for (let f = 0; f < 360; f++) {
+    const h = mascotFrame(hp, f / 60).hand;
+    hi = Math.max(hi, h.open); lo = Math.min(lo, h.open);
+    over = Math.max(over, h.open - hp.yap.cycles.reduce((m, c) => Math.max(m, c.gape), 0));
+  }
+  ok('the hand opens and shuts', hi > 0.7 && lo < 0.02,
+    'gape ' + lo.toFixed(3) + ' to ' + hi.toFixed(3));
+  ok('each open overshoots', over > 0.02, '+' + over.toFixed(3) + ' past the gape');
+  const rh = mascotMotion(hp, 60, 6);
+  ok('every planned cycle is an open on the screen', rh.hand.opens === hp.yap.count,
+    rh.hand.opens + ' opens against ' + hp.yap.count + ' cycles');
+  /* the speed, in the unit the question is asked in. a blink's lid is the
+     fastest thing the rig does on its own and it moves about three and a half
+     css px a frame at sixty; eight is the ceiling here, which lets a mouth snap
+     open at twice an eyelid's speed and no more. */
+  ok('the hand snaps without stepping', rh.hand.stepCss < 8,
+    'fastest frame moves the tip ' + rh.hand.stepCss.toFixed(2) + ' css px, at '
+    + rh.hand.stepAt.toFixed(2) + 's');
+
+  /* the two angles are a straight read of the one number, and the shut pose is
+     a hand held closed rather than a bar: the fingers and the thumb are three
+     degrees apart at nought. */
+  const atRest = mascotFrame(hp, hp.yap.cycles[0].out - 0.005).hand;
+  ok('shut is nearly shut, not flat',
+    Math.abs(atRest.fingers - HAND.shut.fingers) < 0.3
+    && Math.abs(atRest.thumb - HAND.shut.thumb) < 0.3);
+
+  /* and it stays on the face. the clip in the markup means it cannot paint
+     outside the plate, so this is the other half of that check — measured
+     through the same `outside` every other feature is measured through, at a
+     full turn either way, which is the worst the hand ever has. */
+  const turned = planMascot({
+    hand: true, seconds: 5, bias: 0,
+    marks: [{ t: 0.2, state: 'unimpressed', yap: true, turn: 1, turnFor: 0.5 }],
+  });
+  let worstOut = -Infinity;
+  for (let f = 0; f < 300; f++) worstOut = Math.max(worstOut, mascotFrame(turned, f / 60).turn.outside);
+  ok('the hand stays inside the head at a full turn', worstOut < 0,
+    'worst feature ink ' + (-worstOut).toFixed(2) + ' units inside');
+
+  /* it goes with the head when the head turns, and less far than the eyes do.
+     `turned` rests at bias nought, so its own first frames are the straight on
+     case and the swung one is the same plan a second and a half later. */
+  const straight = mascotFrame(turned, 0.05);
+  const swung = mascotFrame(turned, 1.6);
+  ok('the hand travels with the turn, and less than an eye does',
+    straight.hand.x === 0 && Math.abs(swung.hand.x) > 1
+    && Math.abs(swung.hand.x) < Math.abs(swung.turn.offset[0]),
+    'hand ' + swung.hand.x.toFixed(2) + ' against eye ' + swung.turn.offset[0].toFixed(2));
+
+  ok('the markup and the css carry the hand when it is on',
+    mascotMarkup(hp).includes('m-finger') && mascotMarkup(hp).includes('m-thumb')
+    && mascotCss(hp).includes('.m-finger,.m-thumb')
+    && mascotPagePlan(hp).hand.hinge.x === HAND.hinge.x);
 
   console.log('');
   if (fail.length) { console.error('FAILED: ' + fail.join(', ')); process.exit(1); }
