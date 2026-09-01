@@ -1,11 +1,12 @@
 /* the boring tek — post12, the sting.
 
-   six seconds, dark only, 1080x1920. the mascot alone in the middle of a black
-   frame. he fades up, says hi, holds still, farts, giggles about it, the signal
-   starts coming apart under the laugh, and then a hard tear puts the wordmark on
-   the screen for a second and a half. there is no voice, there are no captions
-   and there is nothing written on the screen until the last quarter. the sounds
-   carry the whole thing.
+   five and a half seconds, dark only, 1080x1920. the mascot alone in the middle
+   of a black frame with two words over his head. he is on screen from the first
+   frame, says hi, holds still, farts, giggles about it, the signal starts coming
+   apart under the laugh, and then a hard tear takes him and the label off
+   together and puts the wordmark on the screen for a second and a half. there is
+   no voice and there are no captions. the label says what he is; the sounds
+   carry everything else.
 
      node post12.mjs                     1080x1920, 60fps, shutter closed
      DEMO_FPS=12 node post12.mjs         the fast preview pass
@@ -26,11 +27,19 @@
    robot for five seconds with a joke in the middle, and the entire brand content
    is three words at the end.
 
-   it is also the first clip here with **no words in it at all** until the
-   wordmark. no captions, no read, no bubble. that is a real constraint rather
-   than a saving: with nothing written down, every beat has to be legible from
-   the picture and the sound alone, which is why the timings below are derived
-   off the rig rather than typed against it.
+   there is still no read, no caption and no bubble in it. what there is, is a
+   two word label over his head from the first frame — `ai fart`, lower case, in
+   the wordmark's own face and glow at a little over half its size. it is not a
+   caption and it does not narrate: it names the thing once and then holds still
+   while the joke happens under it. every beat still has to be legible from the
+   picture and the sound alone, which is why the timings below are derived off
+   the rig rather than typed against them.
+
+   **there is no fade up.** the clip used to spend the best part of half a
+   second arriving out of black and it was half a second of a viewer waiting to
+   find out whether anything was going to happen. he is simply there on frame
+   zero, at rest, drifting and blinking, and the first thing the clip does is
+   the nod.
 
    ---------- what is not in this file ----------
 
@@ -130,12 +139,25 @@ const CENTRE_Y = (SAFE_CSS.top + (VH - SAFE_CSS.bottom)) / 2;
 const SIZE = 148;
 
 /* ---------- the cut ----------
-   four marks and every one of them is a beat in the brief, in order. the room
+   three marks and every one of them is a beat in the brief, in order. the room
    between them is not taste: `planMascot` refuses a mark that has no room for
    its own entrance, a hold and its exit, so the floors below are the states'
-   own and the clip is as short as these four states allow.
+   own and the clip is as short as these three states allow.
 
-     neutral     he fades up, arrives at rest and is alive. blinking, drifting.
+   **there used to be a fourth, `neutral` at 0.06, and cutting the opening is
+   what took it out.** that state does one thing — it arrives at rest — and it
+   costs 1.06s of the clock before anything else is allowed to start, because
+   `planMascot` will not put a mark inside another mark's entrance and exit. so
+   half a second could not come off the front while it was there: the arithmetic
+   only allowed eight hundredths. dropping it is not a shortcut round the module,
+   it is the honest version of the note — a mascot with no state written over him
+   sits at rest on the idle layer, drifting, breathing, blinking and saccading
+   from frame zero, which is exactly "already idle and alive". the entrance was
+   the thing being cut and the mark was the entrance.
+
+   every beat after it moved up by the same 0.50s, and nothing else about the
+   cut changed: the gaps between the three that are left are the gaps they had.
+
      agreeing    the hi. it goes **up** first and lands on a contact squash with
                  a warm half blink on it, which is "small squash and rise" and is
                  also, with a rising bleep on the contact, unmistakably a nod
@@ -154,26 +176,19 @@ const SIZE = 148;
    room after it, and this clip spends a seventh of itself on nothing. */
 const CUT = {
   marks: [
-    { t: 0.06, state: 'neutral' },
-    { t: 1.14, state: 'agreeing' },
+    { t: 0.64, state: 'agreeing' },
     /* the turn is positive, which is a turn to the mascot's right and so to
        screen right. the puff leaves to screen left. away from it, not at it. */
-    { t: 2.38, state: 'surprised', turn: 0.30, turnFor: 0.34 },
-    { t: 3.55, state: 'delighted' },
+    { t: 1.88, state: 'surprised', turn: 0.30, turnFor: 0.34 },
+    { t: 3.05, state: 'delighted' },
   ],
-  /* 6.05s. it was 5.05 and the extra second is all end card: the wordmark now
-     holds 1.40s rather than 0.40. `delighted`'s hold is stretched to fill the
-     room up to the end, which nobody sees, because he is cut at 4.56 — but the
-     plan still has to be a plan the module will accept for its whole length. */
-  seconds: 6.05,
+  /* 5.55s. it was 6.05 and the half second came off the front, not the back:
+     the end card still holds its 1.40s. `delighted`'s hold is stretched to fill
+     the room up to the end, which nobody sees, because he is cut at 4.06 — but
+     the plan still has to be a plan the module will accept for its whole
+     length. */
+  seconds: 5.55,
 };
-
-/* how long he takes to arrive out of nothing. opacity only, and that is
-   deliberate: a drift in would move the head, and every clearance number in the
-   report is computed off `plan.box` from the geometry. a fade cannot make one of
-   them wrong. the glow rides it, so what a viewer sees is a face coming up out
-   of the black rather than a sticker being faded in. */
-const FADE = { for: 0.42 };
 
 /* ---------- the puff ----------
    drawn in code, like everything else here. nine soft blobs of white light,
@@ -192,7 +207,7 @@ const FADE = { for: 0.42 };
    never animated: animating a blur radius re-rasterises the layer every frame,
    which is the one thing in this file that would cost a render real time. */
 const PUFF = {
-  at: 2.34,                    /* four hundredths before he moves. the cause first. */
+  at: 1.84,                    /* four hundredths before he moves. the cause first. */
   n: 11,
   /* just outside the bottom left of the silhouette. the head is a 139 css px
      circle centred on the frame, so its lower left quadrant runs out to about
@@ -230,9 +245,11 @@ const PUFF = {
    outstays that is a broken render rather than a fault.
 
    the mascot is **cut**, not faded: he is on the frame before the glitch starts
-   and gone on the frame after it, which is what a cut is. the wordmark is born
-   on the **same frame**, so the first thing it does is get torn — it glitches
-   *in* rather than appearing and then being glitched.
+   and gone on the frame after it, which is what a cut is. the label goes with
+   him, on the same frame and for the same reason — it is the other half of what
+   the wordmark is replacing. the wordmark is born on the **same frame**, so the
+   first thing it does is get torn — it glitches *in* rather than appearing and
+   then being glitched.
 
    the two used to be two hundredths apart and a rendered still is what said no:
    at the preview rate that gap is a whole frame with the head already cut, the
@@ -245,22 +262,23 @@ const END = {
      giggle** on purpose: the signal starts coming apart while he is still
      laughing, which is what makes the hit feel earned rather than abrupt. each
      one is a couple of frames of the same channels the hit uses at a fraction of
-     the heat — shake, split, a band, a little noise — and the mascot is still on
-     screen for all of them, so what tears is him.
+     the heat — shake, split, a band, a little noise — and both the mascot and
+     the label are still on screen for all of them, so what tears is the pair of
+     them, together, on the one shake and the one split.
 
      `force` is a multiplier on the heat, not a separate set of numbers. one
      envelope, one set of channels, three quieter copies and then the loud one:
      a build up written as a second mechanism would be a second thing to get out
      of step with the first. */
   pre: [
-    { t: 4.22, for: 0.05, force: 0.32 },
-    { t: 4.34, for: 0.05, force: 0.52 },
-    { t: 4.46, for: 0.06, force: 0.78 },
+    { t: 3.72, for: 0.05, force: 0.32 },
+    { t: 3.84, for: 0.05, force: 0.52 },
+    { t: 3.96, for: 0.06, force: 0.78 },
   ],
-  at: 4.56,          /* the hit */
+  at: 4.06,          /* the hit */
   hard: 0.15,        /* full heat, every frame */
   tail: 0.22,        /* the stutter after it */
-  wmIn: 4.56,        /* and the wordmark is born on that same frame */
+  wmIn: 4.06,        /* and the wordmark is born on that same frame */
   wmFor: 0.09,       /* and is fully there five frames later at sixty */
   clean: 0.06,       /* how long after the tail before nothing may glitch at all */
 };
@@ -299,6 +317,70 @@ const WM = {
   lh: 1.16,
   minCapPx: 56,      /* device px, and it clears this by a mile. a floor, not a target */
 };
+
+/* ---------- the label ----------
+   two words over his head, from the first frame to the last frame he is on.
+   this clip is a joke told in sounds, and a feed plays with the sound off: a
+   viewer who never unmutes it gets a small robot doing something and then a
+   wordmark. the label is the one line that tells them what they are looking at,
+   and it is two words because a third would be a caption.
+
+   it is set in michroma with the wordmark's own glow, which is the "same look"
+   the brief asks for, and it is **lower case** — the wordmark is the only thing
+   in this file allowed to shout, and the house voice is lower case by default
+   anyway. it is fitted by width the way the wordmark is and for the same reason:
+   michroma is proportional and the tracking is nearly a fifth of an em, so the
+   width of a string is a measurement rather than a ratio.
+
+   `w` is a shade over two fifths of the wordmark's 330, which lands the type at
+   a little under three fifths of its size. that is the whole of "a label, not a
+   headline": it has to be read, and it has to be obviously subordinate to the
+   three words that replace it. both halves are guards at the bottom of this file
+   rather than opinions — the ink has a floor in device px, and the type has a
+   ceiling relative to the wordmark's own fitted size. the first pass was set at
+   190 and came out at 78% of the wordmark, which is a second headline; the
+   ceiling is what said so.
+
+   it lives inside `.stage`, so the shake is already on it, and it takes the rgb
+   split under the same `data-gl` attribute the mascot and the wordmark do. so
+   the three stutters tear at him and at it together, and on the hit frame both
+   are cut and the wordmark is born in their place: the frame exchanges one thing
+   for another and is never empty, which is the rule the cut already had. */
+const LABEL = {
+  text: 'ai fart',
+  w: 140,            /* the box, in css px. 280 device px against the wordmark's 660 */
+  minInkPx: 28,      /* device px of actual ink height. a floor, not a target */
+  maxOfWm: 0.65,     /* and it may be at most this much of the wordmark's type size */
+  gap: 60,           /* device px it must keep off the top of his glow */
+};
+
+/* ---------- where the label sits ----------
+   midway between the platform's top line and the top of his glow, which is the
+   only band of this frame that is empty for the whole clip. it is arithmetic on
+   the plan rather than a number read off a still: move him, resize him, change
+   what he does, and the label moves with him.
+
+   the head's top is taken as the **highest he ever gets** over the whole clip
+   rather than off one frame, because `surprised` snaps him up and a label placed
+   against his resting height would be crowded by the one beat that matters. the
+   glow is added on top of the ink, which is the opposite of how the safe area
+   treats it — a border is a line a thing may not cross and a thirty pixel blur
+   does not cross it, but two pieces of light a few pixels apart do look like one
+   smudge, and that is what this number is for. */
+function labelY(plan) {
+  let headTop = Infinity, glow = 0;
+  const N = Math.round(60 * CUT.seconds);
+  for (let f = 0; f < N; f++) {
+    const r = headRect(plan, mascotFrame(plan, f / 60));
+    headTop = Math.min(headTop, r.top);
+    glow = Math.max(glow, r.glowReach);
+  }
+  const lit = headTop - glow;                /* device px from the top of the frame */
+  return {
+    headTop: +headTop.toFixed(1), glow: +glow.toFixed(1), lit: +lit.toFixed(1),
+    y: +(((SAFE.top + lit) / 2) / DSF).toFixed(2),
+  };
+}
 
 /* the glitch's own numbers, at full heat. post10's, with the shake pulled in:
    that clip glitches a frame that has captions and a bubble in it and can afford
@@ -620,9 +702,13 @@ function phosphor(t, amp, slow, fast, phase) {
    under the shutter and the difference is the whole point of the split. */
 function frameAt(t, f, blobs) {
   const g = glitchAt(f);
-  /* the cut. he is on the frame before the hit and gone on the frame after it. */
+  /* the cut, and it is now the only thing in this clip that touches either
+     opacity. he is at full from frame zero — there is no fade left to compute —
+     and the label is on the same switch, so the two of them leave on the frame
+     the wordmark arrives on and there is no ordering between them to get wrong. */
   const cutFrame = Math.round(END.at * FPS);
-  const mo = f >= cutFrame ? 0 : EASE(span(t, 0, FADE.for));
+  const on = f >= cutFrame ? 0 : 1;
+  const mo = on;
   /* the wordmark snaps: a scale coming down through one on the site's own
      spring, so it overshoots a hair and settles, and an opacity that is there
      well before the scale is. it rides the shutter, so at 60 with --blur it
@@ -633,7 +719,13 @@ function frameAt(t, f, blobs) {
     sc: +(1 + (1 - POP(wp)) * 0.085).toFixed(4),
     glow: +phosphor(t, 0.055, 2.3, 0.83, 1.7).toFixed(4),
   };
-  return { t: +t.toFixed(4), f, mo: +mo.toFixed(4), wm, g, puff: puffAt(blobs, t) };
+  /* the label breathes on its own periods rather than the wordmark's. they are
+     never on screen together, so this is not about the two of them beating
+     against each other — it is that a label holding perfectly still for four
+     seconds over a face that is drifting reads as a sticker laid on top of the
+     film rather than as part of it. */
+  const lbl = { o: on, glow: +phosphor(t, 0.05, 3.1, 0.61, 0.4).toFixed(4) };
+  return { t: +t.toFixed(4), f, mo: +mo.toFixed(4), wm, lbl, g, puff: puffAt(blobs, t) };
 }
 
 /* ---------- the page ---------- */
@@ -728,6 +820,32 @@ ${mascotCss(plan)}
     0 0 66px rgba(255,255,255,.10),
     calc(var(--split,0) * -1px) 0 var(--gr),calc(var(--split,0) * 1px) 0 var(--gc)}
 
+/* ---- the label ----
+   the wordmark's face, the wordmark's tracking, the wordmark's centring trick
+   and a glow built the same way out of three shadows — scaled down with the
+   type, because a full sized halo on half sized letters is a smudge rather than
+   a glow. no text-transform, because it is lower case and it stays that way.
+
+   it is on the mascot's own layer, over the puff and under the wordmark and
+   the tear. that ordering is never tested by anything on screen — it shares the
+   frame with the puff and the mascot and overlaps neither, and it is gone before
+   the wordmark and the tear exist — which is the point: the label needs no
+   layer of its own. */
+.lbl{position:absolute;left:50%;top:${LBL.y}px;
+  transform:translate(-50%,-50%);
+  font-family:var(--display);font-weight:400;color:var(--fg);
+  text-align:center;letter-spacing:.18em;text-indent:.09em;
+  line-height:${WM.lh};white-space:nowrap;
+  opacity:var(--lbl-o,0);
+  text-shadow:0 0 6px rgba(255,255,255,.36),0 0 18px rgba(255,255,255,.19),
+    0 0 40px rgba(255,255,255,.09);
+  filter:brightness(var(--lbl-glow,1));
+  z-index:4}
+.stage[data-gl="1"] .lbl{
+  text-shadow:0 0 6px rgba(255,255,255,.36),0 0 18px rgba(255,255,255,.19),
+    0 0 40px rgba(255,255,255,.09),
+    calc(var(--split,0) * -1px) 0 var(--gr),calc(var(--split,0) * 1px) 0 var(--gc)}
+
 /* ---- the tear ----
    a band of the frame, blacked out and redrawn shifted. the layer paints the
    page colour first so it covers what is under it, then draws its own copy of
@@ -765,6 +883,7 @@ ${mascotCss(plan)}
 ${Array.from({ length: PUFF.n }, (_, i) => '    <i class="blob" data-blob="' + i + '"></i>').join('\n')}
   </div>
 ${mascotMarkup(plan)}
+  <div class="lbl" id="lbl">${LABEL.text}</div>
   <div class="wm" id="wm">${WM.lines.map(l => '<span>' + l + '</span>').join('')}</div>
 ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' + i
     + '"><div class="tear-in"><div class="wm">'
@@ -775,7 +894,7 @@ ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' +
 <script>
 window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(plan))};
 ${mascotRuntime()}
-window.__P12 = ${JSON.stringify({ WM, PUFF: { n: PUFF.n }, VW, VH, DSF })};
+window.__P12 = ${JSON.stringify({ WM, LABEL, PUFF: { n: PUFF.n }, VW, VH, DSF })};
 ${scenePage.toString()}
 scenePage();
 document.fonts.load('400 1em "Michroma"')
@@ -797,6 +916,7 @@ function scenePage() {
   const P = window.__P12;
   const stage = document.getElementById('stage');
   const wms = [...document.querySelectorAll('.wm')];
+  const lbl = document.getElementById('lbl');
   const blobs = [...document.querySelectorAll('.blob')];
   const tears = [...document.querySelectorAll('.tear')];
   const tearIns = tears.map(t => t.querySelector('.tear-in'));
@@ -818,7 +938,13 @@ function scenePage() {
       }
       const size = 100 * P.WM.w / widest;
       for (const el of wms) el.style.fontSize = size.toFixed(2) + 'px';
-      return size;
+      /* the label is fitted the same way and separately: its own string, its own
+         width, its own size. it is one line, so there is nothing to take a
+         widest of — the element's own box is the measurement. */
+      lbl.style.fontSize = '100px';
+      const ls = 100 * P.LABEL.w / lbl.getBoundingClientRect().width;
+      lbl.style.fontSize = ls.toFixed(2) + 'px';
+      return { wm: size, lbl: ls };
     },
 
     /* what the wordmark actually measures, once, after the fit. the widest
@@ -845,12 +971,37 @@ function scenePage() {
       };
     },
 
+    /* the label, measured the same way, with one number the wordmark does not
+       need: the ink. a line box is taller than the letters in it, and what has
+       to be legible on a phone is the letters — so the height comes off the
+       rendered glyphs of the actual string rather than off the box or off a cap
+       ratio. the box is still what the safe area is judged on, because a box is
+       never smaller than what is drawn in it. */
+    measureLabel() {
+      const r = lbl.getBoundingClientRect(), d = P.DSF;
+      const cv = document.createElement('canvas').getContext('2d');
+      const cs = getComputedStyle(lbl);
+      cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      const m = cv.measureText(lbl.textContent);
+      return {
+        text: lbl.textContent,
+        sizeCss: +parseFloat(cs.fontSize).toFixed(2),
+        widthPx: +(r.width * d).toFixed(1),
+        inkPx: +(((m.actualBoundingBoxAscent || 0) + (m.actualBoundingBoxDescent || 0)) * d).toFixed(1),
+        left: +(r.left * d).toFixed(1), top: +(r.top * d).toFixed(1),
+        right: +((P.VW - r.right) * d).toFixed(1), bottom: +((P.VH - r.bottom) * d).toFixed(1),
+        font: cv.font,
+      };
+    },
+
     apply(o) {
       const s = stage.style;
       s.setProperty('--m-o', o.mo.toFixed(4));
       s.setProperty('--wm-o', o.wm.o.toFixed(4));
       s.setProperty('--wm-s', o.wm.sc.toFixed(4));
       s.setProperty('--wm-glow', o.wm.glow.toFixed(4));
+      s.setProperty('--lbl-o', o.lbl.o.toFixed(4));
+      s.setProperty('--lbl-glow', o.lbl.glow.toFixed(4));
       s.setProperty('--sx', o.g.sx.toFixed(2));
       s.setProperty('--sy', o.g.sy.toFixed(2));
       s.setProperty('--split', o.g.split.toFixed(2));
@@ -982,11 +1133,19 @@ async function render(plan, blobs) {
   await page.evaluate(list => window.__p12.soften(list), blobs.map(b => b.soft));
   const built = await page.evaluate(() => window.__built);
   const wm = await page.evaluate(() => window.__p12.measure());
+  const lbl = await page.evaluate(() => window.__p12.measureLabel());
   console.log('  built: head ' + built.headPx + 'px, ' + built.eyes + ' eyes, '
     + built.glows + ' glow layers, theme ' + built.theme);
   console.log('  the wordmark: ' + wm.sizeCss + 'css px, widest line ' + wm.widestPx
     + ' device px, caps ' + wm.capPx + ', clear ' + wm.left + ' left / ' + wm.top
     + ' top / ' + wm.right + ' right / ' + wm.bottom + ' bottom');
+  console.log('  the label "' + lbl.text + '": ' + lbl.sizeCss + 'css px ('
+    + (lbl.sizeCss / wm.sizeCss * 100).toFixed(0) + '% of the wordmark), ' + lbl.widthPx
+    + ' device px wide, ink ' + lbl.inkPx + ' tall, clear ' + lbl.left + ' left / '
+    + lbl.top + ' top / ' + lbl.right + ' right / ' + lbl.bottom + ' bottom');
+  console.log('  it sits on ' + LBL.y + 'css px, ' + Math.round(LBL.lit - (VH * DSF - lbl.bottom))
+    + 'px clear of the top of his glow (he reaches ' + LBL.headTop + ' from the top, '
+    + LBL.glow + ' of glow past that)');
 
   /* the head's clearance, off every frame rather than sampled, because the
      geometry is known and it costs nothing to do it properly. the glow and the
@@ -1017,6 +1176,7 @@ async function render(plan, blobs) {
 
       if (k === 0) {
         let s = o.mo * 7 + o.wm.o * 11 + o.wm.sc * 13 + o.wm.glow * 17
+          + o.lbl.o * 131 + o.lbl.glow * 137
           + o.g.sx * 19 + o.g.sy * 23 + o.g.split * 29 + o.g.noise * 31 + o.g.flash * 37
           + o.g.bands.length * 41
           + mf.card.x * 43 + mf.card.y * 47 + mf.card.rot * 53
@@ -1052,15 +1212,18 @@ async function render(plan, blobs) {
   fs.rmSync(VERIFY, { recursive: true, force: true });
   fs.mkdirSync(VERIFY, { recursive: true });
   const stills = [
-    [FADE.for, 'a-faded-up'],
-    [CUT.marks[1].t + STATES.agreeing.ding, 'b-the-hi'],
-    [CUT.marks[1].t + STATES.agreeing.entry + 0.42, 'c-the-pause'],
+    /* frame zero, and it is a still worth having now rather than a formality:
+       the whole of the first change is that this frame is the finished picture
+       — him at full, the label over him — instead of an empty black one. */
+    [0, 'a-frame-zero'],
+    [CUT.marks[0].t + STATES.agreeing.ding, 'b-the-hi'],
+    [CUT.marks[0].t + STATES.agreeing.entry + 0.42, 'c-the-pause'],
     [PUFF.at + 0.26, 'd-the-fart'],
-    [CUT.marks[2].t + STATES.surprised.entry, 'e-eyes-wide'],
-    [CUT.marks[3].t + 0.47, 'f-the-giggle'],
+    [CUT.marks[1].t + STATES.surprised.entry, 'e-eyes-wide'],
+    [CUT.marks[2].t + 0.47, 'f-the-giggle'],
     /* the four fault stills are taken off the **windows' own** start times
        rather than off the numbers in END, because a window is snapped to the
-       frame grid and END is not: at twelve, `END.at` of 4.56 is 4.5833 on the
+       frame grid and END is not: at twelve, `END.at` of 4.06 is 4.0833 on the
        grid, and a still asked for at 4.56 lands a frame early — which is a frame
        where the head is already cut and the wordmark has not yet arrived, so it
        renders as an empty frame that is not in the clip at all. that is exactly
@@ -1100,7 +1263,7 @@ async function render(plan, blobs) {
 
   if (SUB > 1) blend(N);
 
-  const state = { built, wm, head: headWorst, sigs, frames: N };
+  const state = { built, wm, lbl, head: headWorst, sigs, frames: N };
   fs.writeFileSync(path.join(OUT, 'post12.json'), JSON.stringify(state, null, 2));
   return state;
 }
@@ -1190,13 +1353,27 @@ function hopBeats(plan, from, until) {
     if (last && Math.abs(b - last.y) < HOP_PROMINENCE) continue;
     turns.push({ t: +ys[i].t.toFixed(4), y: +b.toFixed(3), up: b < a || b < c });
   }
-  /* the first turning point in the window is the bottom of the crouch, which is
-     anticipation rather than a bounce. the giggle starts on the first apex, and
-     the three it takes are apex, dip, apex: up, down, up, which is what "he
-     bounces on each hi" means when the state gives you two hops. they are not
-     evenly spaced and they are not meant to be — the gaps come out about 0.39
-     and 0.22, so the laugh accelerates, which is what a laugh does. */
-  const apex = turns.findIndex(p => p.up);
+  /* the giggle starts on the first apex, and the three it takes are apex, dip,
+     apex: up, down, up, which is what "he bounces on each hi" means when the
+     state gives you two hops. they are not evenly spaced and they are not meant
+     to be — the gaps come out 0.39 and 0.12, so the laugh accelerates, which is
+     what a laugh does.
+
+     **an apex is a turning point above where he rests, not merely a turning
+     point that goes up**, and that is the retime's second correction. the first
+     few turns in the window are the handover from the state before and the
+     bottom of the crouch, and whether one of those little wobbles reads as a
+     minimum or a maximum depends on the idle drift's phase — which moved when
+     the beats moved. it flipped, the search started on a wobble 0.99 units
+     *below* rest, and the first two bleeps came out 0.067s apart, which is one
+     sound with a wobble in it rather than two hops.
+
+     so the test is about height rather than about direction: a hop reaches a
+     good way above rest and the wobbles do not, and the same three grid units
+     that separate a hop from a handover artefact everywhere else in this
+     function separate them here. with it, the three beats are the same three
+     beats and the same two gaps the clip had before the front was cut. */
+  const apex = turns.findIndex(p => p.up && p.y < -HOP_PROMINENCE);
   return turns.slice(apex, apex + 3);
 }
 
@@ -1303,6 +1480,11 @@ const plan = planMascot({
 const halfBox = (GRID / 2) * plan.unit;
 plan.box = { left: +(VW / 2 - halfBox).toFixed(2), top: +(CENTRE_Y - halfBox).toFixed(2), size: SIZE };
 
+/* the label's line, worked out off the finished plan and before a browser is
+   opened, so the page is served with it already in the css and there is nothing
+   to move once it is up. */
+const LBL = labelY(plan);
+
 console.log(describeMascot(plan));
 const rep = mascotMotion(plan, FPS, CUT.seconds);
 console.log(describeMotion(rep));
@@ -1324,9 +1506,9 @@ const reach = puffReach(blobs);
    three hops measured off the rig. the glitch is the cut.
 
    nothing in this list is a number somebody typed to taste. */
-const hopped = hopBeats(plan, CUT.marks[3].t, END.at);
+const hopped = hopBeats(plan, CUT.marks[2].t, END.at);
 const cues = [
-  { t: +(CUT.marks[1].t + STATES.agreeing.ding).toFixed(4), kind: 'hi',
+  { t: +(CUT.marks[0].t + STATES.agreeing.ding).toFixed(4), kind: 'hi',
     from: "agreeing's own ding offset, the bottom of the first nod" },
   { t: PUFF.at, kind: 'fart', from: "the puff's own birth" },
   ...hopped.map((h, i) => ({ t: h.t, kind: 'giggle', opts: { step: i },
@@ -1377,7 +1559,7 @@ const after = loudness(ffmpeg, WAV);
 fs.rmSync(RAW, { force: true });
 
 console.log('\n  the beats');
-console.log('    0.00s  he fades up over ' + FADE.for.toFixed(2) + 's');
+console.log('    0.00s  he is already on, at rest, with "' + LABEL.text + '" over him');
 for (const m of plan.marks) {
   console.log('    ' + m.t.toFixed(2) + 's  ' + m.state.padEnd(10) + ' settles '
     + m.settled.toFixed(2) + ', holds to ' + m.leaving.toFixed(2) + ', out '
@@ -1389,11 +1571,11 @@ for (const w of GL_WINDOWS.filter(x => x.pre != null)) {
     + '% heat, under the giggle');
 }
 console.log('    ' + END.at.toFixed(2) + 's  the hit, ' + (END.hard + END.tail).toFixed(2)
-  + 's of it, and he is cut on that frame');
+  + 's of it, and he and the label are both cut on that frame');
 console.log('    ' + END.wmIn.toFixed(2) + 's  the wordmark snaps in over '
   + END.wmFor.toFixed(2) + 's and holds ' + (CUT.seconds - END.wmIn - END.wmFor).toFixed(2) + 's');
 console.log('    ' + CUT.seconds.toFixed(2) + 's  end');
-const pause = PUFF.at - (CUT.marks[1].t + STATES.agreeing.entry + 0.10);
+const pause = PUFF.at - (CUT.marks[0].t + STATES.agreeing.entry + 0.10);
 console.log('  the pause before the fart is ' + pause.toFixed(2) + 's of holding still');
 
 console.log('\n  the sound');
@@ -1490,9 +1672,18 @@ if (state.head.near < floor - 0.5) {
   fail.push('the head comes within ' + Math.round(state.head.near)
     + 'px of a border at ' + state.head.t + 's, floor is ' + floor);
 }
-/* and he is actually in the middle, which is the other half of the brief. */
-const offX = Math.abs(state.head.left - state.head.right);
-if (offX > 2) fail.push('he is ' + offX.toFixed(1) + 'px off centre horizontally');
+/* ---------- and he is actually in the middle ----------
+   the other half of the brief, and it is `plan.box` that answers it rather than
+   a rendered frame. that is a correction the retime forced rather than a
+   convenience. this used to read `headWorst`, whichever frame came nearest a
+   border — and the idle drift moves him 1.7 css px either way, so *which* frame
+   that is decides the answer. cutting the opening moved it from a frame with no
+   drift on it to one 3.4 device px along, and a guard about placement failed on
+   the layer that makes him alive. the drift is not him being off centre. the box
+   is what this file places in the middle, and this is the arithmetic that places
+   it, checked. */
+const offX = +(Math.abs(plan.box.left + halfBox - VW / 2) * DSF).toFixed(2);
+if (offX > 1) fail.push('his box is ' + offX + 'px off centre horizontally');
 
 /* the puff. it is glow rather than ink, so this is generous by design — but a
    cloud that leaves the safe area is still a cloud a phone crops. */
@@ -1509,6 +1700,56 @@ for (const k of ['left', 'top', 'right', 'bottom']) {
 }
 if (Math.abs(w.widestPx - WM.w * DSF) > 6) {
   fail.push('the wordmark fitted to ' + w.widestPx + ' device px, wanted ' + WM.w * DSF);
+}
+
+/* ---------- the label ----------
+   the same four questions the wordmark answers, and two more that are the whole
+   of the note it was added under: is it small enough to be a label, and is it
+   far enough off him not to crowd him. both are numbers rather than readings of
+   a still, which is what makes them worth having — a still says whether it looks
+   right at the size it was rendered and these say whether it still will after
+   somebody moves him. */
+const L = state.lbl;
+if (L.text !== LABEL.text) fail.push('the label says "' + L.text + '", not "' + LABEL.text + '"');
+if (L.text !== L.text.toLowerCase()) fail.push('the label is not lower case: "' + L.text + '"');
+if (!/Michroma/.test(L.font)) fail.push('the label is not set in michroma: ' + L.font);
+if (L.inkPx < LABEL.minInkPx) {
+  fail.push('the label ink measures ' + L.inkPx + ' device px, floor is ' + LABEL.minInkPx);
+}
+for (const k of ['left', 'top', 'right', 'bottom']) {
+  if (L[k] < floor - 0.5) fail.push('the label comes within ' + Math.round(L[k]) + 'px of the ' + k + ' border');
+}
+if (Math.abs(L.widthPx - LABEL.w * DSF) > 6) {
+  fail.push('the label fitted to ' + L.widthPx + ' device px, wanted ' + LABEL.w * DSF);
+}
+/* a label rather than a headline, and it is the wordmark it has to be smaller
+   than rather than some absolute size: the two are never on screen together, so
+   the only place a viewer compares them is across the cut. */
+if (L.sizeCss > w.sizeCss * LABEL.maxOfWm) {
+  fail.push('the label is set at ' + L.sizeCss + 'css px against the wordmark at ' + w.sizeCss
+    + ', which is ' + (L.sizeCss / w.sizeCss * 100).toFixed(0) + '% and not a label');
+}
+/* and it does not crowd him. measured against the top of his **glow** at the
+   highest he ever gets, not against his ink at rest. */
+const offHead = LBL.lit - (VH * DSF - L.bottom);
+if (offHead < LABEL.gap) {
+  fail.push('the label sits ' + Math.round(offHead) + 'px off the top of his glow, floor is ' + LABEL.gap);
+}
+
+/* ---------- the two ends of the first change ----------
+   he is on from frame zero and the label is on with him, and the pair of them
+   go on the frame the wordmark arrives on. it is three assertions about
+   `frameAt` rather than a description of it, which is the only way this stays
+   true after somebody edits the cut. */
+{
+  const cutF = Math.round(END.at * FPS);
+  const first = frameAt(0, 0, blobs);
+  const before = frameAt((cutF - 1) / FPS, cutF - 1, blobs);
+  const on = frameAt(cutF / FPS, cutF, blobs);
+  if (first.mo !== 1) fail.push('he is at ' + first.mo + ' on the first frame, and there is no fade any more');
+  if (first.lbl.o !== 1) fail.push('the label is at ' + first.lbl.o + ' on the first frame');
+  if (before.lbl.o !== 1) fail.push('the label leaves before the wordmark arrives');
+  if (on.lbl.o !== 0 || on.mo !== 0) fail.push('he or the label is still on the frame the wordmark arrives on');
 }
 
 /* the motion, off the module's own preflight at sixty. these are the numbers
