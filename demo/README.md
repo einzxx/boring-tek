@@ -37,13 +37,15 @@ All headless Chrome, all tooling. The renderers first:
   **Both 60fps finals rendered green, 47.03s each, and both have since been
   overwritten** by the 12fps previews from the brain removal, which write to the
   same two paths. **They want `--blur` run again.** See The eleventh clip.
-- **`post12.mjs`** renders a 6.05 second sting, vertical, dark only, **with no
-  words in it at all until the last quarter.** The shortest clip here and the
-  first that is a joke rather than an argument: the mascot alone in the middle of
-  a black frame says hi, holds still, farts, giggles, the signal comes apart
-  under the laugh and a hard tear puts the wordmark on the screen for a second
-  and a half. **The first clip whose sounds are the content** — there is no voice
-  and no caption, and four new recipes in `lib/sfx.mjs` carry it. Out to
+- **`post12.mjs`** renders a 5.55 second sting, vertical, dark only, **with two
+  words over the mascot's head and nothing else written on it until the
+  wordmark.** The shortest clip here and the first that is a joke rather than an
+  argument: the mascot alone in the middle of a black frame, on screen from frame
+  zero under an `ai fart` label, says hi, holds still, farts, giggles, the signal
+  comes apart under the laugh and a hard tear takes him and the label off and
+  puts the wordmark on the screen for a second and a half. **The first clip whose
+  sounds are the content** — there is no voice and no caption, and four new
+  recipes in `lib/sfx.mjs` carry it. Out to
   `demo/out/post12-dark-1080x1920.mp4`. See The twelfth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
@@ -2544,7 +2546,7 @@ node post12.mjs --keep-frames   # leave the jpegs on disk
 node post12.mjs --encode-only   # re-encode from kept frames
 ```
 
-**6.05 seconds, dark only, one output path, overwritten every run:**
+**5.55 seconds, dark only, one output path, overwritten every run:**
 `demo/out/post12-dark-1080x1920.mp4`. Twelve beat stills land in
 `demo/out/verify-post12/`, which is how the cut is read as a strip rather than
 scrubbed as a video.
@@ -2554,23 +2556,35 @@ transition into the wordmark was not glitchy enough, and the end card wanted
 another second. All three are below, in their own sections, along with the two
 faults the second pass produced and what they cost.
 
+**Then a third pass cut the opening and put a label on the screen.** The fade up
+out of black is gone and the clip is 5.55s: he is at full on frame zero, already
+idle, and every beat after moved up the same half second. And `ai fart` sits over
+his head for the whole time he is on it. Both are below, and so are the two
+guards the retime found were reading the wrong thing.
+
 Every clip before this one is an argument. post9 pitches, post10 is angry,
 post11 explains for forty seven seconds. None of them is *likeable*, and a feed
 is not only won by being right. This is the mascot being a small robot for five
 seconds with a joke in the middle, and the whole brand content is three words at
 the end.
 
-### No words at all, which is a constraint rather than a saving
+### Two words, no captions, and a constraint rather than a saving
 
-There is no read, no caption and no bubble. Nothing is written on the screen
-until 4.56s. That is the first time a clip here has had to be legible from the
-picture and the sound alone, and it is why nearly every time in the file is
-**derived off the rig** rather than typed against it: with nothing written down,
-a beat that lands a fifth of a second late has nothing to hide behind.
+There is no read, no caption and no bubble. What is written on the screen is a
+two word label — `ai fart`, lower case — over his head from frame zero, and then
+the wordmark. Nothing else. It is still a clip that has to be legible from the
+picture and the sound alone, and that is why nearly every time in the file is
+**derived off the rig** rather than typed against it: with nothing narrated, a
+beat that lands a fifth of a second late has nothing to hide behind.
+
+**The label is not a caption and it does not narrate.** A feed plays with the
+sound off, and a viewer who never unmutes gets a small robot doing something and
+then a wordmark. The label names the thing once, on the first frame, and holds
+still while the joke happens under it.
 
 The video-review skill's transcript step reports "no transcript was possible",
 which is correct twice over — there are no captions and no whisper key — and
-also moot, because there is nothing to transcribe.
+also moot, because nobody speaks.
 
 ### The mascot module is used exactly as it is
 
@@ -2599,19 +2613,19 @@ than followed.
 
 ### The cut, and the pause that is the whole joke
 
-Four marks, and the room between them is not taste — `planMascot` refuses a mark
+Three marks, and the room between them is not taste — `planMascot` refuses a mark
 with no room for its own entrance, hold and exit, so the clip is as short as
-these four states allow.
+these three states allow.
 
 | at | state | what it is |
 |---|---|---|
-| 0.06s | `neutral` | he fades up, arrives at rest, blinks and drifts |
-| 1.14s | `agreeing` | the hi. up first, then a contact squash with a warm half blink on it |
-| 2.38s | `surprised` | the fart. pulls back, snaps up, eyes to 2.6x, brows high, `turn` +0.30 |
-| 3.55s | `delighted` | the giggle. two hops with real lift, eyes squashed into arcs |
-| 4.22 / 4.34 / 4.46s | — | three stutters under the laugh, escalating |
-| 4.56s | — | the hit: the cut, and the wordmark is born on that frame |
-| 6.05s | — | end, after 1.40s of the end card holding |
+| 0.00s | — | he is already on, at rest, drifting and blinking, `ai fart` over him |
+| 0.64s | `agreeing` | the hi. up first, then a contact squash with a warm half blink on it |
+| 1.88s | `surprised` | the fart. pulls back, snaps up, eyes to 2.6x, brows high, `turn` +0.30 |
+| 3.05s | `delighted` | the giggle. two hops with real lift, eyes squashed into arcs |
+| 3.72 / 3.84 / 3.96s | — | three stutters under the laugh, escalating |
+| 4.06s | — | the hit: he and the label are cut, and the wordmark is born on that frame |
+| 5.55s | — | end, after 1.40s of the end card holding |
 
 `agreeing` for the greeting is the call worth defending. It goes **up** first —
 "a nod that starts by going down is a head falling off" — and lands on a squash
@@ -2623,17 +2637,59 @@ it is him tilting away from the puff, which leaves to screen left.
 
 **The pause is 0.62s and it is `agreeing`'s own hold plus its exit**, not a gap
 left over between two marks. For most of it the only things moving are the idle
-drift, a saccade and a blink. A five second clip spending an eighth of itself on
-nothing is the joke being set up, and the render guards it: under half a second
-and the file fails rather than shipping a gap where a pause was meant to be.
+drift, a saccade and a blink. A five and a half second clip spending a ninth of
+itself on nothing is the joke being set up, and the render guards it: under half
+a second and the file fails rather than shipping a gap where a pause was meant to
+be.
+
+### The opening was cut, and a mark went with it
+
+The clip used to fade up out of black over 0.42s from a `neutral` mark at 0.06s,
+and that half second was a viewer waiting to find out whether anything was going
+to happen. It is gone. He is at full on frame zero with the label already over
+him, every beat after moved up the same 0.50s, and the clip runs 5.55s rather
+than 6.05.
+
+**The `neutral` mark went with it, and that is the mechanically interesting
+part.** That state does exactly one thing — it arrives at rest — and it costs
+1.06s of clock before anything else may start, because `planMascot` will not seat
+a mark inside another mark's entrance and exit. So while it was there the
+arithmetic allowed **eight hundredths** off the front, not half a second.
+Dropping it is not a way round the module: a mascot with no state written over
+him sits at rest on the idle layer, drifting, breathing, blinking and saccading
+from frame zero, which is exactly what "already idle and alive" describes. The
+entrance was the thing being cut and the mark *was* the entrance.
+
+**Nothing else about the cut moved.** The three states that are left keep the
+gaps they had, the pause is still 0.62s, the end card still holds 1.40s, and the
+puff, the stutters and the hit all shifted by the same 0.50.
+
+**The retime found two guards reading the wrong thing, and both were fixed rather
+than loosened.** They are the useful part of this pass:
+
+- **The centring guard was reading a drifting frame.** It compared the head's
+  left and right clearance on `headWorst` — whichever frame came nearest a border
+  — and the idle drift moves him 1.7 css px either way, so *which* frame that is
+  decides the answer. Retiming moved it from a frame with no drift on it to one
+  3.4 device px along, and the clip failed for being alive. It checks `plan.box`
+  now, which is the arithmetic this file actually does.
+- **The giggle found a false first apex.** `hopBeats` took the first upward
+  turning point in the window, and the first few turns there are the handover
+  from the state before and the bottom of the crouch. Whether one of those
+  wobbles reads as a minimum or a maximum depends on the idle drift's phase,
+  which moved when the beats moved. It flipped, the search started on a wobble
+  0.99 units *below* rest, and the first two bleeps came out 0.067s apart, which
+  is one sound. **An apex is a turning point above rest now**, by the same three
+  grid units the prominence test already uses, and the three beats and their two
+  gaps are the ones the clip had before the front was cut.
 
 ### The giggle is measured off the picture
 
 Three bleeps, and the brief says he bounces on each one, so the three times are
 turning points in the **drawn head's** own y — the card, which is three frames
-behind the rig by design, not `pose`, which is the rig. They come out at 3.83,
-4.22 and 4.33: the top of the first hop, the dip between, the top of the second.
-The gaps are 0.39 and 0.11, which is uneven **on purpose**: the state hops big
+behind the rig by design, not `pose`, which is the rig. They come out at 3.33,
+3.72 and 3.83: the top of the first hop, the dip between, the top of the second.
+The gaps are 0.39 and 0.12, which is uneven **on purpose**: the state hops big
 and then small, so the laugh comes out as one and then two, which is what a
 laugh that catches sounds like.
 
@@ -2679,7 +2735,7 @@ function of the **output frame index**, held across every subframe, for post10's
 reason — a one frame rgb split written against `t` is on for one subframe of four
 and lands at a quarter strength.
 
-**The build up is three stutters under the laugh**, at 4.22, 4.34 and 4.46, at
+**The build up is three stutters under the laugh**, at 3.72, 3.84 and 3.96, at
 32%, 52% and 78% of the heat. They are not a second mechanism: `force` is a
 multiplier on the same envelope driving the same channels, because a build up
 written as its own thing is a second thing to get out of step with the first. The
@@ -2688,14 +2744,15 @@ recipe at -34, -30 and -26 dB against the hit's -23.
 
 **The build up escalates in kind, not only in amount**, and that is a fault this
 pass paid for — see below. Before the hit the signal *wobbles*: shake, rgb split
-and a little noise, all of it on him. At the hit the frame *tears*.
+and a little noise, all of it on him and on the label. At the hit the frame
+*tears*.
 
 Only the wordmark is torn, and that is a decision rather than a shortcut. The
 mascot is one dom subtree driven by ids out of the mascot module's own runtime
 and there is no second copy of it that could be kept in sync; the wordmark is
 three words of static text and duplicating it cannot go wrong. It is also the
-only thing on screen when the glitch is at full heat, because the head is cut on
-the same frame the hit lands.
+only thing on screen when the glitch is at full heat, because the head and the
+label are both cut on the frame the hit lands.
 
 **A burst is a length in seconds quantised to whatever frame grid is rendering**,
 which is post11's rule and which this clip needs more than that one did. A fifty
@@ -2710,7 +2767,8 @@ guard asserts each one fires on at least one frame at *both* rates.
 ceiling is 30% of a scene's frames, and it is a per scene number there for a
 reason: a scene that glitches a third of its own frames is a look, a clip that
 does is a broken render. post12's whole fault lives in the last two seconds of
-six, so against the file it is under a tenth however you cut it and the number
+five and a half, so against the file it is under a tenth however you cut it and
+the number
 that has to be defended is the **local** one. So the guard measures the fault
 against the ending it lives in, from the first stutter to the last frame, and
 holds it to the same 30%. It measures **26.4%**.
@@ -2761,9 +2819,10 @@ time, can never disagree about which moment a still is.
 
 It held 0.40 and the note was to hold it a second longer, which is the change on
 this clip with the least argument in it and the most effect: at 0.40s the words
-are read and gone, at 1.40s they are read, held and finished. The clip is 6.05s
-and the whole extra second is end card — `delighted`'s hold is stretched to fill
-the room the plan now has, which nobody sees, because he is cut at 4.56.
+are read and gone, at 1.40s they are read, held and finished. It came through the
+opening being cut untouched — that half second came off the front — so the clip
+runs 5.55s with the same 1.40s of end card in it. `delighted`'s hold is stretched
+to fill the room the plan has, which nobody sees, because he is cut at 4.06.
 
 The guard moved with it: the floor is 1.30s rather than 0.35, and there is a
 second one on the **clean** stretch — how long the three words sit still with
@@ -2784,6 +2843,38 @@ it.
 of air either side on top of the platform's own margin. The caps measure 74
 device px. It reads at 400px wide, which is about a phone thumbnail.
 
+### The label
+
+`ai fart`, lower case, over his head from frame zero to the frame he is cut on.
+Michroma with the wordmark's own three shadow glow, which is the "same look" half
+of the note, and **fitted by width the same way the wordmark is** and for the
+same reason: Michroma is proportional and the tracking is nearly a fifth of an
+em, so the width of a string is a measurement rather than a ratio.
+
+140 css px of box fits the type at **27.96 css px, 57% of the wordmark's**, 280
+device px wide with 44 device px of ink. That ratio is the whole of "a label, not
+a headline", and it is a guard rather than a taste: the ink has a floor in device
+px so it stays legible at phone size, and the type has a **ceiling relative to
+the wordmark's own fitted size** so it stays subordinate to the three words that
+replace it. The first pass was set at 190 css px, came out at 78% of the
+wordmark, and the ceiling is what said that is a second headline.
+
+**Where it sits is arithmetic on the plan rather than a number read off a
+still.** It is midway between the platform's top line and the top of his glow,
+taken at the highest he ever gets over the whole clip rather than at his resting
+height — `surprised` snaps him up, and a label placed against where he usually is
+would be crowded by the one beat that matters. That lands it on 191 css px,
+clearing the safe area by 400 left, 350 top and 400 right, and clearing the top
+of his glow by 170 device px. Move him, resize him or change what he does and the
+label moves with him.
+
+**It glitches with him.** It lives inside `.stage`, so the shake is
+already on it, and it carries the rgb split under the same `data-gl` attribute
+the mascot and the wordmark do — so the three stutters tear at the pair of them
+together, on one shake and one split. On the hit frame both are cut and the
+wordmark is born in their place: the frame exchanges one thing for another and is
+never empty, which is the rule the cut already had. It needs no layer of its own.
+
 ### The sound is the content
 
 Four new voices in `lib/sfx.mjs` — `hi`, `fart`, `giggle` and `glitch` — and
@@ -2791,11 +2882,11 @@ five cues, every one of them a time something else had already decided:
 
 | at | sound | where the time came from |
 |---|---|---|
-| 1.61s | `hi` | `agreeing`'s own declared ding offset, the bottom of the first nod |
-| 2.34s | `fart` | the puff's own birth, four hundredths before the head moves |
-| 3.83 / 4.22 / 4.33s | `giggle` x3 | turning points in the drawn head's y |
-| 4.22 / 4.34 / 4.46s | `glitch` x3 | the three stutter windows, at -34, -30 and -26 dB |
-| 4.56s | `glitch` | the cut, at -23 dB |
+| 1.11s | `hi` | `agreeing`'s own declared ding offset, the bottom of the first nod |
+| 1.84s | `fart` | the puff's own birth, four hundredths before the head moves |
+| 3.33 / 3.72 / 3.83s | `giggle` x3 | turning points in the drawn head's y |
+| 3.72 / 3.84 / 3.96s | `glitch` x3 | the three stutter windows, at -34, -30 and -26 dB |
+| 4.06s | `glitch` | the cut, at -23 dB |
 
 The three stutters are three separate `renderSfx` calls summed onto the same bus,
 because that function sets **one gain per kind** and that is the right shape for
@@ -2922,14 +3013,20 @@ overrule.
 
 Everything `mascot-test.mjs` checks, minus the bubble items, plus:
 
-- **He is actually in the middle.** The head's left and right clearance on the
-  worst frame must agree within two device px.
+- **He is actually in the middle**, checked on `plan.box` rather than on a
+  rendered frame — see the retime above for why the frame version was wrong.
 - **He is actually larger than his corner size.** The rendered plate must be over
   240 device px, which is the number the default `size` produces.
 - **The puff never crosses the safe area**, measured off the plan at four times
   the master rate.
 - **The wordmark is in Michroma**, fitted to within six device px of its target
   width, over a cap height floor, and inside the safe area on all four sides.
+- **The label says what it is meant to say, in lower case, in Michroma**, fitted
+  to within six device px of its target width, over an ink height floor, under a
+  ceiling relative to the wordmark's type size, inside the safe area on all four
+  sides, and over 60 device px clear of the top of his glow.
+- **He and the label are both on frame zero, and both gone on the frame the
+  wordmark arrives on.** Asserted on `frameAt` rather than described.
 - **The pause is over half a second.**
 - **The giggle is three beats**, none of them closer than 90ms — which is about
   the sound, not the rhythm — none further apart than 0.60s, and all of them
@@ -2957,9 +3054,10 @@ Everything `mascot-test.mjs` checks, minus the bubble items, plus:
 ### Outstanding
 
 - **A posting pack.** No caption, no tags, no platform decided.
-- **It runs 6.05s.** The first cut was 5.05 against a four to five second brief,
-  where the overshoot was the four states' own entry, hold and exit floors; the
-  extra second is the end card and was asked for.
+- **It runs 5.55s.** The first cut was 5.05 against a four to five second brief,
+  where the overshoot was the states' own entry, hold and exit floors; a second
+  went on the end card and was asked for, and half a second came back off the
+  front when the fade up was cut.
 - **The glitch recipe now exists twice.** `post11.mjs` carries its own local
   `glitchSfx` — a dropped packet coming apart over a sixth of a second — and
   `lib/sfx.mjs` now carries `glitch`, a single hard hit. They are different
