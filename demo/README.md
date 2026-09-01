@@ -56,15 +56,17 @@ All headless Chrome, all tooling. The renderers first:
   default**, and three new recipes in `lib/sfx.mjs` carry the sound: a formant
   synth mumble on every open of the mouth, a sigh and a beep. Out to
   `demo/out/post13-dark-1080x1920.mp4`. See The thirteenth clip.
-- **`post14.mjs`** renders a 9.95 second news flash, vertical, **light only,
-  and it is the first clip that puts somebody else's mark on the screen and
-  the first that moves the mascot.** He is big in the middle of an empty white
-  page with `fable 5.1 out` in a thought bubble, the signal tears twice and he
-  is back in his corner at his ordinary size, the anthropic logo glitches in at
-  the top and turns once over the rest of the clip, and three facts are read
-  warm and quick over captions in the middle of the frame. The logo is
-  `demo/assets/anthropic-logo.png`, placed as an image and not touched. Out to
-  `demo/out/post14-light-1080x1920.mp4`. See The fourteenth clip.
+- **`post14.mjs`** renders a 13.03 second news flash, vertical, **light only,
+  and it is the first clip that puts somebody else's mark on the screen and the
+  first that moves the mascot.** He is big in the middle of an empty white page
+  for two and a half seconds with `fable 5.1 out` in a thought bubble over him,
+  the signal tears twice and he is back in his corner at his ordinary size, the
+  anthropic logo glitches in at the top and turns once over the rest of the
+  clip, **a chat panel under it types itself a line character by character**,
+  and three facts are read at a person's own pace over captions in the middle
+  of the frame. The logo is `demo/assets/anthropic-logo.png`, placed as an image
+  and not touched. Out to `demo/out/post14-light-1080x1920.mp4`. See The
+  fourteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -3373,11 +3375,18 @@ node post14.mjs --keep-frames   # leave the jpegs on disk
 node post14.mjs --encode-only   # re-encode from kept frames
 ```
 
-**9.95 seconds, light only, one output path, overwritten every run:**
-`demo/out/post14-light-1080x1920.mp4`. Fourteen beat stills land in
+**13.03 seconds, light only, one output path, overwritten every run:**
+`demo/out/post14-light-1080x1920.mp4`. Nineteen beat stills land in
 `demo/out/verify-post14/`, which is how the cut is read as a strip rather than
 scrubbed as a video. The 60fps master with the shutter open rendered green at
-1.23 MB, log at `out/post14-final.log`.
+1.37 MB, log at `out/post14-final.log`.
+
+**It shipped at 9.95s and came back with five notes**, all of them below in
+their own section: the opening thought was too fast and too close to his head
+and needed three dots rather than two, the read was hurried, the mark was too
+small and wanted a chat panel under it, the end card sat too high, and he was
+too quiet in his corner. The second cut is 3.08s longer and every second of that
+is one of those five.
 
 Every clip before this one is about us. This one is about somebody else's
 release, and the reason to make it is that a feed rewards being early about a
@@ -3646,6 +3655,170 @@ file the limiter had held at -1.0. Half a decibel of headroom is what it costs.
 - The usual: no card straddles two lines, drawn is spoken, one card at a time, no
   accent on a caption, no punctuation dash anywhere a viewer can read, no hole in
   the read over a second, no identical frames.
+
+### The second cut, and the five things it changed
+
+**The opening holds 2.52s and the thought is on the ordinary profile.** The first
+cut ran the quick one, whose hold is floored and capped at the same 0.30 whatever
+room the mark is given, and the cost was written down at the time: 0.30s of full
+pill. With 2.52s the ordinary profile fits — 0.48 in, 0.74 of hold, 0.30 out —
+and the pill is fully up for **0.74s**. What fills the rest of it is him:
+`delighted` is two hops with real lift and a small turn on the way up, and the
+idle layer's drift, breathing, saccades and blinks carry it to the fault with
+nothing else on the screen.
+
+**The thought has three dots and they climb a diagonal.** The module climbs two,
+8 and 12 css px, in a flex row with the pill: same baseline, increasing x, fixed
+gaps. That is the site's own cluster and it is right for a mascot in a corner
+with the thought beside his head. It cannot do this beat — the pill is *above*
+him, so the climb is a diagonal, and a flex row is not a diagonal at any set of
+gaps. So for the opening the three dots are this file's, drawn in page
+coordinates on the diagonal from his crown at (216,428) to the pill's own bottom
+left corner at (175,372), and the module's two are switched off.
+
+**That is one line in `apply`, not a fork.** `window.__p14.apply` always runs
+after `window.__mas.apply`, so writing the module's dots to nought after it has
+written them is the same ordering `#m-zone`'s own opacity channel relies on. The
+pill is still the module's, at the module's size, on the module's spring. And the
+timing is the module's too: each dot reads a channel out of `mascotFrame`, so all
+four things arrive 70ms apart on the site's own pop curve rather than on a second
+animation that could drift.
+
+```
+the 5  reads dot 0 at t + 0.07, which is a dot that started 70ms earlier
+the 8  reads dot 0
+the 12 reads dot 1
+the pill is the pill
+```
+
+The pill sits 38 css px above his crown where the first cut had 14, and the first
+dot is 8 css off the silhouette, which is attached to him rather than near him.
+Both are guarded.
+
+**The read comes back to a person's pace.** The first cut ran +12, +18 and +6 per
+cent on the argument that a news flash is quick and the clip had ten seconds to
+hold three facts. Watched back it is not upbeat, it is hurried. So the rate sits
+around the house default and the **shape** carries the register instead — the
+pitch is up on the headline and up on the payoff and nearly flat on the facts, so
+the reading rises, levels and rises again rather than climbing all the way
+through. Measured on the real takes, words a second on the first line: +12% was
+2.82, 0% is 2.52, -4% is 2.41, -8% is 2.31. The gaps are a real breath now, 0.34
+and 0.38, and the read costs 0.9s more than it did.
+
+**The mark is 216 device px.** What sets the ceiling is not the mark, it is the
+sweep: 108 css reaches 76.4 in every direction, so its centre cannot come closer
+to the top than 90 + 76.4. At 178 the top of the sweep lands on 203 device px
+against a 180 floor.
+
+### The chat panel
+
+A picture of the box a person types into, drawn out of this file's own rules: a
+rounded panel in the page's ink, a line of text, a plus in a ring on the left and
+the model's name on the right. **No logo inside it and nothing lifted off
+anybody's product** — it is the shape of the thing, which is what a viewer
+recognises, and every part of it is a css rule here.
+
+It is `--fg` on `--bg`, which is the site's ink on the site's paper, so it needs
+no colour of its own. On a white frame a dark panel is what a chat box looks
+like, and it gives the middle of the picture something to be about between the
+mark at the top and the caption under it.
+
+The geometry is worked backwards from the two things it has to fit between: the
+mark's sweep reaches 254 css and the tallest caption ink starts around 432, so
+the panel gets **272..407** and there are 25 css px of air under it. The text
+block is top anchored and the controls row is bottom anchored, so a line growing
+from nothing to two lines cannot move the plus or the model name under it. That
+is what a real input does and it is also what stops the frame twitching every
+fourth character.
+
+**The type is 23 css px because 22 is 31.7 device px of cap and the floor is
+32.** The line wraps to exactly two at that size, which is what the panel is two
+lines tall for, and the whole string is written in, measured and taken out again
+at build time so a line that would spill out of its own box is caught before a
+frame is drawn rather than on the last character.
+
+**`Fable 5.1 Medium` is under that floor and it is the one exemption in the
+file.** It is not the clip's copy, it is chrome inside a drawn picture of a
+screen — the same footing as post11's registration number, which is on the screen
+and is never read aloud. Type inside a picture of a ui is as small as it is in the
+ui, or it is not a picture of a ui.
+
+**The caret is inline rather than positioned**, so it travels with the text
+through the wrap without anything having to measure where the text got to. It cost
+one fix: with nothing typed it sits at x nought, which is exactly where the
+placeholder starts, and the frame came back with a white bar drawn through the
+`a` of `ask anything`. The placeholder is inset five px now, which clears the
+caret's two and its margin, and it is what a focused empty input actually looks
+like.
+
+**The typing is cut to the read at both ends.** It starts on the second line's
+first word and finishes 0.60s before the end card, both derived rather than typed,
+so a slower read moves the typing with it: 41 characters over 5.77s, which is 7.1
+a second. Every gap is its own number off a seeded prng — post9's rule, because a
+constant rate reads as a machine filling a field — and a comma gets a beat after
+it. Eleven `key` ticks, one per four characters plus the two ends, at post11's own
+level.
+
+The panel rises rather than glitching in, and it is the one thing in the clip that
+arrives calmly: the fault is the opening's language and it is over by then, and a
+third arrival on a tear would make the fault the clip's whole grammar rather than
+its first beat. It leaves the same way over the third of a second before the end
+card, so the wordmark never comes up over a picture of somebody else's product.
+
+### The end card is on the middle of the frame
+
+It was on 325, which is the middle of the room between the mark's sweep and the
+caption band, and on a rendered frame that reads as an end card sitting high with
+a hole under it. 540x960 puts the middle at **480**, and it is the frame's middle
+rather than the safe band's, which is 470: the platforms take more off the bottom
+than the top, and a wordmark nudged up five pixels to satisfy that is a wordmark
+nobody centred.
+
+What it costs is that the group now sits **where the captions are**, so the end
+card may not arrive until the last card is out — which is the caption plan's own
+number rather than the voice's, because how long a card is up is not a fact about
+when the last word ended. `endIn` is derived off `max(cap.groups.out)` and the
+last word, whichever is later, and both the ordering and the group's own rendered
+middle are guards.
+
+**The centre check was wrong before it was right.** It did the placement
+arithmetic a second time on the guard's side and got 514.8 for a group that is
+placed on 480, because both blocks are translated by half their own size to sit
+on the line they were given. It measures the two rendered rects now.
+
+### He is not quiet in the corner any more
+
+The first cut had him arrive `curious`, sit still for three seconds, hop once and
+nod once. That is a corner ornament rather than a character. He gets a state per
+line now, in the order the lines earn it, and each carries a short positive
+thought on the ordinary profile:
+
+```
+2.52  curious     "yes"       on the news
+5.20  agreeing    "love it"   on the three facts, and it earns the ding
+8.50  delighted   "nice"      on the one that is actually good
+11.25 neutral                 he settles as the wordmark comes up
+```
+
+**Four thoughts is the ceiling rather than the count**, and it is a guard: a
+fifth would be a mascot commenting on every clause. The three corner marks are
+placed against the read rather than typed, so moving a line moves the reaction
+with it — except the first, which is keyed to the fault he is born on, because
+that is what makes "he arrives with the first word" true by construction instead
+of by coincidence.
+
+`agreeing` stays on the line that is a list of three facts, which is the one worth
+agreeing with, and post11's rule holds: it is the one state that earns a `ding`
+and the ding keeps meaning yes.
+
+### The glitch window's length is the gap it chains across
+
+The first window runs to the second's start rather than to a length of its own,
+which is what keeps the stretch he is missing from free of clean frames. That
+means its length is not a number in the file, it is `T_BACK - T_GONE` — so when
+the opening grew, the fault grew with it and came out at 0.32s, over the third of
+a second a tv glitch is allowed to outstay. The hit moved to 2.26 and the window
+is 0.26s again, which is the length the first cut proved.
 
 ### Outstanding
 

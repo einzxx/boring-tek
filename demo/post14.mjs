@@ -123,28 +123,34 @@ const SUBSTEP = STEP / SUB;
    three lines, exact copy, one `speak()` each so the delivery has a shape
    rather than a speed — post11's rig and post11's argument.
 
-   **the rates are positive and that is a decision rather than a drift.** the
-   house default is `calm` at -8%, which is a person reading a statement to
-   camera, and it is right for an explainer. this is a news flash: the brief
-   asks for warm and upbeat, storytelling rather than list reading, and the
-   whole clip has ten seconds to hold three facts and an end card. so the two
-   outer lines run bright and quick and the middle one, which is the only one
-   that is a list, runs quickest of the three — so its two commas are phrasing
-   rather than two stops.
+   **the rates sit around the house default, and that is the second cut.** the
+   first one ran the three lines at +12, +18 and +6 per cent, on the argument
+   that a news flash is quick and the clip had ten seconds to hold three facts.
+   watched back it is not upbeat, it is hurried: a person telling somebody good
+   news does not talk faster than they normally do, they talk with more shape.
+   so the rate comes back to a person's own pace and the **shape** carries the
+   register instead — the pitch is up on the headline and up on the payoff and
+   nearly flat on the facts, so the reading rises, levels and rises again rather
+   than climbing all the way through.
 
-   the pitch goes the other way. up on the headline and up on the payoff, nearly
-   flat on the facts, so the reading rises, levels and rises again instead of
-   climbing all the way through.
+   measured at four rates on the real takes, words a second on the first line:
+   +12% was 2.82, 0% is 2.52, -4% is 2.41 and -8% is 2.31. the house default is
+   -8% and it is right for a statement to camera; this sits a shade over it on
+   the two outer lines and lands at 2.3 to 2.4 on the two that carry the news.
 
    `gap` is the silence **after** the line, measured on the waveform rather than
-   left to the synthesiser's own trailing air. both of them are breaths. */
+   left to the synthesiser's own trailing air, and both of them are now a real
+   breath rather than a join: a third of a second after the headline and nearly
+   four tenths after the facts, which is what "breathe between lines" is in
+   numbers. the read costs 0.9s more than the fast cut did and it is the best
+   0.9s in the file. */
 const LINES = [
   { text: 'claude fable 5.1 is out',
-    rate: '+12%', pitch: '+3Hz', gap: 0.14 },
+    rate: '-6%', pitch: '+3Hz', gap: 0.34 },
   { text: 'smarter, cheaper to run, fewer false blocks',
-    rate: '+18%', pitch: '+1Hz', gap: 0.16 },
+    rate: '-4%', pitch: '+1Hz', gap: 0.38 },
   { text: 'and claude code sessions can now talk to each other',
-    rate: '+8%', pitch: '+3Hz', gap: null },
+    rate: '-8%', pitch: '+3Hz', gap: null },
 ];
 
 const SILENCE_DB = -46;            /* a take ends where it falls this far under its own peak */
@@ -175,9 +181,15 @@ const CAP_BOX = { x: 70, y: 320, w: 400, h: 210 };
    centre and not `size / 2`. at 76 css that is 53.7 css of reach, which puts
    the top of the sweep at 204 device px against a 180 floor. */
 const LOGO = {
-  size: 76,
+  /* 108 css, which is 216 device px and a fifth of the frame's width, up from
+     76. what sets the ceiling is not the mark, it is the **sweep**: a square
+     turning about its centre covers a circle of its own diagonal, so 108 reaches
+     76.4 css in every direction and the centre cannot come closer to the top
+     than 90 + 76.4. at 178 the top of the sweep lands on 203 device px against
+     a 180 floor, which is 23 px of air rather than a hairline. */
+  size: 108,
   cx: 270,
-  cy: 156,
+  cy: 178,
   /* one full turn, which is the ceiling the brief sets, over everything after
      it arrives. it is eased rather than linear: `GLIDE` is the house in out and
      a constant angular rate reads as a mechanism rather than as a drift. a full
@@ -202,15 +214,29 @@ const LOGO = {
    the room between the two: the sweep reaches 210 css and the tallest caption
    reaches 432, so 320 is the middle of what is left. */
 const END = {
-  /* the width `BORING` occupies, in css px, and it is smaller than post11's 330
-     because this frame is fuller than that one: the mark is turning at the top
-     and the last caption is still leaving at the bottom, so the group has 230
-     css px of room rather than the whole frame. 240 puts the caps at 64 device
-     px, which is over post13's own 56 floor with room to spare. */
+  /* the width `BORING` occupies, in css px. smaller than post11's 330 because
+     this frame is fuller than that one: the mark is turning at the top and the
+     mascot is in his corner at the bottom. 240 puts the caps at 66 device px,
+     which is over post13's own 56 floor with room to spare. */
   wordmarkW: 240,
   domW: 190,
   gap: 30,          /* clear air between the wordmark block and the address */
-  centreY: 325,
+  /* ---------- the middle of the frame, and it is the frame's ----------
+     it was 325, which is the middle of the room between the mark's sweep and the
+     caption band, and on a rendered frame that reads as an end card sitting high
+     with a hole under it. the group belongs in the middle of the picture.
+
+     540x960 makes that 480, and it is the **frame's** middle rather than the
+     safe band's, which is 470: the platforms take more off the bottom than the
+     top, and a wordmark nudged up by five pixels to satisfy that is a wordmark
+     nobody centred. 480 with a 190 css group spans 385..575, which is clear of
+     the mark's sweep by 130 and of the mascot's corner by 135.
+
+     what it costs is that the group now sits **where the captions are**, so the
+     end card may not arrive until the last card is gone. that is derived in
+     `main` off the caption plan's own last window rather than typed, and it is
+     a guard rather than a hope. */
+  centreY: 480,
   minCapPx: 48,     /* device px of cap on the wordmark. a floor */
   in: 0.28,         /* how long it takes to arrive */
 };
@@ -218,45 +244,73 @@ const END = {
 /* how long the wordmark holds after it has finished arriving. it is the one
    number in the file that absorbs whatever the takes turn out to be, and there
    is a floor on it in the guards rather than a hope. */
-const TAIL = 1.12;
+const TAIL = 1.30;
 
 /* ---------- the cut ----------
    four marks. the first is the whole opening and the other three are the
    corner.
 
-   **the opening costs 1.62s and it is arithmetic rather than taste.**
-   `delighted` takes 0.50s to arrive, and a bubble may not start before the head
-   has settled, because a bubble arriving while the head is still moving is two
-   events on one frame and neither of them reads. the quick bubble profile then
-   lives 0.80s. so the earliest a thought can be finished is 0.50 + 0.02 + 0.80
-   = 1.32, and `planMascot` insists a bubble fits inside its own mark's hold,
-   which puts the next mark at 1.62. every number below is that floor rather
-   than a choice, and it is why the opening bubble runs on the **quick** profile:
-   the ordinary one lives 1.68s and would put the next mark at 2.30, which is a
-   quarter of the clip spent before a word is said.
+   **the opening holds 2.52s and the bubble is back on the ordinary profile.**
+   the first cut gave it 1.62s, which is the floor `planMascot` imposes on a
+   `delighted` mark carrying a **quick** bubble, and the cost was written down
+   at the time: 0.30s of full pill, because `BUBBLE.quick`'s hold is floored and
+   capped at the same number and no amount of room changes it. with 2.52s the
+   ordinary profile fits — 0.48s in, 0.74s of hold, 0.30s out — and the pill is
+   fully up for **0.74s** rather than 0.30, which is the difference between a
+   thought a viewer catches and one they are asked to read fast.
 
-   he is cut at 1.36, four hundredths before the thought has finished leaving,
-   so the tear takes him and what he was thinking together. */
-const T_GONE = 1.36;      /* the first hit. he goes */
-const T_BACK = 1.62;      /* the second. he is in the corner */
-const T_LOGO = 1.72;      /* the third. the mark arrives at the top */
-const VOICE_AT = 1.74;    /* where the first take's own sound starts */
+   what fills the rest of it is him. `delighted` is two hops with real lift and
+   a small turn on the way up, and its own hold plus the idle layer's drift,
+   breathing, saccades and blinks carry the beat to the fault. nothing else is on
+   the screen: no mark, no panel, no caption. it is a small robot being pleased
+   about something for two and a half seconds.
 
-const MARKS = [
-  /* big, centred, delighted, with the news over his head. */
-  { t: 0.00, state: 'delighted', bubbles: [{ t: 0.52, text: 'fable 5.1 out' }] },
-  /* he is back in his corner. `curious` rather than `neutral`: he has to be
-     alive on the frame he lands on, and neutral's whole read is arriving at
-     rest, which is the one thing a snap back should not look like. */
-  { t: T_BACK, state: 'curious' },
-  /* somewhere in the facts, which is where the brief puts it. this one runs on
-     the **ordinary** profile because here there is room for one: 0.90s of full
-     pill against the opening's 0.30. */
-  { t: 4.62, state: 'delighted', bubble: 'love it' },
-  /* the close, and it is the one state in the table that earns a ding. it goes
-     on the last fact, which is the one worth agreeing with. */
-  { t: 7.20, state: 'agreeing' },
+   he is cut at 2.32, which is 0.12s after the hit lands and 0.18s after the
+   thought has finished leaving. */
+/* the first hit. the window runs from here to `T_BACK` because it is chained,
+   so this is not only when the fault starts, it is how long it is: 0.26s, which
+   is the length the first cut proved and is inside the third of a second a tv
+   glitch is allowed to outstay. */
+const T_GONE = 2.26;
+const T_BACK = 2.52;      /* the second. he is in the corner */
+const T_LOGO = 2.62;      /* the third. the mark arrives at the top */
+const VOICE_AT = 2.66;    /* where the first take's own sound starts */
+const PANEL_AT = 2.78;    /* the chat panel rises, after the fault is over */
+
+/* the three corner marks are placed against the read rather than typed, so
+   moving a line moves the reaction with it. they are worked out in `main` off
+   the voice's own beats and this is only the opening, which is the one mark
+   that is not about a line. */
+const OPENING_MARK = {
+  t: 0.00, state: 'delighted', bubble: 'fable 5.1 out',
+};
+
+/* ---------- one reaction per line, and one bubble on each ----------
+   the first cut had him arrive `curious`, sit still for three seconds, hop once
+   and nod once. watched back that is a corner ornament rather than a character.
+   he gets a state per line now, in the order the lines earn: curious at the
+   news, agreeing at the three facts, delighted at the one that is actually
+   good.
+
+   each carries a short positive bubble on the **ordinary** profile, which is
+   0.90s of full pill. that is three thoughts across eight seconds of corner,
+   which is the ceiling rather than the rule — a fourth would be a mascot
+   commenting on every clause. `offset` is how far into its own line the mark
+   lands: on the first word for the two that are reactions to the whole line,
+   and a shade later on the last, so the hop does not fight the caption arriving.
+
+   `agreeing` is the one state in the table that earns a `ding`, and it stays on
+   the line that is a list of three facts, which is the one worth agreeing with.
+   post11's rule holds: the ding keeps meaning yes. */
+const LINE_MARKS = [
+  { line: 0, state: 'curious', bubble: 'yes', offset: -0.10 },
+  { line: 1, state: 'agreeing', bubble: 'love it', offset: 0.12 },
+  { line: 2, state: 'delighted', bubble: 'nice', offset: -0.10 },
 ];
+
+/* and one after the read, so he settles onto the end card rather than holding a
+   pose through it. no bubble: the last thing on the screen is the wordmark. */
+const CALM_STATE = 'neutral';
 
 /* ---------- the zone ----------
    the mascot module places one head, once, out of `plan.box` and `plan.size`,
@@ -298,23 +352,118 @@ const PLACE = {
        there is no head size that fixes it — at a diameter of nought the pill
        still does not fit, because the cluster is wider than the half frame.
 
-       so for this one beat it is re-anchored **above** him, dots trailing down
-       toward his crown and the pill climbing up and right, which is what a
-       thought bubble over a centred character has always looked like. it is a
-       translate on `#m-bubble`, and the module writes nothing to that element
-       except `visibility`, so nothing is overridden and nothing is forked.
+       so for this one beat it is re-anchored **above** him, and the dots that
+       climb to it are this file's rather than the module's — see `THOUGHT`. it
+       is a translate on `#m-bubble`, and the module writes nothing to that
+       element except its visibility, so nothing is overridden and nothing is
+       forked.
 
        and it is counter scaled back to natural size, so the pill is the same
        physical size in both placements and the caps floor is the same number in
        both. a bubble at 1.5x would be legible; two different bubble sizes in one
-       clip would read as two different bubbles. */
-    bubble: { at: { x: 215, y: 418 } },
+       clip would read as two different bubbles.
+
+       `at` is where the cluster's own left bottom corner lands on the page. the
+       pill's left edge is 30 css px right of it — the width the module's two
+       dots and their gaps occupy in the flex row, which is layout this file does
+       not move — and the pill's bottom edge is 22 above it, which is
+       `BUBBLE.pillLift`. so the pill draws at 175..377.7 across and 310..372
+       down, and his crown is at 410: **38 css px of air under the pill** where
+       the first cut had 14, with the dot climb in it. */
+    bubble: { at: { x: 145, y: 394 } },
   },
 };
 
+/* ---------- the thought's own dots ----------
+   the module climbs **two** dots off the head, 8 and 12 css px, laid out as a
+   flex row with the pill: same baseline, increasing x, fixed gaps. that is the
+   site's own cluster and it is right for a mascot standing in a corner with the
+   thought beside his head.
+
+   it cannot do what this beat needs. the brief asks for three, smallest nearest
+   him and growing toward the pill, and the pill is **above** him rather than
+   beside him — so the climb is a diagonal, and a flex row cannot be a diagonal
+   at any set of gaps.
+
+   so for the opening beat the three dots are this file's, drawn in page
+   coordinates, and the module's two are switched off. that is one line in
+   `apply`, not a fork: `window.__p14.apply` always runs after
+   `window.__mas.apply`, so writing the dots' opacity to nought after the module
+   has written it is the same ordering `#m-zone`'s own opacity channel relies on.
+   the pill is still the module's, still at the module's size, still on the
+   module's own spring — nothing about what a thought *is* has been redrawn.
+
+   **and the timing is the module's too.** each dot reads a channel out of
+   `mascotFrame`, so all three are on the site's own pop curve and the site's own
+   70ms cascade rather than on a second animation that could drift:
+
+     the 5  reads dot 0 at t + 0.07, which is a dot that started 70ms earlier
+     the 8  reads dot 0
+     the 12 reads dot 1
+     the pill is the pill
+
+   four things arriving 70ms apart, small to large, up the diagonal. the
+   positions are the diagonal from his crown at (216,428) to the pill's own
+   bottom left corner at (175,372), and the first one sits 8 css px off the
+   silhouette, which is attached to him rather than near him. */
+const THOUGHT = {
+  dots: [
+    { d: 5, cx: 211, cy: 421, src: 0, dt: 0.07 },
+    { d: 8, cx: 199, cy: 405, src: 0, dt: 0 },
+    { d: 12, cx: 186, cy: 388, src: 1, dt: 0 },
+  ],
+};
+
+/* ---------- the chat panel ----------
+   a picture of the box a person types into, drawn in code: a rounded panel in
+   the page's own ink, a line of text, a plus on the left and the model's name on
+   the right. no logo inside it and nothing lifted off anybody's product — it is
+   the **shape** of the thing, which is what a viewer recognises, and every part
+   of it is a rule in this file's own css.
+
+   it is drawn in `--fg` on `--bg`, which is the site's ink on the site's paper
+   and is why it needs no colour of its own. on a white frame a dark panel is
+   what a chat box looks like, and it gives the middle of the picture something
+   to be about between the mark at the top and the caption under it.
+
+   the geometry is worked backwards from the two things it has to fit between:
+   the mark's sweep reaches 254 css and the tallest caption ink starts around
+   432, so the panel gets 272..407 and there are 25 css px of air under it.
+
+   `textSize` is 23 rather than 22 because 22 renders 31.7 device px of cap and
+   the floor every piece of copy in this repo is held to is 32. the line wraps to
+   two at this size, which is what the panel is two lines tall for.
+
+   **`metaSize` is deliberately under that floor and it is the one exemption in
+   the file.** `Fable 5.1 Medium` is not the clip's copy, it is chrome inside a
+   drawn picture of a screen — the same footing as post11's registration number,
+   which is on the screen and is never read aloud. type inside a picture of a ui
+   is as small as it is in the ui, or it is not a picture of a ui. */
+const PANEL = {
+  x: 70, y: 272, w: 400, h: 135,
+  radius: 20,
+  pad: 18,
+  textSize: 23,
+  lineHeight: 1.32,
+  metaSize: 14,
+  plus: 24,             /* the circle's own diameter, css px */
+  rowGap: 14,           /* between the text block and the controls row */
+  meta: 'Fable 5.1 Medium',
+  placeholder: 'ask anything',
+  typed: 'i am smarter, faster and use fewer tokens',
+  in: 0.34,             /* how long it takes to rise */
+  out: 0.30,            /* and to leave, before the end card */
+  lift: 16,             /* css px it rises through on the way in */
+  /* how long after the last keystroke the end card may start. the line has to be
+     finished **and read** before the frame changes, and a caption is read in
+     about a third of a second a word. */
+  readAfter: 0.60,
+  keyEvery: 4,          /* one tick per this many characters. post11's rule */
+};
+
 /* ---------- the glitch ----------
-   three faults, all of them in the first two seconds, none longer than a
-   quarter of a second.
+   three faults, none longer than a quarter of a second, all of them inside the
+   half second the opening hands over to the read.
 
    the two mascot ones are **adjacent rather than separated**: the first window
    ends exactly where the second begins, so the stretch he is missing from is
@@ -389,9 +538,17 @@ const VOICE_TRIM = -1.5;
 const MAX_REDUCTION = 5.0;
 const MIN_LUFS = -20;
 
-/* the clip's own length, as a window rather than as a number, because the
-   length is cut from the takes and the takes are measured. */
-const RUN = { min: 8.0, max: 10.0 };
+/* the clip's own length, as a window rather than as a number, because the length
+   is cut from the takes and the takes are measured.
+
+   the ceiling was 10.0 for the first cut, which is what the brief asked for then.
+   the second cut holds the opening for two and a half seconds, reads at a
+   person's own pace with a real breath between lines, and types forty one
+   characters into a panel, and each of those was asked for knowing what it
+   costs. the window is what the clip can honestly be rather than what it was:
+   under eight is a clip that lost a beat and over fifteen is one that is not a
+   flash any more. */
+const RUN = { min: 10.0, max: 15.0 };
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -530,12 +687,19 @@ function buildVoice(takes) {
       rate: LINES[i].rate, pitch: LINES[i].pitch,
     });
   }
-  /* the clip's own length, derived here rather than typed: the last word, the
-     end card arriving on top of it, and the hold. */
+  /* **the length is no longer decided here.** it was: the last word, the end
+     card on top of it, the hold. the end card is centred on the middle of the
+     frame now and the middle of the frame is where the captions are, so it may
+     not arrive until the last card is gone — and how long a card is up is the
+     caption plan's answer rather than the voice's. so this hands back where the
+     last word is and `main` works the rest out once it has both.
+
+     the track is allocated with four seconds of room past the last word and
+     sliced to the finished length in `main`, which is cheaper than laying the
+     takes down twice and is the only thing in the file that knows the two
+     numbers are different. */
   const lastWord = beats[beats.length - 1].end;
-  const endIn = +(lastWord + 0.08).toFixed(4);
-  const seconds = +(endIn + END.in + TAIL).toFixed(3);
-  const track = new Float32Array(Math.ceil(seconds * SR));
+  const track = new Float32Array(Math.ceil((lastWord + 4.0) * SR));
   for (let i = 0; i < takes.length; i++) {
     const pcm = pcms[i], e = edges[i], off = offs[i];
     const a = Math.max(0, Math.round((e.start - PRE) * SR));
@@ -555,7 +719,29 @@ function buildVoice(takes) {
   for (let i = 1; i < beats.length; i++) {
     gaps.push(+(beats[i].sound.start - beats[i - 1].sound.end).toFixed(3));
   }
-  return { track, seconds, words, beats, edges, offs, gaps, lastWord, endIn };
+  return { track, words, beats, edges, offs, gaps, lastWord };
+}
+
+/* ---------- the marks, off the read ----------
+   one reaction per line, placed against the line rather than typed, so moving a
+   line moves the reaction with it and nothing has to be re-tuned by hand.
+
+   the first one is the exception and it is the right kind: he is **born** at the
+   corner on the second fault, so his first corner mark is that fault's own time
+   rather than a line's. the fault is placed just before the first word, so the
+   two land together anyway; keying it to the fault is what makes that true by
+   construction instead of by coincidence. */
+function planMarks(beats, endIn) {
+  const marks = [{ ...OPENING_MARK }];
+  LINE_MARKS.forEach((m, k) => {
+    const t = k === 0 ? T_BACK : +(beats[m.line].start + m.offset).toFixed(3);
+    marks.push({ t, state: m.state, bubble: m.bubble });
+  });
+  /* and he settles as the wordmark comes up. no bubble on it: the last thing on
+     the screen is the three words, and a mascot with a thought over his head
+     while the brand name arrives is two things asking to be read. */
+  marks.push({ t: +(endIn - 0.20).toFixed(3), state: CALM_STATE });
+  return marks;
 }
 
 /* ---------- where a card is allowed to end ----------
@@ -751,6 +937,66 @@ const LOGO_FRAME = Math.round(T_LOGO * FPS);
    already in its css and there is nothing to move once it is up. */
 let ZONE = null;
 
+/* the typing, likewise: `main` cuts it against the read and this holds the
+   answer so `frameAt` can ask how many characters are on the screen. */
+let TYPING = null;
+
+/* ---------- the hand ----------
+   post9's rule and post11's reasoning: **a constant rate reads as a machine
+   filling a field, which is what it is.** so every gap is its own number off a
+   seeded prng, and two things break the rhythm on purpose — a comma gets a beat
+   after it, because a person pauses where they would speak a pause, and the
+   first character comes a shade after the window opens, because nobody starts
+   typing on the frame they decide to.
+
+   the window is the whole of it: `from` is the first keystroke and `until` is
+   the last, and `main` derives both off the read and off the end card rather
+   than typing either. what comes back is one entry per character with the
+   instant it lands, so the frame function is a binary search and the sound is a
+   filter over the same list. nothing about the two can drift, because there is
+   only one list. */
+function typePlan(text, from, until, seed) {
+  const r = prng(seed);
+  const n = text.length;
+  /* the weights first, then normalise, so the run always ends exactly on
+     `until` whatever the jitter did. a typing pass that finished early would
+     leave a caret sitting still under a line that is done. */
+  const w = [];
+  for (let i = 0; i < n; i++) {
+    let x = 0.7 + r() * 0.6;
+    if (i > 0 && text[i - 1] === ',') x += 2.6;
+    if (text[i] === ' ') x += 0.35;
+    w.push(x);
+  }
+  const total = w.reduce((a, b) => a + b, 0);
+  const span = until - from;
+  const at = [];
+  let acc = 0;
+  for (let i = 0; i < n; i++) {
+    at.push(+(from + span * (acc / total)).toFixed(4));
+    acc += w[i];
+  }
+  /* one tick per four characters, plus the first and the last, which is
+     post11's number and post11's reason: forty one sounds inside five seconds is
+     a rattle, and the two ends are the moments the rhythm starts and stops. */
+  const keys = [];
+  for (let i = 0; i < n; i++) {
+    if (i === 0 || i === n - 1 || i % PANEL.keyEvery === 0) keys.push(at[i]);
+  }
+  return { text, from, until, at, keys, chars: n };
+}
+
+/* how many characters are on the screen at `t`. */
+function typedAt(t) {
+  if (!TYPING || t < TYPING.at[0]) return 0;
+  let lo = 0, hi = TYPING.at.length - 1, k = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (TYPING.at[mid] <= t) { k = mid + 1; lo = mid + 1; } else hi = mid - 1;
+  }
+  return k;
+}
+
 /* ---------- what one frame is ----------
    everything this file writes, in one object, so the page has one entry point
    and the liveness signature has one thing to hash. `t` is the instant being
@@ -780,8 +1026,46 @@ function frameAt(t, f, seconds, endIn) {
   const rot = f < LOGO_FRAME ? 0
     : +(TURNING(span(t, turnFrom, seconds)) * 360 * LOGO.turns).toFixed(3);
 
-  /* the end card, which starts arriving while the last caption is still
-     leaving. */
+  /* ---- the panel ----
+     it rises rather than glitching in, and that is the one thing in the clip
+     that arrives calmly. the fault is the opening's language and it is over by
+     the time this appears; a third arrival on a tear would make the fault the
+     clip's whole grammar rather than its first beat. it goes the same way, over
+     the third of a second before the end card starts, so the wordmark never
+     comes up over a picture of somebody else's product.
+
+     the caret is on whenever the panel is and it does not blink. a blink is a
+     third thing to catch a still on, and the line is being typed anyway, which
+     is all the life this element needs. */
+  const pin = POP(span(t, PANEL_AT, PANEL_AT + PANEL.in));
+  const pout = GLIDE(span(t, endIn - PANEL.out - 0.04, endIn - 0.04));
+  const panel = {
+    o: +(pin * (1 - pout)).toFixed(4),
+    y: +((1 - pin) * PANEL.lift).toFixed(3),
+    n: typedAt(t),
+  };
+
+  /* ---- the thought's three dots ----
+     each reads a channel out of the module's own bubble, at its own offset, so
+     the four things that arrive are on one curve and one cascade. `o` is
+     multiplied by the bubble's own gate, because the module fades the whole
+     cluster out together at the end and a dot that outlived the pill would be a
+     speck of dirt on the frame. */
+  const big = f < GONE_FRAME;
+  const dots = THOUGHT.dots.map(d => {
+    /* they are the **opening's** dots and they are drawn at the opening's own
+       page coordinates, so they have to be off for every corner thought or they
+       would light up in the middle of the frame with nothing under them. */
+    const src = (big && MASCOT.plan) ? mascotFrame(MASCOT.plan, t + d.dt).bubble : null;
+    if (!src) return { o: 0, sc: 1 };
+    const c = src.dots[d.src];
+    return { o: +(c.o * (src.o > 0.004 ? 1 : 0)).toFixed(4), sc: +c.sc.toFixed(4) };
+  });
+
+  /* the end card. it arrives after the last caption is out, which is derived in
+     `main` off the caption plan's own last window: the group is centred on the
+     middle of the frame now and the middle of the frame is where the captions
+     live, so the two can no longer share it. */
   const ep = span(t, endIn, endIn + END.in);
   const end = {
     o: +span(t, endIn, endIn + END.in * 0.55).toFixed(4),
@@ -791,11 +1075,19 @@ function frameAt(t, f, seconds, endIn) {
   return {
     t: +t.toFixed(4), f,
     mo: on,
+    big: big ? 1 : 0,
     z: { k: z.k, tx: z.tx, ty: z.ty, bx: z.b.x, by: z.b.y, bs: z.b.s },
     logo: { o: +lp.toFixed(4), rot },
+    panel, dots,
     end, g,
   };
 }
+
+/* the plan, held where `frameAt` can read it. it is a box rather than a bare
+   binding so the render loop and the guards are looking at the one object
+   `main` filled in, and a frame asked for before it is filled in returns dots
+   that are off rather than throwing halfway through a render. */
+const MASCOT = { plan: null };
 
 /* ---------- the page ---------- */
 function sceneHtml(cap, mas) {
@@ -883,6 +1175,89 @@ ${mascotCss(mas)}
   will-change:transform,opacity; pointer-events:none;
 }
 
+/* ---- the thought's own dots ----
+   the module's own dot rule exactly: a disc in the page colour with the site's
+   hairline outline round it, which is what makes a dot part of a thought rather
+   than a full stop. they are drawn in page coordinates and sit on the mascot's
+   own layer, because that is what they belong to. the module's two are switched
+   off for this beat in apply(); see THOUGHT.
+
+   (no backticks in this block: it is inside a template literal, and one would
+   end the string rather than mark a name.) */
+.t-dot{
+  position:absolute; border-radius:50%;
+  background:var(--eye); border:${BUBBLE.stroke}px solid var(--bub);
+  z-index:4; pointer-events:none;
+  opacity:0; will-change:transform,opacity;
+}
+
+/* ---- the chat panel ----
+   a picture of the box a person types into, drawn out of this file's own rules.
+   the panel is the page's ink and everything on it is the page's paper at an
+   opacity, so it needs no colour of its own and it would invert with the theme
+   for free if this clip ever got a dark variant.
+
+   the text block is top anchored and the controls row is bottom anchored, so a
+   line growing from nothing to two lines cannot move the plus or the model name
+   under it. that is what a real input does and it is also what stops the frame
+   twitching every fourth character. */
+.panel{
+  position:absolute; left:${PANEL.x}px; top:${PANEL.y}px;
+  width:${PANEL.w}px; height:${PANEL.h}px;
+  border-radius:${PANEL.radius}px; background:var(--fg);
+  z-index:3; pointer-events:none; overflow:hidden;
+  opacity:var(--pn-o,0);
+  transform:translate3d(0,calc(var(--pn-y,0) * 1px),0);
+  will-change:transform,opacity;
+}
+.panel-text{
+  position:absolute; left:${PANEL.pad}px; right:${PANEL.pad}px; top:${PANEL.pad}px;
+  font-family:var(--body); font-weight:400; font-size:${PANEL.textSize}px;
+  line-height:${PANEL.lineHeight}; color:var(--bg);
+  word-break:break-word;
+}
+/* the placeholder and the line share the one box, so the first character lands
+   where the placeholder was rather than a few pixels off it.
+
+   **it starts five px in, and that is a rendered frame's correction.** the caret
+   is an inline element after the line, so with nothing typed it sits at x
+   nought — which is exactly where the placeholder's first glyph is, and the
+   frame came back with a white bar drawn through the a of "ask anything". five
+   px clears the caret's own two and its margin with a pixel and a half to
+   spare, and it is what a focused empty input actually looks like: the caret,
+   then the placeholder after it. */
+.panel-ph{position:absolute; left:5px; top:0; right:0; color:var(--bg);
+  opacity:var(--pn-ph,0)}
+/* the caret. a bar about a cap high sitting after the last character, which is
+   what an input draws, and it is an inline element so it travels with the text
+   through a wrap without anything having to measure where the text got to. */
+.panel-caret{display:inline-block; width:2px; height:.86em; margin-left:.06em;
+  background:var(--bg); vertical-align:-.10em; opacity:var(--pn-car,0)}
+/* the controls row: a plus in a ring on the left, the model on the right. */
+.panel-row{
+  position:absolute; left:${PANEL.pad}px; right:${PANEL.pad}px;
+  bottom:${PANEL.pad}px; height:${PANEL.plus}px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.panel-plus{
+  position:relative; width:${PANEL.plus}px; height:${PANEL.plus}px;
+  border-radius:50%; border:1.5px solid var(--bg); opacity:.34;
+}
+/* two bars rather than a glyph, so nothing depends on a face having a plus that
+   optically centres inside a ring. */
+.panel-plus::before,.panel-plus::after{
+  content:''; position:absolute; left:50%; top:50%; background:var(--bg);
+  border-radius:1px;
+}
+.panel-plus::before{width:${(PANEL.plus * 0.46).toFixed(1)}px; height:1.6px;
+  margin:-0.8px 0 0 ${(-PANEL.plus * 0.23).toFixed(1)}px}
+.panel-plus::after{width:1.6px; height:${(PANEL.plus * 0.46).toFixed(1)}px;
+  margin:${(-PANEL.plus * 0.23).toFixed(1)}px 0 0 -0.8px}
+.panel-meta{
+  font-family:var(--body); font-weight:400; font-size:${PANEL.metaSize}px;
+  color:var(--bg); opacity:.55; letter-spacing:.01em; white-space:nowrap;
+}
+
 /* ---- the end card ----
    post11's, on the light page. both blocks hug their own ink rather than
    spanning the frame: a full width box reports the frame's own edges back to
@@ -937,6 +1312,16 @@ ${mascotCss(mas)}
   <div class="tick"></div>
 ${captionMarkup(cap)}
 ${mascotMarkup(mas)}
+${THOUGHT.dots.map((d, i) => '  <div class="t-dot" data-tdot="' + i
+    + '" style="left:' + (d.cx - d.d / 2) + 'px;top:' + (d.cy - d.d / 2)
+    + 'px;width:' + d.d + 'px;height:' + d.d + 'px"></div>').join('\n')}
+  <div class="panel" id="panel">
+    <div class="panel-text" id="panel-text"><span class="panel-ph" id="panel-ph">${PANEL.placeholder}</span><span id="panel-line"></span><span class="panel-caret" id="panel-caret"></span></div>
+    <div class="panel-row">
+      <span class="panel-plus"></span>
+      <span class="panel-meta">${PANEL.meta}</span>
+    </div>
+  </div>
   <div class="end" id="end-wm"><span>the</span><span>boring</span><span>tek</span></div>
   <div class="end" id="end-dom">theboringtek.com</div>
 ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' + i + '"></div>').join('\n')}
@@ -948,7 +1333,7 @@ ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' +
 window.__CAP_PLAN = ${JSON.stringify(cap)};
 window.__CAP_BOX = ${JSON.stringify(CAP_BOX)};
 window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(mas))};
-window.__P14 = ${JSON.stringify({ VW, VH, DSF, END, LOGO, CAP_BOX })};
+window.__P14 = ${JSON.stringify({ VW, VH, DSF, END, LOGO, CAP_BOX, PANEL, THOUGHT })};
 (${captionPage.toString()})();
 ${mascotRuntime()}
 (${scenePage.toString()})();
@@ -989,6 +1374,14 @@ function scenePage() {
   const wm = document.getElementById('end-wm');
   const dom = document.getElementById('end-dom');
   const tears = [...document.querySelectorAll('.tear')];
+  const tdots = [...document.querySelectorAll('.t-dot')];
+  const mdots = [...document.querySelectorAll('.m-dot')];
+  const panel = document.getElementById('panel');
+  const panelPh = document.getElementById('panel-ph');
+  const panelLine = document.getElementById('panel-line');
+  const panelCaret = document.getElementById('panel-caret');
+  const panelText = document.getElementById('panel-text');
+  const panelMeta = document.querySelector('.panel-meta');
 
   const widest = el => {
     let w = 0;
@@ -1031,14 +1424,57 @@ function scenePage() {
       cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
       const m = cv.measureText('H');
 
+      /* where the group actually landed. both blocks are translated by half
+         their own size to sit on the line they were given, so the only honest
+         way to ask where the group is is to measure the two rects the browser
+         produced rather than to do the arithmetic again on this side. */
+      const wr = wm.getBoundingClientRect(), dr = dom.getBoundingClientRect();
+
       const lr = logo.getBoundingClientRect();
       return {
         end: {
           wmSize: +wmSize.toFixed(2), domSize: +domSize.toFixed(2),
           capPx: +((m.actualBoundingBoxAscent || 0) * P.DSF).toFixed(1),
           font: cv.font, totalCss: +total.toFixed(1),
-          wmTop: +wm.style.top.replace('px', ''), domTop: +dom.style.top.replace('px', ''),
+          groupTop: +wr.top.toFixed(2), groupBottom: +dr.bottom.toFixed(2),
+          groupMid: +((wr.top + dr.bottom) / 2).toFixed(2),
         },
+        /* the panel, as it actually drew. the two numbers that matter are the
+           cap height of the line, which is the only unit a "does it read at
+           phone size" argument can be had in, and whether the finished line
+           fits inside the box it is being typed into: a line that overflows a
+           panel is a panel with a line sticking out of it, and it cannot be
+           seen until the last character lands. so the whole string is written
+           in, measured, and taken out again before a single frame is drawn. */
+        panel: (() => {
+          const cv = document.createElement('canvas').getContext('2d');
+          const cs = getComputedStyle(panelText);
+          cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+          const m = cv.measureText('H');
+          const was = panelLine.textContent;
+          panelLine.textContent = P.PANEL.typed;
+          const full = panelText.getBoundingClientRect();
+          const lines = Math.round(full.height / (P.PANEL.textSize * P.PANEL.lineHeight));
+          panelLine.textContent = was;
+          const pr = panel.getBoundingClientRect();
+          const mr = panelMeta.getBoundingClientRect();
+          const mcs = getComputedStyle(panelMeta);
+          const mv = document.createElement('canvas').getContext('2d');
+          mv.font = mcs.fontWeight + ' ' + mcs.fontSize + ' ' + mcs.fontFamily;
+          return {
+            capPx: +((m.actualBoundingBoxAscent || 0) * P.DSF).toFixed(1),
+            metaCapPx: +((mv.measureText('H').actualBoundingBoxAscent || 0) * P.DSF).toFixed(1),
+            font: cv.font,
+            lines,
+            fullH: +full.height.toFixed(1),
+            room: +(P.PANEL.h - P.PANEL.pad - P.PANEL.plus - P.PANEL.rowGap - P.PANEL.pad).toFixed(1),
+            left: +(pr.left * P.DSF).toFixed(1), top: +(pr.top * P.DSF).toFixed(1),
+            right: +((P.VW - pr.right) * P.DSF).toFixed(1),
+            bottom: +((P.VH - pr.bottom) * P.DSF).toFixed(1),
+            metaText: panelMeta.textContent,
+            metaRight: +((pr.right - mr.right) * P.DSF).toFixed(1),
+          };
+        })(),
         /* the image, as it actually decoded. the drawn box against the file's
            own pixels is what says the mark is not being squeezed, and it is read
            off the element rather than off the css that sizes it. the computed
@@ -1100,6 +1536,18 @@ function scenePage() {
         caps,
         end: parseFloat(getComputedStyle(wm).opacity) > 0.02 ? 1 : 0,
         logo: parseFloat(getComputedStyle(logo).opacity) > 0.02 ? 1 : 0,
+        panel: parseFloat(getComputedStyle(panel).opacity) > 0.02 ? 1 : 0,
+        /* where the panel's ink actually is on this frame, so the caption and
+           the end card can be measured against the thing that drew rather than
+           against the rectangle it was told to draw in. it moves: it rises 16
+           css px on the way in. */
+        panelRect: (() => {
+          const r = panel.getBoundingClientRect();
+          return {
+            top: +(r.top * P.DSF).toFixed(1), bottom: +(r.bottom * P.DSF).toFixed(1),
+            left: +(r.left * P.DSF).toFixed(1), right: +(r.right * P.DSF).toFixed(1),
+          };
+        })(),
       };
     },
 
@@ -1123,6 +1571,30 @@ function scenePage() {
       s.setProperty('--flash', o.g.flash.toFixed(4));
       if (o.g.split > 0.01) stage.setAttribute('data-gl', '1');
       else stage.removeAttribute('data-gl');
+
+      /* ---- the thought's three dots ----
+         and the module's two, switched off while they are up. this runs after
+         window.__mas.apply on every capture, which is the same ordering the
+         zone's own opacity channel relies on: the module writes what it always
+         writes and this file has the last word about what is on the screen. */
+      for (let i = 0; i < tdots.length; i++) {
+        const d = o.dots[i];
+        tdots[i].style.opacity = d.o.toFixed(4);
+        tdots[i].style.transform = 'scale(' + d.sc.toFixed(4) + ')';
+      }
+      if (o.big) for (const el of mdots) el.style.opacity = '0';
+
+      /* ---- the panel ----
+         the line is written by slicing the string, so what is on the screen is
+         always a prefix of the copy and there is no second copy of it anywhere.
+         the placeholder is on until the first character lands and the caret is
+         on whenever the panel is. */
+      panel.style.setProperty('--pn-o', o.panel.o.toFixed(4));
+      panel.style.setProperty('--pn-y', o.panel.y.toFixed(3));
+      panel.style.setProperty('--pn-ph', (o.panel.n ? 0 : 0.42).toFixed(3));
+      panel.style.setProperty('--pn-car', o.panel.o > 0.02 ? '1' : '0');
+      const want = P.PANEL.typed.slice(0, o.panel.n);
+      if (panelLine.textContent !== want) panelLine.textContent = want;
 
       for (let i = 0; i < tears.length; i++) {
         const band = o.g.bands[i];
@@ -1320,6 +1792,7 @@ async function render(cap, mas, v, N, SECONDS) {
           t: +(f / FPS).toFixed(3), f,
           big: f < GONE_FRAME,
           shaken: glitchAt(f).heat > 0,
+          dotsLit: o.dots.some(d => d.o > 0.02),
           ...smp,
         });
       }
@@ -1350,26 +1823,32 @@ async function render(cap, mas, v, N, SECONDS) {
      same reason, because a window is snapped to the grid and GL_CUT is not. */
   fs.rmSync(VERIFY, { recursive: true, force: true });
   fs.mkdirSync(VERIFY, { recursive: true });
-  const b0 = mas.marks[0].bubbles[0], b1 = mas.marks[2].bubbles[0];
+  const pill = k => mas.marks[k].bubbles[0];
+  const mid = b => (b.full + b.leaving) / 2;
   const stills = [
     [0, 'a-frame-zero'],
-    [mas.marks[0].settled, 'b-delighted-settled'],
-    [(b0.full + b0.leaving) / 2, 'c-the-news'],
-    [GL_WINDOWS[0].t0, 'd-the-hit'],
-    [GONE_FRAME / FPS + 0.02, 'e-he-is-gone'],
-    [GL_WINDOWS[1].t0, 'f-back-in-the-corner'],
-    [GL_WINDOWS[2].t0, 'g-the-mark-arrives'],
+    [mas.marks[0].settled + 0.10, 'b-the-first-hop'],
+    [pill(0).in + 0.10, 'c-the-dots-climbing'],
+    [mid(pill(0)), 'd-the-news'],
+    [GL_WINDOWS[0].t0, 'e-the-hit'],
+    [GONE_FRAME / FPS + 0.02, 'f-he-is-gone'],
+    [GL_WINDOWS[1].t0, 'g-back-in-the-corner'],
+    [GL_WINDOWS[2].t0, 'h-the-mark-arrives'],
+    [PANEL_AT + PANEL.in + 0.06, 'i-the-panel'],
     /* the middle of a beat rather than a fixed offset into it: a still taken
        0.30s after a line starts catches whichever card happens to be a third of
        the way through its own fade, and a card at half opacity is not what the
        caption looks like. */
-    [(v.beats[0].start + v.beats[0].end) / 2, 'h-fact-one'],
-    [(v.beats[1].start + v.beats[1].end) / 2, 'i-fact-two'],
-    [(b1.full + b1.leaving) / 2, 'j-love-it'],
-    [(v.beats[2].start + v.beats[2].end) / 2, 'k-fact-three'],
-    [mas.marks[3].t + 0.40, 'l-agreeing'],
-    [v.endIn + END.in + 0.20, 'm-the-end-card'],
-    [SECONDS - 0.06, 'n-the-last-frame'],
+    [(v.beats[0].start + v.beats[0].end) / 2, 'j-line-one'],
+    [mid(pill(1)), 'k-yes'],
+    [TYPING.at[Math.floor(TYPING.chars * 0.45)], 'l-typing'],
+    [(v.beats[1].start + v.beats[1].end) / 2, 'm-line-two'],
+    [mid(pill(2)), 'n-love-it'],
+    [(v.beats[2].start + v.beats[2].end) / 2, 'o-line-three'],
+    [mid(pill(3)), 'p-nice'],
+    [TYPING.until + 0.10, 'q-the-line-is-typed'],
+    [v.endIn + END.in + 0.20, 'r-the-end-card'],
+    [SECONDS - 0.06, 's-the-last-frame'],
   ];
   for (const [want, name] of stills) {
     const f = Math.min(N - 1, Math.max(0, Math.round(want * FPS)));
@@ -1455,7 +1934,6 @@ async function main() {
   const takes = [];
   for (let i = 0; i < LINES.length; i++) takes.push(await take(i));
   const v = buildVoice(takes);
-  const SECONDS = v.seconds;
   console.log('  voice: ' + takes.length + ' takes, ' + takes.filter(t => t.cached).length
     + ' cached, ' + v.words.length + ' words, first word at ' + VOICE_AT.toFixed(2)
     + 's, last at ' + v.lastWord.toFixed(2) + 's');
@@ -1467,9 +1945,6 @@ async function main() {
   console.log('    delivery spans ' + Math.min(...wps).toFixed(2) + ' to '
     + Math.max(...wps).toFixed(2) + ' words a second against a flat 2.3, and the gaps run '
     + v.gaps.map(g => g.toFixed(2)).join(' and ') + 's');
-  console.log('    the clip is ' + SECONDS.toFixed(2) + 's: the last word at '
-    + v.lastWord.toFixed(2) + ', the end card from ' + v.endIn.toFixed(2) + ' over '
-    + END.in.toFixed(2) + 's, then ' + TAIL.toFixed(2) + 's of hold');
 
   /* ---- the captions ----
      float, which is the style built for a frame that is mostly picture: space
@@ -1495,14 +1970,54 @@ async function main() {
   console.log('  ' + cut.marked.length + ' line ends were marked so no card straddles two of them, '
     + 'and the marks are stripped before a card is drawn');
 
+  /* ---- and now the length ----
+     the end card is centred on the middle of the frame and the middle of the
+     frame is the caption band, so it may not arrive until the last card is
+     **out** rather than until the last word is said. that is the caption plan's
+     own number: the group's window already carries its hold and is already
+     clamped against the next one, so reading `out` off the last group is
+     reading the thing the page will actually draw. */
+  const capOut = Math.max(...cap.groups.map(g => g.out));
+  const endIn = +Math.max(v.lastWord + 0.10, capOut + 0.06).toFixed(3);
+  const SECONDS = +(endIn + END.in + TAIL).toFixed(3);
+  v.track = v.track.slice(0, Math.ceil(SECONDS * SR));
+  /* the derived arrival, written onto the voice record so the render, the
+     stills and the guards all read one number rather than being handed one.
+     it is not the voice's own — it is the voice's last word and the caption
+     plan's last window, whichever is later — and this is the one line that says
+     so. */
+  v.endIn = endIn;
+  console.log('  the clip is ' + SECONDS.toFixed(2) + 's: the last word at '
+    + v.lastWord.toFixed(2) + ', the last card out at ' + capOut.toFixed(2)
+    + ', the end card from ' + endIn.toFixed(2) + ' over ' + END.in.toFixed(2)
+    + 's, then ' + TAIL.toFixed(2) + 's of hold');
+
+  /* ---- the typing ----
+     it starts on the second line, which is what the brief asks for, and it
+     finishes far enough before the end card that the finished line can be read
+     — both ends derived rather than typed, so a slower read moves the typing
+     with it. */
+  TYPING = typePlan(PANEL.typed, v.beats[1].start,
+    +(endIn - PANEL.readAfter).toFixed(3), 0x7a1e5d);
+  console.log('  the panel: "' + PANEL.typed + '", ' + TYPING.chars + ' characters typed '
+    + TYPING.from.toFixed(2) + '..' + TYPING.until.toFixed(2) + 's ('
+    + (TYPING.chars / (TYPING.until - TYPING.from)).toFixed(1) + ' a second), '
+    + TYPING.keys.length + ' key ticks, and it is up ' + PANEL_AT.toFixed(2)
+    + '..' + (endIn - 0.04).toFixed(2));
+
   /* ---- the mascot ----
      one plan, in the corner, exactly as post11 places him. the opening is the
      same plan under a transform — see THE ZONE at the top of this file. */
+  const marks = planMarks(v.beats, endIn);
   const mas = planMascot({
-    seconds: SECONDS, marks: MARKS, theme: 'light', pos: 'bottom-left',
+    seconds: SECONDS, marks, theme: 'light', pos: 'bottom-left',
     band: { x: CAP_BOX.x, y: CAP_BOX.y, w: CAP_BOX.w, h: CAP_BOX.h },
     seed: 0x14a5c0,
   });
+  /* held where `frameAt` can read it: the opening's three dots are on the
+     module's own curves, so the frame function has to be able to ask the plan
+     what the bubble is doing. */
+  MASCOT.plan = mas;
   console.log(describeMascot(mas));
   const rep = mascotMotion(mas, FPS, SECONDS);
   console.log(describeMotion(rep));
@@ -1527,14 +2042,19 @@ async function main() {
      rather than a description of the cut. */
   const sheet = [
     [0, 'he is big and centred, delighted'],
-    [mas.marks[0].bubbles[0].in, 'the thought starts climbing: "' + mas.marks[0].bubbles[0].text + '"'],
-    [mas.marks[0].bubbles[0].full, 'the pill is up'],
-    [GL_WINDOWS[0].t0, 'the hit. he is gone, and the frame goes with him'],
+    [GL_WINDOWS[0].t0, 'the hit. the fault lands on him'],
+    [GONE_FRAME / FPS, 'he is gone'],
     [GL_WINDOWS[1].t0, 'again, and he is bottom left at corner size'],
     [GL_WINDOWS[2].t0, 'the mark glitches in at the top and starts turning'],
+    [PANEL_AT, 'the chat panel rises, with its placeholder on it'],
     ...v.beats.map(b => [b.start, 'line ' + (b.i + 1) + ': ' + b.text]),
-    [mas.marks[2].bubbles[0].full, 'the pill is up: "' + mas.marks[2].bubbles[0].text + '"'],
-    [mas.marks[3].t, 'he agrees'],
+    [TYPING.from, 'the first character: "' + PANEL.typed + '"'],
+    [TYPING.until, 'the last one'],
+    ...mas.marks.flatMap(m => [
+      [m.t, m.state + (m.bubble ? '' : '')],
+      ...(m.bubbles || []).map(b => [b.full, 'the pill is up: "' + b.text + '"']),
+    ]),
+    [v.endIn - PANEL.out - 0.04, 'the panel starts leaving'],
     [v.endIn, 'the end card starts arriving'],
     [SECONDS, 'out'],
   ].sort((a, b) => a[0] - b[0]);
@@ -1553,7 +2073,12 @@ async function main() {
      `renderSfx` sets one gain per kind, which is the right shape for a mix
      where a sound means one thing, so a quieter copy of a glitch is a second
      call with a second gain summed onto the same bus. */
-  const cues = mascotCues(mas);
+  /* the hand under the panel is the fourth kind of cue and it is the same rule
+     as the other three: every one of them is a time something else already
+     decided. `key` is post11's recipe and post11's level — the quietest thing
+     in the set after the sweep, because it is the only sound that repeats a
+     dozen times inside five seconds and it plays under a voice. */
+  const cues = mascotCues(mas).concat(TYPING.keys.map(t => ({ t, kind: 'key' })));
   const sfx = renderSfx(cues, SECONDS);
   const GLITCH_DB = [-20, -26, -30];
   for (let i = 0; i < GL_WINDOWS.length; i++) {
@@ -1830,9 +2355,13 @@ function guard(state, v, cut, cap, mas, rep60, sfx, under, lu, lim, p, SECONDS) 
      clip's transform without being told about it. */
   {
     const said = mas.marks.flatMap(m => (m.bubbles || []).map(b => b.text));
-    if (said.length !== 2) fail.push('there are ' + said.length + ' thoughts, and the brief asks for two');
-    if (said[0] !== 'fable 5.1 out') fail.push('the opening thought says "' + said[0] + '"');
-    if (said[1] !== 'love it') fail.push('the second thought says "' + said[1] + '"');
+    const want = ['fable 5.1 out', ...LINE_MARKS.map(m => m.bubble)];
+    if (said.join(' | ') !== want.join(' | ')) {
+      fail.push('the thoughts are "' + said.join(' | ') + '" and the cut says "' + want.join(' | ') + '"');
+    }
+    /* four is the ceiling rather than the count: one in the opening and one per
+       line. a fifth would be a mascot commenting on every clause. */
+    if (said.length > 4) fail.push(said.length + ' thoughts, and four is the ceiling');
     for (const s of said) {
       if (s !== s.toLowerCase()) fail.push('a thought is not lower case: "' + s + '"');
       if (/[—–]/.test(s) || /\s-\s/.test(s)) fail.push('a thought has a punctuation dash in it: "' + s + '"');
@@ -1864,6 +2393,122 @@ function guard(state, v, cut, cap, mas, rep60, sfx, under, lu, lim, p, SECONDS) 
        arithmetic that placed it. */
     const bigUp = up.filter(s => s.big);
     if (!bigUp.length) fail.push('no sample caught the opening thought while he is big');
+  }
+
+  /* ---- the opening ----
+     it holds for the length the brief asks for, he is delighted for the whole
+     of it, and the thought is up long enough to be read. that last number is
+     the one this round exists to fix: the first cut ran the quick profile and
+     the pill was full for 0.30s, which is written up under THE CUT. */
+  {
+    if (T_BACK < 2.0 || T_BACK > 2.6) {
+      fail.push('the opening holds ' + T_BACK.toFixed(2) + 's, and the brief asks for about two to two and a half');
+    }
+    const b = mas.marks[0].bubbles[0];
+    const full = b.leaving - b.full;
+    if (full < 0.60) {
+      fail.push('the opening pill is fully up for ' + full.toFixed(2) + 's, floor is 0.60');
+    }
+    if (b.profile && b.profile.hold === BUBBLE.quick.hold && b.profile.in === BUBBLE.quick.in) {
+      fail.push('the opening thought is still on the quick profile');
+    }
+    if (mas.marks[0].state !== 'delighted') {
+      fail.push('he is ' + mas.marks[0].state + ' in the opening, not delighted');
+    }
+  }
+
+  /* ---- the thought's three dots ----
+     there are three, they grow toward the pill, they climb — each one higher
+     and further along than the one before it — and every one of them is off on
+     every frame he is not big. the last is what stops the opening's dots
+     appearing in the middle of an empty frame during a corner thought. */
+  {
+    if (THOUGHT.dots.length !== 3) {
+      fail.push('there are ' + THOUGHT.dots.length + ' dots on the thought, and the brief asks for three');
+    }
+    for (let i = 1; i < THOUGHT.dots.length; i++) {
+      const a = THOUGHT.dots[i - 1], c = THOUGHT.dots[i];
+      if (!(c.d > a.d)) fail.push('dot ' + i + ' is not bigger than the one before it');
+      if (!(c.cy < a.cy)) fail.push('dot ' + i + ' does not climb');
+      if (!(c.cx < a.cx)) fail.push('dot ' + i + ' does not travel toward the pill');
+    }
+    /* and the first one is attached to him rather than near him: it may not sit
+       more than a dot's own width off the head's silhouette at its own x. */
+    const first = THOUGHT.dots[0];
+    const r = PLACE.big.head / 2;
+    const dx = Math.abs(first.cx - PLACE.big.cx);
+    if (dx < r) {
+      const top = PLACE.big.cy - Math.sqrt(r * r - dx * dx);
+      const off = top - (first.cy + first.d / 2);
+      if (off < 0) fail.push('the first dot is inside his head');
+      if (off > 20) fail.push('the first dot sits ' + off.toFixed(1) + 'css px off him, which is near him rather than on him');
+    } else fail.push('the first dot is not over his head at all');
+    /* they are only ever on while he is big. */
+    for (const smp of state.samples) {
+      if (!smp.big && smp.dotsLit) {
+        fail.push('a thought dot is lit at ' + smp.t + 's, after he has gone to the corner');
+      }
+    }
+  }
+
+  /* ---- the chat panel ----
+     it reads at phone size, the finished line fits inside it, it clears every
+     border, and it is never on screen at the same time as the end card. */
+  {
+    const pn = B.panel;
+    if (pn.capPx < 32) {
+      fail.push('the panel line measures ' + pn.capPx + ' device px of cap, floor is 32');
+    }
+    if (pn.metaText !== PANEL.meta) {
+      fail.push('the model label says "' + pn.metaText + '", not "' + PANEL.meta + '"');
+    }
+    if (pn.fullH > pn.room) {
+      fail.push('the finished line is ' + pn.fullH + 'css px tall in ' + pn.room
+        + ' of room — it would spill out of the panel');
+    }
+    if (pn.lines > 2) fail.push('the line wraps onto ' + pn.lines + ' lines and the panel is two tall');
+    for (const k of ['left', 'top', 'right', 'bottom']) {
+      if (pn[k] < FLOOR - 0.5) {
+        fail.push('the panel comes within ' + Math.round(pn[k]) + 'px of the ' + k + ' border');
+      }
+    }
+    /* the typing is cut to the read at both ends. */
+    if (Math.abs(TYPING.from - v.beats[1].start) > 0.001) {
+      fail.push('the typing starts at ' + TYPING.from + 's and line two starts at ' + v.beats[1].start);
+    }
+    if (TYPING.until > v.endIn - PANEL.readAfter + 0.001) {
+      fail.push('the last character lands at ' + TYPING.until + 's, less than '
+        + PANEL.readAfter + 's before the end card');
+    }
+    const rate = TYPING.chars / (TYPING.until - TYPING.from);
+    if (rate < 4 || rate > 14) {
+      fail.push('the line is typed at ' + rate.toFixed(1) + ' characters a second, which is not a hand');
+    }
+    /* every character lands, in order, inside the window. */
+    for (let i = 1; i < TYPING.at.length; i++) {
+      if (!(TYPING.at[i] > TYPING.at[i - 1])) fail.push('two characters land on the same instant');
+    }
+    if (typedAt(TYPING.until + 0.001) !== TYPING.chars) fail.push('the line is never finished');
+    if (typedAt(TYPING.from - 0.001) !== 0) fail.push('a character lands before the typing starts');
+    /* it is up when it should be and gone when it should be, read off frames. */
+    const lit = state.samples.filter(x => x.lit.panel);
+    if (!lit.length) fail.push('the panel is never on screen');
+    for (const smp of lit) {
+      if (smp.lit.end) fail.push('the panel and the end card are both up at ' + smp.t + 's');
+      /* and it never touches the caption ink under it. */
+      if (smp.lit.caps && smp.cap && smp.cap.worst) {
+        const capTop = smp.cap.top * DSF;
+        if (smp.lit.panelRect.bottom > capTop - 8) {
+          fail.push('the panel reaches ' + smp.lit.panelRect.bottom + 'px at ' + smp.t
+            + 's and the caption ink starts at ' + capTop.toFixed(0) + ' — they are touching');
+        }
+      }
+      for (const k of ['left', 'top']) {
+        if (smp.lit.panelRect[k] < FLOOR - 0.5) {
+          fail.push('the panel crosses the ' + k + ' border at ' + smp.t + 's');
+        }
+      }
+    }
   }
 
   /* ---- the captions ----
@@ -1943,6 +2588,25 @@ function guard(state, v, cut, cap, mas, rep60, sfx, under, lu, lim, p, SECONDS) 
               + ' border at ' + s.t + 's, floor is ' + FLOOR);
           }
         }
+      }
+    }
+    /* it is centred on the middle of the frame, which is a fact about the
+       constant rather than about a rendered frame — and the rendered group is
+       then checked against it, because the fit decides the height and the height
+       decides where the two blocks land either side of that centre. */
+    if (END.centreY !== VH / 2) {
+      fail.push('the end card is centred on ' + END.centreY + ' and the frame\'s middle is ' + VH / 2);
+    }
+    if (Math.abs(e.groupMid - VH / 2) > 2.5) {
+      fail.push('the group drew with its middle on ' + e.groupMid
+        + ' against a frame middle of ' + VH / 2);
+    }
+    /* and it arrives only once the last card is gone, which is what centring it
+       on the band's own home costs. */
+    {
+      const capOut = Math.max(...cap.groups.map(g => g.out));
+      if (v.endIn < capOut - 1e-6) {
+        fail.push('the end card arrives at ' + v.endIn + 's and the last card is up until ' + capOut);
       }
     }
     const hold = SECONDS - (v.endIn + END.in);
@@ -2027,9 +2691,21 @@ function guard(state, v, cut, cap, mas, rep60, sfx, under, lu, lim, p, SECONDS) 
     if (r.cut) fail.push('the ' + r.kind + ' cue at ' + r.t + 's was cut off by the end of the clip');
     if (r.t < 0 || r.t > SECONDS) fail.push('the ' + r.kind + ' cue at ' + r.t + 's is outside the clip');
   }
-  if (sfx.report.filter(r => r.kind === 'pop').length !== 2) {
-    fail.push('there are ' + sfx.report.filter(r => r.kind === 'pop').length
-      + ' pops against two thoughts');
+  {
+    const pops = sfx.report.filter(r => r.kind === 'pop').length;
+    const thoughts = mas.marks.reduce((a, m) => a + (m.bubbles || []).length, 0);
+    if (pops !== thoughts) fail.push('there are ' + pops + ' pops against ' + thoughts + ' thoughts');
+    /* the hand under the panel: one tick per four characters plus the two ends,
+       and every one of them inside the typing window. */
+    const keys = sfx.report.filter(r => r.kind === 'key');
+    if (keys.length !== TYPING.keys.length) {
+      fail.push('there are ' + keys.length + ' key ticks against ' + TYPING.keys.length + ' planned');
+    }
+    for (const k of keys) {
+      if (k.t < TYPING.from - 1e-6 || k.t > TYPING.until + 1e-6) {
+        fail.push('a key tick at ' + k.t + 's is outside the typing window');
+      }
+    }
   }
   if (sfx.report.filter(r => r.kind === 'glitch').length !== GL_WINDOWS.length) {
     fail.push('the faults and their sounds have come apart');

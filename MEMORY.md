@@ -7,7 +7,7 @@ names in here either.
 ## Status
 
 - **Built 2026-09-02: `demo/post14.mjs`, the fourteenth clip, the fable 5.1 news
-  flash. 9.95s, 1080x1920, light only, out to
+  flash. Second cut, 13.03s, 1080x1920, light only, out to
   `demo/out/post14-light-1080x1920.mp4`.** The first clip that is about somebody
   else's release rather than about us, **the first that puts somebody else's mark
   on the screen**, and **the first that moves the mascot.** He is big in the
@@ -16,10 +16,18 @@ names in here either.
   anthropic logo glitches in at the top and turns once over the rest of the clip,
   and three facts are read warm and quick over captions in the middle of the
   frame. Then post11's light end card.
-  - **The 60fps master with the shutter open is rendered and green**, 1.23 MB,
-    log at `demo/out/post14-final.log`. The 12fps preview was reviewed frame by
-    frame first and found four faults, all fixed before the master; the review is
-    at `demo/out/review-post14-light-1080x1920.md`, which is gitignored.
+  - **It shipped at 9.95s and a fix round took it to 13.03s.** Five notes, and
+    every one of the 3.08 seconds is one of them: the opening holds 2.52s with
+    the thought on the ordinary bubble profile and **three** dots climbing a
+    diagonal to it, the read comes back to a person's pace with a real breath
+    between lines, the mark is 216 device px, **a chat panel under it types
+    itself a line**, the end card is centred on the middle of the frame, and he
+    has five marks and four thoughts instead of four and two. See the decisions.
+  - **The 60fps master with the shutter open is rendered and green**, 1.37 MB,
+    log at `demo/out/post14-final.log`. Both cuts were reviewed frame by frame
+    on the 12fps preview first: the first found four faults, the second one, and
+    all five were fixed before their masters. The review is at
+    `demo/out/review-post14-light-1080x1920.md`, which is gitignored.
   - **The logo is `demo/assets/anthropic-logo.png`, placed as an image and never
     touched** — no crop, no filter, no recolour, no redraw. **It is the clay
     version, not a black one**, and that is a call the brief's own two
@@ -1424,10 +1432,11 @@ Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
-- **`demo/post14.mjs` is the fourteenth clip and the light one.** 9.95s,
-  1080x1920, 60fps, out to `demo/out/post14-light-1080x1920.mp4`. Three firsts
+- **`demo/post14.mjs` is the fourteenth clip and the light one.** 13.03s,
+  1080x1920, 60fps, out to `demo/out/post14-light-1080x1920.mp4`. Four firsts
   between them: somebody else's mark on the screen, the mascot moved rather than
-  planned in one place, and a clip about somebody else's release. It needs
+  planned in one place, **a picture of a ui drawn in code that types itself**,
+  and a clip about somebody else's release. It needs
   `demo/assets/anthropic-logo.png`, which is untracked. Full write up under The
   fourteenth clip in `demo/README.md`.
 
@@ -2067,6 +2076,136 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-02 — post14's second cut: five notes, 3.08 seconds, and what each one bought
+
+The clip shipped at 9.95s and came back with five. Every second of the 3.08 it
+grew by is one of them, and none of them was a preference.
+
+**The opening thought was 0.30s of full pill and it is 0.74s now.** That number
+was written down when it shipped, because it is not a taste: `BUBBLE.quick`'s
+hold is floored and capped at the same 0.30, so no amount of room changes it, and
+the quick profile was chosen because the ordinary one puts the next mark at 2.30
+and the clip had a ten second ceiling. Holding the opening for 2.52s lifts the
+ceiling and the ordinary profile fits: 0.48 in, 0.74 hold, 0.30 out. **The lesson
+is that the first cut's constraint was the length rather than the profile**, and
+naming the cost at the time is what made the fix a one line change.
+
+**The read was hurried rather than upbeat.** It ran +12, +18 and +6 per cent on
+the argument that a news flash is quick. A person telling somebody good news does
+not talk faster than they normally do, they talk with more shape — so the rate
+comes back to around the house default and the **pitch** carries the register:
+up on the headline, flat on the facts, up on the payoff, so the reading rises,
+levels and rises again rather than climbing all the way through. Measured on the
+real takes, words a second on line one: +12% was 2.82, 0% is 2.52, -4% is 2.41
+and -8% is 2.31. The gaps are a real breath now rather than a join. It costs
+0.9s.
+
+**The end card was on 325 and it is on 480.** 325 is the middle of the room
+between the mark's sweep and the caption band, which is a real number and the
+wrong one: on a rendered frame it reads as an end card sitting high with a hole
+under it. 480 is the middle of the frame. It is the **frame's** middle rather
+than the safe band's 470, because the platforms take more off the bottom than the
+top and a wordmark nudged up five pixels to satisfy that is a wordmark nobody
+centred.
+
+**The mark went from 152 to 216 device px**, and what sets that ceiling is the
+sweep rather than the mark: a square turning about its centre covers a circle of
+its own diagonal, so 108 css reaches 76.4 in every direction.
+
+**And he was too quiet in the corner** — one state for three seconds, one hop,
+one nod. He gets a state per line now with a short positive thought on each, plus
+a `neutral` that settles him as the wordmark comes up. Four thoughts is the
+**ceiling** rather than the count and it is a guard: a fifth would be a mascot
+commenting on every clause.
+
+### 2026-09-02 — the module's thought bubble climbs two dots in a row, and a centred character needs three on a diagonal
+
+The mascot module hangs the thought off the head's right shoulder: two dots, 8
+and 12 css px, laid out as a flex row with the pill — same baseline, increasing
+x, fixed gaps. That is the site's own cluster and it is right for a mascot
+standing in a corner with the thought beside his head.
+
+post14's opening puts the pill **above** him, so the climb is a diagonal, and a
+flex row is not a diagonal at any set of gaps. So for that one beat the three
+dots are the clip's, drawn in page coordinates, and the module's two are switched
+off.
+
+**Switching them off is one line in the clip's own `apply`, not a fork.**
+`window.__p14.apply` always runs after `window.__mas.apply`, so writing the dots'
+opacity to nought after the module has written it is the same ordering the zone's
+own opacity channel already relies on. The pill is still the module's, at the
+module's size, on the module's spring — nothing about what a thought *is* has
+been redrawn.
+
+**And the timing is the module's too**, which is the part worth keeping. Each dot
+reads a channel out of `mascotFrame` at its own offset, so all four things arrive
+70ms apart on the site's own pop curve rather than on a second animation that
+could drift: the 5 reads dot 0 at `t + 0.07`, which is a dot that started 70ms
+earlier; the 8 reads dot 0; the 12 reads dot 1; the pill is the pill.
+
+`lib/mascot.mjs` is untouched. The alternative was a third dot in the module's
+flex row, which would have changed the cluster for every clip that has ever used
+it, to serve one beat in one clip that does not want a row at all.
+
+### 2026-09-02 — a picture of a ui is drawn in code, and its chrome is exempt from the copy floor
+
+post14 needed a chat input under the mark: the box a person types into, with the
+line typing itself. It is drawn out of the clip's own css rules — a rounded panel
+in `--fg`, a line in `--bg`, a plus in a ring, the model's name bottom right — and
+**there is no logo in it and nothing lifted off anybody's product.** It is the
+*shape* of the thing, which is what a viewer recognises.
+
+Two things are worth writing down.
+
+**The panel is the site's ink on the site's paper, so it needs no colour of its
+own** and it would invert with the theme for free if this clip ever got a dark
+variant. That is the same discipline post11's report page and chalkboard were
+built on, one step tighter: those two invented `#d1600a` and a chalk yellow
+because they had to; this one did not have to.
+
+**`Fable 5.1 Medium` is 28 device px of cap against a 32 floor, and it is the one
+exemption in the file.** The floor exists because a viewer reads our copy on a
+phone. That label is not our copy, it is chrome inside a drawn picture of a
+screen — the same footing as post11's registration number, which is on the screen
+and is never read aloud. **Type inside a picture of a ui is as small as it is in
+the ui, or it is not a picture of a ui.** The line being typed is held to the
+floor and clears it at 33.
+
+The typed line is cut to the read at both ends — it starts on the second line's
+first word and finishes 0.60s before the end card, both derived — so a slower
+read moves the typing with it. Every character gap is its own number off a seeded
+prng, which is post9's rule: a constant rate reads as a machine filling a field,
+which is what it is.
+
+### 2026-09-02 — a chained glitch window has no length of its own, so it grows when the cut does
+
+post14's first fault runs to the second one's start rather than to a length of
+its own, which is what keeps the stretch the mascot is missing from free of clean
+frames. The consequence only showed up in the fix round: **its length is not a
+number in the file, it is the gap** — so when the opening grew from 1.62s to
+2.52s the fault grew with it, came out at 0.32s, and tripped the guard that says
+a tv glitch may not outstay a third of a second.
+
+That is the guard working, and it is worth writing down because the failure mode
+is invisible in the source: nothing in `GL_CUT` changed, and the thing that
+changed is two constants nowhere near it. The hit moved to 2.26 so the window is
+0.26s again, which is the length the first cut proved.
+
+### 2026-09-02 — a guard that redoes the arithmetic is not a guard
+
+post14's end card is centred by measuring both blocks after the face loads and
+placing them either side of a centre. The check that it is really on the frame's
+middle did that arithmetic **a second time**, on the guard's side, from the two
+`top` values that had been written — and got 514.8 for a group placed on 480,
+because both blocks are translated by half their own size to sit on the line they
+were given and the check forgot the translate.
+
+A guard that re-derives what the code derived is testing the derivation against
+itself and will agree with a bug as readily as with a fix. It measures the two
+rendered rects now, which is the only thing on the page that knows where the ink
+actually is. Same shape as the module's own note about `getBoundingClientRect` on
+a rotated plate: measure the thing that answers the question, not a proxy for it.
 
 ### 2026-09-02 — the anthropic mark is placed as it is, clay and all, because "never recolour" beats "the black version"
 
@@ -5546,9 +5685,9 @@ of them.
   clip ships with no music by design and Einz picks one later. It jumped post3 as well, so **post3, "missed calls", is
   now seven clips behind and still unbuilt.**
 - **post14, "the fable 5.1 news flash", is built at 60fps and not posted** —
-  2026-09-02, `demo/post14.mjs`. 9.95s, light, out to
-  `demo/out/post14-light-1080x1920.mp4`, every check passing and the video-review
-  pass clean after four fixes. It owes **a posting pack** — caption, tweet and
+  2026-09-02, `demo/post14.mjs`, **second cut, 13.03s**, light, out to
+  `demo/out/post14-light-1080x1920.mp4`, every check passing and both
+  video-review passes clean after five fixes between them. It owes **a posting pack** — caption, tweet and
   three tags per platform, none decided — and it owes **a call on whether
   `demo/assets/anthropic-logo.png` gets committed**, which is a public repo
   question rather than a build one. **It is the one clip on the shelf with a
