@@ -6,14 +6,30 @@ names in here either.
 
 ## Status
 
-- **Built 2026-09-01: `demo/post12.mjs`, the twelfth clip, the sting. 5.05s,
-  1080x1920, dark only, out to `demo/out/post12-dark-1080x1920.mp4`.**
+- **Built 2026-09-01, then reworked the same day: `demo/post12.mjs`, the twelfth
+  clip, the sting. 6.05s, 1080x1920, dark only, out to
+  `demo/out/post12-dark-1080x1920.mp4`.**
   The shortest clip here and the first that is a joke rather than an argument:
   the mascot alone in the middle of a black frame fades up, says hi, holds still
-  for six tenths of a second, farts, giggles, and the wordmark snaps in over a
-  glitch. **There is not one word on the screen until 4.56s** — no read, no
-  captions, no bubble. **The 60fps final rendered green with the shutter open at
-  four subframes to a frame.**
+  for six tenths of a second, farts, giggles, the signal comes apart under the
+  laugh and a hard tear puts the wordmark on the screen for a second and a half.
+  **There is not one word on the screen until 4.56s** — no read, no captions, no
+  bubble. **The 60fps final rendered green with the shutter open at four
+  subframes to a frame.**
+  - **The second pass, 2026-09-01, three notes from Einz and what each cost.**
+    The fart read as a buzz, the transition into the wordmark was not glitchy
+    enough, and the end card wanted another second. All three are done. Only
+    `demo/post12.mjs` and `demo/lib/sfx.mjs` were touched, which is what was
+    asked for.
+    - **The fart is a pulse train now, not a tone with a tremolo on it**, and it
+      ships as `sputter`, the two burst variant. Four variants exist and all four
+      are written to `demo/out/p12-fart/` on every render. See the decision.
+    - **The glitch builds: three stutters at 4.22, 4.34 and 4.46 at 32%, 52% and
+      78% heat, then a hit that is 0.37s rather than 0.23.** The duty ceiling
+      got a named exception, this scene only. The white flash did **not** go up
+      and there is now a guard saying there is exactly one white frame in the
+      clip.
+    - **The end card holds 1.40s rather than 0.40.**
   - **`lib/sfx.mjs` grew four voices and is now sixteen sounds**: `hi`, `fart`,
     `giggle` and `glitch`. They are the first four in that file that stand in for
     a character rather than for paper, ink, metal or a mechanism — `chirp` opened
@@ -28,6 +44,10 @@ names in here either.
     tts "hi" pitched up and bit crushed, seven takes of the latter. **The bleep
     ships.** See the decision below; the numbers are at the bottom of
     `post12.mjs`.
+  - **The mix now allows the limiter 1.5 dB** and lands at -18.7 LUFS, true peak
+    -1.7 dBFS. It allowed nothing on the first cut and landed at -18.4; the
+    second cut's extra sounds pushed it to -20 and the trend was the wrong way.
+    See the decision.
   - **The live site did not change**; **no existing post file was edited**;
     **no dependency was added** — the list stays `puppeteer-core`,
     `ffmpeg-static` and `gsap`. **Not posted anywhere and there is no posting
@@ -854,28 +874,32 @@ names in here either.
 - **Bio line, locked:** `the future is cool. building it is boring.`
   Use it verbatim everywhere a bio is asked for. Do not reword, do not "improve" it.
 
-#### post12 — built 2026-09-01, not posted yet
+#### post12 — built 2026-09-01, reworked the same day, not posted yet
 
-`demo/post12.mjs`. 5.05s, 1080x1920, dark only, one output path overwritten
+`demo/post12.mjs`. 6.05s, 1080x1920, dark only, one output path overwritten
 every run. The full write-up is in `demo/README.md` under The twelfth clip; this
 is what a later session needs and cannot re-derive.
 
 - **The beats.** He fades up over 0.42s from black. `neutral` at 0.06,
   `agreeing` at 1.14 (the hi), `surprised` with `turn` +0.30 at 2.38 (the fart),
-  `delighted` at 3.55 (the giggle). The cut and the wordmark both land on 4.56.
-  The end card holds 0.40s. End at 5.05.
+  `delighted` at 3.55 (the giggle). Three glitch stutters at 4.22, 4.34 and 4.46
+  under the laugh. The hit, the cut and the wordmark all land on 4.56. The end
+  card holds 1.40s. End at 6.05.
 - **The sounds, and every time came from somewhere else.** `hi` at 1.61, which
   is `agreeing`'s own declared ding offset. `fart` at 2.34, which is the puff's
   birth, four hundredths before the head moves. `giggle` at 3.83, 4.22 and 4.33,
   which are turning points in the drawn head's own y. `glitch` at 4.56, the cut.
 - **The mix is peak normalised, not loudness targeted, and that was a decision.**
-  -18.4 LUFS integrated, true peak -1.8 dBFS. Hitting -14 would have asked the
-  limiter for 3.5 dB on a bus that is five transients and nothing else. See the
-  decision below.
-- **It runs 5.05s against a four to five second brief.** The overshoot is the
-  four states' own entry, hold and exit floors in `planMascot` — there is nothing
-  to take out without the plan being refused, and the pause is the last thing
-  that should be cut.
+  -18.7 LUFS integrated, true peak -1.7 dBFS, with 1.5 dB of limiting on the one
+  transient that sets the peak. Hitting -14 would have asked the limiter for 3.5
+  dB on a bus that is nine transients and nothing else. See the decision below.
+- **The fart ships as `sputter`**, the two burst variant. `parp`, `puff` and
+  `wobbler` are the alternatives and all four land in `demo/out/p12-fart/` on
+  every render, regenerable and gitignored, so a person who can listen can
+  overrule the measurements they were chosen on.
+- **It runs 6.05s.** The first cut was 5.05 against a four to five second brief,
+  where the overshoot was the four states' own entry, hold and exit floors in
+  `planMascot`; the extra second is all end card and was asked for.
 - **Owed:** caption, hashtags, platform. Nothing decided.
 
 #### post1 — posted 2026-08-24, recorded 2026-08-25
@@ -1931,6 +1955,154 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-01 — post12's fart is a pulse train, and "it reads as a buzz" was a measurement
+
+The first fart in post12 was a sine falling from 96 to 58 hertz with a fixed 38
+hertz tremolo on it, low passed at 380. The note back was that it does not sound
+like a fart, it reads as a buzz. That is a fair description of what it was, and
+it is also **measurable**, which is the whole reason the rebuild could be aimed
+rather than fiddled with.
+
+**A fart is not a tone with a wobble on it.** It is a membrane chattering: a
+slack aperture opening and closing under falling pressure, the same mechanism as
+a lip trill, a kazoo or a duck call. The flutter *is* the fundamental rather than
+a modulation of one, and the thing that makes it read as a body rather than as an
+oscillator is that the chattering is **irregular** — no two cycles the same
+length or the same loudness. A sine with a perfectly periodic tremolo has none of
+that, so the ear hears a synthesiser being modulated, which is what it is.
+
+So it is a pulse train, and four things in it are unsteady: the pitch falls in two
+stages (a third of the way, then steeply, which is the pressure running out);
+every cycle gets its own period; every cycle gets its own loudness; and a slow
+wobble sits on top. The waveform is a raised cosine pulse of 28% duty, because a
+narrow smooth bump has a long gentle harmonic series (a buzz) where a square has
+the same series with an edge on it (a raspberry). **No noise at all**, which is
+what keeps it comic rather than gross — the wet broadband hiss is the whole of
+what makes a real one unpleasant. The low pass went **up**, 380 to 660: the old
+ceiling was hiding the harmonics that make it a buzz in the first place.
+
+The five numbers this is judged on, one per clause of the brief, measured off the
+rendered buffers:
+
+| variant | len | pitch | drop | jitter | harmonics | tail | >1.5k |
+|---|---|---|---|---|---|---|---|
+| the old sine | 0.30s | 100 to 63 | 1.58x | **2.5%** | **2/12** | 28% | 0.43% |
+| `parp` | 0.34s | 69 to 42 | 1.66x | 10.8% | 6/12 | 5% | 0.72% |
+| `puff` | 0.22s | 88 to 62 | 1.41x | 7.7% | 4/12 | 5% | 0.69% |
+| **`sputter`** | **0.46s** | **79 to 42** | **1.91x** | **14.0%** | **6/12** | **8%** | **0.86%** |
+| `wobbler` | 0.38s | 79 to 47 | 1.68x | 20.3% | 6/12 | 9% | 1.08% |
+
+The old recipe's two bold numbers are the diagnosis: 2.5% jitter is a synth tone
+and two harmonics is a sine with a partial on it.
+
+**`sputter` ships** and is what `VOICES.fart` defaults to: the same recipe cut
+into two bursts by a gate — a short one, a fifty millisecond gap, then a longer
+one that collapses — because a real one very often does not come out in one
+piece, and that is the most recognisable fart *gesture* in the set. It also wins
+the brief's own three clauses on the numbers. `wobbler` is more irregular and
+that is the argument against it: past about fifteen per cent a pulse train stops
+reading as a body and starts reading as a motor with a bearing going.
+
+All four are written to `demo/out/p12-fart/` on every render, regenerable and
+gitignored. **Nothing in this pipeline can hear**, same as with the hi: these are
+proxies for funny, not measurements of it, and a person who listens and prefers
+`wobbler` is right.
+
+**One trap in the preset table, worth remembering because it will recur.** The
+function's defaults are `sputter`'s, so a preset that leaves a field out inherits
+sputter's value for it — and the field that matters is the gate. The first cut
+left `gate` out of the other three and all three silently came apart into two
+bursts, which showed up as parp's measured jitter jumping from 10.8% to 13.1% and
+puff's from 7.7% to 29.1%. A gate is a discontinuity and a discontinuity reads as
+irregularity to any meter pointed at it. **Every preset now carries every field,
+`gate: null` included: a preset is a whole recipe, never a diff against another
+one.**
+
+### 2026-09-01 — post12's glitch builds, and the duty ceiling gets a scene level exception
+
+The note was that the transition into the wordmark needed to be much harder and
+longer. Three stutters now run under the laugh at 4.22, 4.34 and 4.46, at 32%,
+52% and 78% of the heat, and the hit is 0.37s rather than 0.23. `force` is a
+multiplier on the same envelope driving the same channels — a build up written as
+its own mechanism is a second thing to get out of step with the first.
+
+**The build up escalates in kind, not only in amount, and that is a fault this
+pass paid for.** The first cut let all three stutters throw three tear bands
+each. A tear band paints the page colour and redraws **the wordmark** shifted,
+and the wordmark is the only thing in that frame with a second copy — the mascot
+is one dom subtree driven by ids out of its own module and cannot be duplicated.
+So before the hit a band is not a tear, it is a black bar over a head with
+nothing behind it, and three of them at 78% heat over a 139px head left **a grey
+haze with no subject in it.** Second time on this clip a fault rendered as an
+empty frame and every numeric guard was green on it. Bands are the hit's now:
+before it the signal wobbles, at it the frame tears.
+
+**The duty ceiling has a named exception and it is this scene only.** post11's
+ceiling is 30% of a scene's frames. post12's whole fault lives in the last two
+seconds of six, so against the file it is under a tenth however you cut it, and
+the number worth defending is the **local** one. The guard measures the fault
+against the ending it lives in — first stutter to last frame — and holds it to
+the same 30%. It measures 26.4%.
+
+It is measured **at sixty whatever rate is rendering**, which is the same
+argument `mascotMotion` makes about anticipation and entry: at twelve a fifty
+millisecond stutter is rounded up to a whole 83ms frame, two thirds longer than
+it is, and the first cut of this guard failed the clip at 31.8% for the preview's
+arithmetic rather than for anything in the design.
+
+**Everything went up except the flash, and that is now a guard.** The shake, the
+split, the band travel, the band count and the noise all rose. The white flash
+did not, and there is a check saying there must be **exactly one white frame in
+the clip** — not "at most", not "at least". Three stutters plus a hit is four
+chances to put one on the screen and four white frames inside a third of a second
+is a strobe: a thing platforms flag and a thing that hurts to watch. **"Much more
+glitchy" is not a licence to strobe**, and that sentence is the rule, not this
+clip's numbers.
+
+**And a burst is a length in seconds quantised to whatever frame grid is
+rendering**, which is post11's rule and which this clip needs more. A fifty
+millisecond stutter is three frames at sixty and six hundredths of a frame at
+twelve: written as seconds and left alone it would not happen on the preview at
+all, and a beat that is in the master and missing from the pass it was judged on
+is the one fault a preview cannot show. Every window is snapped and a guard
+asserts each fires on at least one frame at **both** rates.
+
+### 2026-09-01 — a still has to be a frame the clip actually has
+
+Small, and it cost twenty minutes twice. post12's verification stills were asked
+for at times taken from the config — `END.at`, and so on — but the glitch windows
+are snapped to the frame grid, so `END.at` of 4.56 is 4.5833 at twelve. A still
+asked for at 4.56 therefore landed a frame early: after the head is cut and
+before the wordmark arrives, which rendered as an **empty frame that does not
+exist in the film**. It looked like a fault in the clip and was a fault in the
+still.
+
+The rule that came out of it: a still rounds the time it was asked for to a frame
+index and then draws **that frame's own instant**. Anything computed from `f` and
+anything computed from `t` then agree about which moment it is, which they cannot
+if the two are allowed to differ — and on this clip they differ by design,
+because the glitch is a function of the frame and everything else is a function
+of the time.
+
+### 2026-09-01 — post12's limiter gets 1.5 dB after all, and why that is not a reversal
+
+The first cut of post12 gave the limiter nothing and the bus landed at -18.4
+LUFS. The second cut added three stutter sounds and a longer fart, which pushed
+the raw peak up and the allowed lift down, and it landed at **-20** — every
+change to the picture was quietly making the file quieter.
+
+The peak in this clip is one thing: the eight millisecond noise transient at the
+top of the `glitch` hit, two decibels over everything else. That is exactly what
+a limiter is for and exactly where 1.5 dB is inaudible — the look ahead has it
+before it arrives and the whole burst comes down together, so it is 1.5 dB
+quieter rather than a different shape, and what it buys is the same 1.5 dB on
+every other sound in the file. It lands at -18.7 LUFS, true peak -1.7 dBFS.
+
+Three and a half decibels was refused on this argument and one and a half is
+accepted on it, which is not a contradiction. **The question was never whether to
+limit, it was how much of the balance in `GAINS` a limiter is allowed to have an
+opinion about.**
 
 ### 2026-09-01 — post12: the hi is synthesised, not spoken, and the numbers say why
 

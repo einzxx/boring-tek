@@ -1,9 +1,10 @@
 /* the boring tek — post12, the sting.
 
-   five seconds, dark only, 1080x1920. the mascot alone in the middle of a black
-   frame. he fades up, says hi, holds still, farts, giggles about it, and the
-   wordmark snaps in over a glitch. there is no voice, there are no captions and
-   there is nothing written on the screen until the last half second. the sounds
+   six seconds, dark only, 1080x1920. the mascot alone in the middle of a black
+   frame. he fades up, says hi, holds still, farts, giggles about it, the signal
+   starts coming apart under the laugh, and then a hard tear puts the wordmark on
+   the screen for a second and a half. there is no voice, there are no captions
+   and there is nothing written on the screen until the last quarter. the sounds
    carry the whole thing.
 
      node post12.mjs                     1080x1920, 60fps, shutter closed
@@ -54,6 +55,13 @@
    are synthesised sample by sample like the twelve before them and there is
    still not one audio file in this repo. see that file for each recipe.
 
+   **the fart was built twice.** the first was a sine with a tremolo on it and it
+   read as a buzz, which is what it was. the second is a pulse train whose every
+   cycle gets its own period and its own loudness, because a fart is a slack
+   aperture chattering rather than a tone being modulated. four variants exist
+   and all four are written out on every render — see `THE FART, FOUR WAYS` at
+   the bottom of this file for the numbers and which one shipped.
+
    **the hi was built twice.** once as the two tone bleep that shipped, and once
    as an edge tts "hi" pitched up and bit crushed, which is the other half of the
    brief. the comparison is written down under `THE HI, BOTH WAYS` below, along
@@ -84,7 +92,7 @@ import {
   mascotPagePlan, describeMascot, describeMotion, headRect,
   STATES, STAGE, SAFE, HEAD_PX, GRID,
 } from './lib/mascot.mjs';
-import { renderSfx, writeWav, applyGain, limit, loudness } from './lib/sfx.mjs';
+import { renderSfx, writeWav, applyGain, limit, loudness, VOICES, FART, SR } from './lib/sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -153,7 +161,11 @@ const CUT = {
     { t: 2.38, state: 'surprised', turn: 0.30, turnFor: 0.34 },
     { t: 3.55, state: 'delighted' },
   ],
-  seconds: 5.05,
+  /* 6.05s. it was 5.05 and the extra second is all end card: the wordmark now
+     holds 1.40s rather than 0.40. `delighted`'s hold is stretched to fill the
+     room up to the end, which nobody sees, because he is cut at 4.56 — but the
+     plan still has to be a plan the module will accept for its whole length. */
+  seconds: 6.05,
 };
 
 /* how long he takes to arrive out of nothing. opacity only, and that is
@@ -228,13 +240,47 @@ const PUFF = {
    dropped frame rather than as a cut. one exchanges for the other on one frame
    now, and there is never an instant with neither of them on it. */
 const END = {
+  /* ---------- the build up ----------
+     three stutters before the hit, escalating, and they land **under the
+     giggle** on purpose: the signal starts coming apart while he is still
+     laughing, which is what makes the hit feel earned rather than abrupt. each
+     one is a couple of frames of the same channels the hit uses at a fraction of
+     the heat — shake, split, a band, a little noise — and the mascot is still on
+     screen for all of them, so what tears is him.
+
+     `force` is a multiplier on the heat, not a separate set of numbers. one
+     envelope, one set of channels, three quieter copies and then the loud one:
+     a build up written as a second mechanism would be a second thing to get out
+     of step with the first. */
+  pre: [
+    { t: 4.22, for: 0.05, force: 0.32 },
+    { t: 4.34, for: 0.05, force: 0.52 },
+    { t: 4.46, for: 0.06, force: 0.78 },
+  ],
   at: 4.56,          /* the hit */
-  hard: 0.10,        /* full heat, every frame */
-  tail: 0.13,        /* the stutter after it */
+  hard: 0.15,        /* full heat, every frame */
+  tail: 0.22,        /* the stutter after it */
   wmIn: 4.56,        /* and the wordmark is born on that same frame */
   wmFor: 0.09,       /* and is fully there five frames later at sixty */
   clean: 0.06,       /* how long after the tail before nothing may glitch at all */
 };
+
+/* ---------- a burst is a length in seconds, quantised to the frame grid ------
+   post11's rule and this clip needs it more than that one did. a fifty
+   millisecond stutter is three frames at sixty and **six hundredths of a frame
+   at twelve**, so written as seconds and left alone it would simply not happen
+   on the preview pass — the beat would be in the master and missing from the
+   thing it was judged on.
+
+   so every window is snapped to the grid that is actually rendering: the start
+   to the nearest frame, the length rounded **up** to at least one whole frame.
+   the preview and the master then carry the same events, at the same times, at
+   whatever resolution each of them has. */
+function onGrid(t, len, fps) {
+  const f0 = Math.round(t * fps);
+  const n = Math.max(1, Math.round(len * fps));
+  return { t0: f0 / fps, t1: (f0 + n) / fps, frames: n };
+}
 
 /* ---------- the wordmark ----------
    three lines, centred, on the line his head was on. michroma, which is the
@@ -259,11 +305,13 @@ const WM = {
    to throw the whole thing about, and this one glitches three words that have to
    be read a fifth of a second later. */
 const GL = {
-  shakeX: 11, shakeY: 6,
-  split: 7.0,           /* css px of rgb separation */
-  bandDx: 62,
-  bands: 2,
-  noise: [0.08, 0.22],
+  /* all of these went up for the second cut, which asked for the transition to
+     be harder and longer. the one that did not is the flash — see below. */
+  shakeX: 15, shakeY: 8,
+  split: 9.5,           /* css px of rgb separation */
+  bandDx: 88,
+  bands: 3,
+  noise: [0.10, 0.24],
   /* ---------- the flash, and what it is not ----------
      it was a full frame white rect at 0.40 and the frame it fired on came back
      as **an even grey card**: the whole screen at forty per cent white with the
@@ -320,9 +368,28 @@ const CRF = 17;
 const TARGET_LUFS = -14;
 const SAMPLE_CEILING = -1.8;
 const PEAK_CEILING = -1.0;
-/* the backstop should do nothing. if it starts working, the peak normalisation
-   above stopped being the thing deciding the mix. */
-const MAX_REDUCTION = 0.5;
+/* ---------- and a decibel and a half of limiting, which is a trade ----------
+   the first cut of this file gave the limiter nothing at all and the bus landed
+   at -18.4 LUFS. the second cut added three stutters and a longer fart, which
+   pushed the raw peak up and the allowed lift down, and it landed at **-20** —
+   and the trend was the wrong way: every change to the picture was quietly
+   making the file quieter.
+
+   the peak here is one thing: the eight millisecond noise transient at the top
+   of the `glitch` hit, two decibels over everything else in the clip. that is
+   exactly the case a limiter is for and exactly the case where a decibel and a
+   half is inaudible — the look ahead has it before it arrives and the whole
+   burst comes down together, so it is 1.5 dB quieter rather than a different
+   shape. what it buys is the same 1.5 dB on every other sound in the file.
+
+   three and a half was refused on this argument and one and a half is accepted
+   on it, which is not a contradiction: the question was never whether to limit,
+   it was how much of the balance in GAINS a limiter is allowed to have an
+   opinion about. */
+const LIMIT_ALLOW = 1.5;
+/* the guard has a little air over the allowance, because the limiter reports
+   what it actually did rather than what it was asked for. */
+const MAX_REDUCTION = LIMIT_ALLOW + 0.3;
 /* and a floor, so "the ceiling won" can never quietly become "the clip is
    inaudible". */
 const MIN_LUFS = -20;
@@ -457,17 +524,40 @@ function heatAt(p) {
 function calmGlitch() {
   return { sx: 0, sy: 0, split: 0, noise: 0, flash: 0, bands: [], heat: 0 };
 }
-function glitchAt(f) {
+/* every window this clip glitches in, on the grid that is rendering. the three
+   stutters carry a `force` under one; the hit carries one. one list, so the
+   duty guard and the sound both read the same thing rather than each keeping
+   their own idea of when the fault is on. */
+function glitchWindows(fps) {
+  return [
+    ...END.pre.map((w, i) => ({ ...onGrid(w.t, w.for, fps), force: w.force,
+      seed: 0x51a0 + i * 977, pre: i })),
+    { ...onGrid(END.at, END.hard + END.tail, fps), force: 1, seed: 0x0c1a55, pre: null },
+  ];
+}
+const GL_WINDOWS = glitchWindows(FPS);
+/* and the same list on the master's grid, because the duty is a property of the
+   animation rather than of the pass it is sampled at — the same argument
+   `mascotMotion` makes about anticipation and entry. at twelve a fifty
+   millisecond stutter is rounded up to a whole 83ms frame, which is two thirds
+   longer than it is; judging the ceiling on that would fail a clip for the
+   preview's arithmetic. the guards read sixty. */
+const GL_WINDOWS_60 = FPS === 60 ? GL_WINDOWS : glitchWindows(60);
+
+function glitchAt(f, fps = FPS, windows = GL_WINDOWS) {
   const g = calmGlitch();
-  const t = f / FPS;
-  const t0 = END.at, t1 = END.at + END.hard + END.tail;
-  if (t < t0 || t >= t1) return g;
-  const p = (t - t0) / (t1 - t0);
-  const r = prng(0x0c1a55 ^ (f * 2654435761));
-  let heat = heatAt(p);
+  const t = f / fps;
+  const w = windows.find(x => t >= x.t0 && t < x.t1);
+  if (!w) return g;
+  const p = (t - w.t0) / (w.t1 - w.t0);
+  const r = prng(w.seed ^ (f * 2654435761));
+  /* a stutter is short enough that the decay envelope has nowhere to go, so it
+     runs flat at its own force and the escalation between the three is the whole
+     shape. the hit gets the envelope. */
+  let heat = w.pre != null ? w.force : heatAt(p);
   /* a spike: one frame back at full strength somewhere in the decay, so the
      fault stutters rather than fading out politely. */
-  if (heat > 0 && p > 0.13 && p < GL.calmFrom && r() < 0.34) heat = 1;
+  if (w.pre == null && heat > 0 && p > 0.13 && p < GL.calmFrom && r() < 0.34) heat = 1;
   if (heat <= 0) return g;
   g.heat = heat;
   g.sx = +((r() * 2 - 1) * GL.shakeX * heat).toFixed(2);
@@ -475,10 +565,33 @@ function glitchAt(f) {
   g.split = +(heat * (2.2 + r() * (GL.split - 2.2))).toFixed(2);
   g.noise = +(heat * lerp(GL.noise[0], GL.noise[1], r())).toFixed(4);
   /* the white frame is one event rather than a channel: it is on the first
-     frame of the hard stretch and on nothing else. a flash that repeats is a
-     strobe, and a strobe is a thing platforms flag. */
+     frame of the hit and on nothing else, and it did **not** go up with the
+     rest of this table when the transition was asked to get harder. three
+     stutters and a hit is four chances to put a white frame on the screen, and
+     four white frames inside a third of a second is a strobe rather than a
+     glitch — which is a thing platforms flag and a thing that hurts to watch.
+     the transition got longer and louder everywhere except here. */
   g.flash = f === Math.round(END.at * FPS) ? GL.flash : 0;
-  const n = Math.min(GL.bands, Math.floor(heat * (GL.bands + 0.5)));
+  /* ---------- the bands belong to the hit, and only to the hit ----------
+     a tear band paints the page colour and redraws **the wordmark** shifted, and
+     the wordmark is the only thing in this frame that has a second copy — the
+     mascot is one dom subtree driven by ids out of its own module and cannot be
+     duplicated. so before 4.56 a band is not a tear at all, it is a black bar
+     over a head with nothing behind it.
+
+     that is not theoretical. the first cut of the build up let all three
+     stutters throw three bands each, and the still from stutter three came back
+     with **the mascot entirely gone** — three bands, each up to 114 css px, over
+     a head that is 139, on a 78% heat frame. what was left was a grey haze with
+     no subject in it, which is the second time on this clip that a fault has
+     rendered as an empty frame.
+
+     so the build up escalates in **kind** rather than only in amount: before the
+     hit the signal wobbles — shake, rgb split, a little noise, all of it on him
+     — and at the hit the frame tears. that is a better build up than three
+     smaller copies of the same event, and it is also the only one that leaves
+     something on the screen to be building up to. */
+  const n = w.pre != null ? 0 : Math.min(GL.bands, Math.floor(heat * (GL.bands + 0.5)));
   for (let i = 0; i < n; i++) {
     const h = 18 + r() * 96;
     g.bands.push({
@@ -945,12 +1058,28 @@ async function render(plan, blobs) {
     [PUFF.at + 0.26, 'd-the-fart'],
     [CUT.marks[2].t + STATES.surprised.entry, 'e-eyes-wide'],
     [CUT.marks[3].t + 0.47, 'f-the-giggle'],
-    [END.at + 0.04, 'g-the-glitch'],
-    [END.wmIn + END.wmFor + 0.10, 'h-the-wordmark'],
+    /* the four fault stills are taken off the **windows' own** start times
+       rather than off the numbers in END, because a window is snapped to the
+       frame grid and END is not: at twelve, `END.at` of 4.56 is 4.5833 on the
+       grid, and a still asked for at 4.56 lands a frame early — which is a frame
+       where the head is already cut and the wordmark has not yet arrived, so it
+       renders as an empty frame that is not in the clip at all. that is exactly
+       what the first cut of these stills produced, and it looked like a fault in
+       the film rather than in the still. */
+    [GL_WINDOWS[0].t0, 'g1-stutter-one'],
+    [GL_WINDOWS[2].t0, 'g2-stutter-three'],
+    [GL_WINDOWS[3].t0, 'g3-the-hit'],
+    [GL_WINDOWS[3].t0 + 0.10, 'g4-the-tear'],
+    [END.at + END.hard + END.tail + 0.10, 'h-the-wordmark'],
     [CUT.seconds - 0.06, 'i-the-last-frame'],
   ];
-  for (const [t, name] of stills) {
-    const f = Math.min(N - 1, Math.round(t * FPS));
+  for (const [want, name] of stills) {
+    /* a still is a frame the clip actually has. the time asked for is rounded to
+       a frame and then **the frame's own instant is what gets drawn**, so the
+       glitch, which is a function of the frame index, and everything else, which
+       is a function of the time, can never disagree about which moment this is. */
+    const f = Math.min(N - 1, Math.round(want * FPS));
+    const t = f / FPS;
     await page.evaluate(fr => window.__mas.apply(fr), mascotFrame(plan, t));
     await page.evaluate(fr => window.__p12.apply(fr), frameAt(t, f, blobs));
     const shot = await cdp.send('Page.captureScreenshot', {
@@ -1071,6 +1200,93 @@ function hopBeats(plan, from, until) {
   return turns.slice(apex, apex + 3);
 }
 
+/* ---------- measuring a fart ----------
+   the first fart in this clip was a sine with a tremolo on it and the note that
+   came back was that it reads as a buzz. that is a fair description of a sine
+   with a tremolo on it, and it is also a **measurable** complaint, which is why
+   these five numbers exist rather than an opinion.
+
+   a fart is a slack aperture chattering under falling pressure. so:
+
+     the pitch is low and it drops     `f0` start and end, and the ratio
+     the flutter is irregular          cycle to cycle period variation, per cent
+     it buzzes rather than tones       how many harmonics survive the low pass
+     it stops rather than fades        the last sixth's level against the body's
+     it is not rude                    how much energy is above 1.5 kHz
+
+   the old recipe measured 2.5% jitter and two harmonics, which is a tone with a
+   partial on it. that is the whole diagnosis and the rebuild is aimed at exactly
+   those two numbers. */
+const lpCopy = (src, hz) => {
+  const a = Math.exp(-2 * Math.PI * hz / SR), o = new Float32Array(src.length);
+  let y = 0;
+  for (let i = 0; i < src.length; i++) { y = (1 - a) * src[i] + a * y; o[i] = y; }
+  return o;
+};
+/* the cycles, off rising zero crossings of a copy low passed under the second
+   harmonic, with the crossing interpolated so a period is not quantised to a
+   sample. anything outside 18 to 200 hertz is not a cycle of this sound. */
+function cycles(buf) {
+  const c = lpCopy(buf, 300), out = [];
+  let last = null;
+  for (let i = 1; i < c.length; i++) {
+    if (c[i - 1] < 0 && c[i] >= 0) {
+      const t = i - 1 + (0 - c[i - 1]) / (c[i] - c[i - 1]);
+      if (last != null) out.push({ at: last / SR, T: (t - last) / SR });
+      last = t;
+    }
+  }
+  return out.filter(x => x.T > 1 / 200 && x.T < 1 / 18);
+}
+/* one bin of a dft, by correlation, because twelve harmonics is cheaper to ask
+   for one at a time than a whole transform is to compute. */
+function binAt(buf, hz) {
+  let re = 0, im = 0, w = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const win = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / buf.length);
+    const a = -2 * Math.PI * hz * i / SR;
+    re += buf[i] * win * Math.cos(a); im += buf[i] * win * Math.sin(a); w += win;
+  }
+  return Math.hypot(re, im) / w;
+}
+const rmsOf = (b, a, z) => {
+  let s = 0;
+  for (let i = a; i < z; i++) s += b[i] * b[i];
+  return Math.sqrt(s / Math.max(1, z - a));
+};
+function fartReport(name, b) {
+  const C = cycles(b);
+  if (C.length < 4) return { name, ok: false };
+  const k = Math.max(1, Math.floor(C.length * 0.2));
+  const mean = a => a.reduce((x, y) => x + y.T, 0) / a.length;
+  const f0s = 1 / mean(C.slice(0, k)), f0e = 1 / mean(C.slice(-k));
+  let d = 0;
+  for (let i = 1; i < C.length; i++) d += Math.abs(C[i].T - C[i - 1].T);
+  const jitter = (d / (C.length - 1)) / mean(C) * 100;
+  /* the harmonic count is taken over the middle of the sound, where the pitch is
+     steadiest — at the ends it is falling fast enough that a harmonic smears
+     across two bins and undercounts itself. */
+  const a0 = Math.round(b.length * 0.25), z0 = Math.round(b.length * 0.60);
+  const mid = b.subarray(a0, z0);
+  const inMid = C.filter(x => x.at > a0 / SR && x.at < z0 / SR);
+  const fm = 1 / (inMid.length ? mean(inMid) : mean(C));
+  const h = [];
+  for (let i = 1; i <= 12; i++) h.push(binAt(mid, fm * i));
+  const top = Math.max(...h);
+  const soft = lpCopy(b, 1500);
+  let et = 0, el = 0;
+  for (let i = 0; i < b.length; i++) { et += b[i] * b[i]; el += soft[i] * soft[i]; }
+  return {
+    name, ok: true, seconds: +(b.length / SR).toFixed(3),
+    f0: [Math.round(f0s), Math.round(f0e)], drop: +(f0s / f0e).toFixed(2),
+    jitter: +jitter.toFixed(1),
+    harmonics: h.filter(v => v > top * Math.pow(10, -30 / 20)).length,
+    tail: +(rmsOf(b, Math.round(b.length * 0.85), b.length)
+      / rmsOf(b, Math.round(b.length * 0.25), Math.round(b.length * 0.75)) * 100).toFixed(0),
+    high: +(Math.max(0, 1 - el / et) * 100).toFixed(2),
+  };
+}
+
 /* ---------- go ---------- */
 console.log('the boring tek — post12, the sting');
 
@@ -1118,6 +1334,29 @@ const cues = [
   { t: END.at, kind: 'glitch', from: 'the cut' },
 ];
 const { buf: sfx, report: sfxReport } = renderSfx(cues, CUT.seconds);
+
+/* ---------- the build up's own three ----------
+   the same `glitch` recipe, shorter, thinner and crushed harder each time, and
+   they escalate in **level** as well as in the picture. `renderSfx` sets one
+   gain per kind, which is the right shape for a mix where a sound means one
+   thing — so three quieter copies of a glitch are three calls with three gains,
+   summed onto the same bus. that is the module being used as it is rather than
+   worked around: the alternative is a per cue level, and a per cue level is how
+   a balance stops living in one table. */
+const PRE_DB = [-34, -30, -26];
+for (let i = 0; i < END.pre.length; i++) {
+  const w = GL_WINDOWS[i];
+  const one = renderSfx([{
+    t: w.t0, kind: 'glitch',
+    opts: { len: 0.05 + i * 0.014, burst: 0.004, crush: 3800 - i * 500,
+      f0: 210 + i * 18, f1: 120, seed: w.seed },
+    from: 'stutter ' + (i + 1) + ' of three, into the hit',
+  }], CUT.seconds, { gains: { glitch: PRE_DB[i] } });
+  for (let j = 0; j < sfx.length; j++) sfx[j] += one.buf[j];
+  sfxReport.push(...one.report);
+}
+sfxReport.sort((a, b) => a.t - b.t);
+
 const WAV = path.join(OUT, 'post12-sfx.wav');
 const RAW = path.join(OUT, 'post12-sfx-raw.wav');
 fs.mkdirSync(OUT, { recursive: true });
@@ -1129,7 +1368,7 @@ let rawPeak = 0;
 for (let i = 0; i < sfx.length; i++) rawPeak = Math.max(rawPeak, Math.abs(sfx[i]));
 const rawPeakDb = 20 * Math.log10(rawPeak);
 const wanted = before.lufs == null ? 0 : +(TARGET_LUFS - before.lufs).toFixed(2);
-const allowed = +(SAMPLE_CEILING - rawPeakDb).toFixed(2);
+const allowed = +(SAMPLE_CEILING - rawPeakDb + LIMIT_ALLOW).toFixed(2);
 const lift = Math.min(wanted, allowed);
 applyGain(sfx, lift);
 const peak = limit(sfx, SAMPLE_CEILING);
@@ -1144,7 +1383,13 @@ for (const m of plan.marks) {
     + m.settled.toFixed(2) + ', holds to ' + m.leaving.toFixed(2) + ', out '
     + m.out.toFixed(2));
 }
-console.log('    ' + END.at.toFixed(2) + 's  the glitch, and he is cut on that frame');
+for (const w of GL_WINDOWS.filter(x => x.pre != null)) {
+  console.log('    ' + w.t0.toFixed(2) + 's  stutter ' + (w.pre + 1) + ' of three, '
+    + w.frames + ' frame' + (w.frames === 1 ? '' : 's') + ' at ' + (w.force * 100).toFixed(0)
+    + '% heat, under the giggle');
+}
+console.log('    ' + END.at.toFixed(2) + 's  the hit, ' + (END.hard + END.tail).toFixed(2)
+  + 's of it, and he is cut on that frame');
 console.log('    ' + END.wmIn.toFixed(2) + 's  the wordmark snaps in over '
   + END.wmFor.toFixed(2) + 's and holds ' + (CUT.seconds - END.wmIn - END.wmFor).toFixed(2) + 's');
 console.log('    ' + CUT.seconds.toFixed(2) + 's  end');
@@ -1160,11 +1405,39 @@ for (const r of sfxReport) {
 console.log('    the bus came off the synth at ' + (before.lufs == null ? '?' : before.lufs)
   + ' LUFS with its peak at ' + rawPeakDb.toFixed(1) + ' dBFS');
 console.log('    ' + TARGET_LUFS + ' LUFS wanted ' + wanted.toFixed(2) + ' dB of lift and the '
-  + SAMPLE_CEILING + ' dBFS ceiling allowed ' + allowed.toFixed(2)
+  + SAMPLE_CEILING + ' dBFS ceiling plus ' + LIMIT_ALLOW + ' dB of limiting allowed '
+  + allowed.toFixed(2)
   + (allowed < wanted ? ', so the ceiling won by ' + (wanted - allowed).toFixed(2) + ' dB' : ''));
 console.log('    lifted ' + lift.toFixed(2) + ' dB to ' + (after.lufs == null ? '?' : after.lufs)
   + ' LUFS, peak ' + peak.peak + ' dBFS, limiter took '
   + (peak.reduction > 0.01 ? peak.reduction.toFixed(2) + ' dB' : 'nothing'));
+
+/* ---------- the fart, four ways ----------
+   all four are written out on every render, because the one that shipped was
+   chosen on the numbers below and nothing in this pipeline can hear. they land
+   in demo/out/p12-fart/, which is regenerable and gitignored, so a person can
+   listen to the four and overrule the table. */
+const FART_DIR = path.join(OUT, 'p12-fart');
+fs.mkdirSync(FART_DIR, { recursive: true });
+const KEPT_FART = 'sputter';
+console.log('\n  the fart, four ways. ' + KEPT_FART + ' is what shipped and is what '
+  + 'VOICES.fart defaults to');
+console.log('    ' + 'variant'.padEnd(9) + 'len'.padStart(6) + '   pitch      drop'
+  + '   jitter  buzz   tail   >1.5k');
+for (const [k, o] of Object.entries(FART)) {
+  const buf = VOICES.fart(o);
+  writeWav(path.join(FART_DIR, k + '.wav'), buf);
+  const r = fartReport(k, buf);
+  console.log('    ' + (k + (k === KEPT_FART ? ' *' : '')).padEnd(9)
+    + (r.seconds.toFixed(3) + 's').padStart(6)
+    + '  ' + String(r.f0[0]).padStart(3) + ' to ' + String(r.f0[1]).padStart(3)
+    + '  ' + (r.drop.toFixed(2) + 'x').padStart(6)
+    + '  ' + (r.jitter.toFixed(1) + '%').padStart(6)
+    + '  ' + (r.harmonics + '/12').padStart(5)
+    + '  ' + (r.tail + '%').padStart(5)
+    + '  ' + (r.high.toFixed(2) + '%').padStart(6));
+}
+console.log('    the four wavs are in ' + path.relative(ROOT, FART_DIR));
 
 console.log('\n  the puff: ' + PUFF.n + ' blobs from ' + PUFF.at.toFixed(2) + 's, clear '
   + reach.left + ' left / ' + reach.top + ' top / ' + reach.right + ' right / '
@@ -1285,18 +1558,81 @@ for (const r of sfxReport) {
 /* the glitch: short, and over. the last stretch of the clip is three words
    holding still and nothing may be tearing them. */
 {
-  const N = state.frames;
-  let on = 0, lastOn = -1;
-  for (let f = 0; f < N; f++) {
-    const g = glitchAt(f);
-    if (g.heat > 0 || g.flash > 0) { on++; lastOn = f; }
-  }
+  /* counted twice: once on the pass that actually rendered, which is what the
+     frames show, and once at sixty, which is what the ceiling is judged on. */
+  const count = (fps, windows) => {
+    const N = Math.round(fps * CUT.seconds);
+    let on = 0, lastOn = -1, flashes = 0;
+    const per = windows.map(() => 0);
+    for (let f = 0; f < N; f++) {
+      const g = glitchAt(f, fps, windows);
+      if (g.flash > 0) flashes++;
+      if (g.heat > 0 || g.flash > 0) {
+        on++; lastOn = f;
+        const k = windows.findIndex(w => f / fps >= w.t0 && f / fps < w.t1);
+        if (k > -1) per[k]++;
+      }
+    }
+    return { N, on, lastOn, flashes, per };
+  };
+  const here = count(FPS, GL_WINDOWS);
+  const at60 = FPS === 60 ? here : count(60, GL_WINDOWS_60);
+  const { N, on, lastOn, flashes, per: perWindow } = here;
+  console.log('  the glitch: ' + on + ' of ' + N + ' frames ('
+    + (on / N * 100).toFixed(1) + '%), '
+    + perWindow.map((c, i) => (GL_WINDOWS[i].pre != null ? 'stutter' + (GL_WINDOWS[i].pre + 1) : 'hit')
+      + ' ' + c).join(', ') + ', ' + flashes + ' white frame');
   if (!on) fail.push('nothing glitches on any frame');
-  if (on / N > 0.18) fail.push('the glitch runs on ' + on + ' of ' + N
-    + ' frames, which is a broken render rather than a fault');
+  /* **the one named exception, and it is this scene only.** the ceiling on the
+     fraction of a clip that may be glitching is post11's 30% and it is a
+     per scene number there for a reason: a scene that glitches a third of its
+     own frames is a look, and a clip that does is a broken render. this clip's
+     whole fault lives in the last second and a half of six, so the honest way to
+     read it is against **the ending's own frames**, not against the file's.
+     against the clip it is under a tenth either way; the number that has to be
+     defended is the local one, so that is the one that is checked. */
+  const endFrom = Math.round(GL_WINDOWS_60[0].t0 * 60);
+  const endFrames = at60.N - endFrom;
+  const localDuty = at60.on / endFrames;
+  console.log('    and against the ending it lives in, measured at sixty: '
+    + at60.on + ' of ' + endFrames + ' frames from '
+    + GL_WINDOWS_60[0].t0.toFixed(2) + 's ('
+    + (localDuty * 100).toFixed(1) + '%, ceiling 30%)');
+  if (localDuty > 0.30) {
+    fail.push('the ending glitches on ' + (localDuty * 100).toFixed(1)
+      + '% of its own frames, over the 30% ceiling');
+  }
+  /* every stutter has to actually happen at whatever rate is rendering. a fifty
+     millisecond window is six hundredths of a frame at twelve, and a beat that
+     is in the master and missing from the preview is the one fault a preview
+     cannot show. `onGrid` is what prevents it; this is what proves it. */
+  for (let i = 0; i < GL_WINDOWS.length; i++) {
+    if (!perWindow[i]) {
+      fail.push('glitch window ' + i + ' at ' + GL_WINDOWS[i].t0.toFixed(2)
+        + 's fired on no frames at ' + FPS + 'fps');
+    }
+    if (!at60.per[i]) {
+      fail.push('glitch window ' + i + ' fired on no frames at 60fps');
+    }
+  }
+  /* one white frame, and exactly one. four chances to put a white frame on the
+     screen inside a third of a second is a strobe. */
+  if (flashes !== 1) fail.push(flashes + ' white frames, and there may be exactly one');
   const cleanFrom = Math.round((END.at + END.hard + END.tail + END.clean) * FPS);
   if (lastOn >= cleanFrom) {
     fail.push('the glitch is still firing at frame ' + lastOn + ', past the clean line at ' + cleanFrom);
+  }
+  /* and the build up has to be a build up: three stutters, in order, all before
+     the hit and none of them overlapping it or each other. */
+  for (let i = 1; i < GL_WINDOWS.length; i++) {
+    if (GL_WINDOWS[i].t0 < GL_WINDOWS[i - 1].t1 - 1e-9) {
+      fail.push('glitch windows ' + (i - 1) + ' and ' + i + ' overlap');
+    }
+  }
+  for (let i = 1; i < END.pre.length; i++) {
+    if (!(END.pre[i].force > END.pre[i - 1].force)) {
+      fail.push('stutter ' + (i + 1) + ' is not louder than the one before it');
+    }
   }
 }
 
@@ -1316,12 +1652,17 @@ if (lu && lu.ok) {
 } else fail.push('ebur128 said nothing about the finished file');
 if (peak.reduction > MAX_REDUCTION) {
   fail.push('the limiter took ' + peak.reduction.toFixed(2)
-    + ' dB, and on this clip it is a backstop that should do nothing');
+    + ' dB, over the ' + LIMIT_ALLOW + ' dB this clip allows it');
 }
 
-/* the end card holds long enough to be read. */
+/* the end card holds long enough to be read, and the fault is over well before
+   it does. */
 const hold = CUT.seconds - (END.wmIn + END.wmFor);
-if (hold < 0.35) fail.push('the wordmark holds ' + hold.toFixed(2) + 's, which is not long enough to read');
+if (hold < 1.30) fail.push('the wordmark holds ' + hold.toFixed(2) + 's, and the brief asks for 1.40');
+/* the clean stretch: how long the three words sit still with nothing on them.
+   it is the thing the extra second was bought for, so it is checked. */
+const clean = CUT.seconds - (END.at + END.hard + END.tail + END.clean);
+if (clean < 1.00) fail.push('the wordmark is only clean for ' + clean.toFixed(2) + 's');
 
 /* nothing is ever a still frame. two identical frames in a row is post10's own
    fault and it only appeared at sixty. */

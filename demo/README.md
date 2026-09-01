@@ -37,13 +37,14 @@ All headless Chrome, all tooling. The renderers first:
   **Both 60fps finals rendered green, 47.03s each, and both have since been
   overwritten** by the 12fps previews from the brain removal, which write to the
   same two paths. **They want `--blur` run again.** See The eleventh clip.
-- **`post12.mjs`** renders a 5.05 second sting, vertical, dark only, **with no
-  words in it at all until the last half second.** The shortest clip here and
-  the first that is a joke rather than an argument: the mascot alone in the
-  middle of a black frame says hi, holds still, farts, giggles, and the wordmark
-  snaps in over a glitch. **The first clip whose sounds are the content** — there
-  is no voice and no caption, and four new recipes in `lib/sfx.mjs` carry it.
-  Out to `demo/out/post12-dark-1080x1920.mp4`. See The twelfth clip.
+- **`post12.mjs`** renders a 6.05 second sting, vertical, dark only, **with no
+  words in it at all until the last quarter.** The shortest clip here and the
+  first that is a joke rather than an argument: the mascot alone in the middle of
+  a black frame says hi, holds still, farts, giggles, the signal comes apart
+  under the laugh and a hard tear puts the wordmark on the screen for a second
+  and a half. **The first clip whose sounds are the content** — there is no voice
+  and no caption, and four new recipes in `lib/sfx.mjs` carry it. Out to
+  `demo/out/post12-dark-1080x1920.mp4`. See The twelfth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -2543,10 +2544,15 @@ node post12.mjs --keep-frames   # leave the jpegs on disk
 node post12.mjs --encode-only   # re-encode from kept frames
 ```
 
-**5.05 seconds, dark only, one output path, overwritten every run:**
-`demo/out/post12-dark-1080x1920.mp4`. Nine beat stills land in
+**6.05 seconds, dark only, one output path, overwritten every run:**
+`demo/out/post12-dark-1080x1920.mp4`. Twelve beat stills land in
 `demo/out/verify-post12/`, which is how the cut is read as a strip rather than
 scrubbed as a video.
+
+It shipped at 5.05s and came back with three notes: the fart read as a buzz, the
+transition into the wordmark was not glitchy enough, and the end card wanted
+another second. All three are below, in their own sections, along with the two
+faults the second pass produced and what they cost.
 
 Every clip before this one is an argument. post9 pitches, post10 is angry,
 post11 explains for forty seven seconds. None of them is *likeable*, and a feed
@@ -2603,8 +2609,9 @@ these four states allow.
 | 1.14s | `agreeing` | the hi. up first, then a contact squash with a warm half blink on it |
 | 2.38s | `surprised` | the fart. pulls back, snaps up, eyes to 2.6x, brows high, `turn` +0.30 |
 | 3.55s | `delighted` | the giggle. two hops with real lift, eyes squashed into arcs |
-| 4.56s | — | the cut, and the wordmark is born on that frame |
-| 5.05s | — | end, after 0.40s of the end card holding |
+| 4.22 / 4.34 / 4.46s | — | three stutters under the laugh, escalating |
+| 4.56s | — | the hit: the cut, and the wordmark is born on that frame |
+| 6.05s | — | end, after 1.40s of the end card holding |
 
 `agreeing` for the greeting is the call worth defending. It goes **up** first —
 "a nod that starts by going down is a head falling off" — and lands on a squash
@@ -2664,13 +2671,24 @@ at three per cent is not a thing crossing a line; and the extent is the disc plu
 one blur radius rather than three, because a css blur is a gaussian. Worst
 measured is 210 device px clear on the left against a 140 floor.
 
-### The end, and a grey card that was almost shipped
+### The end: three stutters, then the frame comes apart
 
 post11's glitch language on post10's machinery: a hard stretch where every
 channel is at full and the bands move every frame, then a short stutter. It is a
 function of the **output frame index**, held across every subframe, for post10's
 reason — a one frame rgb split written against `t` is on for one subframe of four
 and lands at a quarter strength.
+
+**The build up is three stutters under the laugh**, at 4.22, 4.34 and 4.46, at
+32%, 52% and 78% of the heat. They are not a second mechanism: `force` is a
+multiplier on the same envelope driving the same channels, because a build up
+written as its own thing is a second thing to get out of step with the first. The
+sound escalates with them, three shorter and thinner copies of the same `glitch`
+recipe at -34, -30 and -26 dB against the hit's -23.
+
+**The build up escalates in kind, not only in amount**, and that is a fault this
+pass paid for — see below. Before the hit the signal *wobbles*: shake, rgb split
+and a little noise, all of it on him. At the hit the frame *tears*.
 
 Only the wordmark is torn, and that is a decision rather than a shortcut. The
 mascot is one dom subtree driven by ids out of the mascot module's own runtime
@@ -2679,14 +2697,78 @@ three words of static text and duplicating it cannot go wrong. It is also the
 only thing on screen when the glitch is at full heat, because the head is cut on
 the same frame the hit lands.
 
+**A burst is a length in seconds quantised to whatever frame grid is rendering**,
+which is post11's rule and which this clip needs more than that one did. A fifty
+millisecond stutter is three frames at sixty and **six hundredths of a frame at
+twelve**: written as seconds and left alone it would simply not happen on the
+preview, and a beat that is in the master and missing from the pass it was judged
+on is the one fault a preview cannot show. Every window is snapped — the start to
+the nearest frame, the length rounded up to at least one whole frame — and a
+guard asserts each one fires on at least one frame at *both* rates.
+
+**The duty ceiling has a named exception and it is this scene only.** post11's
+ceiling is 30% of a scene's frames, and it is a per scene number there for a
+reason: a scene that glitches a third of its own frames is a look, a clip that
+does is a broken render. post12's whole fault lives in the last two seconds of
+six, so against the file it is under a tenth however you cut it and the number
+that has to be defended is the **local** one. So the guard measures the fault
+against the ending it lives in, from the first stutter to the last frame, and
+holds it to the same 30%. It measures **26.4%**.
+
+It is measured **at sixty whatever rate is rendering**, which is the same
+argument `mascotMotion` makes about anticipation and entry: at twelve, a fifty
+millisecond stutter is rounded up to a whole 83ms frame, which is two thirds
+longer than it is, and the first cut of this guard failed the clip at 31.8% for
+the preview's arithmetic rather than for anything in the design.
+
 **The white flash was a full frame rect at 0.40 and the frame it fired on came
 back as an even grey card** — the whole screen at forty per cent white with a
 screen blended noise layer over the top, on a frame where the head had already
 been cut and the words had not yet arrived. That is not a glitch, it is a missing
 frame, and again every guard was green on it. It is a 420px radial bloom at 0.30
-now, the noise ceiling came down from 0.34 to 0.22, and the wordmark is born on
-the same frame as the cut so there is never an instant with neither of them on
-it.
+now, and the wordmark is born on the same frame as the cut so there is never an
+instant with neither of them on it.
+
+**Everything in the glitch went up for the second cut except the flash.** The
+shake, the split, the band travel, the band count and the noise all did, because
+the note was that the transition should be harder and longer. The flash did not,
+and there is now a guard saying there must be **exactly one white frame in the
+clip**: three stutters plus a hit is four chances to put one on the screen, and
+four white frames inside a third of a second is a strobe rather than a glitch —
+a thing platforms flag and a thing that hurts to watch. "Much more glitchy" is
+not a licence to strobe.
+
+**And the bands are the hit's, not the build up's.** That is the fault this pass
+paid for. The first cut let all three stutters throw three bands each, and the
+still from stutter three came back with **the mascot entirely gone**: a tear band
+paints the page colour and redraws the *wordmark* shifted, the wordmark is not on
+screen yet, so before the hit a band is a black bar over a head with nothing
+behind it. Three of them, each up to 114 css px, over a 139px head, at 78% heat,
+left a grey haze with no subject in it — the second time on this clip that a
+fault rendered as an empty frame, and the second time every numeric guard was
+green on it.
+
+**A second, smaller fault from the same pass: a still is a frame the clip
+actually has.** The stutter stills were asked for at times that are not on the
+grid the stutters are snapped to, so one landed a frame early, after the head is
+cut and before the wordmark arrives, and rendered as an empty frame that does not
+exist in the film. The stills now take their times off the windows' own starts,
+round to a frame index, and draw **that frame's own instant** — so the glitch,
+which is a function of the frame, and everything else, which is a function of the
+time, can never disagree about which moment a still is.
+
+### The end card holds 1.40s
+
+It held 0.40 and the note was to hold it a second longer, which is the change on
+this clip with the least argument in it and the most effect: at 0.40s the words
+are read and gone, at 1.40s they are read, held and finished. The clip is 6.05s
+and the whole extra second is end card — `delighted`'s hold is stretched to fill
+the room the plan now has, which nobody sees, because he is cut at 4.56.
+
+The guard moved with it: the floor is 1.30s rather than 0.35, and there is a
+second one on the **clean** stretch — how long the three words sit still with
+nothing tearing them — which must be over a second. That is what the extra second
+was bought for, so it is the thing that is checked.
 
 ### The wordmark
 
@@ -2712,7 +2794,14 @@ five cues, every one of them a time something else had already decided:
 | 1.61s | `hi` | `agreeing`'s own declared ding offset, the bottom of the first nod |
 | 2.34s | `fart` | the puff's own birth, four hundredths before the head moves |
 | 3.83 / 4.22 / 4.33s | `giggle` x3 | turning points in the drawn head's y |
-| 4.56s | `glitch` | the cut |
+| 4.22 / 4.34 / 4.46s | `glitch` x3 | the three stutter windows, at -34, -30 and -26 dB |
+| 4.56s | `glitch` | the cut, at -23 dB |
+
+The three stutters are three separate `renderSfx` calls summed onto the same bus,
+because that function sets **one gain per kind** and that is the right shape for
+it: a per cue level is how a balance stops living in one table. Three quieter
+copies of a glitch are three calls with three gains, which is the module being
+used as it is rather than worked around.
 
 **The ceiling wins the mix on this clip, by 4.4 dB, and that is a property of
 what a sting is.** Hitting post10's -14 LUFS would mean lifting the bus 25.6 dB,
@@ -2724,8 +2813,87 @@ does nothing, and the integrated figure comes out at **-18.4 LUFS**, which is th
 honest description of a clip that is silent for three quarters of its length.
 Every platform normalises on the same measure and will lift it back. The sample
 ceiling is 0.8 dB under the true peak ceiling because a sample peak limiter does
-not hold a true peak and aac adds its own overshoot; measured on the finished
-file, the true peak is -1.8 dBFS.
+not hold a true peak and aac adds its own overshoot.
+
+**And the limiter is allowed a decibel and a half, which is a trade rather than a
+reversal.** The first cut gave it nothing and landed at -18.4 LUFS. The second
+cut added three stutters and a longer fart, which pushed the raw peak up and the
+allowed lift down, and it landed at **-20** — every change to the picture was
+quietly making the file quieter. The peak here is one thing: the eight
+millisecond noise transient at the top of the `glitch` hit, two decibels over
+everything else. That is exactly the case a limiter is for and exactly the case
+where 1.5 dB is inaudible — the look ahead has it before it arrives and the whole
+burst comes down together, so it is 1.5 dB quieter rather than a different shape,
+and what it buys is the same 1.5 dB on every other sound in the file. Three and a
+half was refused on this argument and one and a half is accepted on it, which is
+not a contradiction: the question was never whether to limit, it was how much of
+the balance in `GAINS` a limiter gets an opinion about. The file measures
+**-18.7 LUFS integrated, true peak -1.7 dBFS**.
+
+### The fart was built twice, and the first one was a buzz
+
+The note back on the first cut was that it did not sound like a fart, it read as
+a buzz. That is a fair description of what it was — a sine falling from 96 to 58
+hertz with a fixed 38 hertz tremolo on it, low passed at 380 — and it is also a
+**measurable** complaint, which is the whole reason the rebuild is aimed rather
+than fiddled with.
+
+**A fart is not a tone with a wobble on it.** It is a membrane chattering: a
+slack aperture opening and closing under pressure, which is the same mechanism as
+a lip trill, a kazoo and a duck call. The flutter *is* the fundamental, not a
+modulation of one. And what makes it read as a body rather than as an oscillator
+is that the chattering is **irregular** — no two cycles the same length or the
+same loudness, because the pressure behind it is falling and the aperture is not
+a machine. A sine with a perfectly periodic tremolo has none of that, so the ear
+hears a synthesiser being modulated, which is exactly what it was.
+
+So it is a pulse train now, and four things in it are unsteady: the pitch falls
+in two stages (a third of the way over the first two thirds, then the rest
+steeply, which is the pressure running out); **every cycle gets its own period**;
+every cycle gets its own loudness; and a five and a half hertz wobble sits on top
+so it sags rather than glides. The waveform is a raised cosine pulse of 28% duty
+— a narrow smooth bump has a long harmonic series that falls off gently, which is
+the buzz, where a square would have the same series with an edge on it, which is
+a raspberry. There is **no noise in it at all**, and that is what keeps it comic
+rather than gross: the wet broadband hiss is the whole of what makes a real one
+unpleasant. The low pass went *up*, 380 to 660, because the old ceiling was
+hiding the harmonics that make it a buzz at all.
+
+**Four variants, and they are measured against what a fart actually is.** Five
+numbers, one per clause of the brief:
+
+| variant | len | pitch | drop | jitter | harmonics | tail | >1.5k |
+|---|---|---|---|---|---|---|---|
+| the old sine | 0.30s | 100 to 63 | 1.58x | **2.5%** | **2/12** | 28% | 0.43% |
+| `parp` | 0.34s | 69 to 42 | 1.66x | 10.8% | 6/12 | 5% | 0.72% |
+| `puff` | 0.22s | 88 to 62 | 1.41x | 7.7% | 4/12 | 5% | 0.69% |
+| **`sputter`** | **0.46s** | **79 to 42** | **1.91x** | **14.0%** | **6/12** | **8%** | **0.86%** |
+| `wobbler` | 0.38s | 79 to 47 | 1.68x | 20.3% | 6/12 | 9% | 1.08% |
+
+The old recipe's two numbers in bold are the diagnosis: 2.5% jitter is a synth
+tone and two harmonics is a sine with a partial on it.
+
+**`sputter` shipped**, and it is what `VOICES.fart` defaults to. It is the same
+recipe cut into two bursts by a gate — a short one, a fifty millisecond gap, then
+a longer one that collapses — because a real one very often does not come out in
+one piece, and that is the most recognisable fart *gesture* in the set. It also
+wins the brief's own three clauses on the numbers: the biggest pitch drop at
+1.91x, fourteen per cent jitter which is in the middle of the usable band rather
+than at either edge, and a tail down to eight per cent of the body. `wobbler` is
+more irregular and that is the argument against it — past about fifteen per cent
+a pulse train stops reading as a body and starts reading as a motor with a
+bearing going. All four are written to `demo/out/p12-fart/` on every render, so
+somebody who can actually listen can overrule the table.
+
+**A trap the preset table set for itself, and it is worth knowing about.** These
+defaults are `sputter`'s, so a preset that leaves a field out inherits sputter's
+value for it — and the field that matters is the gate. The first cut of the table
+left `gate` out of the other three and all three silently came apart into two
+bursts, which showed up as parp's measured jitter jumping from 10.8% to 13.1% and
+puff's from 7.7% to 29.1%. A gate is a discontinuity and a discontinuity reads as
+irregularity to any meter pointed at it. **Every preset now carries every field,
+`gate: null` included**: a preset is a whole recipe, never a diff against another
+one.
 
 ### The hi was built twice, and the numbers are in the file
 
@@ -2766,9 +2934,17 @@ Everything `mascot-test.mjs` checks, minus the bubble items, plus:
 - **The giggle is three beats**, none of them closer than 90ms — which is about
   the sound, not the rhythm — none further apart than 0.60s, and all of them
   before the cut.
-- **The glitch runs on under a fifth of the frames** and nothing fires past the
+- **The glitch stays under post11's 30% duty ceiling**, measured at sixty and
+  against the ending it lives in rather than against the whole file — the one
+  named exception on this clip, and it is this scene only. Nothing fires past the
   clean line, so the end card holds still.
-- **The end card holds over 0.35s.**
+- **Every glitch window fires on at least one frame at both twelve and sixty**,
+  because a fifty millisecond stutter is six hundredths of a frame at twelve.
+- **Exactly one white frame in the clip.** Not "at most" and not "at least": four
+  chances inside a third of a second is a strobe.
+- **The stutters escalate** — each one louder than the one before it — and no two
+  glitch windows overlap.
+- **The end card holds over 1.30s and is clean for over a second.**
 - **No identical frames**, off a per frame signature built from everything this
   file writes plus everything the mascot writes. post10 shipped a pair and only
   found out at sixty.
@@ -2781,10 +2957,9 @@ Everything `mascot-test.mjs` checks, minus the bubble items, plus:
 ### Outstanding
 
 - **A posting pack.** No caption, no tags, no platform decided.
-- **It runs 5.05s against a four to five second brief.** The overshoot is the
-  four states' own entry, hold and exit floors: there is no room to take out
-  without `planMascot` refusing the plan, and the pause is the last thing that
-  should be cut.
+- **It runs 6.05s.** The first cut was 5.05 against a four to five second brief,
+  where the overshoot was the four states' own entry, hold and exit floors; the
+  extra second is the end card and was asked for.
 - **The glitch recipe now exists twice.** `post11.mjs` carries its own local
   `glitchSfx` — a dropped packet coming apart over a sixth of a second — and
   `lib/sfx.mjs` now carries `glitch`, a single hard hit. They are different

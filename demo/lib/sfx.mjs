@@ -408,46 +408,117 @@ export const VOICES = {
     return ends(normalise(lp(b, 3400)));
   },
 
-  /* the fourteenth, and it is the one sound in this file that is a joke. the
-     brief is "comic not gross", and that is a recipe rather than a taste: what
-     makes a real one unpleasant is the noise in it, the wet broadband hiss, and
-     there is none here at all. what is left is a pitched buzz, which is what a
-     cartoon has always used and what a kazoo actually is.
+  /* the fourteenth, and it is the one sound in this file that is a joke.
 
-     three parts. a fundamental falling from 96 to 58 hertz, which is the air
-     going out. a tremolo at 38 hertz with most of the depth on it, which is the
-     flutter and is the part the ear reads as an event rather than as a tone. and
-     a slow wobble on the pitch, four and a half hertz, so it sags rather than
-     glides: a clean fall is a synth sweep and a sagging one is a thing
-     deflating.
+     ---------- what was wrong with the first one, because it is the design ----
+     the first build was a sine with a tremolo on it: a fundamental falling from
+     96 to 58 hertz, amplitude modulated at a fixed 38, low passed at 380. It was
+     the right *pitch* and it read as **a buzz**, not as a fart, and the reason is
+     worth writing down because it is the whole of this recipe.
 
-     low passed at 380, harder than anything else in the file. above that line
-     the tremolo starts producing sidebands with an edge on them and the whole
-     thing turns into a raspberry. under it there is no top end left to be rude
-     with, and what comes out is a low soft parp.
+     a fart is not a tone with a wobble on it. it is a **membrane chattering** —
+     a slack aperture opening and closing under pressure — which is the same
+     mechanism as a lip trill, a kazoo and a duck call. the flutter *is* the
+     fundamental, not a modulation of one. and the thing that makes it read as a
+     body rather than as an oscillator is that the chattering is **irregular**: no
+     two cycles are the same length or the same loudness, because the pressure
+     behind it is falling and the aperture is not a machine.
 
-     the attack is fourteen milliseconds rather than none. this does not start on
-     the sample; it starts. */
-  fart({ len = 0.30, f0 = 96, f1 = 58, trem = 38, depth = 0.72, wob = 4.5,
-    attack = 0.014 } = {}) {
-    const b = n(len);
-    let ph = 0, mp = 0, wp = 0;
+     a sine with a perfectly periodic tremolo has none of that. every cycle is
+     identical, so the ear hears a synthesiser being modulated, which is exactly
+     what it is.
+
+     ---------- so this is a pulse train, and four things are unsteady ----------
+
+     **the pitch is the flutter rate**, 64 hertz falling to 33, and it falls in
+     two stages: a third of the way over the first two thirds of the length, then
+     the rest steeply. that is the pressure running out, and the steep bit at the
+     end is what everybody hears as the punchline.
+
+     **every cycle gets its own period.** a seeded draw of plus or minus `jitter`
+     on each wrap of the phase, which is what a voice scientist would call
+     jitter and is the single number that separates this from a synth tone.
+
+     **every cycle gets its own loudness**, drawn the same way, which is the
+     irregular flutter: some pulses land harder than the ones either side.
+
+     **and a slow wobble on top**, five and a half hertz, so it sags rather than
+     glides.
+
+     the waveform is a raised cosine pulse of `width` duty inside each cycle. a
+     narrow smooth bump has a long harmonic series that falls off gently, which
+     is the buzz; a square would have the same series with an edge on it, which
+     is a raspberry. there is **no noise in it at all**, and that is what keeps it
+     comic rather than gross: the wet broadband hiss is the whole of what makes a
+     real one unpleasant, and this one has none.
+
+     the tail is an exponential over the last quarter rather than the old linear
+     ramp over the last third. it stops rather than fading, which is what the
+     brief means by "a quick tail that dies off".
+
+     high passed at 30 because a one sided pulse has dc in it, and low passed at
+     620, which is up from the old 380: the old ceiling was hiding the harmonics
+     that make it a buzz at all. there is still nothing above it to be rude with.
+
+     ---------- the gate, and the two burst shape ----------
+     a real one very often does not come out in one piece: a short one, a gap of
+     about fifty milliseconds, then a longer one that collapses in pitch. that is
+     what `gate` is for, and it is what the defaults below use, because it is the
+     single most recognisable fart *gesture* in the set — the measurements say so
+     and so does anybody's memory of one.
+
+     ---------- the variants ----------
+     `FART` below carries four presets. these defaults are `sputter`, which is
+     the one that shipped; the other three are `parp` (the same recipe in one
+     piece), `puff` (small and polite) and `wobbler` (the cartoon). post12.mjs
+     writes all four out on every render and prints the numbers they were chosen
+     on. */
+  fart({
+    len = 0.46, f0 = 70, f1 = 30, drop = 0.62, fall = 0.35,
+    jitter = 0.19, ampJit = 0.40, width = 0.28,
+    wobHz = 5.0, wobDepth = 0.12,
+    lpHz = 660, attack = 0.012, tail = 0.20, gate = [[0, 0.17], [0.29, 1]],
+    seed = 0x71b3e8,
+  } = {}) {
+    const b = n(len), rnd = noise(seed);
+    let ph = 0, wp = 0, jit = 0, cyc = 1;
     for (let i = 0; i < b.length; i++) {
       const q = i / b.length;
-      wp += 2 * Math.PI * wob / SR;
-      /* the fall is eased and the wobble rides on top of it. */
-      const f = (f0 + (f1 - f0) * (q * q * (3 - 2 * q))) * (1 + 0.07 * Math.sin(wp));
-      ph += 2 * Math.PI * f / SR;
-      mp += 2 * Math.PI * trem / SR;
-      const am = 1 - depth * 0.5 * (1 - Math.cos(mp));
-      /* a second harmonic under the fundamental rather than over it, which gives
-         it a body without giving it a rasp. */
-      const tone = Math.sin(ph) + Math.sin(ph * 2) * 0.42;
-      /* in over the attack, flat, then out over the last third. */
-      const env = Math.min(1, i / (attack * SR)) * (q < 0.62 ? 1 : 1 - (q - 0.62) / 0.38);
-      b[i] = tone * am * env;
+      /* the fall: `fall` of the way over the first `drop` of the length, then
+         the rest steeply. one curve, two halves, and the second half is the
+         joke. */
+      const a = q < drop
+        ? (q / drop) * fall
+        : fall + Math.pow((q - drop) / (1 - drop), 1.6) * (1 - fall);
+      wp += 2 * Math.PI * wobHz / SR;
+      const rate = (f0 + (f1 - f0) * a) * (1 + wobDepth * Math.sin(wp)) * (1 + jit);
+      ph += rate / SR;
+      if (ph >= 1) {
+        ph -= 1;
+        /* a new period and a new loudness for every single cycle. this is the
+           line that turns a buzz into a body. */
+        jit = rnd() * jitter;
+        cyc = 1 + rnd() * ampJit;
+      }
+      const pulse = ph < width ? hump(ph / width) : 0;
+      /* in over the attack, flat, then an exponential over the last `tail`. */
+      let env = Math.min(1, i / (attack * SR));
+      if (q > 1 - tail) env *= Math.exp(-4.5 * (q - (1 - tail)) / tail);
+      /* the gate, for the shape that comes apart into two bursts. each edge
+         ramps over a hundredth of the sound's own length, which is about five
+         milliseconds here, so a burst cannot click at its own ends. */
+      if (gate) {
+        let g = 0;
+        for (const [ga, gz] of gate) {
+          if (q < ga || q > gz) continue;
+          const e = Math.min(0.012, (gz - ga) / 2);
+          g = Math.max(g, Math.min(1, Math.min(q - ga, gz - q) / e));
+        }
+        env *= g;
+      }
+      b[i] = pulse * cyc * env;
     }
-    return ends(normalise(lp(b, 380)), 6);
+    return ends(normalise(bp(b, 30, lpHz)), 6);
   },
 
   /* the fifteenth: one note of a three note giggle. the clip fires it three
@@ -516,7 +587,59 @@ export const VOICES = {
   },
 };
 
+/* ---------- the four farts ----------
+   options for `VOICES.fart`, and `parp` is what the function already defaults
+   to. they exist because a sound like this cannot be argued about in the
+   abstract: post12's brief asked for a few and for the clearest one to ship,
+   and the other three are kept so somebody who can actually listen can
+   overrule the one that was chosen on measurements.
+
+   `parp` is the reference and it is this recipe in one piece: a third of a
+   second, 64 hertz down to 33, and eleven per cent measured jitter against the
+   old sine's two and a half. it was the first fix and it is a good sound; what
+   it does not have is the collapse at the end.
+
+   `puff` is a small polite one — shorter, higher, wider pulses so it is rounder,
+   and a lower ceiling. it is the least funny of the four and the most usable
+   under a voice.
+
+   **`sputter` is the one that shipped**, and it is what this function defaults
+   to. the same recipe cut into two bursts by the gate: a short one, a fifty
+   millisecond gap, then a longer one that collapses from 79 hertz to 42. it wins
+   the brief's own three clauses — the biggest pitch drop in the set at 1.91x,
+   fourteen per cent jitter which is in the middle of the usable band rather than
+   at either edge, and a tail down to eight per cent of the body. it is also the
+   longest at 0.46s, which is affordable now and would not have been in a five
+   second cut.
+
+   `wobbler` is the cartoon: twenty per cent jitter, a wobble at eight hertz with
+   more than twice the depth. it is the most irregular of the four and that is
+   also the argument against it — past about fifteen per cent a pulse train stops
+   reading as a body and starts reading as a motor with a bearing going.
+
+   **every preset carries every field, `gate: null` included**, and that is not
+   tidiness. these defaults are `sputter`'s, so a preset that leaves a field out
+   inherits sputter's value for it — and the field that matters is the gate. the
+   first cut of this table left it out of the other three and all three silently
+   came apart into two bursts, which showed up as parp's measured jitter jumping
+   from eleven per cent to thirteen and puff's from eight to twenty nine. a gate
+   is a discontinuity and a discontinuity reads as irregularity to any meter
+   pointed at it. a preset here is a whole recipe, never a diff against another
+   one. */
+export const FART = {
+  parp: { len: 0.34, f0: 64, f1: 33, jitter: 0.16, ampJit: 0.34, width: 0.30,
+    wobHz: 5.5, wobDepth: 0.10, lpHz: 620, tail: 0.24, gate: null, seed: 0x5b21a9 },
+  puff: { len: 0.22, f0: 88, f1: 48, jitter: 0.10, ampJit: 0.22, width: 0.42,
+    wobHz: 6.5, wobDepth: 0.07, lpHz: 480, tail: 0.30, gate: null, seed: 0x2d70c4 },
+  sputter: { len: 0.46, f0: 70, f1: 30, jitter: 0.19, ampJit: 0.40, width: 0.28,
+    wobHz: 5.0, wobDepth: 0.12, lpHz: 660, tail: 0.20, seed: 0x71b3e8,
+    gate: [[0, 0.17], [0.29, 1]] },
+  wobbler: { len: 0.38, f0: 72, f1: 28, jitter: 0.26, ampJit: 0.46, width: 0.26,
+    wobHz: 8.0, wobDepth: 0.24, lpHz: 700, tail: 0.22, gate: null, seed: 0x0ae934 },
+};
+
 /* ---------- the balance ----------
+   peak level in dBFS for each kind, before the master gain and before ducking./* ---------- the balance ----------
    peak level in dBFS for each kind, before the master gain and before ducking.
    they are levels rather than a mix: the master gain moves the voice and these
    together, so the numbers below are the only place the *relationship* between a
