@@ -15,36 +15,54 @@
    them serve a joke rather than demonstrate themselves. four things fell out
    of that and they are the interesting part of this file.
 
-   ---------- the grow is the punchline, not a transition ----------
+   ---------- he eats it, and the eating is drawn rather than cut to ----------
 
-   every other use of the circle grow in this repo would be a scene change: he
-   swallows the frame, the theme flips, and the next thing is on the new paper.
-   here **nothing is on the new paper.** he swells until the frame is one flat
-   white, it holds for a full second with nothing drawn on it at all, and then
-   the same shape runs backwards and he is back in his corner at his ordinary
-   size with the bug gone. the transition is the event.
+   the first cut of this clip did the middle with `lib/transitions.mjs`: he grew
+   until his fill covered the frame, the world went white for a second, and the
+   same shape ran backwards with the bug gone. it worked and it was the wrong
+   joke. a grow is a **scene change**, and using one here says "and then
+   something else happened" — the audience is asked to infer the eating from a
+   hole in the picture rather than watch it.
 
-   which means the white second is load bearing, so it is measured rather than
-   asserted: the frame is flat from the moment the disc covers to the moment
-   the reverse grow's disc stops covering, and the guard at the bottom reports
-   that span to the millisecond.
+   so there is no grow in this clip and no `planGrow`. **he bites.** a small
+   anticipation with the head rising, a quick lunge down and a little forward
+   over the bug, a squash on the landing, the bug gone on that frame, and he
+   comes back up. then he chews with his eyes shut: three pulses, the head
+   squashing and working from side to side, one crunch a pulse, and a small
+   satisfied bob after the third.
 
-   ---------- the reverse grow wants tail 0, and the render is why ----------
+   **the depth of the lunge is derived rather than chosen.** the bug has to be
+   gone under his ink on the frame it is switched off, or the switch is a
+   disappearing trick rather than a bite. so the file walks the lunge down in
+   half pixel steps until the head's drawn ellipse — the plate's radius times
+   the card's own two scales times the bite's squash — contains every corner of
+   the bug's drawn ink, adds a margin, and uses that. it comes out around a
+   whole head diameter, which is what a lunge at something on the floor
+   actually is, and the guard measures the containment on the frame rather than
+   trusting the derivation.
 
-   a grow is one shape read forwards or backwards, and `tail` is the fade the
-   field leaves on at the end of a forward one — it fades off onto a background
-   that is already the same colour, so it is invisible by construction. read
-   backwards that fade lands at the **start** of the reverse, where the
-   background is the destination theme and is not the same colour at all: the
-   theme flips on the first frame of an `in` grow, so frame zero of a reverse
-   with a tail on it is the new paper with the field at nothing on top of it.
+   ---------- the eyes have to match, and one state was making them not -------
 
-   at sixty that is one black frame in the middle of a white second, followed
-   by a tenth of a second of white fading in over it. `tail: 0` is the module's
-   own option and it removes exactly that: with no tail the field is already at
-   full opacity on the reverse's first frame, which is what "covered from the
-   first frame" is supposed to mean. the guard below asserts it on the drawn
-   frame rather than on this note.
+   `curious` opens one eye to 1.80 and the other to 1.10 on purpose, and it is
+   right for the beat he is in — one eye wider than the other **is** curiosity.
+   it is wrong four hundred milliseconds later, when he has stopped being
+   curious and is looking down at a bug that has stopped moving: a rendered
+   frame at 1.70s came back reading as a broken face rather than an interested
+   one, because the exit had not finished levelling the pair.
+
+   so two things. the beat after it is a **clean symmetric narrowing** written
+   here rather than the module's `unimpressed`, whose lids are symmetric but
+   which brings brows and a side eye with it. and the pair is **levelled toward
+   its own mean** across the end of `curious`, which is this file writing a
+   channel the module owns — the one place that happens, and it is guarded
+   rather than assumed: from the frame the bug stops, the two eyes are within
+   0.03 of each other in scale and 0.01 in lid, on every frame to the cut.
+
+   the lid is pushed the way `lib/transitions.mjs` pushed the shadow and the
+   glow: **toward shut and never open.** `max(what the module wrote, what the
+   clip wants)` cannot fight a blink — a blink during a narrowing closes
+   further, and the max keeps it closed — which is the same discipline as
+   multiplying an opacity toward zero.
 
    ---------- he is inside the camera, and rig-test's mascot is not ----------
 
@@ -55,25 +73,23 @@
    this clip cannot do that. the brief is a push in **on the two of them**, and
    a camera that moved the bug and left the mascot behind would pull apart the
    one thing the shot is about: the bug stopping under him. so the mascot and
-   the bug are both inside `#cam-rig`, and the cover arithmetic survives for a
-   reason rather than by luck —
+   the bug are both inside `#cam-rig`.
 
-     the camera never goes under z 1.0 in this clip and the guard says so. at
-     any z at or over 1 the window of page space in shot is **contained in**
-     the stage rect, so a disc that covers the stage rect covers the window,
-     and page space coverage implies screen coverage. `coverScale` is therefore
-     conservative here rather than merely correct.
+   which means every clearance in this file is a **screen** clearance and has
+   to be worked out rather than measured off the module: `headRect` answers in
+   page space and knows nothing about a camera or about the bite's transform,
+   so the head's ink is composed here — the module's card, then this clip's
+   zone transform about the zone's own centre, then `cameraFrame`'s own two
+   numbers — and checked against the safe area on every frame.
 
-   it is measured anyway: `__tr.plate()` reads the rendered plate through
-   whatever transform is on it, so the number in the report is the head as the
-   camera actually drew it. and the mascot's own safe area guard is mapped
-   through the camera frame by frame, because a head inside a camera is where
-   the camera put it and not where the module laid it out.
+   **the bite is a transform on `#m-zone`, which is the seam the module leaves
+   open.** `lib/mascot.mjs` writes `#m-card`, the shadow, the glows, the eyes,
+   the brows and the three bubble parts, and it writes nothing to the zone.
+   post14 placed the mascot that way and `lib/transitions.mjs` grew him that
+   way; this file lunges and chews with it. nothing in lib is touched.
 
-   the field, the wordmark and the fault's own layers are **outside** the
-   camera, in screen space, the way record.mjs keeps its cursor outside. a full
-   frame field the camera could translate is a full frame field with an edge in
-   it.
+   the wordmark and the fault's own layers are **outside** the camera, in
+   screen space, the way record.mjs keeps its cursor outside.
 
    ---------- the gait is driven by distance, not by time ----------
 
@@ -145,11 +161,6 @@ import {
   describeCamera,
 } from './lib/camera.mjs';
 import {
-  planGrow, growFrame, composeTransitions, transitionMotion,
-  transitionCss, transitionMarkup, transitionRuntime, growCoverage,
-  mascotInk, describeTransition,
-} from './lib/transitions.mjs';
-import {
   renderSfx, writeWav, applyGain, limit, loudness, describeMix, VOICES,
 } from './lib/sfx.mjs';
 
@@ -189,12 +200,12 @@ const SUBSTEP = STEP / SUB;
    it stops under him and he looks down at it — and 2.23s behind, which is the
    delighted beat with the bubble on it and then the cut.
 
-   **it is 0.30s over the seven second target** and the note belongs here
-   rather than in a commit message. the two places it would come out of are the
-   end card, which holds 0.88s against post12's 1.40, and the word `crunchy`,
-   which is fully up for 0.50s before the cut takes it. neither has anything
-   left to give without one of them stopping working. */
-const SECONDS = 7.30;
+   the middle used to be a grow, a white second and a grow back, which is 2.71s
+   and put the clip 0.30s over the brief. **eating him takes 1.64s** — 0.44 of
+   bite and 1.20 of chewing and settling — so the same story fits with room:
+   2.30s of setup, 1.64s of eating, and 2.79s of the ending the first cut
+   already had. */
+const SECONDS = 6.73;
 
 /* ---------- where he stands ----------
    the module places him bottom right, 24 css px inside the safe area, and then
@@ -224,37 +235,115 @@ const LANE_CLEAR = 26;
    the bug is coming from — his resting bias in the right hand corner is
    already -0.35 for the same reason, so this is the same gesture, further.
 
-   `unimpressed` is him deciding. it is the state with the lids at half and the
-   head sinking, which is what "looks down, eyes narrow, thinking" is on this
-   face; `thinking` turns up and away, which is the opposite of looking at
-   something on the floor. the turn comes back to zero because the bug is
-   directly under him by then.
+   `neutral` is him deciding, and the narrowing on top of it is this file's.
+   the module's own narrowing state is `unimpressed`, and it is the wrong one
+   here for a reason that has nothing to do with its lids: it brings brows, a
+   side eye and a lean away with it, which is a face declining to be interested
+   rather than a face concentrating on something. `thinking` turns up and away,
+   which is the opposite of looking at something on the floor. so the mark is
+   the level one, the turn comes back to zero because the bug is directly under
+   him, and the lids are narrowed by NARROW below — symmetrically, in one
+   place, with a guard on the pair.
 
    `delighted` is after: two hops with real lift and the eyes squashed into
    arcs, with `crunchy` in the bubble. */
 const CUT = {
   marks: [
     { t: 0.48, state: 'curious', turn: -0.58, turnFor: 0.72 },
-    { t: 1.74, state: 'unimpressed', turn: 0, turnFor: 0.60 },
-    { t: 4.82, state: 'delighted', bubble: 'crunchy' },
+    { t: 1.74, state: 'neutral', turn: 0, turnFor: 0.60 },
+    { t: 4.16, state: 'delighted', bubble: 'crunchy' },
   ],
   seconds: SECONDS,
 };
 
-/* ---------- the grow, both ways ----------
-   the brief's own pace: about 0.8s out, a full second of white, 0.6s back.
+/* ---------- levelling the pair ----------
+   `curious` opens one eye to 1.80 and the other to 1.10, which is the state and
+   is right while he is being curious. its exit levels them over 0.34s and a
+   rendered frame at 1.70 still read as a broken face. so the two are blended
+   toward their own mean over this window, which finishes before the bug does.
+   see the header for why this is the one channel this file writes over. */
+const LEVEL = { at: 1.36, for: 0.26 };
 
-   `anticipate` and `growFor` are stretched a third over the module's defaults
-   for the out and left alone for the back, because the numbers land there:
-   0.21 + 0.81 covers at about 0.80 and the default 0.16 + 0.62 covers at
-   0.617. the real numbers are printed by `describeTransition` on every run and
-   the guards read those rather than these comments.
+/* ---------- the narrowing ----------
+   both lids, one number, `heavy` in and held. it is a push toward shut rather
+   than a value written over the module's: `max(module, this)` cannot fight a
+   blink and cannot open an eye the module has closed. */
+const NARROW = { at: 1.86, for: 0.34, to: 0.40 };
 
-   `tail: 0` on the reverse is the fix in the header. */
-const GROW_OUT_AT = 2.36;
-const WHITE_FOR = 1.00;
-const GROW_OUT = { anticipate: 0.21, growFor: 0.81 };
-const GROW_IN = { anticipate: 0.16, growFor: 0.62, tail: 0 };
+/* ---------- the bite ----------
+   `by` is **derived** rather than typed: `biteDepth()` walks the lunge down
+   until the head's drawn ellipse contains every corner of the bug's drawn ink
+   on the contact frame, then adds a margin. see the header. `fwd` is small and
+   it is negative on purpose — he leans out over the bug into the frame rather
+   than toward the right hand safe line, which is the tightest number in the
+   clip. */
+const BITE = {
+  at: 2.30,
+  rise: 0.11,        /* the anticipation, and the head goes up */
+  riseBy: 7,         /* css px */
+  down: 0.10,        /* the lunge */
+  fwd: -4,           /* css px, into the frame */
+  /* the contact, which is where the squash lives and where the bug goes. it is
+     0.10 rather than 0.05 for a reason the preview found: the frame the bug is
+     switched off on has to be a frame his head is at the bottom of its lunge,
+     and a contact shorter than one frame of the pass that is rendering has no
+     such frame in it. one twelfth is 0.083, so 0.10 holds at both rates and the
+     guard checks it at both rather than at whichever one is running. */
+  land: 0.10,
+  squash: 0.075,     /* volume preserving, under the module's own 8% ceiling */
+  up: 0.16,          /* and back */
+  margin: 5,         /* css px of slack on the derived depth */
+};
+const BITE_HIT = +(BITE.at + BITE.rise + BITE.down).toFixed(4);
+/* **the frame the bug goes is the first frame at or after the landing, and it
+   is a ceiling rather than a rounding.** post13's correction in a new place: a
+   landing time that rounds *down* to its own frame puts the switch a frame
+   before the head is on it, and the twelve frame preview is where that
+   happens — 2.51 at twelve rounds to 2.50, which is nine tenths of the way
+   down. it is derived at whatever rate is rendering, so the picture and the
+   guard cannot disagree about which frame it is. */
+const BITE_END = +(BITE.at + BITE.rise + BITE.down + BITE.land + BITE.up).toFixed(4);
+
+/* ---------- the chew ----------
+   three pulses and a bob. a pulse is a squash and a lateral working of the head,
+   and the side alternates, which is what a jaw doing something difficult looks
+   like from the front. the shape inside a pulse is fast in and slower out, for
+   the same reason every gesture in lib/mascot.mjs is: a chew that released as
+   fast as it closed would be a mechanism. */
+const CHEW = {
+  at: 2.86,
+  pulses: 3,
+  for: 0.30,
+  peak: 0.34,        /* of a pulse's own length */
+  squash: 0.055,
+  shift: 3.4,        /* css px, alternating */
+  roll: 1.7,         /* degrees, into the working side */
+  bob: { for: 0.24, by: 5 },
+};
+const CHEW_END = +(CHEW.at + CHEW.pulses * CHEW.for + CHEW.bob.for).toFixed(4);
+/* one crunch a pulse, on the pulse's own contact rather than on its start. */
+const CHEW_HITS = Array.from({ length: CHEW.pulses },
+  (_, i) => +(CHEW.at + i * CHEW.for + CHEW.for * CHEW.peak * 0.5).toFixed(4));
+
+/* ---------- the eyes shut ----------
+   they close on the lunge, because that is when a thing eating something closes
+   them, and they stay closed through the chew.
+
+   **they are squashed shut rather than lidded shut, and a rendered frame is
+   why.** the module's blink is the lid arriving over the eye, which is right
+   for a blink: it is sixty milliseconds and the face is blank for two frames
+   of it. hold that for a second and a bit and the face is not a face with its
+   eyes closed, it is a face with no eyes — the chew still came back reading as
+   a blank plate.
+
+   what a drawn closed eye is, is a line. so the eye is squashed to `sy` of its
+   own height instead, which leaves a thin bar of the same ink the open eye is
+   drawn in, and the lid gives way as the squash comes in so the two are never
+   both taking height off the same eye. it is the same one directional
+   discipline as the lid: the squash may only make an eye thinner than the
+   module asked for, never fatter. */
+const SHUT = { at: +(BITE.at + BITE.rise).toFixed(4), in: 0.09,
+  until: +(CHEW_END + 0.02).toFixed(4), out: 0.16, sy: 0.26 };
 
 /* ---------- the camera ----------
    one leg and nothing else. no snap, because there is no punchline to hit with
@@ -269,15 +358,15 @@ const GROW_IN = { anticipate: 0.16, growFor: 0.62, tail: 0 };
    by up to 5 css px on y, and 1.05 carries both with room. it is also what
    makes the grow's page space cover arithmetic conservative — see the header.
 
-   the leg ends at 2.30 and the grow starts at 2.36, so the push is finished
-   before the swallow begins. a camera still moving under a transition is two
-   moves at once and neither of them reads.
+   the leg ends at 2.30, which is the frame the bite's anticipation starts on:
+   the camera has arrived and stopped by the time he moves. a camera still
+   pushing under a lunge is two moves at once and neither of them reads.
 
    **the destination was 1.12 and it is 1.10, and the bubble is why.** the push
    pulls the frame in around him, and everything on his side of it moves toward
    an edge as it does. at 1.12 the mirrored thought bubble had 13 device px of
    air off the left safe line, which is a number that passes a guard and would
-   not survive a font falling back one glyph wider. at 1.10 it has 33. */
+   not survive a font falling back one glyph wider. at 1.10 it has 60. */
 const CAM = {
   start: { cx: 270, cy: 480, z: 1.05 },
   push: { at: 0.60, for: 1.70, to: { cx: 282, cy: 504, z: 1.10 } },
@@ -296,10 +385,12 @@ const BAND = { x: SAFE_CSS.left, y: 292, w: VW - SAFE_CSS.left - SAFE_CSS.right,
    he, the bubble and the bug are all cut on the hit frame and the wordmark is
    born on the same frame, so the frame exchanges one thing for another and is
    never empty. the birth is derived off the cut **frame** rather than off the
-   cut time, which is post13's correction: 6.42 at sixty rounds to frame 385,
-   which is 6.4167 and is *before* 6.42, so a wordmark keyed to the time would
-   start one frame after the head left and put an empty frame between them. */
-const END = { at: 6.42, hard: 0.15, tail: 0.22, wmFor: 0.09 };
+   cut time, which is post13's correction: a cut time that rounds down to its
+   own frame would put the wordmark one frame after the head left, and an empty
+   frame between them. */
+const END = { at: 5.85, hard: 0.15, tail: 0.22, wmFor: 0.09 };
+const VANISH_FRAME = Math.ceil(BITE_HIT * FPS);
+const VANISH_AT = +(VANISH_FRAME / FPS).toFixed(4);
 const CUT_FRAME = Math.round(END.at * FPS);
 const WM_IN = (CUT_FRAME - 1) / FPS;
 
@@ -706,8 +797,6 @@ function stepTimes() {
    the plans
    ========================================================================== */
 
-const ink = mascotInk();
-
 /* the seed is searched rather than defaulted, for the brief's "one blink"
    while he watches it: an idle blink is the mascot's own blink and the schedule
    is generated from the seed, so this is a search over the layer that already
@@ -754,9 +843,10 @@ function laneY() {
   const N = Math.round(60 * SECONDS);
   for (let f = 0; f < N; f++) {
     const t = f / 60;
-    /* the transitions are excluded: the grow scales the zone and the module
-       knows nothing about it, so a head mid swallow is not a head in a lane. */
-    if (t >= GROW_OUT_AT - 0.05) break;
+    /* the bite is excluded: this file lunges him a whole head downward and a
+       head mid lunge is not a head standing in a corner over a lane. the lane
+       is about where he lives, not about where he goes. */
+    if (t >= BITE.at - 0.05) break;
     const r = headRect(plan, mascotFrame(plan, t));
     const bottom = VH - r.bottom / DSF;
     if (bottom > worst) { worst = bottom; at = +t.toFixed(3); }
@@ -783,27 +873,140 @@ const cam = planCamera({
 });
 
 /* ---------- the two grows ---------- */
-const growOut = planGrow({
-  at: GROW_OUT_AT, dir: 'out', from: 'dark', to: 'light',
-  box: plan.box, size: SIZE, stage: STAGE, ink, ...GROW_OUT,
-});
-/* the frame is one flat colour from the moment the disc covers. */
-const WHITE_FROM = +(growOut.at + growOut.times.coverU).toFixed(4);
-/* and it stops being one when the reverse grow's disc stops covering, which is
-   `coverU` before that plan's own end. so the reverse is placed by the white
-   second rather than the other way round. */
-const growInProbe = planGrow({
-  at: 0, dir: 'in', from: 'light', to: 'dark',
-  box: plan.box, size: SIZE, stage: STAGE, ink, ...GROW_IN,
-});
-const COVERED_LEAD = +(growInProbe.seconds - growInProbe.times.coverU).toFixed(4);
-const growIn = planGrow({
-  at: +(WHITE_FROM + WHITE_FOR - COVERED_LEAD).toFixed(4),
-  dir: 'in', from: 'light', to: 'dark',
-  box: plan.box, size: SIZE, stage: STAGE, ink, ...GROW_IN,
-});
-/* the white ends when his disc starts showing again. */
-const WHITE_TO = +(growIn.at + COVERED_LEAD).toFixed(4);
+/* ---------- the bite and the chew, as one channel on the zone ----------
+   everything this file does to the head between 2.30 and 4.10 is one transform
+   on `#m-zone`, which lib/mascot.mjs writes nothing to. it returns page space
+   numbers and the page writes them; the guards read the same function, so a
+   clearance and a picture cannot disagree about where his head was.
+
+   `sq` is volume preserving, the way the module's own squash is: x is (1+q) and
+   y is 1/(1+q), so a squashed circle is an ellipse of the same area rather than
+   a head that got bigger. */
+function biteZone(t) {
+  const z = { x: 0, y: 0, sx: 1, sy: 1, rot: 0 };
+  const T = BITE;
+  /* the anticipation. he goes up before he goes down, which is every entrance
+     in lib/mascot.mjs and is the reason a lunge reads as a decision. */
+  if (t >= T.at && t < T.at + T.rise) {
+    z.y = -T.riseBy * smooth((t - T.at) / T.rise);
+  } else if (t >= T.at + T.rise && t < BITE_HIT) {
+    /* the lunge. `heavy` in the module's sense: late to start and then
+       carrying, because a head going after something has mass. */
+    const u = (t - T.at - T.rise) / T.down;
+    const e = u * u * (3 - 2 * u) * u ** 0.5;
+    z.y = lerp(-T.riseBy, BITE.by, Math.min(1, e * 1.0 + u * u * 0.0) || 0);
+    z.y = lerp(-T.riseBy, BITE.by, u * u);
+    z.x = T.fwd * (u * u);
+  } else if (t >= BITE_HIT && t < BITE_HIT + T.land) {
+    /* the contact. the squash is here and nowhere else. */
+    const u = (t - BITE_HIT) / T.land;
+    const q = T.squash * Math.sin(Math.PI * u) ** 0.6;
+    z.y = BITE.by; z.x = T.fwd;
+    z.sx = 1 + q; z.sy = 1 / (1 + q);
+  } else if (t >= BITE_HIT + T.land && t < BITE_END) {
+    const u = (t - BITE_HIT - T.land) / T.up;
+    const e = 1 - (1 - u) * (1 - u);
+    z.y = lerp(BITE.by, 0, e);
+    z.x = lerp(T.fwd, 0, e);
+  }
+
+  /* the chew. three pulses, the side alternating, and a bob after the last. */
+  if (t >= CHEW.at && t < CHEW.at + CHEW.pulses * CHEW.for) {
+    const i = Math.min(CHEW.pulses - 1, Math.floor((t - CHEW.at) / CHEW.for));
+    const u = (t - CHEW.at - i * CHEW.for) / CHEW.for;
+    /* fast in, slower out: the peak sits a third of the way through. */
+    const q = u < CHEW.peak
+      ? smooth(u / CHEW.peak)
+      : 1 - smooth((u - CHEW.peak) / (1 - CHEW.peak));
+    const side = i % 2 === 0 ? -1 : 1;
+    const k = CHEW.squash * q;
+    z.sx = 1 + k; z.sy = 1 / (1 + k);
+    z.x += side * CHEW.shift * q;
+    z.rot = side * CHEW.roll * q;
+  }
+  const bobAt = CHEW.at + CHEW.pulses * CHEW.for;
+  if (t >= bobAt && t < bobAt + CHEW.bob.for) {
+    z.y += -CHEW.bob.by * Math.sin(Math.PI * ((t - bobAt) / CHEW.bob.for));
+  }
+  return z;
+}
+
+/* how far the squash is on at second t: nought before the lunge, one across
+   the chew, and back to nought before he is delighted. */
+function squeezeAt(t) {
+  const on = smooth(span(t, SHUT.at, SHUT.at + SHUT.in));
+  const off = smooth(span(t, SHUT.until, SHUT.until + SHUT.out));
+  return on * (1 - off);
+}
+
+/* and how far the lids are pushed down. it is a push rather than a value — the
+   clip asks for at least this much and the module keeps whatever it had if it
+   had more — and it **gives way to the squash**, so the narrowing is a
+   narrowing and the chew is a line rather than the two of them stacking into a
+   blank face. */
+function lidAt(t) {
+  const narrow = NARROW.to * span(t, NARROW.at, NARROW.at + NARROW.for);
+  return narrow * (1 - squeezeAt(t));
+}
+
+/* the head's ink as it is actually drawn, in page space: the module's card,
+   then this file's zone transform about the zone's own centre. at radius 0.5
+   the ink is an ellipse and the axis aligned box of a rotated one is exact in
+   one line, which is lib/mascot.mjs's own arithmetic. */
+function headInk(mas, zone) {
+  const R = HEAD.plate.s / 2 * plan.unit;
+  const cx = PLATE.cx + zone.x + mas.card.x * zone.sx;
+  const cy = PLATE.cy + zone.y + mas.card.y * zone.sy;
+  const a = R * Math.abs(mas.card.sx) * zone.sx;
+  const b = R * Math.abs(mas.card.sy) * zone.sy;
+  const th = (mas.card.rot + zone.rot) * Math.PI / 180;
+  const c = Math.cos(th), sn = Math.sin(th);
+  return {
+    cx, cy, a, b, th,
+    hw: Math.hypot(a * c, b * sn), hh: Math.hypot(a * sn, b * c),
+  };
+}
+function headInkRect(ink) {
+  return { x: ink.cx - ink.hw, y: ink.cy - ink.hh, w: ink.hw * 2, h: ink.hh * 2 };
+}
+
+/* how far outside the head's ellipse the worst corner of a box is, as a ratio.
+   under 1 is contained. it is the containment test the bite is derived from and
+   the guard the bite is checked with, and they are the same function so they
+   cannot disagree. */
+function containment(ink, box) {
+  const c = Math.cos(-ink.th), sn = Math.sin(-ink.th);
+  let worst = 0;
+  for (const px of [box.x, box.x + box.w]) {
+    for (const py of [box.y, box.y + box.h]) {
+      const dx = px - ink.cx, dy = py - ink.cy;
+      const u = dx * c - dy * sn, v = dx * sn + dy * c;
+      worst = Math.max(worst, Math.hypot(u / ink.a, v / ink.b));
+    }
+  }
+  return worst;
+}
+
+/* ---------- how deep the lunge has to go ----------
+   walked rather than solved, because the head's own scales on the contact frame
+   come off `mascotFrame` and the bug's box comes off `bugFrame`, and neither is
+   a closed form worth writing twice. half a pixel a step, then the margin. */
+function biteDepth() {
+  const t = VANISH_AT;
+  const mas = mascotFrame(plan, t);
+  const box = bugRect(bugFrame(t, ANT_SCHED));
+  const q = BITE.squash;
+  for (let d = 0; d <= 200; d += 0.5) {
+    const zone = { x: BITE.fwd, y: d, sx: 1 + q, sy: 1 / (1 + q), rot: 0 };
+    if (containment(headInk(mas, zone), box) <= 1) return { need: d, box };
+  }
+  throw new Error('no lunge inside 200px puts the bug under his ink');
+}
+
+/* the depth of the lunge, derived, and then held on BITE so everything reads
+   one number. */
+const DEPTH = biteDepth();
+BITE.by = +(DEPTH.need + BITE.margin).toFixed(2);
 
 /* the blink the seed was chosen for, read off the finished plan rather than
    off the search, so the still and the guard look at the blink the render
@@ -903,6 +1106,10 @@ const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h
 /* the head's ink as a page rect, off the module's own geometry. `headRect`
    answers in device px from each border and this is the same answer in the
    units the camera works in. */
+/* the module's own answer, for the frames where nothing of this file's is on
+   the head. it is kept because `headRect` is the geometry lib/mascot.mjs owns
+   and a clip should not re-derive a plate's radius; `headInk` composes the zone
+   transform on top of the same numbers. */
 function headPageRect(fr) {
   const r = headRect(plan, fr);
   return {
@@ -915,23 +1122,42 @@ function headPageRect(fr) {
 function frameAt(t, f) {
   const cam0 = cameraFrame(cam, t);
   const mas = mascotFrame(plan, t);
-  const tr = composeTransitions([growFrame(growOut, t), growFrame(growIn, t)]);
-  /* the theme comes off the two grows' own `flipAt` on one clock rather than
-     off whichever of them last had an opinion. rig-test's note. */
-  let theme = 'dark';
-  if (t >= growOut.flipAt) theme = growOut.to;
-  if (t >= growIn.flipAt) theme = growIn.to;
 
+  /* ---------- the two channels this file writes on the module's face -------
+     both are one directional and both say so. the lids are pushed toward shut
+     and never opened, so a blink underneath still reads; the eye scales are
+     blended toward the pair's own mean, so the file cannot make an eye bigger
+     than the module asked for either. */
+  const lv = smooth(span(t, LEVEL.at, LEVEL.at + LEVEL.for));
+  if (lv > 0) {
+    const mean = (mas.eyes[0].sy + mas.eyes[1].sy) / 2;
+    for (const e of mas.eyes) e.sy = lerp(e.sy, mean, lv);
+    /* and the lids, to the **more closed** of the two rather than to their
+       mean, so this is still a push toward shut. the module staggers an idle
+       blink across the pair by a frame or two, which is right for a sixtieth
+       of a second and is a mismatched pair for as long as it lasts — and the
+       chew, where the eyes are already lines, is where a rendered frame found
+       one line going out before the other. */
+    const shutter = Math.max(mas.eyes[0].lid, mas.eyes[1].lid);
+    for (const e of mas.eyes) e.lid = lerp(e.lid, shutter, lv);
+  }
+  const lid = lidAt(t);
+  if (lid > 0) for (const e of mas.eyes) e.lid = Math.max(e.lid, lid);
+  const sq = squeezeAt(t);
+  if (sq > 0) for (const e of mas.eyes) e.sy = Math.min(e.sy, lerp(e.sy, SHUT.sy, sq));
+
+  const zone = biteZone(t);
   const g = glitchAt(f);
   /* the cut. one switch takes the mascot layer, and the bubble goes with it
      because the bubble lives inside his own zone. */
   const on = f >= CUT_FRAME ? 0 : 1;
 
-  /* the bug is on from the first frame to the frame the field takes the screen.
-     switching it off there is provably invisible: the field is at full opacity
-     on that frame by construction, and the guard says so. */
+  /* the bug is on until the frame the lunge lands, and it goes on that frame.
+     switching it off there is only honest if it is under his ink when it
+     happens, which is the derivation the depth comes from and the guard the
+     containment check is. */
   const bug = bugFrame(t, ANT_SCHED);
-  const bugOn = (t < growOut.flipAt && on) ? 1 : 0;
+  const bugOn = (f < VANISH_FRAME && on) ? 1 : 0;
 
   const wp = span(t, WM_IN, WM_IN + END.wmFor);
   const wm = {
@@ -939,14 +1165,15 @@ function frameAt(t, f) {
     sc: +(1 + (1 - POP(wp)) * 0.085).toFixed(4),
     glow: +phosphor(t, 0.055, 2.3, 0.83, 1.7).toFixed(4),
   };
-  return { t: +t.toFixed(4), f, cam: cam0, mas, tr, theme, mo: on, bug, bugOn, wm, g };
+  return { t: +t.toFixed(4), f, cam: cam0, mas, zone, mo: on, bug, bugOn, wm, g };
 }
 
-/* what the page is handed, which is this file's own layers only: the camera,
-   the mascot and the transitions each have their own runtime. */
+/* what the page is handed, which is this file's own layers only: the camera and
+   the mascot each have their own runtime. */
 function pageFrame(o) {
   return {
     mo: o.mo,
+    zone: [r2(o.zone.x), r2(o.zone.y), +o.zone.sx.toFixed(5), +o.zone.sy.toFixed(5), r2(o.zone.rot)],
     bug: {
       o: o.bugOn,
       body: [r2(o.bug.body.x), r2(o.bug.body.y), r2(o.bug.body.rot)],
@@ -960,11 +1187,9 @@ function pageFrame(o) {
 /* ==========================================================================
    the page
    ==========================================================================
-   four runtimes and one of this clip's own. the order they are applied in is
-   the contract: the camera, then the mascot writes its own numbers, then the
-   transition multiplies the three it is allowed to touch, then this file's
-   layers. the other way round and every frame of a grow would be undone by the
-   module a millisecond later. */
+   three runtimes and one of this clip's own. the camera, then the mascot writes
+   its own numbers, then this file writes the zone the module never touches and
+   its own layers. */
 function sceneHtml() {
   const b = BUG.body, h = BUG.head;
   /* the module's own bubble offset, mirrored. derived rather than typed, so a
@@ -1050,10 +1275,9 @@ ${cameraCss()}
 #m-bubble .m-pill{transform-origin:100% 100%}
 
 /* the mascot's own cut, as a wrapper rather than as a rule on the zone: the
-   transition module writes the zone's inline opacity every frame, and a clip
-   that also wrote it would be two things holding one channel. the hand is not
-   in this clip and the bubble is, and the bubble is inside the zone, so one
-   switch takes all of him. */
+   zone is carrying the bite's transform and a second thing writing it would be
+   two things holding one channel. the bubble is inside the zone, so one switch
+   takes all of him. */
 #mas-cut{position:absolute;inset:0;z-index:4;opacity:var(--m-o,1)}
 
 ${mascotCss(plan)}
@@ -1131,7 +1355,6 @@ ${mascotCss(plan)}
     rgba(255,255,255,.18) 60%, rgba(255,255,255,0) 78%);
   opacity:var(--flash,0)}
 
-${transitionCss()}
 </style>
 </head>
 <body>
@@ -1160,7 +1383,6 @@ ${Array.from({ length: 2 }, (_, i) => '        <polyline class="ant" id="bug-ant
     </g>
   </svg>
   <div id="mas-cut">${mascotMarkup(plan)}</div>`)}
-${transitionMarkup()}
   <div class="wm" id="wm">${WM.lines.map(l => '<span>' + l + '</span>').join('')}</div>
 ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' + i
     + '"><div class="tear-in"><div class="wm">'
@@ -1172,7 +1394,6 @@ ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' +
 window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(plan))};
 ${cameraRuntime()}
 ${mascotRuntime()}
-${transitionRuntime()}
 window.__P15 = ${JSON.stringify({ WM, VW, VH, DSF })};
 ${scenePage.toString()}
 scenePage();
@@ -1200,6 +1421,7 @@ function scenePage() {
   const bugBody = document.getElementById('bug-body');
   const legs = [0, 1, 2, 3, 4, 5].map(i => document.getElementById('bug-leg' + i));
   const ants = [0, 1].map(i => document.getElementById('bug-ant' + i));
+  const zone = document.getElementById('m-zone');
   const wms = [...document.querySelectorAll('.wm')];
   const tears = [...document.querySelectorAll('.tear')];
   const tearIns = tears.map(t => t.querySelector('.tear-in'));
@@ -1273,9 +1495,29 @@ function scenePage() {
       };
     },
 
+    /* the head's drawn plate, in screen css and device px. the plate is a
+       circle at radius 0.5, so its client rect is its ink — the same reason
+       lib/transitions.mjs measured it this way. */
+    plateBox() {
+      const el = zone.querySelector('.m-face .m-plate');
+      const r = el.getBoundingClientRect(), d = P.DSF;
+      return {
+        x: +r.left.toFixed(2), y: +r.top.toFixed(2),
+        w: +r.width.toFixed(2), h: +r.height.toFixed(2),
+        wPx: +(r.width * d).toFixed(1), hPx: +(r.height * d).toFixed(1),
+      };
+    },
+
     apply(o) {
       const s = stage.style;
       s.setProperty('--m-o', o.mo.toFixed(4));
+      /* the zone. lib/mascot.mjs writes nothing to it, which is the seam this
+         clip lunges and chews through, and the order is translate then rotate
+         then scale so he is carried to where he is standing and *then*
+         deformed about the place he is standing. */
+      const z = o.zone;
+      zone.style.transform = 'translate(' + z[0] + 'px,' + z[1] + 'px) rotate('
+        + z[4] + 'deg) scale(' + z[2] + ',' + z[3] + ')';
       s.setProperty('--bug-o', o.bug.o.toFixed(4));
       s.setProperty('--wm-o', o.wm.o.toFixed(4));
       s.setProperty('--wm-s', o.wm.sc.toFixed(4));
@@ -1392,7 +1634,7 @@ async function boot() {
   await cdp.send('Page.navigate', { url: 'http://127.0.0.1:' + port + '/' });
   for (let i = 0; i < 240; i++) {
     const ok = await page.evaluate(() => !!(window.__mas && window.__mas.ready && window.__cam
-      && window.__cam.ready && window.__tr && window.__tr.ready && window.__p15
+      && window.__cam.ready && window.__p15
       && document.fonts.status === 'loaded')).catch(() => false);
     if (ok) break;
     await advance(STEP);
@@ -1400,10 +1642,9 @@ async function boot() {
   const ready = await page.evaluate(() => ({
     mas: !!(window.__mas && window.__mas.ready),
     cam: !!(window.__cam && window.__cam.ready),
-    tr: !!(window.__tr && window.__tr.ready),
     p15: !!(window.__p15 && window.__p15.ready),
   }));
-  for (const k of ['mas', 'cam', 'tr', 'p15']) {
+  for (const k of ['mas', 'cam', 'p15']) {
     if (!ready[k]) throw new Error('the ' + k + ' layer never became ready');
   }
   /* offline michroma falls back to the system mono and the wordmark looks
@@ -1417,9 +1658,7 @@ async function boot() {
 /* one instant, written to the page in the order the contract says. */
 async function paint(page, o) {
   await page.evaluate(c => window.__cam.apply(c), o.cam);
-  await page.evaluate(th => window.__mas.theme(th), o.theme);
   await page.evaluate(m => window.__mas.apply(m), o.mas);
-  await page.evaluate(x => window.__tr.apply(x), o.tr);
   await page.evaluate(p => window.__p15.apply(p), pageFrame(o));
 }
 
@@ -1510,8 +1749,12 @@ async function render() {
      are a fact rather than a suspicion. post10 shipped a pair and only found
      out at sixty. */
   const sigs = [];
-  let edgeWorst = null, edgeSamples = 0, plateAtCover = null, washAtHandover = null;
+  let edgeWorst = null, edgeSamples = 0;
   let bugBoxWorst = null, bubbleWorst = null, bubbleSamples = 0;
+  /* the frame the bug goes, measured rather than planned: the bug's rendered
+     ink box against the head's rendered plate on that frame. it is the one
+     number that says the bite ate it rather than deleted it. */
+  let vanish = null, vanishBug = null;
   const bandHits = [];
   /* **the bug walks in through the left margin, and it has to.** entering from
      a side is what the brief asks for and every side of the frame is outside
@@ -1538,7 +1781,7 @@ async function render() {
           + o.g.sx * 19 + o.g.sy * 23 + o.g.split * 29 + o.g.noise * 31 + o.g.flash * 37
           + o.g.bands.length * 41
           + o.cam.tx * 173 + o.cam.ty * 179 + o.cam.z * 181
-          + o.tr.zone.sc * 191 + o.tr.zone.o * 193 + o.tr.wash.o * 197
+          + o.zone.x * 191 + o.zone.y * 193 + o.zone.sx * 197 + o.zone.rot * 233
           + o.bug.body.x * 199 + o.bug.body.y * 211 + o.bug.body.rot * 223
           + o.mas.card.x * 43 + o.mas.card.y * 47 + o.mas.card.rot * 53
           + o.mas.card.sx * 59 + o.mas.card.sy * 61 + o.mas.glow * 67;
@@ -1589,13 +1832,20 @@ async function render() {
         }
       }
 
-      /* the one frame the whole trick lives on: the first frame the field is up
-         over the growing disc. what is measured is the plate as it actually
-         rendered, in device px, which is what turns "he fills 1080x1920" from a
-         plan number into a measurement. */
-      if (k === 0 && !plateAtCover && o.tr.wash.on && o.tr.phase === 'cover') {
-        plateAtCover = { t: +t.toFixed(3), ...(await page.evaluate(d => window.__tr.plate(d), DSF)) };
-        washAtHandover = await page.evaluate(() => window.__tr.washInk());
+      /* the containment, measured on the picture rather than derived twice, and
+         it takes **two** frames because the two things it compares are never
+         drawn on the same one: the bug's ink off the last frame it is on, and
+         his plate off the frame it goes. that is only a fair comparison because
+         the bug has been standing still since it planted its feet, which is
+         asserted rather than assumed. */
+      if (k === 0 && f === VANISH_FRAME - 1) {
+        vanishBug = (await page.evaluate(() => window.__p15.bugBox())).cssRect;
+      }
+      if (k === 0 && f === VANISH_FRAME) {
+        vanish = {
+          t: +t.toFixed(3), bug: vanishBug,
+          plate: await page.evaluate(() => window.__p15.plateBox()),
+        };
       }
 
       const file = SUB > 1
@@ -1624,14 +1874,17 @@ async function render() {
     [CUT.marks[0].t + STATES.curious.entry, 'c-he-sees-it'],
     [BLINK ? BLINK.t + BLINK.close + BLINK.hold / 2 : 1.0, 'd-the-blink'],
     [WALK.t1 + BUG_SETTLE, 'e-it-has-stopped'],
-    [CUT.marks[1].t + STATES.unimpressed.entry, 'f-he-looks-down'],
-    [growOut.at + growOut.times.coverU * 0.55, 'g-the-grow'],
-    [growOut.at + growOut.times.coverU - 1 / FPS, 'h-just-before-the-white'],
-    [WHITE_FROM, 'i-the-white'],
-    [(WHITE_FROM + WHITE_TO) / 2, 'j-the-white-holding'],
-    [WHITE_TO, 'k-the-white-ends'],
-    [growIn.end - growIn.times.coverU * 0.55, 'l-coming-back'],
-    [growIn.end + 0.06, 'm-he-is-back'],
+    [LEVEL.at + LEVEL.for, 'f-the-eyes-are-level'],
+    [NARROW.at + NARROW.for, 'g-narrowed'],
+    [BITE.at + BITE.rise, 'h-the-rise'],
+    [VANISH_AT - 1 / FPS, 'i-the-lunge'],
+    [VANISH_AT, 'j-the-bite'],
+    [BITE_END, 'k-back-up'],
+    [CHEW_HITS[0], 'l-chew-one'],
+    [CHEW_HITS[1], 'l2-chew-two'],
+    [CHEW_HITS[2], 'm-chew-three'],
+    [CHEW.at + CHEW.pulses * CHEW.for + CHEW.bob.for / 2, 'm2-the-bob'],
+    [SHUT.until + SHUT.out, 'm3-eyes-open'],
     [plan.marks[2].bubble.full + 0.10, 'n-crunchy'],
     [GL_WINDOWS[0].t0, 'o-the-hit'],
     [GL_WINDOWS[0].t0 + 0.10, 'p-the-tear'],
@@ -1643,6 +1896,23 @@ async function render() {
     await paint(page, frameAt(fr / FPS, fr));
     await shoot(cdp, path.join(VERIFY, name + '.png'));
     /* the clock has to move between two captures — see renderBugOnly. */
+    await advance(STEP);
+  }
+
+  /* ---------- the bite strip ----------
+     the lunge is 0.10s, which is one frame at twelve and six at sixty, so the
+     preview cannot answer whether it reads as a bite any more than it can
+     answer whether the walk reads as a walk. eighteen frames a sixtieth apart
+     across the rise, the lunge, the contact and the way back up, full frame
+     because the point of it is where his head is against where the bug was. */
+  const bdir = path.join(VERIFY, 'bite');
+  fs.mkdirSync(bdir, { recursive: true });
+  for (let i = 0; i < 18; i++) {
+    const t = +(BITE.at + i / 60).toFixed(4);
+    const fr = Math.round(t * FPS);
+    await paint(page, frameAt(t, fr));
+    await shoot(cdp, path.join(bdir, 'b' + String(i).padStart(2, '0')
+      + '-' + t.toFixed(3) + 's.png'));
     await advance(STEP);
   }
 
@@ -1676,8 +1946,9 @@ async function render() {
 
   const state = {
     built, wm, sigs, frames: N,
-    edges: edgeWorst, edgeSamples, plateAtCover, washAtHandover,
+    edges: edgeWorst, edgeSamples, vanish,
     bug: bugBoxWorst, bugInSafe: inSafe, bugLeftSafe: leftSafe,
+    bugStill: +Math.abs(walkX(VANISH_AT) - walkX(VANISH_AT - 1 / FPS)).toFixed(6),
     bubble: bubbleWorst, bubbleSamples, bandHits,
   };
   fs.writeFileSync(path.join(OUT, 'post15.json'), JSON.stringify(state, null, 2));
@@ -1728,7 +1999,7 @@ function probe(file) {
 /* ==========================================================================
    the sound
    ==========================================================================
-   six kinds and eighteen events, and every one of them is a time something
+   five kinds and eighteen events, and every one of them is a time something
    else already decided. nothing here is placed by hand.
 
    the footsteps are the interesting ones: `stepTimes` returns the instants the
@@ -1737,19 +2008,33 @@ function probe(file) {
    few spread out and then stop, which is not a fade — it is the same gait
    running out of speed.
 
-   the two whooshes are the grow's own beats: the first starts on the frame the
-   swell starts and is as long as the swell, the second starts as the disc
-   comes back out from under the field and is as long as that. the three
-   crunches are the only thing in the white second and they walk down in pitch,
-   because a mouth closing on something is a cavity getting smaller. the pop is
-   `mascotCues`, on the pill rather than on the first dot. the glitch is the
-   cut. */
-/* the three chews, placed across the white and walking down. the first lands a
-   sixth of a second after the frame goes flat, so the white arrives silent and
-   is then eaten; the last is the longest and the lowest, which is the swallow. */
-const CRUNCH_AT = [0.17, 0.45, 0.74];
-const CRUNCH = CRUNCH_AT.map((d, i) => ({
-  t: +(WHITE_FROM + d).toFixed(4),
+   **the bite and the chews are the same recipe at two levels**, and that is the
+   design rather than a saving. a bite and a chew are the same event happening
+   to the same object; what separates them is that the first one is through the
+   shell and the rest are not. so the bite is lower, longer, grittier and has
+   almost no flutter on it — a flutter is a jaw working and the first bite is a
+   jaw closing — and it is rendered in its own pass at its own gain, which is
+   post13's move for a sound that means something different at a different
+   level. the three chews walk down in pitch because a mouth closing on
+   something is a cavity getting smaller.
+
+   the pop is `mascotCues`, on the pill rather than on the first dot. the glitch
+   is the cut. */
+
+/* the bite: one `crunch` with the chewing taken out of it. `depth` is the
+   flutter and it is nearly nothing here, `grit` is up, and it sits three
+   decibels under the chews because a bite that was louder than the chewing
+   would make the chewing an echo of it. */
+const BITE_SND = {
+  gain: -28,
+  opts: { f0: 300, f1: 158, len: 0.19, depth: 0.10, grit: 0.62, tau: 0.075,
+    burst: 0.011, lpHz: 2200, seed: 0x7ab214 },
+};
+
+/* the three chews, one on each pulse's own contact, walking down. the last is
+   the longest and the lowest, which is the swallow. */
+const CRUNCH = CHEW_HITS.map((t, i) => ({
+  t,
   opts: [
     { f0: 452, f1: 268, len: 0.15, flutter: 29, seed: 0x3c7a19 },
     { f0: 396, f1: 232, len: 0.16, flutter: 26, seed: 0x91b40d },
@@ -1758,29 +2043,16 @@ const CRUNCH = CRUNCH_AT.map((d, i) => ({
 }));
 
 function soundCues() {
-  const outSwell = growOut.times.anticipate;
-  const outFor = growOut.times.coverU - outSwell;
-  const inFor = growIn.times.coverU;
   const cues = [
     ...STEPS.map((t, i) => ({
       t, kind: 'tick',
       opts: { seed: (0x6ad13f ^ (i * 2654435761)) >>> 0, hz: 288 + (i % 3) * 16 },
       from: 'stride ' + (i + 1) + ', read off the walk',
     })),
-    { t: +(growOut.at + outSwell).toFixed(4), kind: 'whoosh',
-      opts: { len: +(outFor + 0.08).toFixed(3), seed: 0x51f3a1 },
-      from: 'the swell, and it is as long as the swell' },
     ...CRUNCH.map((c, i) => ({
       t: c.t, kind: 'crunch', opts: c.opts,
-      from: 'chew ' + (i + 1) + ' of three, on the white',
+      from: 'chew ' + (i + 1) + ' of three, on that pulse\'s own contact',
     })),
-    /* on the frame the white ends rather than a moment before it. the whoosh
-       swells from nothing under a raised cosine, so a lead in would be
-       inaudible anyway, and a cue inside the white second is a cue the guard
-       below would have to make an exception for. */
-    { t: WHITE_TO, kind: 'whoosh',
-      opts: { len: +(inFor + 0.07).toFixed(3), seed: 0x2c81b7 },
-      from: 'the disc coming back out from under the field' },
     ...mascotCues(plan).map(c => ({ ...c, from: 'the pill arriving, off mascotCues' })),
     { t: END.at, kind: 'glitch', from: 'the cut' },
   ];
@@ -1799,17 +2071,61 @@ console.log(describeMotion(rep60));
 console.log('');
 console.log(describeCamera(cam));
 console.log('');
-console.log(describeTransition(growOut));
-console.log('');
-console.log(describeTransition(growIn));
-console.log('');
-
 /* ---------- the numbers, before a frame is written ---------- */
 const camMo = cameraMotion(cam, 60);
-const goMo = transitionMotion(growOut, 60);
-const giMo = transitionMotion(growIn, 60);
-const covOut = growCoverage(growOut, plan, 60);
-const covIn = growCoverage(growIn, plan, 60);
+
+/* ---------- the bite, before a frame is written ----------
+   the containment on the frame the bug goes, worked out off the same two
+   functions the derivation used, plus the worst one frame move the zone makes
+   so a lunge cannot become a cut. */
+const BITEMO = (() => {
+  const t = VANISH_AT;
+  const mas = mascotFrame(plan, t);
+  const zone = biteZone(t);
+  const box = bugRect(bugFrame(t, ANT_SCHED));
+  const hold = containment(headInk(mas, zone), box);
+  let step = { d: 0, t: 0 }, prev = null;
+  for (let f = 0; f < Math.round(60 * SECONDS); f++) {
+    const tt = f / 60;
+    const z = biteZone(tt);
+    if (prev) {
+      const d = Math.hypot(z.x - prev.x, z.y - prev.y);
+      if (d > step.d) step = { d: +d.toFixed(3), t: +tt.toFixed(3) };
+    }
+    prev = z;
+  }
+  return { hold: +hold.toFixed(4), need: DEPTH.need, by: BITE.by, step };
+})();
+
+/* ---------- the pair, before a frame is written ----------
+   both eyes, on the drawn frame after this file's own two writes, from the
+   moment the bug stops to the cut. a mismatched pair is what a rendered frame
+   called broken and it is a number now. */
+const PAIR = (() => {
+  let sy = { d: 0, t: 0 }, lid = { d: 0, t: 0 };
+  for (let f = Math.round(60 * WALK.t1); f < Math.round(60 * END.at); f++) {
+    const t = f / 60;
+    const o = frameAt(t, Math.round(t * FPS));
+    const ds = Math.abs(o.mas.eyes[0].sy - o.mas.eyes[1].sy);
+    const dl = Math.abs(o.mas.eyes[0].lid - o.mas.eyes[1].lid);
+    if (ds > sy.d) sy = { d: +ds.toFixed(4), t: +t.toFixed(2) };
+    if (dl > lid.d) lid = { d: +dl.toFixed(4), t: +t.toFixed(2) };
+  }
+  return { sy, lid, from: WALK.t1 };
+})();
+
+/* the eyes across the chew, so "eyes closed, content" is a measurement rather
+   than a description: how tall the taller of the two ever is, as a share of the
+   eye's own height, and how many device px of ink that leaves on the frame. */
+const CHEW_EYES = (() => {
+  let hi = 0;
+  for (let f = Math.round(60 * CHEW.at); f < Math.round(60 * (CHEW.at + CHEW.pulses * CHEW.for)); f++) {
+    const o = frameAt(f / 60, f);
+    hi = Math.max(hi, o.mas.eyes[0].sy, o.mas.eyes[1].sy);
+  }
+  const px = HEAD.eye.h * plan.unit * hi * DSF;
+  return { sy: +hi.toFixed(4), px: +px.toFixed(1) };
+})();
 
 /* the camera's own edges, worked out rather than sampled: the rig is exactly
    the stage's size, so the page point 0 lands at `tx` and the page point w
@@ -1821,14 +2137,12 @@ function camEdges(t) {
     right: VW * c.z + c.tx - VW, bottom: VH * c.z + c.ty - VH, z: c.z,
   };
 }
-let edgePlan = null, zMinInGrows = Infinity;
+let edgePlan = null;
 for (let f = 0; f < Math.round(60 * SECONDS); f++) {
   const t = f / 60;
   const e = camEdges(t);
   const near = Math.min(e.left, e.top, e.right, e.bottom);
   if (!edgePlan || near < edgePlan.near) edgePlan = { t: +t.toFixed(3), near: +near.toFixed(3), ...e };
-  const inGrow = (t >= growOut.at && t <= growOut.end) || (t >= growIn.at && t <= growIn.end);
-  if (inGrow) zMinInGrows = Math.min(zMinInGrows, e.z);
 }
 
 /* ---------- the bug, before a frame is written ---------- */
@@ -1871,15 +2185,14 @@ const GAIT = (() => {
 })();
 
 /* the gap between the bug's ink and the head's ink, in page px, on every frame
-   before the field takes the screen. the brief's own line: it may not overlap
-   him until the grow covers it. */
+   **before the lunge starts**. the brief's own line: it may not overlap him
+   until he goes for it. after that the overlap is the joke. */
 const GAP = (() => {
   let worst = Infinity, at = 0, over = 0;
-  for (let f = 0; f < Math.round(60 * SECONDS); f++) {
+  for (let f = 0; f < Math.round(60 * (BITE.at + BITE.rise)); f++) {
     const t = f / 60;
-    if (t >= growOut.flipAt) break;
     const br = bugRect(bugFrame(t, ANT_SCHED));
-    const hr = headPageRect(mascotFrame(plan, t));
+    const hr = headInkRect(headInk(mascotFrame(plan, t), biteZone(t)));
     if (overlaps(br, hr)) over++;
     const v = br.y - (hr.y + hr.h);
     if (v < worst) { worst = v; at = +t.toFixed(2); }
@@ -1915,11 +2228,17 @@ const beats = [
   ...(BLINK ? [[BLINK.t, 'the blink, ' + ((BLINK.close + BLINK.hold + BLINK.open) * 1000).toFixed(0)
     + 'ms of it, off the idle schedule the seed was chosen for']] : []),
   [WALK.t1, 'the bug stops under him and plants its feet over ' + BUG_SETTLE.toFixed(2) + 's'],
-  [growOut.at, 'the grow out starts'],
-  [WHITE_FROM, 'the frame is white, and it holds ' + (WHITE_TO - WHITE_FROM).toFixed(3) + 's'],
-  ...CRUNCH.map((c, i) => [c.t, 'chew ' + (i + 1) + ' of three']),
-  [WHITE_TO, 'his disc starts showing again'],
-  [growIn.end, 'he is back at corner size and the bug is gone'],
+  [LEVEL.at + LEVEL.for, 'his eyes are level again, and they stay level to the cut'],
+  [NARROW.at + NARROW.for, 'both lids are down to ' + NARROW.to.toFixed(2) + ', symmetrically'],
+  [BITE.at, 'the bite: he rises ' + BITE.riseBy + 'px over ' + BITE.rise.toFixed(2) + 's'],
+  [BITE_HIT, 'the lunge lands ' + BITE.by + 'px down and ' + Math.abs(BITE.fwd)
+    + 'px forward and the head squashes'],
+  [VANISH_AT, 'the first frame at or after the landing, and the bug is gone under his ink'],
+  [BITE_END, 'he is back up, eyes shut'],
+  ...CHEW_HITS.map((t, i) => [t, 'chew ' + (i + 1) + ' of three, '
+    + (i % 2 === 0 ? 'left' : 'right')]),
+  [CHEW.at + CHEW.pulses * CHEW.for, 'the satisfied bob, ' + CHEW.bob.for.toFixed(2) + 's'],
+  [SHUT.until + SHUT.out, 'his eyes are open again'],
   [plan.marks[2].bubble.in, 'the first dot of the bubble'],
   [plan.marks[2].bubble.full, 'crunchy is fully up, and it holds to the cut'],
   [END.at, 'the hit, ' + (END.hard + END.tail).toFixed(2) + 's of it, and he and the bubble are cut'],
@@ -1933,6 +2252,21 @@ console.log('');
 /* ---------- the sound ---------- */
 const cues = soundCues();
 const { buf: sfx, report: sfxReport } = renderSfx(cues, SECONDS);
+/* the bite, in its own pass. `renderSfx` sets one gain per kind, which is the
+   right shape for a mix where a sound means one thing — so a `crunch` that
+   means something else at a different level is a second call summed onto the
+   same bus rather than a per cue level, because a per cue level is how a
+   balance stops living in one table. post13's argument, unchanged. */
+{
+  const one = renderSfx([{ t: BITE_HIT, kind: 'crunch', opts: BITE_SND.opts,
+    from: 'the bite, on the frame the lunge lands' }],
+  SECONDS, { gains: { crunch: BITE_SND.gain } });
+  for (let i = 0; i < sfx.length; i++) sfx[i] += one.buf[i];
+  sfxReport.push(...one.report);
+  cues.push({ t: BITE_HIT, kind: 'crunch', from: 'the bite' });
+}
+sfxReport.sort((a, b) => a.t - b.t);
+cues.sort((a, b) => a.t - b.t);
 const WAV = path.join(OUT, 'post15-sfx.wav');
 const RAW = path.join(OUT, 'post15-sfx-raw.wav');
 fs.mkdirSync(OUT, { recursive: true });
@@ -1998,12 +2332,12 @@ if (lu && lu.ok) {
   console.log('  loudness ' + lu.lufs + ' LUFS integrated, ' + lu.lra
     + ' LU range, true peak ' + lu.truePeak + ' dBFS, measured on the mp4');
 }
-if (state.plateAtCover) {
-  console.log('  at the handover (' + state.plateAtCover.t + 's) the plate measures '
-    + state.plateAtCover.w + ' x ' + state.plateAtCover.h + ' device px, against a frame'
-    + ' diagonal of ' + (Math.hypot(VW, VH) * DSF).toFixed(1));
-  console.log('  the field is ' + state.washAtHandover.background
-    + ' at opacity ' + state.washAtHandover.opacity);
+if (state.vanish) {
+  const v = state.vanish;
+  console.log('  on the frame before the bug goes (' + v.t + 's) its ink is '
+    + v.bug.w.toFixed(1) + ' x ' + v.bug.h.toFixed(1) + ' css at ' + v.bug.x.toFixed(1)
+    + ', ' + v.bug.y.toFixed(1) + ', and his plate is ' + v.plate.w.toFixed(1) + ' x '
+    + v.plate.h.toFixed(1) + ' at ' + v.plate.x.toFixed(1) + ', ' + v.plate.y.toFixed(1));
 }
 if (state.bug) {
   console.log('  the bug as rendered, at its tightest (' + state.bug.t + 's): '
@@ -2036,62 +2370,65 @@ check(SECONDS >= 5 && SECONDS <= 7.5,
   'the clip runs ' + SECONDS.toFixed(2) + 's — the brief asks for five to seven and this is '
   + (SECONDS - 7).toFixed(2) + 's over the top of it, which is written up at SECONDS');
 
-/* ---------- the transitions ---------- */
-check(goMo.early === 0 && giMo.early === 0,
-  'the field never appears over a disc that has not covered: ' + goMo.early + ' and ' + giMo.early + ' frames');
-check(goMo.minReachOnWash >= 1 && giMo.minReachOnWash >= 1,
-  "the plan's own reach under the field is never under 1: " + goMo.minReachOnWash
-  + ' out, ' + giMo.minReachOnWash + ' in');
-check(covOut.ok && covIn.ok,
-  'the reach measured against the real mascot frame is never under 1: '
-  + (covOut.worst ? covOut.worst.reach : 'n/a') + ' out, '
-  + (covIn.worst ? covIn.worst.reach : 'n/a') + ' in');
-check(growOut.handover.gap <= 12 && growIn.handover.gap <= 12,
-  'the handover colours are within tolerance: ' + growOut.handover.gap + ' out, '
-  + growIn.handover.gap + ' in, of 255');
-/* the reverse grow's very first frame, which is the fault `tail: 0` fixes. */
+/* ---------- the bite ---------- */
+check(BITEMO.hold <= 1,
+  'the bug is under his ink on the frame it goes: the worst corner of its box '
+  + 'sits at ' + BITEMO.hold + ' of the head\'s own ellipse, where 1 is the edge. '
+  + 'the lunge needed ' + BITEMO.need + 'px and it goes ' + BITEMO.by);
+check(BITEMO.step.d < VW / 8,
+  'the lunge is a move rather than a cut: worst one frame step ' + BITEMO.step.d
+  + 'px at ' + BITEMO.step.t + 's, against an eighth of the frame');
+/* the frame the bug goes has to be a frame he is at the bottom of the lunge,
+   at whatever rate is rendering and at both the rates this file is run at,
+   because a contact shorter than a frame has no such frame in it. */
 {
-  const f0 = growFrame(growIn, growIn.at);
-  check(f0.wash.on && f0.wash.o >= 0.999,
-    'the reverse grow is covered from its own first frame: the field is at '
-    + f0.wash.o + ' on ' + growIn.at.toFixed(3) + 's, where a tail would have put it at 0');
+  const inContact = r => {
+    const v = Math.ceil(BITE_HIT * r) / r;
+    return v >= BITE_HIT - 1e-9 && v <= BITE_HIT + BITE.land + 1e-9;
+  };
+  check(inContact(FPS) && inContact(60) && inContact(12),
+    'the bug goes on a frame his head is at the bottom of its lunge, at twelve ('
+    + (Math.ceil(BITE_HIT * 12) / 12).toFixed(4) + 's) and at sixty ('
+    + (Math.ceil(BITE_HIT * 60) / 60).toFixed(4) + 's), inside a contact that runs '
+    + BITE_HIT.toFixed(4) + ' to ' + (BITE_HIT + BITE.land).toFixed(4));
 }
-/* the white second, measured off the frames rather than off the plan. */
+check(Math.abs((BITE_END - BITE.at) - 0.45) < 0.06,
+  'the bite runs ' + (BITE_END - BITE.at).toFixed(2) + 's, against the brief\'s 0.4');
+check(Math.abs((CHEW_END - CHEW.at) - 1.14) < 0.10,
+  'the chew and its bob run ' + (CHEW_END - CHEW.at).toFixed(2)
+  + 's, against the brief\'s one second');
+check(CHEW_HITS.length === CHEW.pulses,
+  'there are ' + CHEW.pulses + ' chewing pulses and ' + CHEW_HITS.length + ' bleeps, one each');
+check(CHEW_EYES.sy <= 0.30,
+  'his eyes are shut for the whole chew: the taller of the two is ' + CHEW_EYES.sy
+  + ' of its own height at the most');
+check(CHEW_EYES.px >= 3.5,
+  'and shut is a line rather than a missing feature: ' + CHEW_EYES.px
+  + ' device px of ink still on the face');
+
+/* no mark may begin while this file is holding the head, for the same reason
+   rig-test's marks may not begin inside a grow: two things authoring one head
+   over one window resolve by build order, which is not an answer. */
 {
-  let flat = 0;
-  const step = 1 / 60;
-  for (let t = 0; t < SECONDS; t += step) {
-    const tr = composeTransitions([growFrame(growOut, t), growFrame(growIn, t)]);
-    /* flat means: the field is holding the frame, or the page is and nothing
-       is drawn on it — between the two grows he is gone and the bug is eaten,
-       so the paper itself is the white. */
-    const white = t >= WHITE_FROM - 1e-6 && t < WHITE_TO - 1e-6;
-    if (white && (tr.wash.o > 0.999 || tr.zone.o === 0)) flat += step;
-  }
-  check(Math.abs(flat - WHITE_FOR) < 0.03,
-    'the white holds ' + flat.toFixed(3) + 's against the brief\'s one second, from '
-    + WHITE_FROM.toFixed(3) + 's to ' + WHITE_TO.toFixed(3) + 's');
-}
-check(Math.abs((growOut.times.coverU) - 0.80) < 0.06,
-  'the grow out takes ' + growOut.times.coverU.toFixed(3) + 's to swallow the frame, against about 0.80');
-check(Math.abs((growIn.times.coverU) - 0.60) < 0.06,
-  'the grow back takes ' + growIn.times.coverU.toFixed(3) + 's, against about 0.60');
-/* nothing may start a state inside a covered stretch — rig-test's lesson. */
-{
-  const inside = plan.marks.filter(m =>
-    (m.t >= growOut.at - 0.30 && m.t <= growOut.end) || (m.t >= growIn.at - 0.30 && m.t <= growIn.end));
-  check(inside.length === 0, 'no mark begins inside a grow: '
+  const inside = plan.marks.filter(m => m.t > BITE.at - 0.30 && m.t < CHEW_END + 0.02);
+  check(inside.length === 0, 'no mark begins inside the bite or the chew: '
     + (inside.length ? inside.map(m => m.state).join(', ') : 'none of the three do'));
 }
+
+/* ---------- the pair ---------- */
+check(PAIR.sy.d <= 0.03,
+  'the two eyes are the same shape from the frame the bug stops: worst difference '
+  + PAIR.sy.d + ' of scale at ' + PAIR.sy.t + 's');
+check(PAIR.lid.d <= 0.01,
+  'and the same lid: worst difference ' + PAIR.lid.d + ' at ' + PAIR.lid.t + 's');
 
 /* ---------- the camera ---------- */
 check(edgePlan.near >= 0,
   'the camera never shows an edge, worked out on every frame: worst ' + edgePlan.near
   + ' css px of overscan at ' + edgePlan.t + 's on z ' + edgePlan.z.toFixed(4));
 check(camMo.z.min >= 1.0,
-  'the camera never goes under z 1, which is what makes the page space cover '
-  + 'arithmetic conservative: min ' + camMo.z.min + ', and ' + zMinInGrows.toFixed(4)
-  + ' inside the two grows');
+  'the camera never goes under z 1, which is the floor the rig being exactly '
+  + 'the stage size sets: min ' + camMo.z.min);
 check(camMo.still === 0, 'no frame of the camera repeats the one before it: ' + camMo.still + ' still frames');
 check(camMo.worst.move.d < VW / 8,
   'the camera never steps: worst one frame move ' + camMo.worst.move.d + 'px against an eighth of the frame');
@@ -2145,13 +2482,26 @@ check(state.wm.capPx >= WM.minCapPx,
 check(Math.min(state.wm.left, state.wm.top, state.wm.right, state.wm.bottom) >= floorDev,
   'the wordmark clears the platform safe area: ' + state.wm.left + ' left, ' + state.wm.top
   + ' top, ' + state.wm.right + ' right, ' + state.wm.bottom + ' bottom, floor ' + floorDev);
-if (state.plateAtCover) {
-  const diag = Math.hypot(VW, VH) * DSF;
-  const short = Math.min(state.plateAtCover.w, state.plateAtCover.h);
-  check(short >= diag,
-    'the plate as rendered covers 1080x1920 at the handover: ' + state.plateAtCover.w
-    + ' x ' + state.plateAtCover.h + ' device px, short axis ' + short.toFixed(1)
-    + ' against a ' + diag.toFixed(1) + 'px frame diagonal');
+if (state.vanish) {
+  /* the same containment as the plan's, measured on the rendered boxes rather
+     than derived: the plate is a circle so its client rect is its ink, and a
+     box inside a circle's box is not a proof, so the corners are tested against
+     the circle itself. */
+  const v = state.vanish;
+  const cx = v.plate.x + v.plate.w / 2, cy = v.plate.y + v.plate.h / 2;
+  const a = v.plate.w / 2, b = v.plate.h / 2;
+  let worst = 0;
+  for (const px of [v.bug.x, v.bug.x + v.bug.w]) {
+    for (const py of [v.bug.y, v.bug.y + v.bug.h]) {
+      worst = Math.max(worst, Math.hypot((px - cx) / a, (py - cy) / b));
+    }
+  }
+  check(state.bugStill === 0,
+    'the bug has not moved between the two frames the containment is measured on: '
+    + state.bugStill + ' page px');
+  check(worst <= 1,
+    'measured on the rendered frames, the bug is inside his plate when it goes: '
+    + 'worst corner at ' + worst.toFixed(4) + ' of the circle, where 1 is the edge');
 }
 {
   const seen = new Set();
@@ -2166,10 +2516,9 @@ if (state.plateAtCover) {
   let worst = null;
   for (let f = 0; f < Math.round(60 * SECONDS); f++) {
     const t = f / 60;
-    if (t >= growOut.at - 0.05 && t <= growIn.end + 0.05) continue;
     if (f >= Math.round(END.at * 60)) break;
     const c = cameraFrame(cam, t);
-    const sr = rectToScreen(c, headPageRect(mascotFrame(plan, t)));
+    const sr = rectToScreen(c, headInkRect(headInk(mascotFrame(plan, t), biteZone(t))));
     const air = safeAir(sr);
     const near = Math.min(air.left, air.top, air.right, air.bottom);
     if (!worst || near < worst.near) worst = { t: +t.toFixed(2), near: +near.toFixed(1), ...air, sr };
@@ -2182,9 +2531,9 @@ if (state.plateAtCover) {
   let bandFrames = 0;
   for (let f = 0; f < Math.round(60 * SECONDS); f++) {
     const t = f / 60;
-    if (t >= growOut.at - 0.05 && t <= growIn.end + 0.05) continue;
     if (f >= Math.round(END.at * 60)) break;
-    const sr = rectToScreen(cameraFrame(cam, t), headPageRect(mascotFrame(plan, t)));
+    const sr = rectToScreen(cameraFrame(cam, t),
+      headInkRect(headInk(mascotFrame(plan, t), biteZone(t))));
     if (overlaps(sr, BAND)) bandFrames++;
   }
   check(bandFrames === 0, 'his head never enters the reserved band: ' + bandFrames + ' frames');
@@ -2217,10 +2566,13 @@ check(GL_WINDOWS_60.length === 1,
      rounded number is a guard about the printing. */
   const late = cues.filter(c => c.t > END.at + 1e-6);
   check(late.length === 0, 'nothing is heard after the cut: ' + late.length + ' cues past ' + END.at + 's');
-  const inWhite = cues.filter(c => c.t >= WHITE_FROM - 1e-6 && c.t < WHITE_TO - 1e-6);
-  check(inWhite.length === 3 && inWhite.every(c => c.kind === 'crunch'),
-    'the only thing heard on the white second is the three chews: '
-    + inWhite.map(c => c.kind).join(', '));
+  /* between the bug stopping and the bubble, the only sounds are the bite and
+     the three chews, in that order. a tick or a pop in there would mean the
+     walk or the bubble had drifted into the eating. */
+  const eating = cues.filter(c => c.t >= WALK.t1 && c.t < plan.marks[2].bubble.in);
+  check(eating.length === 4 && eating.every(c => c.kind === 'crunch'),
+    'the only sounds between the bug stopping and the bubble are the bite and '
+    + 'the three chews: ' + eating.map(c => c.kind).join(', '));
 }
 check(peak.reduction <= LIMIT_ALLOW + 0.3,
   'the limiter took ' + peak.reduction.toFixed(2) + ' dB, allowance is ' + LIMIT_ALLOW);
