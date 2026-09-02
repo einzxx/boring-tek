@@ -425,8 +425,23 @@ export function growFrame(plan, t) {
      background that is now the same colour. */
   let washO = 0, mixK = 0;
   if (covered) {
-    const since = u - T.coverU;
-    mixK = clamp((since - T.release) / T.settleFor, 0, 1);
+    /* the colour is the **shape's** business, so it reads `u`: forward it walks
+       from his fill to the destination paper while the frame is one flat
+       colour, and a reverse is that walk backwards. */
+    mixK = clamp((u - T.coverU - T.release) / T.settleFor, 0, 1);
+    /* the fade off is the **window's** business, so it reads `local`. it is a
+       real thing at the end of a grow, where it is invisible because the
+       background under it is already that colour — and read off `u` it landed
+       on the **first** frame of a reverse instead: the theme has flipped, the
+       field is at nothing over it, and one frame of the new paper turns up in
+       the middle of what should be a flat hold. rig-test.mjs had that frame.
+
+       forward, `local` and `u` are the same number and this is the arithmetic
+       it always was, to the last bit. backwards, the window's end is a long way
+       past the frame the disc stopped covering on, so a reverse has no tail at
+       all: the field is already gone by then, handed over on the frame the disc
+       covers exactly, which is the handover the whole transition is built on. */
+    const since = local - T.coverU;
     const off = T.release + T.settleFor;
     washO = since <= off ? 1 : clamp(1 - (since - off) / T.tail, 0, 1);
   }
@@ -968,6 +983,33 @@ function selfTest() {
     && growFrame(back, back.end + 0.1).active === false,
     'sc ' + growFrame(back, back.end - 0.005).zone.sc);
   t('the reverse starts covered', growFrame(back, back.at + 0.001).covered === true);
+  /* and covered by something. the tail is the fade the field leaves on at the
+     end of a **forward** grow; read off the shape it landed on the first frame
+     of a reverse instead, which is the theme flipping under a field at nothing
+     — one frame of the new paper in the middle of a flat hold. every frame of a
+     reverse that is covered is covered by an opaque field, and the field only
+     ever leaves on the frame the disc covers exactly. */
+  const backFrames = [];
+  for (let f = 0; f <= Math.ceil(back.seconds * 60); f++) backFrames.push(growFrame(back, back.at + f / 60));
+  const litOff = backFrames.filter(fr => fr.covered && fr.wash.o < 1);
+  t('a reverse never shows the paper through the field',
+    litOff.length === 0,
+    litOff.length ? litOff.length + ' covered frames with the field under 1, first at u ' + litOff[0].u
+      : 'all ' + backFrames.filter(fr => fr.covered).length + ' covered frames sit under a solid field');
+  t('the reverse hands over on its first frame',
+    growFrame(back, back.at).wash.on === true && growFrame(back, back.at).wash.o === 1,
+    'field ' + growFrame(back, back.at).wash.o + ' at ' + growFrame(back, back.at).wash.color);
+
+  /* and forward is untouched, to the bit: the tail is still the last tenth of a
+     second of the window and it still ends at nothing. */
+  const fwd = planGrow({ at: 2, dir: 'out', from: 'light', to: 'dark', box: middle });
+  t('a forward grow still tails off at the end of its window',
+    growFrame(fwd, fwd.end - fwd.times.tail - 0.001).wash.o === 1
+    && growFrame(fwd, fwd.end - fwd.times.tail / 2).wash.o < 0.6
+    && growFrame(fwd, fwd.end - 0.001).wash.o < 0.02,
+    'field 1 to ' + growFrame(fwd, fwd.end - fwd.times.tail / 2).wash.o
+    + ' to ' + growFrame(fwd, fwd.end - 0.001).wash.o + ' over the last '
+    + fwd.times.tail + 's');
   t('the reverse is on the destination theme throughout',
     growFrame(back, back.at + 0.001).theme === 'light'
     && growFrame(back, back.end - 0.001).theme === 'light');

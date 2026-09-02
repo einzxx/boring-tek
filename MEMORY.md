@@ -6,6 +6,30 @@ names in here either.
 
 ## Status
 
+- **Closed 2026-09-02: the two open lib faults post15 wrote down, both fixed in
+  `demo/lib/` and neither in a clip.**
+  - **`lib/mascot.mjs` takes `thought`, one option with four values.**
+    `beside` is the module's own placement and the **default**, so nothing that
+    did not ask changes. `over` derives the side, the start point on the crown
+    and the three lifts **from `pos`**, the way `TURN.bias` is derived, and
+    `over-left` / `over-right` name the side outright. The dots start on the
+    plate's own centre line one gap above the crown and climb at fifty degrees
+    to the pill, smallest nearest the head, pill at the top and toward the
+    middle of the frame from any corner. The clearance over the crown is walked
+    off the plan's own frames rather than picked, because a hop drives the head
+    into a dot above it where it only slides past one beside it.
+  - **`lib/transitions.mjs` reads the tail off the window in real time.** A
+    reverse grow no longer opens on one frame of the new paper with the field at
+    nothing over it. Forward grows are identical to the bit.
+  - **Both are proved rather than claimed.** The mascot's beside branch hashes
+    identical — css, markup, page plan and sixty frames — across three
+    placements and both themes; 1666 forward grow frames at 240Hz are identical;
+    `lib/mascot.mjs test` and `lib/transitions.mjs test` are green with eight
+    and three new checks in them.
+  - **Re-rendered on the fixes:** `post15.mjs` at 12fps and at 60 with the
+    shutter open, 48 guards green both ways, and `rig-test.mjs` at 60, 22
+    guards green. Nothing else in `demo/` was touched or needed to be.
+
 - **Built 2026-09-02: `demo/post15.mjs`, the fifteenth clip, the bug. Second
   cut, 6.73s, 1080x1920, dark only, out to
   `demo/out/post15-dark-1080x1920.mp4`.** The first clip built on
@@ -78,21 +102,26 @@ names in here either.
     the time. The walk is 276 page px at 190 px/s now, 8 strides instead of 11,
     and the gait period went from 7.8 frames a cycle at sixty to **10.6**, which
     reads better and was not the point of the move.
-  - **OPEN BUG: the `crunchy` thought bubble still reads wrong, and it has been
-    hand placed three times in this clip.** `lib/mascot.mjs` hangs it beside the
-    head off the top right on a flex row whose parts sit 6, 14 and 22 px off one
-    baseline. Off the right it went 116px off the screen. Mirrored to the left
-    it fitted only while he was cornered — at the push the safe area is 364 page
-    px wide, the head and the module's offset take 257 of them and the cluster
-    is 205, so there is no side of him it goes beside. Above his head, with the
-    lifts rewritten as a diagonal, is what ships, **and it is still wrong**: the
-    dots come off his right shoulder and trail across to a pill up and to his
-    left, so the line goes sideways out of the side of his head before it
-    climbs. It has to start from the **top middle of the head**.
-    **Do not move it in the clip a fourth time.** The fix is `lib/mascot.mjs`
-    deriving the thought's **side, start point on the crown and the three lifts
-    from `pos`**, the way it already derives `TURN.bias` from `pos`. Every
-    mascot that is not bottom left hits this.
+  - **The thought bubble is fixed, in the module, and this clip no longer places
+    it at all.** It had been hand placed three times here — off the right, 116
+    css px past the edge of the screen; mirrored to the left, which stopped
+    fitting the moment he moved toward the middle; and above him with the lifts
+    rewritten as a diagonal, which still started the run off his right
+    **shoulder** so the line went sideways out of the side of his head before it
+    climbed. `lib/mascot.mjs` now takes `thought: 'over'` and derives **the
+    side, the start point on the crown and the three lifts from `pos`**, the way
+    it already derives `TURN.bias`. The clip says `THOUGHT = 'over'` and writes
+    nothing else about the cluster. **Beside the head is still the default**, so
+    every clip already in `demo/` renders the same bytes, and that is hashed
+    rather than asserted.
+  - **The crown the run starts from is measured, and the first render of the fix
+    is why.** The cluster is a sibling of the card and does not move when he
+    does, which beside him is fine and over him is not: `delighted` lifts him
+    12.5 grid units, the arrival curve overshoots by a tenth and the drift adds
+    another, so **15 css px of head went through a dot hanging five above the
+    resting crown** and the small dot came back half swallowed. `crownReach`
+    walks the plan's own frames, over the frames a thought is up for only, and
+    the head's closest approach is now **5.03 css px against a floor of 5**.
   - **The bite and the chews are silent now.** Their four `crunch` cues are out
     because Einz is putting his own sound on that stretch, and a synthesised
     placeholder under a real one is two takes of the same beat fighting each
@@ -112,18 +141,20 @@ names in here either.
     is the preview's sampling rather than the animation. Both are judged on
     strips of stills a sixtieth apart, written on every run to
     `demo/out/verify-post15/gait/` and `demo/out/verify-post15/bite/`.
-  - **OPEN LIB FIX: `lib/transitions.mjs` applies `tail` to the wrong end of a
-    reverse grow.** The tail is the fade the field leaves on at the end of a
-    forward grow, where it is invisible because the background is already that
-    colour; read backwards it lands on the frame the theme flips, so frame zero
-    of a reverse is the new paper with the field at nothing over it — one frame
-    of the wrong colour in the middle of what should be a flat hold, then a
-    tenth of a second of fade. post15's first cut found it and worked round it
-    with the module's own `tail: 0`; that cut is gone and **`rig-test.mjs` still
-    has the same frame in it**. The honest fix is to apply the tail to the end
-    of the **window in real time** rather than to the end of the shape. It
-    changes a rendered clip's frames, which is why it is a decision rather than
-    an implementation detail.
+  - **`lib/transitions.mjs` applies `tail` to the end of the window in real
+    time now, and the reverse grow's wrong frame is gone.** The tail is the fade
+    the field leaves on at the end of a forward grow, where it is invisible
+    because the background is already that colour; read off the shape it landed
+    on the frame the theme flips, so frame zero of a reverse was the new paper
+    with the field at nothing over it. **The fade reads `local` and the colour
+    walk still reads `u`** — the colour is the shape's business and has to
+    mirror, the fade is the window's. Forward, the two are the same number and
+    the arithmetic is unchanged to the bit: **1666 forward frames at 240Hz across
+    three placements and both directions are identical to before**. Backwards a
+    reverse now has no tail at all, which is correct — the field is already gone
+    by then, handed over on the frame the disc covers exactly.
+    **`rig-test.mjs` was re-rendered on the fix**, 22 guards green, and the
+    white frame at 7.600s is gone.
   - **Two new voices in `lib/sfx.mjs`, now twenty one sounds**: `tick`, a foot,
     at -37 dB, the quietest thing in the file; and `crunch`, a bite. Nothing
     existing in the module moved. The clip plays the tick and not the crunch —

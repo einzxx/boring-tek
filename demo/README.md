@@ -3511,6 +3511,13 @@ so nothing is overridden and nothing is forked. It is counter scaled back to
 natural size as well, so the pill is the same physical size in both placements
 and the caps floor is the same number in both.
 
+**`lib/mascot.mjs` grew its own version of this after post15**, as
+`thought: 'over'`. This clip's is not it: the module's derives the side from
+`pos` and this one is about a mascot standing in the middle, where `pos` has
+nothing to say. The day this file is next opened is the day to ask whether the
+module should take a centred placement too. It renders as it always did until
+then.
+
 ### The opening costs 1.62s and it is arithmetic
 
 `delighted` takes 0.50s to arrive and a bubble may not start before the head has
@@ -4185,20 +4192,31 @@ rendered samples with `__cam.edges()`.
 **The destination was 1.12 and it is 1.10, and the bubble is why.** At 1.12 the
 mirrored thought bubble had 13 device px of air off the left safe line, which is
 a number that passes a guard and would not survive a font falling back one glyph
-wider. At 1.10 it has 83.
+wider. At 1.10 it had 83. The mirrored placement is gone — the module's own is
+what ships and it clears by **118** — so 1.10 is more room than the bubble needs
+now. It stays where it is: a second of push is a second of push, and the number
+was never only about the bubble.
 
-### The thought bubble is an open bug, and it has been hand placed three times
+### The thought bubble was hand placed three times, and now it is not placed here at all
 
-**This one is not finished and it should not be finished here.** It is written
-up plainly because the next person to look at it should fix it in the module
-rather than move it in the clip for a fourth time.
+**This clip owned this bug and this clip stopped owning it.** The placement is
+one derivation in `lib/mascot.mjs` now, and `post15.mjs` asks for it by name
+and writes nothing about the cluster:
+
+```js
+const THOUGHT = 'over';
+planMascot({ ..., pos: POS, thought: THOUGHT })
+```
+
+The history is worth keeping because it is what the derivation had to answer.
 
 `lib/mascot.mjs` hangs the cluster **beside** the head, off its top right, on a
 flex row whose three parts sit 6, 14 and 22 px off one baseline. That is correct
 for the corner it was written in: post11's mascot stands bottom left, so a
-thought climbing to its right climbs into the frame.
+thought climbing to its right climbs into the frame. It ships as the default and
+it still does.
 
-This clip has moved it three times and none of them is right.
+This clip moved it three times and none of them was right.
 
 **Off the right**, which is the module's own, it went 116 css px past the edge
 of the screen. That is what a bottom right mascot does to it.
@@ -4209,40 +4227,55 @@ the push the safe area is 364 page px wide, the head and the module's own offset
 take 257 of them, and the cluster is 205. There is no side of him it goes beside
 any more.
 
-**Above him, with the lifts rewritten as a diagonal**, which is what ships:
+**Above him, with the lifts rewritten as a diagonal** — five lines of css and a
+block of arithmetic in `sceneHtml` — put the first dot over the plate's upper
+right **shoulder**, seven tenths of a radius across. The line ran sideways out
+of the side of his head before it climbed. A thought comes out of the top of a
+head, not out of its ear.
 
-```css
-#m-bubble{left:auto; right:18px; bottom:112px; flex-direction:row-reverse}
-#m-bubble #m-dot0{margin-bottom:5px}
-#m-bubble #m-dot1{margin-bottom:22px}
-#m-bubble .m-pill{margin-bottom:40px; transform-origin:100% 100%}
-```
+**What ships is the module's `thought: 'over'`, and it is one derivation off
+`pos`, the way `TURN.bias` is one derivation off `pos`.** It answers three
+things and `mascotCss` asks it for all three:
 
-The lifts had to be the clip's because the module's are a climb beside a head
-and a **horizontal line** above one — two dots in a row pointing at empty space
-with the pill off to one side. 5, 22 and 40 against horizontal steps of 15 and
-11 puts the dots and the pill's bottom right corner on one line at about fifty
-degrees, and the first dot is placed over the plate's own upper right shoulder,
-seven tenths of a radius across, lifted off **the curve at that point** rather
-than off the top of the layout box.
+- **the side.** The pill is the far end of the run, so the pill is the part that
+  has to land over the middle of the frame rather than over an edge. A head on
+  the right thinks to its left, a head on the left thinks to its right, and
+  `over-left` / `over-right` name it outright the way an explicit `bias` does.
+- **the start.** The plate's own vertical centre line — not the box's, which is
+  two grid units wider on every side — one `gap` above the crown. The same
+  `gap` the beside placement holds off his flank, because it is the same
+  question: how far the first dot sits off the ink.
+- **the three lifts.** The row's own dot widths and flex gap fix the horizontal
+  run between the two dot centres and on to the pill's spring corner, at 15 and
+  26 css px. Put those three points on one line at `BUBBLE.over.angle` and the
+  lifts fall out: **0, 15.876 and 34.986**. Nothing to tune, and the module's
+  own check measures the angle back off the lifts and gets 50.00° twice.
 
-**And it still reads wrong.** The dots come off his right shoulder and trail
-across to a pill sitting up and to his left, so the line runs sideways out of
-the side of his head before it climbs. What it has to do is start from the
-**top middle of the head** and climb from there to the pill — a thought comes
-out of the top of a head, not out of its ear.
+**The crown it starts from is measured, not the one at rest, and the first
+render of the fix is why.** The cluster is a sibling of the card, so it does not
+move when he does — which beside him is fine, because a hop slides the head
+*past* a dot at its side, and over him is not, because a hop drives the head
+*into* a dot above its top. `delighted` lifts him 12.5 grid units, the arrival
+curve overshoots it by a tenth and the idle drift adds another: **15 css px of
+head through a dot hanging five above the resting crown**, and the small dot
+came back half swallowed by white.
 
-**The fix is in `lib/mascot.mjs` and it is one derivation, not four numbers.**
-The module already derives the resting turn from `pos`, once, so that a mascot
-looks into the frame rather than out of it. It should derive the thought the
-same way and from the same fact: **which side it goes, where on the crown the
-first dot starts, and what the three lifts are** are all functions of where he
-is standing and how much room is left beside him. Every mascot that is not
-bottom left hits this, and this clip has now paid for it three times.
+So `crownReach` walks the plan's own frames and takes the highest the plate's
+top ever gets — **only over the frames a thought is actually up for**, because
+holding room for a hop nobody is watching would push the whole cluster off the
+top of the frame. It walks at 240Hz, four samples to a frame at sixty, so the
+answer does not depend on where a particular pass's frames land. In this clip
+the crown reaches **-6.02** in the zone against **3.36** at rest, and the check
+that closes it is on the sixty frame grid: the head's closest approach to the
+first dot is **5.03 css px against a floor of 5**.
 
-Until then the clip carries the css above and the guards keep it inside the safe
-area and out of the caption band, which is the most a clip can honestly do about
-a placement the module owns.
+**Every clip that did not ask for this renders the same bytes.** The beside
+branch is written as the literal it always was rather than as a default falling
+out of the over one, and a plan made before the option existed carries no
+`thought` at all and lands there too. Checked rather than claimed: the css, the
+markup, the page plan and sixty frames of animation, across three placements and
+both themes, all hash identical to the module at the commit before this one.
+
 
 ### The caption band is reserved even though nothing is in it
 
@@ -4388,24 +4421,16 @@ next virtual time budget never expired.
 
 ### Outstanding
 
-- **OPEN BUG: the `crunchy` thought bubble still reads wrong.** The dots come
-  off his right shoulder and trail across to a pill up and to his left, so the
-  line goes sideways out of the side of his head before it climbs. It has to
-  start from the **top middle of the head** and climb to the pill. **It has been
-  hand placed three times in this clip and it must not be a fourth**: the fix is
-  `lib/mascot.mjs` deriving the thought's **side, start point on the crown and
-  the three lifts from `pos`**, the way it already derives `TURN.bias`. Every
-  mascot that is not bottom left hits this. See the section above for what has
-  been tried and why each one failed.
-- **OPEN LIB FIX: `lib/transitions.mjs` applies `tail` to the wrong end of a
-  reverse grow.** The tail belongs to the forward direction; read backwards it
-  lands on the frame the theme flips, which puts one frame of the new paper with
-  the field at nothing over it in the middle of what should be a flat hold.
-  post15's first cut found it and worked round it with `tail: 0`; that cut is
-  gone and `rig-test.mjs` still has the same frame in it. The honest fix is to
-  apply the tail to the end of the **window in real time** rather than to the
-  end of the shape, and it changes a rendered clip's frames, which is why it is
-  a decision rather than an implementation detail.
+- **CLOSED: the `crunchy` thought bubble.** It is `lib/mascot.mjs`'s
+  `thought: 'over'` now — one derivation off `pos`, the way `TURN.bias` is —
+  and this clip writes nothing about the cluster at all. Beside the head stays
+  the default, so every clip already in `demo/` renders the same bytes. See the
+  section above for the three hand placements it replaces and for the crown
+  clearance the first render of the fix found.
+- **CLOSED: `tail` on a reverse grow.** `lib/transitions.mjs` reads the fade
+  off the window in real time rather than off the shape, so a reverse no longer
+  opens on one frame of the new paper. Forward grows are unchanged to the bit
+  and `rig-test.mjs` has been re-rendered on the fix. See the section on it.
 - **`lib/mascot.mjs` has no symmetric narrowing and no held closed eye.**
   `unimpressed` is the only lid state and it brings brows and a side eye with
   it; a blink is the only thing that closes an eye and it is sixty milliseconds
@@ -5622,6 +5647,69 @@ arrived.
 are the anticipation and the pill is the arrival, and a sound on the wind-up is
 early for the thing it is the sound of.
 
+#### Where the thought hangs — `beside` by default, `over` derived off `pos`
+
+**`thought` is one option with four values and a default that changes nothing.**
+
+```js
+planMascot({ ..., thought: 'beside' })   // the module's own, and the default
+planMascot({ ..., thought: 'over' })     // over the crown, side worked out from pos
+planMascot({ ..., thought: 'over-left' })
+planMascot({ ..., thought: 'over-right' })
+```
+
+Beside the head is right for the corner it was written in and wrong everywhere
+else: post11's mascot stands bottom left, so a thought climbing off his right
+shoulder climbs into the frame, and off a bottom right head the same cluster goes
+past the edge of the screen. Mirrored, it wants the head's own width again in
+clear space beside him, which a head pushed toward the middle of a 540 wide stage
+does not have. post15 paid for that three times before this option existed.
+
+**`over` derives the side, the start and the three lifts from `pos`, which is
+the fact `TURN.bias` is already derived from.**
+
+- **The side.** The pill is the far end of the run and so the part that has to
+  land over the middle of the frame: a head on the right thinks to its left, a
+  head on the left thinks to its right. `over-left` and `over-right` say it
+  outright, the way an explicit `bias` does.
+- **The start.** The plate's own vertical centre line — a thought comes out of
+  the top of a head, not out of its ear — one `gap` above the crown, which is
+  the same `gap` the beside placement holds off his flank.
+- **The lifts.** The row's dot widths and flex gap fix the horizontal run
+  between the dot centres and on to the pill's spring corner at 15 and 26 css
+  px. Put those three points on one line at `BUBBLE.over.angle` — fifty degrees,
+  steep enough to read as a climb and shallow enough that the pill is still over
+  him — and the lifts are **0, 15.876 and 34.986**. The row direction and the
+  pill's `transform-origin` follow the side, so the smallest dot is always the
+  one nearest the head and the pill always springs from the corner nearest the
+  dots.
+
+**The crown is measured rather than assumed.** The cluster is a sibling of the
+card, so it does not move when he does. Beside him that is fine — a hop slides
+the head *past* a dot at its side. Over him it is not: `delighted` lifts him 12.5
+grid units, the arrival curve overshoots by a tenth and the idle drift adds
+another, so **15 css px of head goes through a dot hanging five above the resting
+crown**. `crownReach` walks the plan's own frames and takes the highest the
+plate's top gets, **only over the frames a thought is up for** — holding room for
+a hop nobody is watching would push the cluster off the top of the frame — at
+240Hz, four samples to a frame at sixty, so the answer does not depend on where a
+pass's frames land.
+
+**It is advisory about the safe area rather than fatal**, because the module
+places the cluster against the zone and a clip is free to move the zone: post15
+lifts him 154 css px off the corner `planMascot` put him in. A plan whose thought
+would leave the safe area from the module's own placement carries a note saying
+so, and the clip's own rendered-rect guard is what decides.
+
+**Beside is untouched, and that is checked rather than claimed.** The beside
+branch of `mascotCss` is written as the literal it always was rather than as a
+default falling out of the over one, and a plan made before the option existed
+carries no `thought` at all and lands there too. The css, the markup, the page
+plan and sixty frames of animation hash identical to the module before the change
+across three placements and both themes.
+
+#### The rest of the bubble
+
 The word ceiling, the safe area guard and the caption band guard are exactly what
 they were. The container carries visibility and the three parts carry the
 animation, so every guard downstream still asks one element whether the cluster
@@ -6060,26 +6148,48 @@ so a mark before the cross holds it at `+TURN.bias`. In the right corner that
 reads as looking toward the side he is about to leave through, which is the
 anticipation the move wants anyway.
 
-#### `tail` belongs to a forward grow, and post15 found it
+#### `tail` belongs to a forward grow, and it is fixed
 
 `tail` is the fade the field leaves on at the end of a grow. Forward it is
 invisible by construction: it fades off onto a background that is already the
-same colour. **Read backwards it lands at the start of the reverse**, where the
+same colour. **Read backwards it landed at the start of the reverse**, where the
 background is the destination theme and is not the same colour at all — an `in`
 grow flips the theme on its first frame, so frame zero of a reverse with a tail
-on it is the new paper with the field at nothing on top of it, followed by a
-tenth of a second of the field fading in over it.
+on it was the new paper with the field at nothing on top of it, followed by a
+tenth of a second of the field fading in over it. post15's first cut hit it and
+worked round it with the module's own `tail: 0`; that cut is gone, and
+`rig-test.mjs` carried the same frame until this pass. Its reverse is dark to
+light, so what it put there was one **white** frame in the middle of a flat
+hold.
 
-post15's first cut hit it and worked round it with the module's own option,
-`tail: 0`, which puts the field at full opacity on the reverse's first frame.
-That cut has since been replaced — its middle is an eating beat now and there
-is no grow in the repo outside `rig-test.mjs` — but the fault is real and it is
-written down here rather than lost with the clip that found it. `rig-test.mjs`
-has the same shape in it: its reverse is dark to light, so what it puts on that
-frame is one white frame rather than one black one. **The honest fix is in this
-file** — the tail should be applied to the end of the window in real time
-rather than to the end of the shape — and it changes a rendered clip's frames,
-which is a decision rather than an implementation detail.
+**The fix is one line and it is the one the fault always asked for: the fade is
+the window's business, so it reads real time rather than the shape.** The colour
+walk still reads `u` — that is the shape, and it has to mirror. The fade reads
+`local`:
+
+```js
+const since = local - T.coverU;              /* was u - T.coverU */
+const off = T.release + T.settleFor;
+washO = since <= off ? 1 : clamp(1 - (since - off) / T.tail, 0, 1);
+```
+
+**Forward, `local` and `u` are the same number, so this is the arithmetic it
+always was, to the bit.** 1666 forward frames walked at 240Hz across three
+placements and both directions of theme come back identical to the frames before
+the change, which is the property that let it ship without re-cutting anything.
+
+**Backwards, a reverse now has no tail at all, and that is correct rather than a
+compromise.** The window's end is a long way past the frame the disc stopped
+covering on, so by the time the fade would begin the field is already gone —
+handed over on the frame the disc covers exactly, painted the colour the disc
+already is. That handover is what the whole transition is built on, and the tail
+was never doing anything a reverse needed.
+
+Two module checks hold it: every covered frame of a reverse sits under a solid
+field, and a forward grow still goes 1 to nothing over the last tenth of its
+window. `rig-test.mjs` was re-rendered on the fix and the frame is gone —
+sampled at sixty across 7.40 to 7.90s, the light film walks 9,6,10 to 12,9,13
+at the flip and stays there, where before it put a full white frame at 7.600s.
 
 #### It sits above `lib/pictograms.mjs` and does not weaken it
 

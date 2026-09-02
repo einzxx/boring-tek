@@ -154,7 +154,7 @@ import { execFileSync } from 'node:child_process';
 import {
   planMascot, mascotFrame, mascotMotion, mascotCues, mascotCss, mascotMarkup,
   mascotRuntime, mascotPagePlan, describeMascot, describeMotion, headRect,
-  STATES, STAGE, SAFE, HEAD_PX, HEAD, GRID, BUBBLE,
+  STATES, STAGE, SAFE, HEAD_PX, HEAD,
 } from './lib/mascot.mjs';
 import {
   planCamera, cameraFrame, cameraMotion, cameraCss, cameraMarkup, cameraRuntime,
@@ -215,6 +215,13 @@ const SECONDS = 6.73;
 const SIZE = 128;
 const POS = 'bottom-right';
 const MARGIN = 24;
+/* and where the thought hangs, which is the module's decision now rather than
+   this file's. `over` puts the run on the top middle of his head and climbs it
+   toward the middle of the frame, off `pos` — this clip hand placed it three
+   times, each one a set of numbers that only worked where he happened to be
+   standing that day, and the third was still wrong. nothing about the cluster
+   is written here any more. */
+const THOUGHT = 'over';
 /* the lift was 84, which is what the bug's lane costs. it is 154 now, and the
    extra 70 is composition rather than clearance: at 84 he is pinned to the
    corner and the frame above him is dead. `IN` is the same argument on the
@@ -377,9 +384,12 @@ const SHUT = { at: +(BITE.at + BITE.rise).toFixed(4), in: 0.09,
 
    **the destination was 1.12 and it is 1.10, and the bubble is why.** the push
    pulls the frame in around him, and everything on his side of it moves toward
-   an edge as it does. at 1.12 the thought had 13 device px of air off a safe
-   line, which is a number that passes a guard and would not survive a font
-   falling back one glyph wider.
+   an edge as it does. at 1.12 the thought — mirrored to his left at the time,
+   which is a placement this file no longer owns — had 13 device px of air off a
+   safe line, a number that passes a guard and would not survive a font falling
+   back one glyph wider. the module's placement clears it by 118, so 1.10 is now
+   more room than the bubble needs; it stays where it is because a second of
+   push is a second of push and the number was never only about the bubble.
 
    **and the centre follows the pair rather than staying where they used to
    be.** lifting him and bringing him in moved the two of them 85px left and
@@ -832,7 +842,7 @@ function pickSeed() {
     let pl;
     try {
       pl = planMascot({ marks: CUT.marks, seconds: CUT.seconds, theme: 'dark',
-        size: SIZE, pos: POS, margin: MARGIN, band: BAND, seed: s });
+        size: SIZE, pos: POS, margin: MARGIN, band: BAND, thought: THOUGHT, seed: s });
     } catch (err) { continue; }
     const bl = pl.idle.blinks[0];
     if (bl && bl.t >= BLINK_WINDOW[0] && bl.t <= BLINK_WINDOW[1]) return { seed: s, blink: bl };
@@ -843,7 +853,7 @@ const SEED = pickSeed();
 
 const plan = planMascot({
   marks: CUT.marks, seconds: CUT.seconds, theme: 'dark',
-  size: SIZE, pos: POS, margin: MARGIN, band: BAND,
+  size: SIZE, pos: POS, margin: MARGIN, band: BAND, thought: THOUGHT,
   seed: SEED.seed,
 });
 /* the lift. `planMascot` owns the corner and this owns the height, and it is
@@ -1220,38 +1230,6 @@ function pageFrame(o) {
    its own layers. */
 function sceneHtml() {
   const b = BUG.body, h = BUG.head;
-  /* ---------- where the thought sits, and the dots have to lead to it -------
-     the cluster is a flex row and the module gives its three parts lifts of 6,
-     14 and 22 px off one baseline. beside a head that is the right shape: the
-     head is to their left, so six px of rise over fifty of run reads as a
-     trail climbing away from it.
-
-     **above a head it reads as nothing.** the head is below the whole cluster,
-     so the same three lifts put two dots in a horizontal line pointing at empty
-     space and the pill off to one side of them. that is what the first cut of
-     this placement did.
-
-     so the lifts are this clip's, and they are a **diagonal**: 5, 22 and 40,
-     against horizontal steps of 15 and 11. the two dots climb at about fifty
-     degrees and the pill's bottom right corner — which is where it springs
-     from, because that is the corner nearest the dots — sits on the same line.
-     smallest nearest the head, largest next, pill at the top of the run.
-
-     and the run has to start **on him**. the first dot is put over the plate's
-     own upper right shoulder, seven tenths of a radius across, and lifted 14 px
-     off the curve at that point rather than off the top of the box. the
-     difference is 43 px of plate: a dot placed off the box floats beside his
-     crown with nothing under it, which is the other half of what was wrong. */
-  const U = plan.unit;
-  const R = HEAD.plate.s / 2 * U;
-  const pc = (HEAD.plate.x + HEAD.plate.s / 2) * U;   /* the plate's centre in the zone */
-  const SHOULDER = 0.70;                               /* of a radius, across */
-  const AIR = 14;                                      /* css px off the curve */
-  const LIFTS = [5, 22, 40];                           /* dot0, dot1, pill */
-  const dotCx = pc + SHOULDER * R;
-  const surfaceY = pc - Math.sqrt(R * R - (SHOULDER * R) * (SHOULDER * R));
-  const bubRight = +(SIZE - (dotCx + BUBBLE.dots[0].d / 2)).toFixed(2);
-  const bubBottom = +((SIZE - surfaceY) + AIR - LIFTS[0] - BUBBLE.dots[0].d / 2).toFixed(2);
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1306,32 +1284,6 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
   will-change:transform}
 
 ${cameraCss()}
-
-/* ---- the thought goes above his head ----
-   lib/mascot.mjs hangs the cluster **beside** the head, off its top right, and
-   that is correct for the corner it was written in: post11's mascot stands
-   bottom left, so a thought climbing to its right climbs into the frame.
-
-   this clip has had it both ways and neither survives. off the right it went
-   116 css px past the edge of the screen, which is what a bottom right mascot
-   does to it. mirrored to the left it fitted while he was in the corner and
-   stopped fitting the moment he moved toward the middle: at the push the safe
-   area is 364 page px wide, the head and its offset take 257 of them, and the
-   cluster is 205 — there is no side of him it goes beside any more.
-
-   so it goes **above** him. row-reverse keeps the small dot nearest him and the
-   pill's spring origin moves to the corner nearest the dots — but that on its
-   own is not enough, and the first cut of this placement proved it: the
-   module's own lifts are 6, 14 and 22 off one baseline, which is a climb beside
-   a head and a horizontal line above one. the two dots pointed at nothing.
-
-   so the lifts are this clip's as well, and every number here is derived off
-   the plate's own circle. see the block that computes them. (no backticks in
-   this comment on purpose: it lives inside a template literal.) */
-#m-bubble{left:auto; right:${bubRight}px; bottom:${bubBottom}px; flex-direction:row-reverse}
-#m-bubble #m-dot0{margin-bottom:${LIFTS[0]}px}
-#m-bubble #m-dot1{margin-bottom:${LIFTS[1]}px}
-#m-bubble .m-pill{margin-bottom:${LIFTS[2]}px; transform-origin:100% 100%}
 
 /* the mascot's own cut, as a wrapper rather than as a rule on the zone: the
    zone is carrying the bite's transform and a second thing writing it would be

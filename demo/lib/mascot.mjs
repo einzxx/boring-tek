@@ -609,6 +609,28 @@ export const BUBBLE = {
   dots: [{ d: 8, lift: 6 }, { d: 12, lift: 14 }],
   gap: 5, dotGap: 5, pillLift: 22,
 
+  /* ---------- and the same cluster, over the crown ----------
+     the lifts above hang the run **beside** the head, and they are right for
+     the corner they were written in: post11's mascot stands bottom left, so a
+     thought climbing off his right shoulder climbs into the frame. every other
+     corner breaks it. off a bottom right head the cluster goes past the edge of
+     the screen. mirrored to the left it wants the head's own width again in
+     clear space beside him, and a head pushed toward the middle of a 540 wide
+     stage does not have it.
+
+     so `thought: 'over'` puts the run over the **top middle of the head** and
+     climbs it toward the middle of the frame. a thought comes out of the top of
+     a head rather than out of its ear, and which way it leans is the same fact
+     `TURN.bias` is derived from: where he is standing.
+
+     `angle` is the whole of it. the two dot centres and the pill's own spring
+     corner sit on one line at this many degrees, so the cluster reads as one
+     run rather than as two dots in a row pointing at nothing with a pill off to
+     one side — which is what the beside lifts do above a head, and is what a
+     clip that hand placed this three times kept finding. fifty is steep enough
+     to read as a climb and shallow enough that the pill is still over him. */
+  over: { angle: 50 },
+
   /* the sequence. the site runs 0, 70, 140, 210ms and this keeps the 70, which
      is the interval that reads as one gesture with three beats rather than as
      three things arriving. the exit is the same list backwards. */
@@ -912,6 +934,9 @@ export const STATES = {
 };
 export const STATE_NAMES = Object.keys(STATES);
 export const THEMES = ['light', 'dark'];
+/* where the thought hangs. `beside` is the module's own and the default. see
+   BUBBLE.over for the other three and for why they exist. */
+export const THOUGHTS = ['beside', 'over', 'over-left', 'over-right'];
 
 /* ---------- the seeded rhythms ----------
    the idle is generated once from a fixed seed rather than written out, so it
@@ -1014,6 +1039,13 @@ export function planMascot(opts = {}) {
        which is the whole point of it being one number: bottom left looks right,
        bottom right looks left, and either can be overridden by saying so. */
     bias: null,
+    /* where the thought bubble hangs, and the same reasoning as the line above
+       it: `over` works the side, the start point on the crown and the three
+       lifts out from `pos`, and `over-left` / `over-right` say the side
+       outright the way an explicit `bias` does. `beside` is the module's own
+       placement and the default, so a clip that asks for nothing renders
+       exactly what it always rendered. */
+    thought: 'beside',
     band: null,                 /* the caption box to keep the bubble out of */
     /* the hand, off unless a clip asks for it. see HAND above: with it off
        nothing about this module changes, which is a property the diff harness
@@ -1023,6 +1055,10 @@ export function planMascot(opts = {}) {
     ...opts,
   };
   if (!THEMES.includes(o.theme)) throw new Error('no theme called "' + o.theme + '"');
+  if (!THOUGHTS.includes(o.thought)) {
+    throw new Error('no thought placement called "' + o.thought + '" — the four are '
+      + THOUGHTS.join(', '));
+  }
   if (!o.marks.length) throw new Error('a mascot plan needs at least one mark');
 
   const marks = [...o.marks].map((m, i) => ({ ...m, i })).sort((a, b) => a.t - b.t);
@@ -1299,6 +1335,8 @@ export function planMascot(opts = {}) {
     theme: o.theme, size: o.size, radius: o.radius, unit, bias: +bias.toFixed(4),
     turn: TURN,
     pos: o.pos, box, plate: { w: +plate.w.toFixed(3), off: +plate.off.toFixed(3) },
+    /* filled in below, once there are frames to measure the crown against. */
+    thought: null,
     headPx: +(plate.w * STAGE.dsf).toFixed(1),
     stage: STAGE, safe: SAFE, band: o.band,
     /* both are null-ish when the part is off, and every consumer keys off
@@ -1335,6 +1373,22 @@ export function planMascot(opts = {}) {
         + keys[i] + ') — change the seed');
     }
   }
+
+  /* last, because it reads the plan's own frames. see `placeThought`. */
+  plan.thought = placeThought(o.thought, o.pos, o.size, crownReach(plan));
+  if (plan.thought.mode === 'over') {
+    /* advisory rather than fatal, and on purpose: the module places the cluster
+       against the zone, and a clip is free to move the zone — post15 lifts him
+       154 css px off the corner planMascot put him in. so this says what the
+       placement does where the module put him and leaves the verdict to the
+       clip's own guard, which measures the rendered rect. */
+    const above = SAFE_CSS.top - (box.top + plan.thought.topInZone);
+    if (above > 0) {
+      notes.push('the thought over his head reaches ' + above.toFixed(1)
+        + ' css px above the safe area from where planMascot puts him — a clip that moves the zone '
+        + 'may still be inside it, and its own guard is the one that decides');
+    }
+  }
   return plan;
 }
 
@@ -1347,6 +1401,120 @@ function placeHead(pos, size, plate, margin) {
   const left = pos.endsWith('right') ? R - plate.w - plate.off : L - plate.off;
   const top = pos.startsWith('top') ? T - plate.off : Bo - plate.w - plate.off;
   return { left: +left.toFixed(2), top: +top.toFixed(2), size };
+}
+
+/* ---------- how high the crown actually gets ----------
+   the cluster is a sibling of the card, so it does not move when he does, and
+   over the crown that matters in a way beside him never did: a hop slides the
+   head **past** a dot placed at its side and drives it **into** one placed over
+   its top. `delighted` lifts him 12.5 grid units, the arrival curve overshoots
+   that by a tenth and the idle drift adds another, and 15 css px of head goes
+   straight through a dot hanging five above the resting crown. the first render
+   of this placement had the small dot half swallowed.
+
+   so the clearance is measured rather than picked, and it is measured **only
+   over the frames a thought is actually up for** — the head is free to hop into
+   the space above it the rest of the time, and holding room for a hop nobody
+   is watching would push the whole cluster off the top of the frame.
+
+   the plate is a circle, so its rotation changes nothing and its horizontal
+   drift only ever moves the point under the dot further down. what is left is
+   the y and the vertical scale, which is what this walks.
+
+   240 samples a second is four per frame at sixty and twenty at twelve, so the
+   answer does not depend on where the frames of a particular pass happen to
+   land — the same argument the grow's cover point is walked at 480 for. */
+const CROWN_HZ = 240;
+function crownReach(plan) {
+  const R = HEAD.plate.s / 2 * plan.unit;
+  const cy = (HEAD.plate.y + HEAD.plate.s / 2) * plan.unit;
+  let top = HEAD.plate.y * plan.unit;   /* the resting crown, and the floor */
+  for (const m of plan.marks) {
+    for (const b of m.bubbles || []) {
+      const steps = Math.ceil((b.out - b.in) * CROWN_HZ);
+      for (let i = 0; i <= steps; i++) {
+        const c = mascotFrame(plan, b.in + (b.out - b.in) * i / steps).card;
+        top = Math.min(top, cy + c.y - R * c.sy);
+      }
+    }
+  }
+  return n(top);
+}
+
+/* ---------- where the thought hangs ----------
+   one derivation, off `pos`, the way the resting turn above is one derivation
+   off `pos`. it answers three things and the css asks it for all three:
+
+     the side       which way the run climbs. the pill is the far end of it, so
+                    the pill is the part that has to end up over the middle of
+                    the frame rather than over an edge — a head on the right
+                    thinks to its left and a head on the left thinks to its
+                    right. `over-left` and `over-right` name it outright.
+
+     the start      the top middle of the head, `gap` off the crown. the same
+                    `gap` the beside placement holds off his flank, because it
+                    is the same question: how far the first dot sits off the
+                    ink.
+
+     the lifts      what puts the two dot centres and the pill's spring corner
+                    on one line at `over.angle`. the row's own widths and gaps
+                    fix the horizontal run between them, so the rise is
+                    arithmetic and there is nothing here to tune per clip.
+
+   `beside` returns a mode and nothing else. every number below is only read by
+   the over branch of `mascotCss`, so a plan that did not ask for this renders
+   what it always rendered, byte for byte. */
+function placeThought(mode, pos, size, crownTop) {
+  if (mode === 'beside') return { mode: 'beside', asked: mode };
+  const sx = mode === 'over-left' ? -1
+    : mode === 'over-right' ? 1
+      : (pos.endsWith('right') ? -1 : 1);
+
+  const unit = size / GRID;
+  const d0 = BUBBLE.dots[0].d, d1 = BUBBLE.dots[1].d;
+  /* along the row: the first dot's centre to the second's, and on to the pill's
+     near bottom corner, which is the corner the pill springs from and so the
+     point of it that belongs on the line. */
+  const run1 = d0 / 2 + BUBBLE.dotGap + d1 / 2;
+  const run2 = run1 + d1 / 2 + BUBBLE.dotGap;
+  const rise = Math.tan(BUBBLE.over.angle * Math.PI / 180);
+  /* and up. a lift is `margin-bottom`, which moves a part's **bottom edge** off
+     the row's baseline, so a dot's centre is its lift plus its radius and the
+     pill's corner is its lift exactly. the first dot carries none: the
+     cluster's own `bottom` places it and the rest of the run climbs off it. */
+  const lifts = [0, d0 / 2 + rise * run1 - d1 / 2, d0 / 2 + rise * run2].map(n);
+
+  /* the crown, in the zone's own box. across, it is the plate's own centre
+     line — the plate is inset from the box on every side, and the difference is
+     a dot sitting on his head against a dot floating beside it. up, it is the
+     highest the crown gets while the thought is up, which `crownReach` walked,
+     and `gap` above that: the same `gap` the beside placement holds off his
+     flank, because it is the same question. */
+  const crownX = (HEAD.plate.x + HEAD.plate.s / 2) * unit;
+  const crownY = crownTop - BUBBLE.gap;
+
+  /* anchored by the edge the first dot is on, so the pill is free to be as wide
+     as the copy needs it and the dot stays on the crown either way. */
+  const edge = sx < 0 ? 'right' : 'left';
+  const x = sx < 0 ? size - (crownX + d0 / 2) : crownX - d0 / 2;
+
+  /* the pill's height is the one part of the cluster node can work out — the
+     width is a font's business and the clip's guard measures that. */
+  const pillH = BUBBLE.size * 1.25 + 2 * BUBBLE.padY + 2 * BUBBLE.stroke;
+
+  return {
+    mode: 'over', asked: mode, side: sx < 0 ? 'left' : 'right',
+    angle: BUBBLE.over.angle,
+    flow: sx < 0 ? 'row-reverse' : 'row',
+    /* the pill grows out of the corner nearest the dots rather than out of its
+       own middle, which is the site's own behaviour and is why the corner moves
+       with the side. */
+    origin: sx < 0 ? '100% 100%' : '0% 100%',
+    anchor: { edge, x: n(x), bottom: n(size - crownY) },
+    lifts, start: { x: n(crownX), y: n(crownY) }, crownTop: n(crownTop),
+    runs: [0, n(run1), n(run2)],
+    pillH: n(pillH), topInZone: n(crownY - lifts[2] - pillH),
+  };
 }
 
 /* ---------- the channels ----------
@@ -2382,8 +2550,28 @@ export function mascotMarkup(plan) {
    illustration sitting on it. */
 export function mascotCss(plan) {
   const B = plan.box, S = plan.size;
+  /* ---------- the two placements ----------
+     the css below is written for the beside one and every number in its
+     comments is about that. over the crown is the other, and all six numbers it
+     needs arrive on `plan.thought` already worked out: the edge the cluster is
+     anchored by, the offset off it, the flow direction, the three lifts and the
+     pill's spring corner. this function reads them and decides nothing — see
+     `placeThought`.
+
+     the beside branch is written as the literal it always was rather than as a
+     default falling out of the over one, and a plan made before this option
+     existed carries no `thought` at all and lands there too. that is the whole
+     promise: a clip that did not ask for this writes the same bytes it wrote
+     before, comments included. */
+  const TH = plan.thought && plan.thought.mode === 'over' ? plan.thought : null;
+  const bubEdge = TH ? TH.anchor.edge : 'left';
+  const bubX = TH ? TH.anchor.x : n(S * (HEAD.plate.x + HEAD.plate.s) / GRID + BUBBLE.gap);
+  const bubBottom = TH ? TH.anchor.bottom : n(S * (1 - (HEAD.plate.y + HEAD.plate.s * 0.34) / GRID));
+  const bubFlow = TH ? `flex-direction:${TH.flow}; ` : '';
+  const pillLift = TH ? TH.lifts[2] : BUBBLE.pillLift;
+  const pillOrigin = TH ? TH.origin : '0% 100%';
   const dotCss = BUBBLE.dots
-    .map((d, i) => `#m-dot${i}{width:${d.d}px;height:${d.d}px;margin-bottom:${d.lift}px}`)
+    .map((d, i) => `#m-dot${i}{width:${d.d}px;height:${d.d}px;margin-bottom:${TH ? TH.lifts[i] : d.lift}px}`)
     .join('\n');
   return `
 /* the two themes, as tokens, so switching is one attribute rather than a
@@ -2463,9 +2651,9 @@ export function mascotCss(plan) {
    the card rather than a child of it, so the glow layers cannot reach it, and
    it does not squash when the head does either. */
 .bubble{
-  position:absolute; left:${n(S * (HEAD.plate.x + HEAD.plate.s) / GRID + BUBBLE.gap)}px;
-  bottom:${n(S * (1 - (HEAD.plate.y + HEAD.plate.s * 0.34) / GRID))}px;
-  display:flex; align-items:flex-end; gap:${BUBBLE.dotGap}px;
+  position:absolute; ${bubEdge}:${bubX}px;
+  bottom:${bubBottom}px;
+  display:flex; ${bubFlow}align-items:flex-end; gap:${BUBBLE.dotGap}px;
   /* max-content is load bearing, and it is the site's note as well: an
      absolutely positioned box shrink to fits against its containing block, and
      the zone is only as wide as the head, so without this the pill is squeezed
@@ -2480,7 +2668,7 @@ export function mascotCss(plan) {
 }
 ${dotCss}
 .m-pill{
-  margin-bottom:${BUBBLE.pillLift}px;
+  margin-bottom:${pillLift}px;
   padding:${BUBBLE.padY}px ${BUBBLE.padX}px;
   border:${BUBBLE.stroke}px solid var(--bub); border-radius:${BUBBLE.radius}px;
   background:var(--eye); color:var(--face);
@@ -2488,7 +2676,7 @@ ${dotCss}
   line-height:1.25; letter-spacing:.005em; white-space:nowrap;
   /* the site springs it from its bottom left, which is the corner nearest the
      dots, so it grows out of them rather than out of its own middle. */
-  transform-origin:0% 100%; opacity:0; will-change:transform,opacity;
+  transform-origin:${pillOrigin}; opacity:0; will-change:transform,opacity;
 }`;
 }
 
@@ -2714,6 +2902,12 @@ export function describeMascot(plan) {
       + (m.bubbles || []).map(b => '  bubble "' + b.text + '" ' + b.in.toFixed(2)
         + '..' + b.out.toFixed(2)).join(''));
     out.push('              ' + m.label);
+  }
+  if (plan.thought && plan.thought.mode === 'over') {
+    const th = plan.thought;
+    out.push('    thought: over the crown, climbing ' + th.side + ' at ' + th.angle
+      + ' degrees, lifts ' + th.lifts.join(', ') + ' off the row'
+      + (th.asked === 'over' ? ' (from pos ' + plan.pos + ')' : ' (asked for)'));
   }
   if (plan.yap) {
     out.push('    hand: ' + plan.yap.count + ' yap cycles over '
@@ -3102,6 +3296,90 @@ function selfTest() {
     'left ' + left.bias + ', right ' + right.bias);
   ok('an explicit bias wins',
     planMascot({ seconds: 4, marks: [{ t: 0.3, state: 'neutral' }], bias: -0.2 }).bias === -0.2);
+
+  /* ---------- the thought, derived off the same fact ----------
+     it climbs toward the middle of the frame from every corner, it starts on
+     the top middle of the head, and the run really is a straight line. all
+     three are arithmetic, so none of them needs a render to answer. */
+  const think = pos => planMascot({
+    seconds: 4, marks: [{ t: 0.3, state: 'curious', bubble: 'go on' }], pos, thought: 'over',
+  }).thought;
+  ok('the thought climbs into the frame from either corner',
+    think('bottom-left').side === 'right' && think('bottom-right').side === 'left'
+    && think('top-left').side === 'right' && think('top-right').side === 'left',
+    'left ' + think('bottom-left').side + ', right ' + think('bottom-right').side);
+  ok('a named side wins over the corner',
+    planMascot({ seconds: 4, marks: [{ t: 0.3, state: 'neutral' }], pos: 'bottom-left', thought: 'over-left' })
+      .thought.side === 'left');
+  ok('an unknown placement is refused', (() => {
+    try { planMascot({ seconds: 4, marks: [{ t: 0.3, state: 'neutral' }], thought: 'behind' }); return false; }
+    catch { return true; }
+  })());
+
+  /* the run starts on him. the first dot's centre sits on the plate's own
+     vertical centre line — not on the box's, which is two grid units wider on
+     every side and is what a dot floating beside his head is placed off — and
+     one gap above the crown. */
+  const overPlan = planMascot({
+    seconds: 4, marks: [{ t: 0.3, state: 'curious', bubble: 'go on' }],
+    size: 128, pos: 'bottom-right', thought: 'over',
+  });
+  const crown = overPlan.thought;
+  const U = 128 / GRID;
+  ok('the first dot starts on the top middle of the head',
+    crown.start.x === n((HEAD.plate.x + HEAD.plate.s / 2) * U)
+    && crown.start.y === n(crown.crownTop - BUBBLE.gap),
+    'centre line ' + crown.start.x + ' against the plate at ' + n((HEAD.plate.x + HEAD.plate.s / 2) * U)
+    + ', ' + BUBBLE.gap + 'px above a crown that reaches ' + crown.crownTop);
+
+  /* and the crown it is measured off is the one the clip actually has, not the
+     one at rest. a state that hops drives fifteen css px of head through a dot
+     hung five above the resting crown, and the first render of this placement
+     had the small dot half swallowed. */
+  const hop = planMascot({
+    seconds: 4, marks: [{ t: 0.3, state: 'delighted', bubble: 'crunchy' }],
+    size: 128, pos: 'bottom-right', thought: 'over',
+  });
+  const hopR = HEAD.plate.s / 2 * hop.unit, hopCy = (HEAD.plate.y + HEAD.plate.s / 2) * hop.unit;
+  /* on the sixty frame grid, because rendered frames are the only ones anybody
+     sees and the reach above is walked four times finer than this. */
+  let worst = Infinity, hitAt = 0;
+  for (const b of hop.marks[0].bubbles) {
+    for (let t = b.in; t <= b.out; t += 1 / 60) {
+      const c = mascotFrame(hop, t).card;
+      const air = (hopCy + c.y - hopR * c.sy) - hop.thought.start.y;
+      if (air < worst) { worst = air; hitAt = t; }
+    }
+  }
+  ok('a hop never reaches the first dot',
+    worst >= BUBBLE.gap - 0.02 && hop.thought.crownTop < crown.crownTop,
+    'closest ' + worst.toFixed(2) + ' css px at ' + hitAt.toFixed(2) + 's, floor ' + BUBBLE.gap
+    + ' — the crown reaches ' + hop.thought.crownTop + ' hopping against ' + crown.crownTop + ' looking');
+
+  /* and it is one line rather than three heights. each part's own anchor — a
+     dot's centre, the pill's spring corner — against its run along the row. */
+  const [d0, d1] = BUBBLE.dots.map(d => d.d);
+  const ups = [crown.lifts[0] + d0 / 2, crown.lifts[1] + d1 / 2, crown.lifts[2]];
+  const angles = [1, 2].map(k => Math.atan2(ups[k] - ups[0], crown.runs[k]) * 180 / Math.PI);
+  ok('the two dots and the pill sit on one line',
+    angles.every(a => Math.abs(a - BUBBLE.over.angle) < 0.02),
+    angles.map(a => a.toFixed(2) + '°').join(' and ') + ' against ' + BUBBLE.over.angle + '°');
+  ok('the run climbs, smallest dot nearest the head',
+    d0 < d1 && ups[0] < ups[1] && ups[1] < ups[2],
+    'dots ' + d0 + 'px then ' + d1 + 'px, rising ' + ups.map(u => u.toFixed(1)).join(', '));
+
+  /* and the default is the default. the css a plan that asked for nothing
+     writes is the css this module has always written, which is what lets every
+     clip already in demo/ render unchanged. */
+  const wasCss = mascotCss(planMascot({
+    seconds: 4, marks: [{ t: 0.3, state: 'curious', bubble: 'go on' }], size: 128, pos: 'bottom-right',
+  }));
+  ok('nothing asked for leaves the beside placement alone',
+    wasCss.includes('position:absolute; left:129px;')
+    && wasCss.includes('#m-dot0{width:8px;height:8px;margin-bottom:6px}')
+    && wasCss.includes('margin-bottom:22px;')
+    && wasCss.includes('transform-origin:0% 100%;')
+    && !wasCss.includes('flex-direction'));
   /* the turn is where he is facing rather than a gesture, so an exit leaves it
      where it is — otherwise turn-away would be a twitch. */
   const stays = planMascot({
