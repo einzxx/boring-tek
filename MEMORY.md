@@ -78,16 +78,21 @@ names in here either.
     the time. The walk is 276 page px at 190 px/s now, 8 strides instead of 11,
     and the gait period went from 7.8 frames a cycle at sixty to **10.6**, which
     reads better and was not the point of the move.
-  - **The thought bubble has now been in three places in one clip and the module
-    should own this.** `lib/mascot.mjs` hangs it beside the head off the top
-    right, which is right for a bottom left mascot; off the right it went 116px
-    off the screen, mirrored to the left it fitted only while he was cornered,
-    and now it goes **above his head** — at the push the safe area is 364 page
+  - **OPEN BUG: the `crunchy` thought bubble still reads wrong, and it has been
+    hand placed three times in this clip.** `lib/mascot.mjs` hangs it beside the
+    head off the top right on a flex row whose parts sit 6, 14 and 22 px off one
+    baseline. Off the right it went 116px off the screen. Mirrored to the left
+    it fitted only while he was cornered — at the push the safe area is 364 page
     px wide, the head and the module's offset take 257 of them and the cluster
-    is 205, so there is no side of him it goes beside. All three are css at the
-    id level and derived off the plan's geometry, so nothing in lib is touched,
-    but the module should derive the placement from `pos` the way it derives
-    `TURN.bias`.
+    is 205, so there is no side of him it goes beside. Above his head, with the
+    lifts rewritten as a diagonal, is what ships, **and it is still wrong**: the
+    dots come off his right shoulder and trail across to a pill up and to his
+    left, so the line goes sideways out of the side of his head before it
+    climbs. It has to start from the **top middle of the head**.
+    **Do not move it in the clip a fourth time.** The fix is `lib/mascot.mjs`
+    deriving the thought's **side, start point on the crown and the three lifts
+    from `pos`**, the way it already derives `TURN.bias` from `pos`. Every
+    mascot that is not bottom left hits this.
   - **The bite and the chews are silent now.** Their four `crunch` cues are out
     because Einz is putting his own sound on that stretch, and a synthesised
     placeholder under a real one is two takes of the same beat fighting each
@@ -107,11 +112,18 @@ names in here either.
     is the preview's sampling rather than the animation. Both are judged on
     strips of stills a sixtieth apart, written on every run to
     `demo/out/verify-post15/gait/` and `demo/out/verify-post15/bite/`.
-  - **`tail: 0` on a reverse grow is a real fault in `lib/transitions.mjs`** —
-    the tail belongs to the forward direction and read backwards it lands on the
-    frame the theme flips. The first cut found it and worked round it; this cut
-    has no grow in it, `rig-test.mjs` still has the same one frame, and the
-    module fix is outstanding because it changes a rendered clip's frames.
+  - **OPEN LIB FIX: `lib/transitions.mjs` applies `tail` to the wrong end of a
+    reverse grow.** The tail is the fade the field leaves on at the end of a
+    forward grow, where it is invisible because the background is already that
+    colour; read backwards it lands on the frame the theme flips, so frame zero
+    of a reverse is the new paper with the field at nothing over it — one frame
+    of the wrong colour in the middle of what should be a flat hold, then a
+    tenth of a second of fade. post15's first cut found it and worked round it
+    with the module's own `tail: 0`; that cut is gone and **`rig-test.mjs` still
+    has the same frame in it**. The honest fix is to apply the tail to the end
+    of the **window in real time** rather than to the end of the shape. It
+    changes a rendered clip's frames, which is why it is a decision rather than
+    an implementation detail.
   - **Two new voices in `lib/sfx.mjs`, now twenty one sounds**: `tick`, a foot,
     at -37 dB, the quietest thing in the file; and `crunch`, a bite. Nothing
     existing in the module moved. The clip plays the tick and not the crunch —

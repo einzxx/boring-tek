@@ -4187,24 +4187,29 @@ mirrored thought bubble had 13 device px of air off the left safe line, which is
 a number that passes a guard and would not survive a font falling back one glyph
 wider. At 1.10 it has 83.
 
-### The thought goes above his head, and it has been all three places
+### The thought bubble is an open bug, and it has been hand placed three times
 
-`lib/mascot.mjs` hangs the cluster **beside** the head, off its top right, and
-that is correct for the corner it was written in: post11's mascot stands bottom
-left, so a thought climbing to its right climbs into the frame.
+**This one is not finished and it should not be finished here.** It is written
+up plainly because the next person to look at it should fix it in the module
+rather than move it in the clip for a fourth time.
 
-This clip has had it all three ways and the first two both broke.
+`lib/mascot.mjs` hangs the cluster **beside** the head, off its top right, on a
+flex row whose three parts sit 6, 14 and 22 px off one baseline. That is correct
+for the corner it was written in: post11's mascot stands bottom left, so a
+thought climbing to its right climbs into the frame.
+
+This clip has moved it three times and none of them is right.
 
 **Off the right**, which is the module's own, it went 116 css px past the edge
-of the screen — that is what a bottom right mascot does to it.
+of the screen. That is what a bottom right mascot does to it.
 
-**Mirrored to the left**, which is four lines of css at the id level, it fitted
-while he was in the corner and stopped fitting the moment he moved toward the
-middle: at the push the safe area is 364 page px wide, the head and the module's
-own offset take 257 of them, and the cluster is 205. **There is no side of him it
-goes beside any more.**
+**Mirrored to the left**, four lines of css at the id level, it fitted while he
+was in the corner and stopped fitting the moment he moved toward the middle: at
+the push the safe area is 364 page px wide, the head and the module's own offset
+take 257 of them, and the cluster is 205. There is no side of him it goes beside
+any more.
 
-**So it goes above him**, which the same three properties do:
+**Above him, with the lifts rewritten as a diagonal**, which is what ships:
 
 ```css
 #m-bubble{left:auto; right:18px; bottom:112px; flex-direction:row-reverse}
@@ -4213,34 +4218,31 @@ goes beside any more.**
 #m-bubble .m-pill{margin-bottom:40px; transform-origin:100% 100%}
 ```
 
-**The lifts are the half that was not obvious.** The module gives the three
-parts 6, 14 and 22 px off one baseline, and beside a head that is a climb: the
-head is to their left, so six px of rise over fifty of run reads as a trail
-leading away from it. Above a head the same three lifts are a **horizontal
-line** — two dots pointing at empty space with the pill off to one side of them,
-which is exactly what the first cut of this placement drew.
+The lifts had to be the clip's because the module's are a climb beside a head
+and a **horizontal line** above one — two dots in a row pointing at empty space
+with the pill off to one side. 5, 22 and 40 against horizontal steps of 15 and
+11 puts the dots and the pill's bottom right corner on one line at about fifty
+degrees, and the first dot is placed over the plate's own upper right shoulder,
+seven tenths of a radius across, lifted off **the curve at that point** rather
+than off the top of the layout box.
 
-So the lifts are this clip's, and they are a diagonal: 5, 22 and 40 against
-horizontal steps of 15 and 11, so the dots climb at about fifty degrees and the
-pill's bottom right corner — the corner it springs from, because it is the one
-nearest the dots — sits on the same line. Smallest nearest the head, largest
-next, pill at the top of the run.
+**And it still reads wrong.** The dots come off his right shoulder and trail
+across to a pill sitting up and to his left, so the line runs sideways out of
+the side of his head before it climbs. What it has to do is start from the
+**top middle of the head** and climb from there to the pill — a thought comes
+out of the top of a head, not out of its ear.
 
-**And the run starts on him.** The first dot is placed over the plate's own
-upper right shoulder, seven tenths of a radius across, and lifted 14 px off
-**the curve at that point** rather than off the top of the box. The difference
-is 43 px of plate: a dot placed off the box floats beside his crown with nothing
-under it, which was the other half of what was wrong.
+**The fix is in `lib/mascot.mjs` and it is one derivation, not four numbers.**
+The module already derives the resting turn from `pos`, once, so that a mascot
+looks into the frame rather than out of it. It should derive the thought the
+same way and from the same fact: **which side it goes, where on the crown the
+first dot starts, and what the three lifts are** are all functions of where he
+is standing and how much room is left beside him. Every mascot that is not
+bottom left hits this, and this clip has now paid for it three times.
 
-Every number is derived off the plate's own circle, so moving him again moves
-the thought with him.
-
-The module writes the pill's opacity and transform and the dots' opacity and
-transform, and it never writes a position: `.bubble` is placed by css alone. So
-all of this is the module's own surface rather than an edit to it, which is what
-post14 established for `#m-zone`. **But three placements in one clip is a module
-that should own this** — it derives `TURN.bias` from `pos` and it should derive
-the thought's side and height the same way. Written up under Outstanding.
+Until then the clip carries the css above and the guards keep it inside the safe
+area and out of the caption band, which is the most a clip can honestly do about
+a placement the module owns.
 
 ### The caption band is reserved even though nothing is in it
 
@@ -4386,14 +4388,24 @@ next virtual time budget never expired.
 
 ### Outstanding
 
-- **`lib/transitions.mjs` should not need `tail: 0` on a reverse grow.** post15's
-  first cut found it and no longer uses it; `rig-test.mjs` still has the same one
-  frame in it. See that module's own section.
-- **`lib/mascot.mjs` should derive the thought's placement from `pos` and from
-  the room available**, the way it derives `TURN.bias` from `pos`. This clip has
-  put the cluster in three different places and the third is the only one that
-  survives him moving; every mascot that is not bottom left will hit the same
-  wall.
+- **OPEN BUG: the `crunchy` thought bubble still reads wrong.** The dots come
+  off his right shoulder and trail across to a pill up and to his left, so the
+  line goes sideways out of the side of his head before it climbs. It has to
+  start from the **top middle of the head** and climb to the pill. **It has been
+  hand placed three times in this clip and it must not be a fourth**: the fix is
+  `lib/mascot.mjs` deriving the thought's **side, start point on the crown and
+  the three lifts from `pos`**, the way it already derives `TURN.bias`. Every
+  mascot that is not bottom left hits this. See the section above for what has
+  been tried and why each one failed.
+- **OPEN LIB FIX: `lib/transitions.mjs` applies `tail` to the wrong end of a
+  reverse grow.** The tail belongs to the forward direction; read backwards it
+  lands on the frame the theme flips, which puts one frame of the new paper with
+  the field at nothing over it in the middle of what should be a flat hold.
+  post15's first cut found it and worked round it with `tail: 0`; that cut is
+  gone and `rig-test.mjs` still has the same frame in it. The honest fix is to
+  apply the tail to the end of the **window in real time** rather than to the
+  end of the shape, and it changes a rendered clip's frames, which is why it is
+  a decision rather than an implementation detail.
 - **`lib/mascot.mjs` has no symmetric narrowing and no held closed eye.**
   `unimpressed` is the only lid state and it brings brows and a side eye with
   it; a blink is the only thing that closes an eye and it is sixty milliseconds
