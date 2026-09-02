@@ -4207,16 +4207,33 @@ goes beside any more.**
 **So it goes above him**, which the same three properties do:
 
 ```css
-#m-bubble{left:auto; right:2px; bottom:132px; flex-direction:row-reverse}
-#m-bubble .m-pill{transform-origin:100% 100%}
+#m-bubble{left:auto; right:18px; bottom:112px; flex-direction:row-reverse}
+#m-bubble #m-dot0{margin-bottom:5px}
+#m-bubble #m-dot1{margin-bottom:22px}
+#m-bubble .m-pill{margin-bottom:40px; transform-origin:100% 100%}
 ```
 
-`row-reverse` keeps the small dot nearest him, so the pair still climbs out of
-his crown rather than trailing away from a pill, and the pill's spring origin
-moves to the corner nearest the dots. All three numbers are derived off the
-plan's own geometry rather than typed — the right hand end hangs a hair past the
-plate's own right edge and the baseline sits the module's own gap above the
-plate's top — so moving him again moves the thought with him.
+**The lifts are the half that was not obvious.** The module gives the three
+parts 6, 14 and 22 px off one baseline, and beside a head that is a climb: the
+head is to their left, so six px of rise over fifty of run reads as a trail
+leading away from it. Above a head the same three lifts are a **horizontal
+line** — two dots pointing at empty space with the pill off to one side of them,
+which is exactly what the first cut of this placement drew.
+
+So the lifts are this clip's, and they are a diagonal: 5, 22 and 40 against
+horizontal steps of 15 and 11, so the dots climb at about fifty degrees and the
+pill's bottom right corner — the corner it springs from, because it is the one
+nearest the dots — sits on the same line. Smallest nearest the head, largest
+next, pill at the top of the run.
+
+**And the run starts on him.** The first dot is placed over the plate's own
+upper right shoulder, seven tenths of a radius across, and lifted 14 px off
+**the curve at that point** rather than off the top of the box. The difference
+is 43 px of plate: a dot placed off the box floats beside his crown with nothing
+under it, which was the other half of what was wrong.
+
+Every number is derived off the plate's own circle, so moving him again moves
+the thought with him.
 
 The module writes the pill's opacity and transform and the dots' opacity and
 transform, and it never writes a position: `.bubble` is placed by css alone. So

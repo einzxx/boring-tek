@@ -1220,12 +1220,38 @@ function pageFrame(o) {
    its own layers. */
 function sceneHtml() {
   const b = BUG.body, h = BUG.head;
-  /* where the thought sits, off the plan's own geometry. `bubRight` hangs the
-     cluster's right hand end a hair past the plate's own right edge, so the
-     dots come out of the head rather than out of the air beside it; `bubBottom`
-     puts its baseline the module's own gap above the plate's top. */
-  const bubRight = +(SIZE - (HEAD.plate.x + HEAD.plate.s) * plan.unit - 2).toFixed(2);
-  const bubBottom = +(SIZE - HEAD.plate.y * plan.unit + BUBBLE.gap + 3).toFixed(2);
+  /* ---------- where the thought sits, and the dots have to lead to it -------
+     the cluster is a flex row and the module gives its three parts lifts of 6,
+     14 and 22 px off one baseline. beside a head that is the right shape: the
+     head is to their left, so six px of rise over fifty of run reads as a
+     trail climbing away from it.
+
+     **above a head it reads as nothing.** the head is below the whole cluster,
+     so the same three lifts put two dots in a horizontal line pointing at empty
+     space and the pill off to one side of them. that is what the first cut of
+     this placement did.
+
+     so the lifts are this clip's, and they are a **diagonal**: 5, 22 and 40,
+     against horizontal steps of 15 and 11. the two dots climb at about fifty
+     degrees and the pill's bottom right corner — which is where it springs
+     from, because that is the corner nearest the dots — sits on the same line.
+     smallest nearest the head, largest next, pill at the top of the run.
+
+     and the run has to start **on him**. the first dot is put over the plate's
+     own upper right shoulder, seven tenths of a radius across, and lifted 14 px
+     off the curve at that point rather than off the top of the box. the
+     difference is 43 px of plate: a dot placed off the box floats beside his
+     crown with nothing under it, which is the other half of what was wrong. */
+  const U = plan.unit;
+  const R = HEAD.plate.s / 2 * U;
+  const pc = (HEAD.plate.x + HEAD.plate.s / 2) * U;   /* the plate's centre in the zone */
+  const SHOULDER = 0.70;                               /* of a radius, across */
+  const AIR = 14;                                      /* css px off the curve */
+  const LIFTS = [5, 22, 40];                           /* dot0, dot1, pill */
+  const dotCx = pc + SHOULDER * R;
+  const surfaceY = pc - Math.sqrt(R * R - (SHOULDER * R) * (SHOULDER * R));
+  const bubRight = +(SIZE - (dotCx + BUBBLE.dots[0].d / 2)).toFixed(2);
+  const bubBottom = +((SIZE - surfaceY) + AIR - LIFTS[0] - BUBBLE.dots[0].d / 2).toFixed(2);
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1293,16 +1319,19 @@ ${cameraCss()}
    area is 364 page px wide, the head and its offset take 257 of them, and the
    cluster is 205 — there is no side of him it goes beside any more.
 
-   so it goes **above** him, which the same three properties do: right, bottom
-   and the flex direction. row-reverse keeps the small dot nearest him, so the
-   pair still climbs out of his crown rather than trailing away from a pill,
-   and the pill's spring origin moves to the corner nearest the dots.
+   so it goes **above** him. row-reverse keeps the small dot nearest him and the
+   pill's spring origin moves to the corner nearest the dots — but that on its
+   own is not enough, and the first cut of this placement proved it: the
+   module's own lifts are 6, 14 and 22 off one baseline, which is a climb beside
+   a head and a horizontal line above one. the two dots pointed at nothing.
 
-   all three numbers are derived off the plan's own geometry rather than typed,
-   so moving him again moves the thought with him. (no backticks in this
-   comment on purpose: it lives inside a template literal.) */
+   so the lifts are this clip's as well, and every number here is derived off
+   the plate's own circle. see the block that computes them. (no backticks in
+   this comment on purpose: it lives inside a template literal.) */
 #m-bubble{left:auto; right:${bubRight}px; bottom:${bubBottom}px; flex-direction:row-reverse}
-#m-bubble .m-pill{transform-origin:100% 100%}
+#m-bubble #m-dot0{margin-bottom:${LIFTS[0]}px}
+#m-bubble #m-dot1{margin-bottom:${LIFTS[1]}px}
+#m-bubble .m-pill{margin-bottom:${LIFTS[2]}px; transform-origin:100% 100%}
 
 /* the mascot's own cut, as a wrapper rather than as a rule on the zone: the
    zone is carrying the bite's transform and a second thing writing it would be
