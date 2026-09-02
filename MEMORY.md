@@ -27,7 +27,7 @@ names in here either.
     gone under his ink on the frame it is switched off or the switch is a
     disappearing trick, so the file walks the lunge down in half pixel steps
     until the head's drawn ellipse contains every corner of the bug's drawn ink,
-    then adds a margin: **needed 85px, goes 90**. The same containment is
+    then adds a margin: **needed 88px, goes 93**. The same containment is
     measured a third time on the rendered frames and comes out at **0.81 of his
     plate's own circle**, where 1 is the edge.
   - **The frame the bug goes is a ceiling, not a rounding, and the contact is
@@ -64,9 +64,43 @@ names in here either.
   - **Two things `lib/mascot.mjs` does not have and two clips in a row have
     wanted**: a symmetric narrowing that is not `unimpressed`, and a closed eye
     that can be held. Both are written by hand here.
-  - The bug, the gait, the walk, the lane, the camera, the mirrored bubble, the
-    reserved band, the glitch and the end card are the first cut's and are
-    unchanged. **The gait is driven by distance rather than by time** — worst
+  - **He was moved off the corner in a third pass: 154px up and 85px in against
+    the module's own placement, of which only the first 84 up is the bug's
+    lane.** The rest is composition — pinned to the corner the frame above him
+    is dead — and **the camera's centre follows the pair** rather than staying
+    where they used to be, or the move would have put him dead centre. It takes
+    20 of the 85 and 34 of the 70; it cannot take more, because the rig is the
+    stage's own size and at the push's zoom the centre lives in 248..292 on x
+    or an edge comes into shot. He ends up about 60% across and 66% down.
+  - **Everything downstream followed on its own**, which is what the derivations
+    were for: the lane is the lowest his ink gets plus the clearance, the bug's
+    stop is the plate's own centre, and the walk's speed is the distance over
+    the time. The walk is 276 page px at 190 px/s now, 8 strides instead of 11,
+    and the gait period went from 7.8 frames a cycle at sixty to **10.6**, which
+    reads better and was not the point of the move.
+  - **The thought bubble has now been in three places in one clip and the module
+    should own this.** `lib/mascot.mjs` hangs it beside the head off the top
+    right, which is right for a bottom left mascot; off the right it went 116px
+    off the screen, mirrored to the left it fitted only while he was cornered,
+    and now it goes **above his head** — at the push the safe area is 364 page
+    px wide, the head and the module's offset take 257 of them and the cluster
+    is 205, so there is no side of him it goes beside. All three are css at the
+    id level and derived off the plan's geometry, so nothing in lib is touched,
+    but the module should derive the placement from `pos` the way it derives
+    `TURN.bias`.
+  - **The bite and the chews are silent now.** Their four `crunch` cues are out
+    because Einz is putting his own sound on that stretch, and a synthesised
+    placeholder under a real one is two takes of the same beat fighting each
+    other. **The recipe stays in `lib/sfx.mjs`** — the next clip that eats
+    something will want it. What ships is the footsteps, the bubble pop and the
+    glitch, and a guard asserts nothing at all is heard between the bug stopping
+    and the bubble.
+  - **The mix is -25.5 LUFS and that is deliberate.** Ten events, one of which
+    is thirteen decibels over the rest; the ceiling won by 10.30 dB and the only
+    way to go louder is to squash the cut. The stretch that would carry the
+    level is empty on purpose and Einz's layer goes on top of it.
+  - The bug, the gait, the reserved band, the glitch and the end card are the
+    first cut's and are unchanged. **The gait is driven by distance rather than by time** — worst
     planted foot movement 0px — and the footstep ticks fall out of it, so they
     spread out and stop on their own as he decelerates.
   - **At twelve frames neither the gait nor the lunge can be judged**, and that
@@ -79,13 +113,9 @@ names in here either.
     has no grow in it, `rig-test.mjs` still has the same one frame, and the
     module fix is outstanding because it changes a rendered clip's frames.
   - **Two new voices in `lib/sfx.mjs`, now twenty one sounds**: `tick`, a foot,
-    at -37 dB, the quietest thing in the file; and `crunch`, a bite. The bite
-    and the three chews are the same recipe at two levels — the bite lower,
-    grittier and with almost no flutter, in its own pass at -28 against the
-    chews' -25, which is post13's move for a sound that means something
-    different at a different level. Nothing existing in the module moved.
-  - **The mix is -18.7 LUFS and the ceiling won by 4.60 dB**, which is where a
-    clip that is silent for two thirds of its length lands.
+    at -37 dB, the quietest thing in the file; and `crunch`, a bite. Nothing
+    existing in the module moved. The clip plays the tick and not the crunch —
+    see above.
   - **Two harness lessons, both of which cost a run.** A frame is only captured
     once per repaint — two `Page.captureScreenshot` calls with nothing written
     between them block forever under paused virtual time. And the vignette is

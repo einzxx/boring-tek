@@ -215,7 +215,20 @@ const SECONDS = 6.73;
 const SIZE = 128;
 const POS = 'bottom-right';
 const MARGIN = 24;
-const LIFT = 84;
+/* the lift was 84, which is what the bug's lane costs. it is 154 now, and the
+   extra 70 is composition rather than clearance: at 84 he is pinned to the
+   corner and the frame above him is dead. `IN` is the same argument on the
+   other axis — 100 css px toward the middle, which still leaves him well right
+   of centre and a corner mascot, with 224 device px more air off the right
+   safe line than he had.
+
+   **everything downstream is derived and follows on its own.** the lane is the
+   lowest his ink gets plus the clearance, the bug's stop is the plate's own
+   centre, and the walk's speed is the distance over the time — so moving him
+   moves the bug's lane, its stopping point and its gait period without a
+   second number being touched. */
+const LIFT = 154;
+const IN = 85;
 
 /* the air the bug's topmost ink keeps under the lowest the head ever gets, in
    css px. it is not a look, it is the brief: the bug may not overlap him until
@@ -364,12 +377,23 @@ const SHUT = { at: +(BITE.at + BITE.rise).toFixed(4), in: 0.09,
 
    **the destination was 1.12 and it is 1.10, and the bubble is why.** the push
    pulls the frame in around him, and everything on his side of it moves toward
-   an edge as it does. at 1.12 the mirrored thought bubble had 13 device px of
-   air off the left safe line, which is a number that passes a guard and would
-   not survive a font falling back one glyph wider. at 1.10 it has 60. */
+   an edge as it does. at 1.12 the thought had 13 device px of air off a safe
+   line, which is a number that passes a guard and would not survive a font
+   falling back one glyph wider.
+
+   **and the centre follows the pair rather than staying where they used to
+   be.** lifting him and bringing him in moved the two of them 85px left and
+   70 up; a camera left pointing at the old spot would have framed him dead
+   centre, which is the one thing the move was not for. it takes 20 of the 85
+   and 34 of the 70, so at the end of the push he sits about 60% across and 66%
+   down — off the corner and still nowhere near the middle.
+
+   `cx` cannot simply follow him the whole way: the rig is the stage's own size,
+   so at the push's zoom the centre lives in 248..292 or an edge comes into
+   shot, and 250 is as far left as it goes. the guard walks it. */
 const CAM = {
   start: { cx: 270, cy: 480, z: 1.05 },
-  push: { at: 0.60, for: 1.70, to: { cx: 282, cy: 504, z: 1.10 } },
+  push: { at: 0.60, for: 1.70, to: { cx: 250, cy: 470, z: 1.10 } },
 };
 
 /* ---------- the reserved caption band ----------
@@ -824,7 +848,11 @@ const plan = planMascot({
 });
 /* the lift. `planMascot` owns the corner and this owns the height, and it is
    applied before `mascotCss` is called because that function reads the box. */
-plan.box = { left: plan.box.left, top: +(plan.box.top - LIFT).toFixed(2), size: SIZE };
+plan.box = {
+  left: +(plan.box.left - IN).toFixed(2),
+  top: +(plan.box.top - LIFT).toFixed(2),
+  size: SIZE,
+};
 
 /* the plate's own centre in page space, off the module's geometry rather than
    off a number typed here. it is where the bug stops. */
@@ -1192,9 +1220,12 @@ function pageFrame(o) {
    its own layers. */
 function sceneHtml() {
   const b = BUG.body, h = BUG.head;
-  /* the module's own bubble offset, mirrored. derived rather than typed, so a
-     change to the head geometry moves both of them together. */
-  const bubOff = +(SIZE * (HEAD.plate.x + HEAD.plate.s) / GRID + BUBBLE.gap).toFixed(2);
+  /* where the thought sits, off the plan's own geometry. `bubRight` hangs the
+     cluster's right hand end a hair past the plate's own right edge, so the
+     dots come out of the head rather than out of the air beside it; `bubBottom`
+     puts its baseline the module's own gap above the plate's top. */
+  const bubRight = +(SIZE - (HEAD.plate.x + HEAD.plate.s) * plan.unit - 2).toFixed(2);
+  const bubBottom = +(SIZE - HEAD.plate.y * plan.unit + BUBBLE.gap + 3).toFixed(2);
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1250,28 +1281,27 @@ body{width:${VW}px;height:${VH}px;color:var(--fg);font-family:var(--body)}
 
 ${cameraCss()}
 
-/* ---- the thought bubble goes off his other side ----
-   lib/mascot.mjs hangs the cluster off the top **right** of the head, which is
-   correct for the corner it was written in: post11's mascot stands bottom
-   left, so a thought climbing to its right climbs into the frame. this one
-   stands bottom right, and the first render put a 204 css px pill 116 px off
-   the right hand edge of the screen.
+/* ---- the thought goes above his head ----
+   lib/mascot.mjs hangs the cluster **beside** the head, off its top right, and
+   that is correct for the corner it was written in: post11's mascot stands
+   bottom left, so a thought climbing to its right climbs into the frame.
 
-   the fix is the module's own surface rather than an edit to it. the module
-   writes the pill's opacity and transform and the dots' opacity and transform,
-   and it never writes a position: the bubble is placed by css alone. so the
-   clip mirrors it at the id level, which is exactly what post14 established
-   for the mascot zone, and the offset is the module's own arithmetic rather
-   than a second copy of it — the plate is centred in its own box, so the
-   mirror of a symmetric offset is itself. row-reverse puts the small dot back
-   nearest the head, and the pill's spring origin moves to the corner nearest
-   the dots, which is now its right hand one.
+   this clip has had it both ways and neither survives. off the right it went
+   116 css px past the edge of the screen, which is what a bottom right mascot
+   does to it. mirrored to the left it fitted while he was in the corner and
+   stopped fitting the moment he moved toward the middle: at the push the safe
+   area is 364 page px wide, the head and its offset take 257 of them, and the
+   cluster is 205 — there is no side of him it goes beside any more.
 
-   it also reads better: a mascot in the right hand corner thinking toward the
-   left is thinking into the frame, which is the same argument TURN.bias makes
-   about where he looks. (no backticks in this comment on purpose: it lives
-   inside a template literal.) */
-#m-bubble{left:auto; right:${bubOff}px; flex-direction:row-reverse}
+   so it goes **above** him, which the same three properties do: right, bottom
+   and the flex direction. row-reverse keeps the small dot nearest him, so the
+   pair still climbs out of his crown rather than trailing away from a pill,
+   and the pill's spring origin moves to the corner nearest the dots.
+
+   all three numbers are derived off the plan's own geometry rather than typed,
+   so moving him again moves the thought with him. (no backticks in this
+   comment on purpose: it lives inside a template literal.) */
+#m-bubble{left:auto; right:${bubRight}px; bottom:${bubBottom}px; flex-direction:row-reverse}
 #m-bubble .m-pill{transform-origin:100% 100%}
 
 /* the mascot's own cut, as a wrapper rather than as a rule on the zone: the
@@ -1999,7 +2029,7 @@ function probe(file) {
 /* ==========================================================================
    the sound
    ==========================================================================
-   five kinds and eighteen events, and every one of them is a time something
+   three kinds and thirteen events, and every one of them is a time something
    else already decided. nothing here is placed by hand.
 
    the footsteps are the interesting ones: `stepTimes` returns the instants the
@@ -2008,50 +2038,27 @@ function probe(file) {
    few spread out and then stop, which is not a fade — it is the same gait
    running out of speed.
 
-   **the bite and the chews are the same recipe at two levels**, and that is the
-   design rather than a saving. a bite and a chew are the same event happening
-   to the same object; what separates them is that the first one is through the
-   shell and the rest are not. so the bite is lower, longer, grittier and has
-   almost no flutter on it — a flutter is a jaw working and the first bite is a
-   jaw closing — and it is rendered in its own pass at its own gain, which is
-   post13's move for a sound that means something different at a different
-   level. the three chews walk down in pitch because a mouth closing on
-   something is a cavity getting smaller.
+   **the eating is silent, and that is a decision rather than an omission.** the
+   bite and the three chews had sounds — one `crunch` recipe at two levels, the
+   bite lower and grittier and three decibels under the chewing — and they are
+   out. einz is putting his own on that stretch and a synthesised placeholder
+   under a real one is two takes of the same beat fighting each other. **the
+   recipe stays in `lib/sfx.mjs`**: it is a sound the set wanted and the next
+   clip that eats something will want it, and a voice is cheaper to keep than to
+   write twice.
+
+   so between the bug stopping and the bubble there is nothing at all, and that
+   is guarded rather than left to drift: a tick or a pop in there would mean the
+   walk or the bubble had crept into the stretch he is leaving clear.
 
    the pop is `mascotCues`, on the pill rather than on the first dot. the glitch
    is the cut. */
-
-/* the bite: one `crunch` with the chewing taken out of it. `depth` is the
-   flutter and it is nearly nothing here, `grit` is up, and it sits three
-   decibels under the chews because a bite that was louder than the chewing
-   would make the chewing an echo of it. */
-const BITE_SND = {
-  gain: -28,
-  opts: { f0: 300, f1: 158, len: 0.19, depth: 0.10, grit: 0.62, tau: 0.075,
-    burst: 0.011, lpHz: 2200, seed: 0x7ab214 },
-};
-
-/* the three chews, one on each pulse's own contact, walking down. the last is
-   the longest and the lowest, which is the swallow. */
-const CRUNCH = CHEW_HITS.map((t, i) => ({
-  t,
-  opts: [
-    { f0: 452, f1: 268, len: 0.15, flutter: 29, seed: 0x3c7a19 },
-    { f0: 396, f1: 232, len: 0.16, flutter: 26, seed: 0x91b40d },
-    { f0: 338, f1: 186, len: 0.23, flutter: 22, tau: 0.075, seed: 0x2ef651 },
-  ][i],
-}));
-
 function soundCues() {
   const cues = [
     ...STEPS.map((t, i) => ({
       t, kind: 'tick',
       opts: { seed: (0x6ad13f ^ (i * 2654435761)) >>> 0, hz: 288 + (i % 3) * 16 },
       from: 'stride ' + (i + 1) + ', read off the walk',
-    })),
-    ...CRUNCH.map((c, i) => ({
-      t: c.t, kind: 'crunch', opts: c.opts,
-      from: 'chew ' + (i + 1) + ' of three, on that pulse\'s own contact',
     })),
     ...mascotCues(plan).map(c => ({ ...c, from: 'the pill arriving, off mascotCues' })),
     { t: END.at, kind: 'glitch', from: 'the cut' },
@@ -2236,7 +2243,7 @@ const beats = [
   [VANISH_AT, 'the first frame at or after the landing, and the bug is gone under his ink'],
   [BITE_END, 'he is back up, eyes shut'],
   ...CHEW_HITS.map((t, i) => [t, 'chew ' + (i + 1) + ' of three, '
-    + (i % 2 === 0 ? 'left' : 'right')]),
+    + (i % 2 === 0 ? 'left' : 'right') + ', silent']),
   [CHEW.at + CHEW.pulses * CHEW.for, 'the satisfied bob, ' + CHEW.bob.for.toFixed(2) + 's'],
   [SHUT.until + SHUT.out, 'his eyes are open again'],
   [plan.marks[2].bubble.in, 'the first dot of the bubble'],
@@ -2252,21 +2259,6 @@ console.log('');
 /* ---------- the sound ---------- */
 const cues = soundCues();
 const { buf: sfx, report: sfxReport } = renderSfx(cues, SECONDS);
-/* the bite, in its own pass. `renderSfx` sets one gain per kind, which is the
-   right shape for a mix where a sound means one thing — so a `crunch` that
-   means something else at a different level is a second call summed onto the
-   same bus rather than a per cue level, because a per cue level is how a
-   balance stops living in one table. post13's argument, unchanged. */
-{
-  const one = renderSfx([{ t: BITE_HIT, kind: 'crunch', opts: BITE_SND.opts,
-    from: 'the bite, on the frame the lunge lands' }],
-  SECONDS, { gains: { crunch: BITE_SND.gain } });
-  for (let i = 0; i < sfx.length; i++) sfx[i] += one.buf[i];
-  sfxReport.push(...one.report);
-  cues.push({ t: BITE_HIT, kind: 'crunch', from: 'the bite' });
-}
-sfxReport.sort((a, b) => a.t - b.t);
-cues.sort((a, b) => a.t - b.t);
 const WAV = path.join(OUT, 'post15-sfx.wav');
 const RAW = path.join(OUT, 'post15-sfx-raw.wav');
 fs.mkdirSync(OUT, { recursive: true });
@@ -2297,15 +2289,15 @@ console.log(describeMix(sfxReport, {
 }));
 console.log('');
 
-/* the two new recipes, written out on every run for somebody who can actually
-   listen — they are chosen on numbers and nothing in this pipeline can hear.
-   they land in demo/out/p15-sound/, which is regenerable and gitignored. */
+/* the tick, written out on every run for somebody who can actually listen — it
+   is chosen on numbers and nothing in this pipeline can hear. it lands in
+   demo/out/p15-sound/, which is regenerable and gitignored. `crunch` is not
+   written any more because this clip does not play it. */
 const SND = path.join(OUT, 'p15-sound');
 fs.mkdirSync(SND, { recursive: true });
 writeWav(path.join(SND, 'tick.wav'), VOICES.tick());
-CRUNCH.forEach((c, i) => writeWav(path.join(SND, 'crunch' + (i + 1) + '.wav'), VOICES.crunch(c.opts)));
-console.log('  the tick and the three chews are in ' + path.relative(ROOT, SND)
-  + ' for somebody who can listen');
+console.log('  the footstep is in ' + path.relative(ROOT, SND)
+  + ' for somebody who can listen. the eating is silent on purpose');
 console.log('');
 
 /* ---------- the bug on its own, first ---------- */
@@ -2398,7 +2390,7 @@ check(Math.abs((CHEW_END - CHEW.at) - 1.14) < 0.10,
   'the chew and its bob run ' + (CHEW_END - CHEW.at).toFixed(2)
   + 's, against the brief\'s one second');
 check(CHEW_HITS.length === CHEW.pulses,
-  'there are ' + CHEW.pulses + ' chewing pulses and ' + CHEW_HITS.length + ' bleeps, one each');
+  'the chew is ' + CHEW.pulses + ' pulses of ' + CHEW.for.toFixed(2) + 's, alternating');
 check(CHEW_EYES.sy <= 0.30,
   'his eyes are shut for the whole chew: the taller of the two is ' + CHEW_EYES.sy
   + ' of its own height at the most');
@@ -2566,13 +2558,13 @@ check(GL_WINDOWS_60.length === 1,
      rounded number is a guard about the printing. */
   const late = cues.filter(c => c.t > END.at + 1e-6);
   check(late.length === 0, 'nothing is heard after the cut: ' + late.length + ' cues past ' + END.at + 's');
-  /* between the bug stopping and the bubble, the only sounds are the bite and
-     the three chews, in that order. a tick or a pop in there would mean the
-     walk or the bubble had drifted into the eating. */
+  /* the eating is left silent for a pass of einz's own, so there is nothing at
+     all between the bug stopping and the bubble. a tick or a pop in there would
+     mean the walk or the bubble had crept into that stretch. */
   const eating = cues.filter(c => c.t >= WALK.t1 && c.t < plan.marks[2].bubble.in);
-  check(eating.length === 4 && eating.every(c => c.kind === 'crunch'),
-    'the only sounds between the bug stopping and the bubble are the bite and '
-    + 'the three chews: ' + eating.map(c => c.kind).join(', '));
+  check(eating.length === 0,
+    'nothing is heard between the bug stopping and the bubble, which is the '
+    + 'stretch left clear: ' + eating.length + ' cues in it');
 }
 check(peak.reduction <= LIMIT_ALLOW + 0.3,
   'the limiter took ' + peak.reduction.toFixed(2) + ' dB, allowance is ' + LIMIT_ALLOW);

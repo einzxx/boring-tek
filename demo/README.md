@@ -3908,7 +3908,7 @@ times the card's own two scales times the bite's squash — contains every corne
 of the bug's drawn ink, and adds a five pixel margin. at sixty:
 
 ```
-the lunge needed 85px and it goes 90
+the lunge needed 88px and it goes 93
 ```
 
 That is three quarters of a head diameter, which is what a lunge at something on
@@ -3947,7 +3947,7 @@ file lunges and chews through it. **Nothing in `lib/` is touched.**
 | | |
 |---|---|
 | the rise | 7 css px up over 0.11s, smoothstepped. he goes up before he goes down, which is every entrance in `lib/mascot.mjs` and is what makes a lunge a decision rather than a twitch |
-| the lunge | 90 px down and 4 px forward over 0.10s, on `u²` — accelerating, because a head going after something has mass |
+| the lunge | 93 px down and 4 px forward over 0.10s, on `u²` — accelerating, because a head going after something has mass |
 | the contact | 0.10s, and the squash lives here and nowhere else: 7.5% volume preserving, under the module's own 8% ceiling |
 | back up | 0.16s, decelerating |
 | the chew | three pulses of 0.30s, the squash peaking a third of the way through each and the side alternating — 3.4 px of lateral working and 1.7° of roll into the working side |
@@ -4109,20 +4109,39 @@ thing in `demo/` whose preview pass genuinely cannot answer the questions the
 preview exists for, and saying so is cheaper than pretending twelve frames a
 second is enough.
 
-### The lane under him is why he sits 84px off his own corner
+### He sits 154px up and 85px in off his own corner, and only 84 of that is the lane
 
 `planMascot` puts a bottom right mascot 24 css px inside the platform safe area,
 which leaves 24 px between his ink and the bottom safe line. The bug has to walk
 **under** him, inside the safe area, without touching him, and a bug with legs
-is 44 css px tall. So the whole mascot is lifted 84 px off the module's own
-placement.
+is 44 css px tall. **That is what the first 84 px of the lift buys.**
+
+The other 70, and the 85 across, are composition: pinned to the corner the frame
+above him is dead, and the shot is about him and the thing on the floor rather
+than about a corner. At the end of the push he sits about 60% across and 66%
+down — off the corner and nowhere near the middle.
+
+**And the camera's centre follows the pair rather than staying where they used
+to be**, or the move would have put him dead centre, which is the one thing it
+was not for. It takes 20 of the 85 and 34 of the 70. It cannot simply follow him
+the whole way: the rig is the stage's own size, so at the push's zoom the centre
+lives in 248..292 on x or an edge comes into shot, and 250 is as far left as it
+goes. The guard walks it on every frame.
 
 The lane is then derived rather than typed: **the lowest his ink ever gets
 before the bite**, walked frame by frame with `headRect`, plus 26 px of
 clearance, plus the bug's own reach above its centreline. Change the state list,
-the size or the lift and the lane follows. Measured: his ink bottoms out at
-743.95 at 2.00s, the lane sits at 792.05, and **the closest the bug ever gets to
-his ink before he goes for it is 24.88 page px, with 0 frames of overlap**.
+the size or the lift and the lane follows — and moving him is exactly what
+happened, twice, without a second number being touched. Measured: his ink
+bottoms out at 673.95 at 2.00s, the lane sits at 722.05, and **the closest the
+bug ever gets to his ink before he goes for it is 28.09 page px, with 0 frames
+of overlap**.
+
+The walk follows too, because the bug's stop is the plate's own centre and the
+speed is the distance over the time. It is 276 page px at **190 px/s** now
+rather than 376 at 259, which is 8 strides instead of 11 and a gait period of
+**10.6 to 11.3 frames a cycle at sixty** instead of 7.8 to 9.1. The walk reads
+better for it, which was not the point of moving him but is a real dividend.
 
 ### The bug walks in through the left margin, and it has to
 
@@ -4168,33 +4187,43 @@ mirrored thought bubble had 13 device px of air off the left safe line, which is
 a number that passes a guard and would not survive a font falling back one glyph
 wider. At 1.10 it has 83.
 
-### The thought bubble goes off his other side
+### The thought goes above his head, and it has been all three places
 
-`lib/mascot.mjs` hangs the cluster off the top **right** of the head, which is
-correct for the corner it was written in: post11's mascot stands bottom left, so
-a thought climbing to its right climbs into the frame. This one stands bottom
-right, and the first render put a 204 css px pill **116 px off the right hand
-edge of the screen**.
+`lib/mascot.mjs` hangs the cluster **beside** the head, off its top right, and
+that is correct for the corner it was written in: post11's mascot stands bottom
+left, so a thought climbing to its right climbs into the frame.
 
-The fix is the module's own surface rather than an edit to it. The module writes
-the pill's opacity and transform and the dots' opacity and transform, and it
-never writes a position: `.bubble` is placed by css alone. So the clip mirrors it
-at the id level, which is exactly what post14 established for `#m-zone`:
+This clip has had it all three ways and the first two both broke.
+
+**Off the right**, which is the module's own, it went 116 css px past the edge
+of the screen — that is what a bottom right mascot does to it.
+
+**Mirrored to the left**, which is four lines of css at the id level, it fitted
+while he was in the corner and stopped fitting the moment he moved toward the
+middle: at the push the safe area is 364 page px wide, the head and the module's
+own offset take 257 of them, and the cluster is 205. **There is no side of him it
+goes beside any more.**
+
+**So it goes above him**, which the same three properties do:
 
 ```css
-#m-bubble{left:auto; right:129px; flex-direction:row-reverse}
+#m-bubble{left:auto; right:2px; bottom:132px; flex-direction:row-reverse}
 #m-bubble .m-pill{transform-origin:100% 100%}
 ```
 
-The offset is the module's own arithmetic rather than a second copy of it — the
-plate is centred in its own box, so the mirror of a symmetric offset is itself.
-`row-reverse` puts the small dot back nearest the head, and the pill's spring
-origin moves to the corner nearest the dots, which is now its right hand one.
+`row-reverse` keeps the small dot nearest him, so the pair still climbs out of
+his crown rather than trailing away from a pill, and the pill's spring origin
+moves to the corner nearest the dots. All three numbers are derived off the
+plan's own geometry rather than typed — the right hand end hangs a hair past the
+plate's own right edge and the baseline sits the module's own gap above the
+plate's top — so moving him again moves the thought with him.
 
-It reads better as well: a mascot in the right hand corner thinking toward the
-left is thinking into the frame, which is the same argument `TURN.bias` makes
-about where he looks. **The module should probably derive this from `pos` the
-way it derives the bias** — it is written up under Outstanding.
+The module writes the pill's opacity and transform and the dots' opacity and
+transform, and it never writes a position: `.bubble` is placed by css alone. So
+all of this is the module's own surface rather than an edit to it, which is what
+post14 established for `#m-zone`. **But three placements in one clip is a module
+that should own this** — it derives `TURN.bias` from `pos` and it should derive
+the thought's side and height the same way. Written up under Outstanding.
 
 ### The caption band is reserved even though nothing is in it
 
@@ -4221,7 +4250,7 @@ the module's own floor and buy a scale up nobody asked for.
 1.74  neutral, turn back to 0
 2.20  both lids down to 0.40, symmetrically
 2.30  the rise, 7px over 0.11s
-2.51  the lunge lands 90px down and 4px forward, and the head squashes
+2.51  the lunge lands 93px down and 4px forward, and the head squashes
 2.52  the first frame at or after the landing, and the bug is gone under his ink
 2.77  he is back up, eyes shut
 2.91  chew one, left.  3.21 chew two, right.  3.51 chew three, left
@@ -4240,9 +4269,9 @@ post13 did the same thing for its slow blink. It is not a new mechanism and it
 is not a cheat — an idle blink is the mascot's own blink — and the guard checks
 the blink is still where the seed was chosen for.
 
-### Two sounds this clip added to `lib/sfx.mjs`
+### Two sounds this clip added to `lib/sfx.mjs`, and it plays one of them
 
-Twenty one now, and both of these are at the ends of the table.
+Twenty one now.
 
 **`tick`** is a foot, and it is `key` with the body taken out. That sound is a
 plastic cap on a board, so it has a 124 Hz pulse under the noise to stand for
@@ -4262,32 +4291,38 @@ coin, for the same reason — one bite is one thing happening to one object: eig
 milliseconds of band passed noise for the crunch, and a note falling from `f0`
 to `f1` inside its own length, because a mouth closing is a cavity getting
 smaller and a cavity getting smaller drops in pitch. That is `sigh`'s physics and
-the opposite of `chirp`, which rises because it is a question.
+the opposite of `chirp`, which rises because it is a question. **The flutter is
+what makes it chewing rather than a bleep** — the note is amplitude modulated at
+29 Hz, deep enough to grain it and not deep enough to gate it into a train,
+which is the `servo` rule landing in the same place for the same reason.
 
-**The flutter is what makes it chewing rather than a bleep.** The note is
-amplitude modulated at 29 Hz, deep enough to grain it and not deep enough to
-gate it into a train — the `servo` rule, and the number lands in the same place
-for the same reason.
+**And this clip does not play it.** The bite and the three chews had it, one
+recipe at two levels — the bite lower, grittier, with almost no flutter and
+three decibels down, in its own pass because a per cue level is how a balance
+stops living in one table — and they are out. Einz is putting his own sound on
+that stretch, and a synthesised placeholder under a real one is two takes of the
+same beat fighting each other.
 
-**The bite and the chews are the same recipe at two levels, and that is the
-design rather than a saving.** A bite and a chew are the same event happening to
-the same object; what separates them is that the first one is through the shell
-and the rest are not. So the bite is lower (300 to 158), longer, grittier and
-has almost no flutter on it — a flutter is a jaw working and the first bite is a
-jaw closing — and it is rendered in **its own pass at its own gain**, -28 against
-the chews' -25, which is post13's move for a sound that means something
-different at a different level. A per cue level would be how a balance stops
-living in one table. The three chews then walk down: 452, 396 and a longer,
-lower 338 for the last one.
+**The recipe stays in the file.** It is a sound the set wanted and the next clip
+that eats something will want it, and a voice is cheaper to keep than to write
+twice. What ships in this clip is the footsteps, the bubble pop and the glitch,
+and the eating is silent — guarded rather than left to drift, because a tick or
+a pop creeping into that stretch is exactly the thing that would spoil it.
 
 ### The mix, and a clip that is mostly silence
 
-Seventeen events, no voice and no bed. Off the synth the bus is **-41.3 LUFS**
-with its peak at -23.0 dBFS, so -14 LUFS wanted 27.30 dB of lift and the -1.8
-dBFS ceiling plus 1.5 dB of limiting allowed 22.70. **The ceiling won by 4.60
-dB** and the finished bus sits at **-18.7 LUFS**, which is where a clip that is
-silent for two thirds of its length belongs. post12's own note applies: the
-number is reported as a fact rather than argued with.
+Ten events, no voice and no bed, and one of them — the glitch — is thirteen
+decibels over everything else. Off the synth the bus is **-47.7 LUFS** with its
+peak at -23.0 dBFS, so -14 LUFS wanted 33.00 dB of lift and the -1.8 dBFS
+ceiling plus 1.5 dB of limiting allowed 22.70. **The ceiling won by 10.30 dB**
+and the finished bus sits at **-25.5 LUFS**.
+
+That is quiet, and it is the right answer rather than a miss. The only way to
+get louder is to allow the limiter past its 1.5 dB and squash the cut, and the
+stretch that would have carried the level is deliberately empty: **the eating
+layer is Einz's and it goes on top of this**. Leaving it headroom is the whole
+point. post12's own note applies either way — the number is reported as a fact
+rather than argued with.
 
 ### The guards this clip added
 
@@ -4298,7 +4333,7 @@ that are this clip's rather than inherited:
   240Hz — 0px
 - **no leg is ever asked to be longer than it is**, worst demand 20.85 against a
   reach of 21.6
-- **the bug never touches his ink before he goes for it**, closest 24.88 page
+- **the bug never touches his ink before he goes for it**, closest 28.09 page
   px, 0 frames of overlap
 - **the bug is inside the safe area by 0.417s and never leaves it again**
 - **the bug is under his ink on the frame it goes**, derived at 0.93 of his own
@@ -4337,9 +4372,11 @@ next virtual time budget never expired.
 - **`lib/transitions.mjs` should not need `tail: 0` on a reverse grow.** post15's
   first cut found it and no longer uses it; `rig-test.mjs` still has the same one
   frame in it. See that module's own section.
-- **`lib/mascot.mjs` should derive the bubble's side from `pos`** the way it
-  derives `TURN.bias`. Every bottom right mascot from here on will need the same
-  four lines of css this clip carries.
+- **`lib/mascot.mjs` should derive the thought's placement from `pos` and from
+  the room available**, the way it derives `TURN.bias` from `pos`. This clip has
+  put the cluster in three different places and the third is the only one that
+  survives him moving; every mascot that is not bottom left will hit the same
+  wall.
 - **`lib/mascot.mjs` has no symmetric narrowing and no held closed eye.**
   `unimpressed` is the only lid state and it brings brows and a side eye with
   it; a blink is the only thing that closes an eye and it is sixty milliseconds
