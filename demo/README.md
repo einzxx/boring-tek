@@ -67,6 +67,16 @@ All headless Chrome, all tooling. The renderers first:
   of the frame. The logo is `demo/assets/anthropic-logo.png`, placed as an image
   and not touched. Out to `demo/out/post14-light-1080x1920.mp4`. See The
   fourteenth clip.
+- **`post15.mjs`** renders a 7.30 second clip, vertical, dark only, **and it is
+  the first one built on `lib/camera.mjs` and `lib/transitions.mjs`.** A small
+  bug drawn in code walks in low from the left on an alternating tripod gait,
+  the mascot watches it from his corner, it stops under him, and he grows until
+  he fills the frame — the world goes white for a full second with nothing on
+  it, then he shrinks back and the bug is gone. `crunchy`. The circle grow is
+  used as a punchline rather than as a scene change, the gait is driven by
+  distance rather than by time so no planted foot ever slides, and two new
+  recipes in `lib/sfx.mjs` carry the sound: `tick` for a foot and `crunch` for
+  a bite. Out to `demo/out/post15-dark-1080x1920.mp4`. See The fifteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -3855,6 +3865,409 @@ is 0.26s again, which is the length the first cut proved.
 - **The review is in `demo/out/review-post14-light-1080x1920.md`**, which is
   gitignored like everything else in there.
 
+## The fifteenth clip — the bug, and the grow used as a punchline
+
+`post15.mjs` renders 7.30 seconds, vertical, dark only, out to
+`demo/out/post15-dark-1080x1920.mp4`. **The first clip built on
+`lib/camera.mjs` and `lib/transitions.mjs`.** `rig-test.mjs` proved both of
+them; this is the first one that has to make them serve a joke rather than
+demonstrate themselves.
+
+The whole thing is one word long. A small drawn bug walks in from the left, low
+in the frame. He watches it. It stops under him and he looks down at it and
+narrows his eyes. Then he grows until he fills the frame, the world goes white
+for a full second with nothing on it at all, and he shrinks back to his corner
+with the bug gone. `crunchy`. One glitch, and the end card.
+
+A computer bug and a real bug, and the joke is that nothing explains either.
+
+### The grow is the event, not a transition
+
+Every other use of the circle grow would be a scene change: he swallows the
+frame, the theme flips, and the next thing is on the new paper. **Here nothing
+is on the new paper.** The white second is the whole gag and it is empty on
+purpose, so the thing being watched is a shape and a hole in the sound rather
+than a cut between two pictures.
+
+Which makes the white load bearing, so it is measured rather than asserted. The
+frame is one flat colour from the moment the disc covers to the moment the
+reverse grow's disc stops covering, and that span is a guard: **1.000s**, from
+3.166 to 4.166.
+
+The pace is the brief's: the swallow takes **0.806s** to reach flat, the white
+holds **1.000s**, and the way back takes **0.617s**. The out is
+`anticipate: 0.21, growFor: 0.81` against the module's defaults of 0.16 and
+0.62, which is a third slower because the brief asks for a slow decision and
+then a swallow. The way back is the module's defaults, which land on 0.617
+without being asked to.
+
+### The reverse grow wants `tail: 0`, and the render is why
+
+A grow is one shape read forwards or backwards, and `tail` is the fade the
+field leaves on at the end of a forward one. Forward it is invisible by
+construction: the field fades off onto a background that is already the same
+colour. **Read backwards that fade lands at the start of the reverse**, where
+the background is the destination theme and is not the same colour at all — the
+theme flips on the first frame of an `in` grow, so frame zero of a reverse with
+a tail on it is the new paper with the field at nothing on top of it.
+
+At sixty that is one black frame in the middle of a white second, then a tenth
+of a second of white fading in over it. `tail: 0` is the module's own option and
+it removes exactly that: with no tail the field is at full opacity on the
+reverse's first frame, which is what "covered from the first frame" is supposed
+to mean. The guard asserts it on the drawn frame: **the field is at 1 on
+3.856s, where a tail would have put it at 0.**
+
+`rig-test.mjs` has the same shape in it and has not been changed. Its two grows
+are 0.97s apart and its reverse is dark to light, so what it puts on that frame
+is one white frame rather than one black one. It is worth fixing in the module
+rather than in every clip, and it is written up under Outstanding.
+
+### He is inside the camera, and rig-test's mascot is not
+
+`rig-test.mjs` keeps the mascot in screen space, because the grow's cover
+arithmetic is against the frame and a head the camera was also scaling would
+make the covering scale a function of where the camera happened to be.
+
+This clip cannot do that. The brief is a push in **on the two of them**, and a
+camera that moved the bug and left the mascot behind would pull apart the one
+thing the shot is about. So both are inside `#cam-rig`, and the cover arithmetic
+survives for a reason rather than by luck:
+
+> the camera never goes under z 1.0 and the guard says so. At any z at or over
+> 1 the window of page space in shot is **contained in** the stage rect, so a
+> disc that covers the stage rect covers the window, and page space coverage
+> implies screen coverage.
+
+So `coverScale` is conservative here rather than merely correct. It is measured
+anyway — `__tr.plate()` reads the rendered plate through whatever transform is
+on it — and the mascot's own safe area guard is mapped through `cameraFrame`
+frame by frame, because a head inside a camera is where the camera put it and
+not where the module laid it out.
+
+The field, the wordmark and the fault's own layers are **outside** the camera,
+in screen space, the way `record.mjs` keeps its cursor outside. A full frame
+field the camera could translate is a full frame field with an edge in it.
+
+### The camera is one leg and no snap
+
+`free` mode, 1.05 to 1.10, `glide`, 0.60 to 2.30s, on a centre that moves 18px
+right and 24px down. It is finished 0.06s before the grow starts: a camera still
+moving under a transition is two moves at once and neither of them reads.
+
+No snap, because there is no punchline to hit with one — the punchline is a
+shape. No shake, because the only knock in the clip is the glitch at the end,
+and the glitch is a function of the frame index rather than of time, which is a
+different channel in a different file and is meant to jump rather than blur.
+
+**The zoom starts over 1 and stays there, and that is arithmetic rather than
+taste.** The rig is exactly the stage's own size, so at z under 1 a border comes
+into shot; the drift takes up to 1% off the scale and moves the centre by up to
+5 css px on y, and 1.05 carries both with room. `minZoomFor` does not answer
+this question — it bounds the shake and there is no shake — so the edges are
+worked out on every frame here instead, off `cameraFrame`'s own `tx`, `ty` and
+`z`, and confirmed on 29 rendered samples with `__cam.edges()`.
+
+**The destination was 1.12 and it is 1.10, and the bubble is why.** The push
+pulls the frame in around him and everything on his side of it moves toward an
+edge as it does. At 1.12 the thought bubble had 13 device px of air off the left
+safe line, which is a number that passes a guard and would not survive a font
+falling back one glyph wider. At 1.10 it has 60.
+
+### The thought bubble goes off his other side
+
+`lib/mascot.mjs` hangs the cluster off the top **right** of the head, which is
+correct for the corner it was written in: post11's mascot stands bottom left, so
+a thought climbing to its right climbs into the frame. This one stands bottom
+right, and the first render put a 204 css px pill **116 px off the right hand
+edge of the screen**.
+
+The fix is the module's own surface rather than an edit to it. The module writes
+the pill's opacity and transform and the dots' opacity and transform, and it
+never writes a position: `.bubble` is placed by css alone. So the clip mirrors it
+at the id level, which is exactly what post14 established for `#m-zone`:
+
+```css
+#m-bubble{left:auto; right:129px; flex-direction:row-reverse}
+#m-bubble .m-pill{transform-origin:100% 100%}
+```
+
+The offset is the module's own arithmetic rather than a second copy of it — the
+plate is centred in its own box, so the mirror of a symmetric offset is itself.
+`row-reverse` puts the small dot back nearest the head, and the pill's spring
+origin moves to the corner nearest the dots, which is now its right hand one.
+
+It reads better as well: a mascot in the right hand corner thinking toward the
+left is thinking into the frame, which is the same argument `TURN.bias` makes
+about where he looks. **The module should probably derive this from `pos` the
+way it derives the bias** — it is written up under Outstanding.
+
+### The bug is a top view, and that is the decision everything follows from
+
+Drawn in code, flat, in the mascot's own ink, from above. It was made for the
+same reason the mascot is a circle: it is the read that survives being small. A
+side view of an insect shows three legs, hides three, and needs a ground line to
+stand on; from above there are six legs, two antennae and a body, which is what
+a child draws when you say bug, and it needs no ground.
+
+It also makes the gait honest. **An alternating tripod** — front left, middle
+right, rear left down together, then the other three — is what a real insect
+does and it is visible from above, because what it does is sweep three legs back
+while three swing forward. From the side it would be a lift, and a lift is the
+one thing a flat top view cannot draw.
+
+So there is no bounce. What a walking insect actually does with its body is roll
+and yaw over the tripod that is planted, and both of those are lateral, and
+lateral is on screen in a top view. That is the bobbing: 1.5 css px of sway and
+3.2 degrees of yaw, at the gait's own frequency, over feet that do not move.
+
+| | |
+|---|---|
+| the body | a 29 x 16 lozenge, corners at half its own height |
+| the head | a 10.6 x 12 one in front of it with a real gap, so it has a neck at a glance |
+| the legs | six, two bones and a knee that bends **away** from the body, which is what an insect knee does and what a mammal knee does not |
+| the antennae | two segments each, forward and out, twitching on two periods with a flick out of a seeded schedule |
+| ink | **141 x 88 device px** against a 240px head |
+
+**The three x ranges do not overlap and that is the point.** The first cut had
+the rest feet at 17, 0.9 and −15.3, which with a stride of 34 puts the front
+foot as far back as 7 and the middle foot as far forward as 11 — so on half the
+frames two legs on the same side crossed, and a crossed pair reads as a tangle
+rather than as a gait. The 4x crop of the bug alone is what showed it. Spread to
+19, 0.6 and −18 the three sweeps clear each other by a fraction of a pixel, and
+the middle pair reaches six px further out than the other two so it never reads
+as one of them.
+
+### The gait is driven by distance, not by time
+
+The one thing a walk cannot do is slide. So the leg phase is `x / stride` rather
+than `t / period`:
+
+```js
+const ph = x / S + off;           // off is 0 for one tripod, 0.5 for the other
+const k = Math.floor(ph);
+const xs = (k - off) * S;         // where the body was when this stance began
+return { x: xs + rest.x + sweep, y: pathY(xs) + rest.y };
+```
+
+A foot is planted at a page position worked out from the distance the body had
+covered when the stance began, and it stays at exactly that page position until
+the stance ends. **Nothing about it is a function of the frame rate, the speed
+profile or the deceleration into the stop**, and the guard measures the worst
+movement of a planted foot across the whole walk: **0px**, by construction
+rather than by tuning.
+
+Three things fall out of that for free.
+
+**The footstep ticks are read off the picture.** A tick is a stride boundary, so
+the sound is a list of distances rather than a list of times — eleven of them —
+and as he slows into the stop they spread out from 129ms apart to 152 and then
+stop, on their own.
+
+**The gait slows with him**, because the period is the stride over the speed and
+the speed is the only thing that changes.
+
+**The path is a function of x rather than of t**, so a foot's planting height is
+available at plant time with nothing to invert. It is two sines on wavelengths
+that do not divide each other, which is the wobbly line the brief asks for.
+
+The walk itself is written as a **speed** and integrated rather than as an eased
+position: constant, then a smoothstep down into nothing. The integral of one
+minus a smoothstep over its window is exactly a half, so the profile closes in
+one line — `V * (flat + dec/2)` is the distance, which is what fixes `V` at
+259.3 px/s rather than a number somebody tuned. 376 page px in 1.62s, which is
+3.7 body lengths a second.
+
+When the body stops the phase stops with it, and a leg caught mid swing would
+freeze in the air. So over 0.22s after the stop every foot walks to its own
+resting position, which is an insect planting its feet rather than a rig being
+switched off. It is the one window the no-sliding guard does not read, and it
+says so.
+
+### What the gait costs at twelve frames
+
+The bug takes about eight strides a second. At sixty that is **7.8 to 9.1 frames
+to a cycle**, which reads. **At twelve it is a frame and a half and it does
+not**, and no amount of care in this file changes that — it is the preview's own
+sampling rather than anything about the animation.
+
+So the gait is judged on a strip of stills spaced one sixtieth apart, written on
+every run to `demo/out/verify-post15/gait/` as twenty four crops at twice size,
+and on the sixty frame master. This is the first thing in `demo/` whose preview
+pass genuinely cannot answer the question the preview exists for, and saying so
+is cheaper than pretending twelve frames a second is enough.
+
+### The lane under him is why he sits 84px off his own corner
+
+`planMascot` puts a bottom right mascot 24 css px inside the platform safe area,
+which leaves 24 px between his ink and the bottom safe line. The bug has to walk
+**under** him, inside the safe area, without touching him, and a bug with legs
+is 44 css px tall. So the whole mascot is lifted 84 px off the module's own
+placement.
+
+The lane is then derived rather than typed: **the lowest his ink ever gets over
+the clip**, walked frame by frame with `headRect`, plus 26 px of clearance, plus
+the bug's own reach above its centreline. Change the state list, the size or the
+lift and the lane follows. Measured: his ink bottoms out at 747.15 at 2.283s,
+the lane sits at 795.25, and **the closest the bug ever gets to his ink is 24.81
+page px, with 0 frames of overlap**.
+
+### The bug walks in through the left margin, and it has to
+
+Entering from a side is what the brief asks for and every side of the frame is
+outside the platform safe area, so there is no walk on that reads as a walk on
+and also never crosses a safe line. What is guarded instead is the shape of it:
+**the ink enters the safe rect once, at 0.417s, and never leaves it again.** Both
+halves are latched off the rendered box rather than off a time typed in the
+file, and anything after the latch that scores under nought is a real overrun.
+
+### The caption band is reserved even though nothing is in it
+
+There are no captions in this clip. The band is reserved anyway, because a band
+is a promise about where words can go and a clip that quietly fills it is a clip
+that cannot be captioned later. It sits at **292..364 css**, which is where a
+caption for this composition would go — the empty upper half — and it is checked
+every frame against the head, the bug, the bubble and the wordmark. Nothing
+enters it.
+
+### The cut
+
+Three marks, and there is no `neutral` at the top. That is deliberate: before
+the first mark every pose channel is at rest and the idle layer is running,
+which is `neutral` being held — that state's own mark is `sc` 0.972 to 1, so
+arriving at rest is the whole of what it does. A mark for it would cost 1.06s of
+the module's own floor and buy a scale up nobody asked for.
+
+```
+0.00  up. he is at rest, alive, and the bug is coming through the left edge
+0.48  curious, turn held to -0.58 — he has seen it
+1.14  the blink, 286ms of it
+1.62  the bug stops under him and plants its feet over 0.22s
+1.74  unimpressed, turn back to 0 — he looks down and his lids drop to half
+2.36  the grow out
+3.17  the frame is white, and it holds a full second
+3.34  chew, 3.62 chew, 3.91 chew
+4.17  his disc starts showing again
+4.78  he is back at corner size and the bug is gone
+4.82  delighted
+5.92  crunchy is fully up, and it holds to the cut
+6.42  the hit, 0.37s of it, and he and the bubble are cut with it
+6.40  the wordmark, over 0.09s, holding 0.88s
+7.30  end
+```
+
+`unimpressed` is the state that carries "he looks down, eyes narrow, thinking":
+lids at half and the head sinking. `thinking` turns up and away, which is the
+opposite of looking at something on the floor.
+
+**The blink is the seed.** The brief asks for one blink while he watches it, and
+no state in this cut carries one there. So it comes off the layer that already
+makes blinks: `planMascot`'s idle schedule is generated from the plan's seed, and
+the seed is searched for one whose first blink lands inside the `curious` hold.
+post13 did the same thing for its slow blink. It is not a new mechanism and it
+is not a cheat — an idle blink is the mascot's own blink — and the guard checks
+the blink is still where the seed was chosen for.
+
+### 7.30s, which is 0.30s over the brief
+
+The three transition beats are fixed by the brief and they are 2.71s of a seven
+second clip. What is left is 2.36s of setup in front and 2.23s behind, and the
+two places the overrun would come out of are the end card, which holds 0.88s
+against post12's 1.40, and the word `crunchy`, which is fully up for 0.50s
+before the cut takes it. Neither has anything left to give without one of them
+stopping working. It is written up at `SECONDS` in the file rather than left for
+somebody to find with a stopwatch.
+
+### Two sounds this clip added to `lib/sfx.mjs`
+
+Twenty one now, and both of these are at the ends of the table.
+
+**`tick`** is a foot, and it is `key` with the body taken out. That sound is a
+plastic cap on a board, so it has a 124 Hz pulse under the noise to stand for
+the board; an insect's foot has nothing under it at all — it is a claw touching
+a surface and the surface is not resonating. What is left is three milliseconds
+of band passed noise and a very short pulse, over inside a thirtieth of a
+second, at **-37 dB**, which is the quietest thing in the file.
+
+Its onset is held off the front of the buffer by the length of the fade that is
+about to go there. Every other sound in the file swells or has a body under it,
+so two milliseconds of taper costs them nothing; this one is three milliseconds
+of noise and **is** its own attack, and taking the first two off the front took
+**37% of the peak** with them.
+
+**`crunch`** is something being eaten, and it has to carry a beat on its own,
+which is not true of anything else in the set: it is the only thing that happens
+in the white second. So it is two events struck together like the coin, for the
+same reason — one bite is one thing happening to one object. Eight milliseconds
+of band passed noise for the crunch, and a note falling from `f0` to `f1` inside
+its own length, because a mouth closing is a cavity getting smaller and a cavity
+getting smaller drops in pitch. That is `sigh`'s physics and the opposite of
+`chirp`, which rises because it is a question.
+
+**The flutter is what makes it chewing rather than a bleep.** The note is
+amplitude modulated at 29 Hz, deep enough to grain it and not deep enough to
+gate it into a train — the `servo` rule, and the number lands in the same place
+for the same reason. The three in the clip walk down: 452→268, 396→232, and a
+longer, lower 338→186 for the swallow.
+
+### The mix, and a clip that is mostly silence
+
+Eighteen events, no voice and no bed. Off the synth the bus is **-42.4 LUFS**
+with its peak at -23.0 dBFS, so -14 LUFS wanted 28.40 dB of lift and the -1.8
+dBFS ceiling plus 1.5 dB of limiting allowed 22.70. **The ceiling won by 5.70
+dB** and the finished bus sits at **-19.8 LUFS**, which reads **-20.0 LUFS
+integrated with a -1.7 dBFS true peak** off the mp4 — where a clip that is
+silent for two thirds of its length belongs. post12's own note applies: the
+number is reported as a fact rather than argued with.
+
+### The guards this clip added
+
+Forty five, all green at 12fps and at 60fps with the shutter open. The ones
+that are this clip's rather than inherited:
+
+- **no planted foot moves while he walks**, worst movement across every leg at
+  240Hz — 0px
+- **no leg is ever asked to be longer than it is**, worst demand 20.85 against a
+  reach of 21.6
+- **the bug never touches his ink before the grow takes it**, closest 24.81 page
+  px, 0 frames of overlap
+- **the bug is inside the safe area by 0.417s and never leaves it again**
+- **the white holds a second**, measured on the frames rather than on the plan
+- **the reverse grow is covered from its own first frame**, which is the
+  `tail: 0` fault
+- **the camera never goes under z 1**, which is what makes the page space cover
+  arithmetic conservative with the mascot inside the rig
+- **the camera never shows an edge**, worked out on every frame off `tx`, `ty`
+  and `z` rather than sampled, because `minZoomFor` bounds a shake and there is
+  no shake here
+- **his head clears the safe area mapped through the camera**, every frame
+- **nothing enters the reserved caption band**, head, bug, bubble and wordmark
+- **the only thing heard on the white second is the three chews**
+
+Two of them are about the harness rather than the picture and both cost a run to
+find. **A frame is only captured once per repaint**: two `Page.captureScreenshot`
+calls with nothing written between them is a second capture of a frame the
+compositor has no reason to produce, and under paused virtual time it does not
+produce one — the call blocks forever. And **the vignette is load bearing**: the
+`--bug` mode hid it along with the mascot, and with nothing at all animating the
+next virtual time budget never expired.
+
+### Outstanding
+
+- **`lib/transitions.mjs` should not need `tail: 0` on a reverse grow.** The
+  tail belongs to the forward direction, and read backwards it lands on the
+  frame the theme flips. `rig-test.mjs` has the same one white frame in it. The
+  honest fix is in the module and it changes a shipped clip's frames, which is
+  a decision rather than an implementation detail.
+- **`lib/mascot.mjs` should derive the bubble's side from `pos`** the way it
+  derives `TURN.bias`. Every bottom right mascot from here on will need the
+  same four lines of css this clip carries.
+- **The clip runs 7.30s against a seven second brief.** See above for the two
+  beats that would pay for it.
+- **No posting pack.** Caption, tweet and tags are undecided.
+- **The review is in `demo/out/review-post15.md`**, which is gitignored like
+  everything else in there.
+
 ## The og card
 
 ```
@@ -4283,8 +4696,8 @@ disagree about blinking.
 
 ### `lib/sfx.mjs` — synthesised sound
 
-Nineteen sounds, written in JavaScript sample by sample. **There is not one audio
-file in the repo**, for the same reason the pictograms are drawn in code and the
+Twenty one sounds, written in JavaScript sample by sample. **There is not one
+audio file in the repo**, for the same reason the pictograms are drawn in code and the
 mascot is an inline SVG: a sample pack is a dependency with a licence, a
 download and a folder of binaries in a public repo, and it sounds like everybody
 else's clip because it *is* everybody else's clip. Eighty lines of oscillator
@@ -4368,6 +4781,26 @@ moves and the clip walks it, so consecutive pulses are bla, bleh, bluh rather
 than one buffer repeated. **And it has no attack** — 20ms in and 40ms out, both
 on a raised cosine, because a syllable of speech starts with a mouth opening,
 and a click at the front would be a consonant.
+
+**And post15's two are at the two ends of the table.** `tick` is a foot: `key`
+with the body taken out, because a plastic cap on a board has a board under it
+and an insect's claw has nothing. Three milliseconds of band passed noise and a
+very short pulse, over inside a thirtieth of a second, at -37 dB — the quietest
+thing in the file. Its onset is held off the front of the buffer by the length
+of the fade that is about to go there: every other sound here swells or has a
+body under it, so two milliseconds of taper costs them nothing, and this one
+**is** its own attack — taking the first two off the front took 37% of the peak
+with them.
+
+`crunch` is something being eaten, and it is the only sound in the set that has
+to carry a beat with nothing else on the screen. So it is two events struck
+together like the coin, for the same reason — one bite is one thing happening to
+one object: eight milliseconds of band passed noise, and a note falling from f0
+to f1 inside its own length, because a mouth closing is a cavity getting smaller
+and a cavity getting smaller drops in pitch. **The flutter is what makes it
+chewing rather than a bleep** — the note is amplitude modulated at 29 Hz, deep
+enough to grain it and not deep enough to gate it into a train, which is the
+`servo` rule landing in the same place for the same reason.
 
 `sigh` is `hi` saying the opposite thing: one note falling 560 to 300 Hz instead
 of two rising, fast first and slow after because that is what running out of
@@ -5222,9 +5655,12 @@ webm is a rectangle and would arrive in canva as one.
 
 The thing `record.mjs` and `post9.mjs` each grew their own copy of, lifted into
 one module. **It is new and nothing was retrofitted onto it**: those two clips
-are rendered and shipped, and the only thing a shared module could do for them
-is change them. This exists so post15 does not write a fourth one, and so
-post14, which has no camera at all, can have one.
+those two clips are rendered and shipped, and the only thing a shared module
+could do for them is change them. It exists so the next clip does not write a
+fourth one, and **post15 is the first that uses it** — one leg, no snap and no
+shake, with the mascot and the bug both inside the rig. See The fifteenth clip
+for why that is safe for the grow's cover arithmetic, and for the one thing
+`minZoomFor` does not answer when a plan has no shake in it.
 
 The same three pieces the caption and pictogram engines are built from, and for
 the same reasons. **`planCamera(opts)` runs in node and measures nothing** — it
@@ -5476,6 +5912,25 @@ fix is the mascot's own api rather than anything new: a mark may hold the turn,
 so a mark before the cross holds it at `+TURN.bias`. In the right corner that
 reads as looking toward the side he is about to leave through, which is the
 anticipation the move wants anyway.
+
+#### `tail` belongs to a forward grow, and post15 found it
+
+`tail` is the fade the field leaves on at the end of a grow. Forward it is
+invisible by construction: it fades off onto a background that is already the
+same colour. **Read backwards it lands at the start of the reverse**, where the
+background is the destination theme and is not the same colour at all — an `in`
+grow flips the theme on its first frame, so frame zero of a reverse with a tail
+on it is the new paper with the field at nothing on top of it, followed by a
+tenth of a second of the field fading in over it.
+
+post15 hit it and works round it with the module's own option, `tail: 0`, which
+puts the field at full opacity on the reverse's first frame. `rig-test.mjs` has
+the same shape in it and has not been changed: its reverse is dark to light, so
+what it puts on that frame is one white frame rather than one black one. **The
+honest fix is in this file** — the tail should be applied to the end of the
+window in real time rather than to the end of the shape — and it changes a
+rendered clip's frames, which is a decision rather than an implementation
+detail.
 
 #### It sits above `lib/pictograms.mjs` and does not weaken it
 

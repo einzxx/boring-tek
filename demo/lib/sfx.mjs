@@ -120,7 +120,7 @@ function ends(buf, ms = 2) {
 }
 
 /* ---------- the sounds ----------
-   sixteen of them, and each one is two or three lines of physics.
+   twenty one of them, and each one is two or three lines of physics.
 
    the whole set is deliberately dull. a caption card gets a thump with no top
    end at all, because the thing it is announcing is a word appearing, not a
@@ -721,6 +721,86 @@ export const VOICES = {
     note(one + gap, two, f0 * ratio);
     return ends(normalise(lp(b, lpHz)), 3);
   },
+
+  /* ---------- the twentieth: a foot ----------
+     post15's bug walks and a walk that makes no sound is a drawing. this is
+     the smallest thing in the file: twenty eight milliseconds end to end, and
+     three of them at once would still be under a `key`.
+
+     it is `key` with the body taken out. that sound is a plastic cap on a
+     board, so it has a hundred and twenty four hertz pulse under the noise to
+     stand for the board; an insect's foot has nothing under it at all — it is
+     a claw touching a surface and the surface is not resonating. so what is
+     left is three milliseconds of band passed noise and a very short pulse for
+     the fact that something arrived, and the whole thing is over in a
+     thirtieth of a second.
+
+     **it is not bright and that is deliberate rather than accidental.** a real
+     tarsus on a real table is a tick with four kilohertz in it, and this file's
+     ceiling is where every other sound's is, so the band stops at 3.6k and the
+     low pass at 4.4k. what makes it read as small is how fast it stops, not
+     how high it is — the same argument `click` and `key` are both built on. */
+  tick({ len = 0.030, seed = 0x6ad13f, hz = 300, tau = 0.0045 } = {}) {
+    const b = n(len), rnd = noise(seed);
+    /* the onset is held off the front of the buffer by the length of the fade
+       that is about to be put there. every other sound in this file swells or
+       has a body under it, so two milliseconds of taper costs them nothing;
+       this one is three milliseconds of noise and *is* its own attack, and
+       taking the first two off the front took thirty seven per cent of the
+       peak with them. the sound is not moved by it — the whole buffer is
+       placed by `renderSfx` — it is padded, which is what the fade wants. */
+    const pre = Math.round(0.0025 * SR);
+    const burst = Math.round(0.003 * SR);
+    for (let i = 0; i < burst; i++) b[pre + i] = rnd();
+    bp(b, 1100, 3600);
+    let ph = 0;
+    for (let i = pre; i < b.length; i++) {
+      ph += 2 * Math.PI * hz / SR;
+      b[i] = b[i] * decay(i - pre, tau) + Math.sin(ph) * decay(i - pre, 0.006) * 0.42;
+    }
+    return ends(normalise(lp(b, 4400)));
+  },
+
+  /* ---------- the twenty first: something being eaten ----------
+     post15 holds a full second of white with nothing drawn on it, and three of
+     these are the only thing that happens in it. so this one has to carry a
+     beat on its own, which is not true of anything else in the set.
+
+     **it is two events struck together, like the coin, and for the same
+     reason:** one bite is one thing happening to one object, so the crunch and
+     the note are one sound rather than a noise with a tone laid beside it. the
+     crunch is eight milliseconds of band passed noise, low and dry; the note
+     is a tone falling from `f0` to `f1` inside its own length, because a mouth
+     closing is a cavity getting smaller and a cavity getting smaller drops in
+     pitch. that is the same physics `sigh` is built on and the opposite of
+     `chirp`, which rises because it is a question.
+
+     **the flutter is what makes it chewing rather than a bleep.** the note is
+     amplitude modulated at `flutter` hertz, deep enough to grain it and not
+     deep enough to gate it into a train — the `servo` rule, and the number
+     lands in the same place for the same reason. take the depth past about
+     0.6 and it stops being a mouth and starts being a motor.
+
+     it stays under 2.6k, which is where the dull half of this file lives, so a
+     sequence of three on a white frame is felt rather than heard as a
+     notification. */
+  crunch({ len = 0.15, f0 = 430, f1 = 250, third = 0.24, flutter = 29, depth = 0.42,
+    tau = 0.062, burst = 0.008, grit = 0.40, lpHz = 2600, seed = 0x3c7a19 } = {}) {
+    const b = n(len), rnd = noise(seed);
+    const nb = Math.round(burst * SR);
+    for (let i = 0; i < nb; i++) b[i] = rnd();
+    bp(b, 380, 2100);
+    for (let i = 0; i < b.length; i++) b[i] *= decay(i, 0.016) * grit;
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = Math.min(1, i / (b.length * 0.55));
+      ph += 2 * Math.PI * (f0 + (f1 - f0) * q) / SR;
+      const am = 1 - depth * 0.5 * (1 - Math.cos(2 * Math.PI * flutter * i / SR));
+      b[i] += (Math.sin(ph) + Math.sin(ph * 3) * third) * decay(i, tau) * am
+        * Math.min(1, i / (0.004 * SR));
+    }
+    return ends(normalise(lp(b, lpHz)), 3);
+  },
 };
 
 /* ---------- the vowels the mumble walks ----------
@@ -855,6 +935,19 @@ export const GAINS = {
      than a noise, so they are over the bed by three and four decibels — enough
      to be an event against it, not enough to be the glitch. */
   mumble: -29, sigh: -26, annoyed: -25,
+
+  /* ---------- and post15's two, which are the two ends of the table --------
+     `tick` is the quietest thing in the file by three decibels and it has to
+     be: there are ten of them inside a second and a half and they stand in for
+     an insect's foot, which is a sound you notice the absence of rather than
+     the presence. at -37 a run of them is a texture under a picture with no
+     other sound on it at all.
+
+     `crunch` is at the giggle's level, and it is the loudest thing in that
+     clip after the cut. it is the only sound on a white frame with nothing
+     drawn on it, so it is not competing with anything and it is not sitting
+     under anything: for one second it *is* the clip. */
+  tick: -37, crunch: -25,
 };
 const db = v => Math.pow(10, v / 20);
 export const dbfs = v => (v <= 1e-9 ? -Infinity : 20 * Math.log10(v));

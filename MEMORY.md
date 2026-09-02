@@ -6,6 +6,78 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-02: `demo/post15.mjs`, the fifteenth clip, the bug. 7.30s,
+  1080x1920, dark only, out to `demo/out/post15-dark-1080x1920.mp4`.** The first
+  clip built on `lib/camera.mjs` and `lib/transitions.mjs`. A bug drawn in code
+  walks in low from the left, he watches it, it stops under him, he grows until
+  he fills the frame, the world goes white for a full second with nothing on it,
+  he shrinks back and the bug is gone. `crunchy`. One glitch and the end card.
+  **45 guards, all green at 12fps and at 60fps.**
+  - **The circle grow is used as a punchline rather than as a scene change**, and
+    that is the thing this clip is for. Every other use of it hands over to a new
+    picture; here the new picture is nothing, for a second, and the transition is
+    the event. Measured: the swallow takes **0.806s**, the white holds **1.000s**
+    and the way back takes **0.617s**, which is the brief's own pace.
+  - **A reverse grow wants `tail: 0`, and that is a real fault in
+    `lib/transitions.mjs` rather than a preference.** The tail is the fade the
+    field leaves on at the end of a forward grow, where it is invisible because
+    the background is already that colour. Read backwards it lands on the frame
+    the theme flips, so frame zero of a reverse is the new paper with the field
+    at nothing over it — one black frame in the middle of a white second, then a
+    tenth of a second of fade. `tail: 0` is the module's own option and it fixes
+    it in the clip. **`rig-test.mjs` has the same shape in it and shows one white
+    frame instead**; the module fix is outstanding because it changes a rendered
+    clip's frames.
+  - **The mascot is inside the camera and rig-test's is not**, because the brief
+    is a push in on him and the bug together. The grow's cover arithmetic
+    survives for a stated reason: **at any z at or over 1 the page space window
+    in shot is contained in the stage rect**, so covering the stage rect covers
+    the screen. The guard is "the camera never goes under z 1", and the rendered
+    plate is measured through the camera anyway — **4058 x 4058 device px at the
+    handover against a 2203px frame diagonal**.
+  - **The gait is driven by distance rather than by time**, which is the whole
+    no-sliding argument: the leg phase is `x / stride`, a foot plants at a page
+    position worked out from the distance the body had covered when the stance
+    began, and it does not move until the stance ends. **Worst planted foot
+    movement 0px.** The footstep ticks fall out of it for free — a tick is a
+    stride boundary — so as he decelerates into the stop they spread out and stop
+    on their own.
+  - **The bug is a top view and that is the decision everything follows from.**
+    From above there are six legs, two antennae and a body, and an alternating
+    tripod is visible; from the side three legs are hidden and the gait would be
+    a lift, which a flat view cannot draw. 141 x 88 device px against a 240px
+    head. The first cut had the three rest feet too close together and legs
+    crossed on half the frames — the 4x crop of the bug alone is what showed it.
+  - **At twelve frames the gait cannot be judged and that is the preview's fault,
+    not the clip's.** Eight strides a second is 7.8 to 9.1 frames a cycle at
+    sixty and a frame and a half at twelve. So every run writes a strip of
+    twenty four stills a sixtieth apart to `demo/out/verify-post15/gait/`, and
+    the walk is judged there and on the master.
+  - **The thought bubble had to be mirrored, and `lib/mascot.mjs` should do it.**
+    The module hangs the cluster off the top right of the head, which is right
+    for a bottom left mascot and puts a 204px pill 116px off the right edge for a
+    bottom right one. The clip mirrors it in four lines of css at the id level —
+    post14's move for `#m-zone` — but the module should derive the side from
+    `pos` the way it derives `TURN.bias`.
+  - **Two new voices in `lib/sfx.mjs`, now twenty one sounds**: `tick`, a foot,
+    at -37 dB, which is the quietest thing in the file; and `crunch`, a bite,
+    which is the only sound in the set that has to carry a beat with nothing else
+    on the screen. Nothing existing in the module moved.
+  - **The clip runs 7.30s against a five to seven second brief.** The three
+    transition beats are fixed and they are 2.71s of it; the two places the 0.30s
+    would come out of are the end card, which holds 0.88s against post12's 1.40,
+    and the word `crunchy`, which is fully up for 0.50s. Both are already at
+    their floor. It is written up at `SECONDS` in the file.
+  - **The mix is -19.8 LUFS on the bus, -20.0 on the mp4, and the ceiling won by
+    5.70 dB**, which is where a
+    clip that is silent for two thirds of its length lands. Eighteen events, no
+    voice, no bed.
+  - **Two harness lessons, both of which cost a run.** A frame is only captured
+    once per repaint — two `Page.captureScreenshot` calls with nothing written
+    between them block forever under paused virtual time. And the vignette is
+    load bearing: hiding it in the `--bug` mode stopped the compositor and the
+    next virtual time budget never expired.
+
 - **Built 2026-09-02: `demo/lib/camera.mjs` and `demo/lib/transitions.mjs`, two rig
   upgrades, plus `demo/rig-test.mjs` that proves them.** Both modules are new, both
   are self tested without a browser, and **nothing shipped was retrofitted onto
@@ -1871,7 +1943,8 @@ motion engine and is the only dependency any of this has gained since. Full deta
   over in eight and a sound that outlasts its own move is a sound the viewer
   starts listening to. It sits at -26dB, with the click rather than with the
   coin: it is a mechanism acknowledging an instruction, not an object landing.
-- **`lib/sfx.mjs` has nineteen sounds since 2026-09-01.** Twelve furniture, seven
+- **`lib/sfx.mjs` has twenty one sounds since 2026-09-02**, and had nineteen from
+  2026-09-01. Fourteen furniture, seven
   character: post12 added `hi`, `fart`, `giggle` and `glitch`, post13 added
   `mumble`, `sigh` and `annoyed`. The seven are the only ones allowed to be funny
   and the rule that keeps them in the house is that none of them is bright — the
