@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-02: `demo/lib/camera.mjs` and `demo/lib/transitions.mjs`, two rig
+  upgrades, plus `demo/rig-test.mjs` that proves them.** Both modules are new, both
+  are self tested without a browser, and **nothing shipped was retrofitted onto
+  either of them.** `lib/mascot.mjs`, `lib/pictograms.mjs`, `record.mjs` and
+  `post9.mjs` are byte identical, which was the brief and is checked with a diff
+  rather than claimed.
+  - **`lib/camera.mjs` is the camera every clip has been writing its own copy of.**
+    `cx`, `cy`, `z` on legs between targets with house easing; an idle drift on two
+    incommensurable periods per channel, refused at plan time if the ratio is close
+    to a simple fraction; a snap zoom with anticipation, a hit and `btk.pop`'s own
+    overshoot as the settle; and a shake channel that is **separate from the glitch
+    shake and deliberately the opposite kind of thing** — the glitch is a function
+    of the frame index so the shutter cannot smear it, this is a function of `t`
+    because a camera being hit is real motion and should blur. A target is a
+    selector, a rect or a point. Two modes: `site` carries the page's own zoom
+    floor of 1.0 and ceiling of 1.09 and throws if a plan leaves them, `free` is
+    for composed frames where neither reason applies.
+  - **`lib/transitions.mjs` is the circle grow, and the whole trick is that his
+    face inverts.** He swells until his fill covers the frame, the field takes over
+    at the exact frame he covers, the theme flips while the frame is one flat
+    colour, and he is gone. Or the same shape backwards and the background shrinks
+    into him. It works both ways because **his face in one theme is the other
+    theme's paper** — 6 of 255 apart one way, 11 the other — and `mascotInk()`
+    lifts both blocks out of `mascotCss()` at run time so the module fails loudly
+    if that ever stops being true. Plus the cross: off one side, back on the other,
+    in a new place.
+  - **`lib/mascot.mjs` did not need a scale channel and did not get one.** `#m-zone`
+    is the mascot's own box and the module writes nothing to it, which post14
+    already established. The grow is a transform on that zone, so at its first
+    frame it **is** the head, to the pixel. The three things written after
+    `__mas.apply()` are all multiplies toward zero of numbers the module already
+    put there.
+  - **`demo/rig-test.mjs` renders 12.00s in both themes**, to
+    `demo/out/rig-light.mp4` and `demo/out/rig-dark.mp4`, with a push, drift, a
+    snap, a shake, the grow both ways and the cross. **22 guards, all green, at
+    12fps and at 60fps.** The measured number the brief asked for: **he fills
+    1080x1920 at a zone scale of 16.53 from the bottom right corner**, which puts
+    the rendered plate at **3999 x 4103 device px** against the frame's own 2203px
+    diagonal. Log at `demo/out/rig-final.log`.
+  - **The 12fps preview was reviewed frame by frame and found three faults the
+    guards were green on**, which is the fourth time that has happened here. All
+    three are fixed and all three now have a number watching them. See the
+    decisions.
+  - **Not wired into any post.** The two modules exist so the next clip has a
+    camera and a signature transition without inventing either on the day.
+
 - **Built 2026-09-02: `demo/post14.mjs`, the fourteenth clip, the fable 5.1 news
   flash. Second cut, 13.03s, 1080x1920, light only, out to
   `demo/out/post14-light-1080x1920.mp4`.** The first clip that is about somebody
@@ -1971,6 +2017,31 @@ read. **The three style test clips were re-rendered** against the changed engine
   frame, the bubble's on a sample, the bubble against a caption band if one is passed,
   a two or three word ceiling on bubble copy, no dash in any language, no two identical
   blinks in a row, no frozen frame, the squash under 8% and the breathing under 2%.
+- **`demo/lib/camera.mjs` — the camera, added 2026-09-02.** `cx`, `cy` and `z` on legs
+  between targets with house easing, an idle drift on two incommensurable periods per
+  channel, a snap zoom with anticipation and `btk.pop`'s own overshoot as the settle, and
+  a shake that is a continuous function of `t` rather than of the frame index — the
+  opposite of the glitch layer's, on purpose. A target is a selector, a rect or a point,
+  and a selector is resolved in its own step so the animation stays a pure function of
+  time. Two modes: `site` enforces the page's own zoom floor of 1.0 and ceiling of 1.09
+  by walking the resolved plan at 60fps, `free` is for composed frames. `minZoomFor`,
+  `visibleRect` and `holds` turn "the camera never shows an edge" and "no line of the
+  page is ever cut in half" into numbers. **`record.mjs` and `post9.mjs` keep their own
+  copies and are byte identical.** `node lib/camera.mjs test` runs 22 checks with no
+  browser.
+- **`demo/lib/transitions.mjs` — the circle grow and the cross, added 2026-09-02.** He
+  swells until his fill covers the frame and becomes the next scene's paper, or the same
+  shape backwards. It works both ways because his face in one theme *is* the other
+  theme's paper, and `mascotInk()` checks that against `mascotCss()` at run time rather
+  than trusting it. Plus the exit and re-entry, with the departure on `btk.drift` read
+  backwards. **It drives `lib/mascot.mjs` through `#m-zone` and does not touch that
+  module**; the three things it writes after `__mas.apply()` are all multiplies toward
+  zero of numbers the module already put there. `node lib/transitions.mjs test` runs 32
+  checks with no browser.
+- **`demo/rig-test.mjs`** renders 12.00s in both themes to `demo/out/rig-light.mp4` and
+  `demo/out/rig-dark.mp4`: a push, a drift, a snap, a shake, the grow both ways and the
+  cross. 22 guards. He fills 1080x1920 at a zone scale of **16.53** from the bottom right
+  corner, measured on the rendered plate at **3999 x 4103 device px**.
 - **`demo/mascot-test.mjs`** — one clip per theme, at two fixed paths that are
   overwritten every run: `demo/out/mascot-light.mp4` and `demo/out/mascot-dark.mp4`.
   Nothing else is written, so a stale clip cannot survive a render. Rendered light and dark,
@@ -2081,6 +2152,127 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-02 — the camera comes out of the clips, and the shake is the opposite of the glitch
+
+`record.mjs` and `post9.mjs` each grew their own camera, post11 grew a third as a
+transform on an iframe, and post14 has none at all. `lib/camera.mjs` is the fourth
+one, written once.
+
+**Nothing was retrofitted.** The two clips that have a camera are rendered and
+shipped, and the only thing a shared module could do for them is change them. This
+is the same call `lib/mascot.mjs` got: a module for what comes next, not a
+migration of what already works. Both files are byte identical and that is checked
+with a diff.
+
+**The shake was the design question and the answer is that it is not the glitch
+shake.** Four clips shake the whole stage and every one computes it from the frame
+index, on purpose: a glitch happens to a screen, and with the shutter open a one
+frame jump written against `t` renders as a quarter strength blur instead of as a
+jump. A camera shake happens in the room, and a real camera moving fast **does**
+blur. So the camera's is a continuous function of `t` and is meant to smear. Two
+channels, two files, and a clip may run both — the glitch tears the picture and
+the camera flinches.
+
+**Which turned up a real bug in the first cut, and the test that found it is worth
+keeping.** The envelope body is `(1-p)e^-kp`, which is 1 at `p=0+` and 0 at
+`p<=0` — a step. Sampling the same window at 60Hz and at 240Hz reported the same
+worst one frame move, **3.58px both times**, and that is the signature of a jump:
+a continuous function's worst step comes down when you look more finely, a held
+one does not. The fix is a 0.06 attack, two frames at 60fps on the default half
+second shake, and the numbers are now 2.38px at 60Hz against 0.776 at 240, a ratio
+of **0.327**. **A held signal reports 1.000, and that is the whole test.**
+`lib/transitions.mjs` borrows it for the grow.
+
+**The site mode's limits are walked rather than argued, and the snap is why.**
+`btk.pop` goes ten per cent past its mark, so a plan whose legs all sit inside
+[1.0, 1.09] can still render outside it. `resolveCamera` samples the resolved plan
+at 60fps and throws. A 1.05 leg with a 1.06 snap on it is refused, and that case is
+in the module's own test.
+
+**`holds()` is post9's lesson with something checking it.** post9 rendered THE
+BORING TEK as `SHE / 7/RING / MEK`; post11's answer was the rule that no line of
+the page is ever cut in half. `visibleRect(plan, t)` gives the window of page space
+in shot and `holds(plan, rect)` walks every frame and says whether one box stayed
+inside it. It caught `rig-test.mjs`'s own headline at 3.60s on the first preview.
+
+### 2026-09-02 — the circle grow, and why it needs his face to invert
+
+The mascot is a circle, so the signature transition is that he becomes the
+background. A circle grown about its own centre never stops being the shape it
+started as, which is what makes it one continuous shape rather than a cut. A
+square would have to rotate to fill 9:16 and a rounded rect would show its corners
+arriving.
+
+**The trick is arithmetic, not craft.** The module paints the head in `--face` and
+the page in `--eye`, and `--eye` is defined to always be the page background. Read
+as pairs: light face `#0b0d10` against dark paper `#06070a` is **6 of 255** apart,
+dark face `#f4f7f5` against light paper `#ffffff` is **11**. So a black head
+growing on a white page arrives at a black page and a white head growing on a black
+page arrives at a white one. **The grow is a theme flip performed by a shape**, and
+the handover is a flat field changing by four per cent of one channel at the one
+moment the frame is a single colour. `mascotInk()` lifts both blocks out of
+`mascotCss()` at run time and `planGrow` throws past 12 of 255, so changing the
+mascot's colours fails loudly instead of rendering a visible cut.
+
+**`lib/mascot.mjs` was not touched and did not need to be.** The brief allowed a
+scale channel if the api lacked one. It does not: `#m-zone` is the mascot's own box
+and `apply()` writes every other element and never the zone, which post14 already
+relied on. The grow is a transform on the zone, so at its first frame it **is** the
+head, to the pixel.
+
+**The eyes melt rather than fade, and that is what makes it compose.** A head that
+grows with its eyes on becomes two enormous slabs before it becomes a background.
+Fading them would mean fighting `apply()` for the brow opacity every frame. Instead
+`--eye` is walked to `--face`: the irises, the brows, the hand and the bubble are
+all painted in `--eye`, so they stop being visible by becoming the same ink as the
+skin. **He closes his eyes by having his eyes become his face**, and it works
+because the module writes no custom property.
+
+### 2026-09-02 — three faults the rig test's guards were green on, and the numbers that catch them now
+
+The fourth time a frame has found something every check passed. All three came off
+the 12fps preview.
+
+**He popped back after the grow out.** A grow out means he became the page, and the
+first cut handed him back the instant the window ended — full size, in his corner,
+on the new theme. At 6.82s. The fix is that presence is a **latch rather than a
+product**: `composeTransitions` gives the vote to the latest transition that has
+actually started, which is well defined without the function knowing the time
+because every frame carries its own plan's `at`. A grow out leaves him gone; a grow
+in takes the decision back. Multiplying opacities would have left `false * true` on
+every frame after the second grow.
+
+**The snap cut the headline in half.** The snap peaks at z 1.380, which shows 391
+page px of a 540 wide page, and the h1 was 428 wide at left 56. This is post9's
+fault exactly. `holds()` is the guard and the copy now lives in one box that keeps
+25.7px of air at the tightest crop.
+
+**He landed looking out of frame.** `planMascot` derives the resting turn from
+`pos`, once, so he looks into the frame — from the right corner that is -0.35.
+Cross him to the left corner and the same -0.35 points him off the screen. The fix
+is the mascot's own api rather than anything new: a mark may hold the turn, so a
+mark before the cross holds it at `+TURN.bias`. In the right corner that reads as
+looking toward the side he is about to leave through, which is the anticipation the
+move wanted anyway. **It is a real limitation of composing `planCross` with a
+corner derived bias and it is written down rather than fixed**, because fixing it
+would mean a per frame bias in `lib/mascot.mjs`.
+
+**And two the guards did find, both in `coverScale`.** The first: the slack allowed
+for the idle drift and the breathing but not the **squash**, and the card's scale is
+volume preserving, so a squashed circle is an ellipse whose *short* axis has to
+reach the corner. `growCoverage` measured **0.970** of the corner on a frame the
+field claimed to be covering. The second was worse and less obvious: the slack was
+folded into the final scale but `reachOf` still divided by the bare geometry, so the
+field came up when the *ideal* disc covered while the real one was two per cent
+short. **The slack has to be in the requirement, not only in the destination, or it
+is not slack at all.**
+
+**A mascot mark whose entrance falls inside a covered stretch is a clip error.**
+`coverScale` bounds the idle layer, which is always on and is a fixed fraction of
+the head's own size; it cannot bound a pose, because a pose is the clip's and a
+`delighted` hop moves the head a long way. `growCoverage` is the number that catches
+it, and `rig-test.mjs` schedules nothing between 4.80 and 8.75 for that reason.
 
 ### 2026-09-02 — post14's end card drops the address, and the reason is a cap height
 

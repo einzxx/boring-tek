@@ -84,9 +84,23 @@ Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
 - **`lib/sfx.mjs`** synthesises the sound effects, sample by sample, and places
   every one of them from a time that is already in a caption or scene plan.
   There is no audio file in the repo.
+- **`lib/camera.mjs`** is the camera: legs between targets on the house curves,
+  an idle drift that never repeats, a snap zoom for a punchline, and a shake
+  that is a continuous function of time rather than of the frame index. Two
+  modes, `site` and `free`. **New, and nothing was retrofitted onto it** —
+  `record.mjs` and `post9.mjs` keep their own copies. `node lib/camera.mjs test`
+  runs its checks without a browser. See The library.
+- **`lib/transitions.mjs`** is the circle grow and the exit and re-entry. He
+  swells until his fill covers the frame and his fill becomes the next scene's
+  paper, or the same shape backwards and the background shrinks into him. It
+  drives `lib/mascot.mjs` through `#m-zone` and **does not touch that module**.
+  `node lib/transitions.mjs test` runs its checks without a browser.
 - **`analyze.mjs`** reads a reference video and writes down how it is built.
 - **`captions-test.mjs`** renders the three caption styles as five second clips
   so they can be judged.
+- **`rig-test.mjs`** renders twelve seconds that exercise the camera and the
+  transitions and nothing else, in both themes, to `demo/out/rig-light.mp4` and
+  `demo/out/rig-dark.mp4`. See The rig test.
 - **`scenes-test.mjs`** renders `post6.mjs`'s own five scenes back to back with
   the dead air taken out, as a ten second silent strip, so the scene layer can
   be judged without scrubbing a twenty two second clip. See The scene strip.
@@ -5203,6 +5217,332 @@ asked for whether or not the plane reached the muxer. So one clip per theme is
 composited over a colour nothing in the mascot uses and two corners are read
 back: if they are that colour the transparency is real, and if they are not the
 webm is a rectangle and would arrive in canva as one.
+
+### `lib/camera.mjs` — the camera
+
+The thing `record.mjs` and `post9.mjs` each grew their own copy of, lifted into
+one module. **It is new and nothing was retrofitted onto it**: those two clips
+are rendered and shipped, and the only thing a shared module could do for them
+is change them. This exists so post15 does not write a fourth one, and so
+post14, which has no camera at all, can have one.
+
+The same three pieces the caption and pictogram engines are built from, and for
+the same reasons. **`planCamera(opts)` runs in node and measures nothing** — it
+validates, resolves the timings and returns plain data, and
+`describeCamera(plan)` prints it. **`resolveCamera(plan, rects)` turns selectors
+into numbers**, because a target may be an element and an element has no rect
+until a page has laid it out; the rects are an argument rather than a measurement
+taken inside the module, which is the same reason `sceneFrame` takes an `env`.
+And **`cameraFrame(plan, t)` is the whole camera as a pure function of time** —
+centre, zoom, drift, shake and the transform to write, at second `t` and nothing
+else. That is what makes it compose with the shutter: a subframe at `t + 1/240`
+is a real answer rather than a repeat, so a fast move blurs the way a fast move
+should.
+
+The transform is `record.mjs`'s, unchanged, because it is the right one:
+`transform-origin: 0 0` and `translate(vw/2 - cx*z, vh/2 - cy*z) scale(z)`. A
+fixed child of the wrapper is fixed to the wrapper, which is exactly what a
+camera wants and is why the site's top bar travels with the frame.
+
+| | |
+|---|---|
+| `cx`, `cy` | the page point the frame is centred on, in css px of page space |
+| `z` | the zoom. 1.0 is the page at its own size |
+| drift | two sines per channel whose periods never come back into phase |
+| shake | a decaying seeded knock, in screen px, on top of everything |
+
+A target is one of three things and a plan may mix them: `{ sel, fit, dx, dy }`,
+`{ rect, fit }`, or `{ cx, cy, z }`. **A fit is on both axes**, which is post11's
+rule rather than a preference — fitting the lockup on width alone framed it at
+1.10 and cut the mascot's crown off the top of the card and the hint line off the
+bottom.
+
+#### Two modes, and `site` carries the page's own limits
+
+**`site`** is for footage of `index.html` and it enforces the two framing rules
+that are arithmetic. Zoom never below 1.0, because the top bar, the vignette and
+the grain are all `position: fixed` inside the wrapper and under 1.0 their boxes
+float as visible rectangles in the margin. Zoom never above 1.09, because the
+page is full bleed at 540 and the subline is its widest line — post9 rendered THE
+BORING TEK as `SHE / 7/RING / MEK` doing exactly this. The third rule, that a
+resting shot frames either page zero or everything below the bar, is a framing
+judgement rather than a number and stays with the clip that makes it.
+
+**`free`** is for a composed frame on a plain background, where none of those are
+true because there is no bar, no grain and no subline. It takes its own
+`zoom: { min, max }` or none.
+
+**The limits are walked, not argued.** `resolveCamera` samples the resolved plan
+at 60fps and throws in site mode if the zoom ever leaves the window — and that
+includes the snap's overshoot, because `btk.pop` goes 10% past its mark and a
+plan that fits at its marks and not at its overshoot is a plan that renders
+wrong. The module's own test proves it: a 1.05 leg with a 1.06 snap on it is
+refused, because it peaks past 1.09.
+
+#### The shake is not the glitch shake, and that is the whole point
+
+post10, post12, post13 and post14 all shake the whole stage, and every one of
+them computes it **from the frame index rather than from the time**, on purpose:
+a glitch is a dropped packet, it happens to a screen rather than in the room, and
+with the shutter open a one frame jump written against `t` comes out as a quarter
+strength blur instead of as a jump.
+
+A camera shake is the opposite thing. It is the operator being hit, it happens in
+the room, and a real camera moving fast **does** blur. So this one is a
+continuous function of `t` and it is meant to smear. The two are different
+channels in different files and a clip may run both at once: the glitch tears the
+picture and the camera flinches.
+
+The noise is value noise rather than a sine, because a shake is not a wobble:
+seeded values on a grid at `freq` per second, smoothstepped between, two octaves,
+continuous in `t` at every point.
+
+**The attack is 0.06 by default and it is not decoration.** The envelope body is
+`(1-p)e^-kp`, which is 1 at `p=0+` and 0 at `p<=0` — a step. The module's own
+check caught it: the worst one frame move at 240Hz was the same **3.58px** as at
+60Hz, which is the signature of a jump rather than of a move. With the attack in
+it is 2.38px at 60Hz against **0.776px** at 240Hz, a ratio of **0.327** where a
+held signal reports 1.000. That test — sample four times as densely and the worst
+step must come down — is how this file tells a move from a cut, and
+`lib/transitions.mjs` borrows it for the grow.
+
+#### The edges, as arithmetic
+
+"The camera never shows the edge of the picture" is not a hope.
+`minZoomFor(plan)` returns the smallest zoom at which the worst shake this plan
+can produce still cannot pull a border into shot: a translation of `a` px needs
+`2a/w` of extra scale, because the overscan is shared between two sides, and a
+rotation needs the rotated frame's own bounding box covered. It bounds on the
+**nominal** amplitude rather than on the realised peak, because a bound that is
+only usually true is not a bound. `cameraMotion` says whether the plan ever goes
+under it, and `__cam.edges()` confirms it in the browser off the rendered rect,
+because the plan can only speak for content that is exactly the size it was told.
+
+`visibleRect(plan, t)` is the other half of the framing argument: the window of
+page space in shot at second `t`, shake included. `holds(plan, rect, fps)` walks
+every frame and says whether one box stayed inside it, and names the frame it
+first failed on. That is post9's lesson and post11's rule — **no line of the page
+is ever cut in half** — with something checking it. It caught the first cut of
+`rig-test.mjs` at 3.60s.
+
+### `lib/transitions.mjs` — the circle grow, and the exit and re-entry
+
+The mascot is a circle. That is the one fact this file is built on, and it is the
+reason we have a signature transition at all: a circle that grows about its own
+centre never stops being the shape it started as, so **he can become the
+background** rather than cutting to it. A square would have to rotate to fill a
+9:16 frame and a rounded rect would show its corners arriving.
+
+#### The whole trick is that his face inverts
+
+`lib/mascot.mjs` paints the head in `--face` and the page behind it in `--eye`,
+and `--eye` is defined to always be the page background. So:
+
+| | face | paper |
+|---|---|---|
+| light | `#0b0d10` | `#ffffff` |
+| dark | `#f4f7f5` | `#06070a` |
+
+Read those as two pairs and the transition falls out of them. **His face in one
+theme is the other theme's paper**, to within a few units of luminance: light
+face against dark paper is 6 of 255 apart, dark face against light paper is 11.
+So a black head growing on a white page arrives at a black page, and a white head
+growing on a black page arrives at a white one. **The grow is a theme flip
+performed by a shape.** It needs no dissolve, no cut and no second colour: the
+handover is a flat field changing by four per cent of one channel at the one
+moment the frame is a single colour.
+
+**It is checked rather than claimed.** `mascotInk()` lifts both theme blocks out
+of `mascotCss()` at run time — the same move `captions.mjs` makes on
+`index.html` — and `planGrow` throws if the pair has drifted past `INK_TOL`, 12
+of 255. Change the mascot's colours and this file fails loudly instead of
+rendering a visible cut.
+
+#### `lib/mascot.mjs` is not touched, and did not need to be
+
+The brief allowed adding a scale channel to the mascot if its api had none big
+enough. It does not need one. **`#m-zone` is the mascot's own box and the module
+writes nothing to it** — `apply()` writes `#m-card`, `#m-shadow`, the glows, the
+eyes, the brows, the hand and the three bubble parts, and never the zone. post14
+already established that: its two mascot placements are a transform on `#m-zone`
+added at the id level by the clip.
+
+So the grow is a transform on the zone, which scales the real plate the real head
+is drawn on. **At the first frame of the grow it is the head, to the pixel,
+because it is the head.** That is what makes it one continuous shape rather than
+a shape that replaces one.
+
+Three things are written after `__mas.apply(f)` in the same frame, and every one
+of them is a multiply toward zero of a number the module already wrote:
+
+| element | what | why it is safe |
+|---|---|---|
+| `#m-zone` | transform, opacity | the module never writes either |
+| `#m-zone` | `--eye` | the module writes no custom property |
+| `#m-shadow`, `.m-glow` | opacity, visibility | multiplied down, never up |
+
+#### The eyes melt, they do not fade
+
+A head that grows with its eyes on turns into two enormous slabs before it turns
+into a background, so the features have to go first. They are not faded out:
+`--eye` is walked to `--face`, and since the irises, the brows, the hand and the
+bubble are all painted in `--eye`, they stop being visible by becoming the same
+ink as the skin. **He closes his eyes by having his eyes become his face.**
+
+Fading would have meant fighting `apply()` for the brow opacity every frame. This
+touches a property the module never writes at all, which is why it composes
+instead of racing.
+
+The shadow and the glow go to `visibility: hidden` rather than only to opacity
+nought. At the fifteen times a corner grow reaches, the wide glow is a 450px
+gaussian over a 3600px disc rastered on every frame for something nobody can see.
+
+#### What covers, and the two things the render found
+
+`coverScale(box, size, stage)` is the scale at which the plate covers the frame,
+and it is arithmetic rather than a number somebody watched for: the distance from
+the plate's own centre to the furthest corner, over the plate's radius at rest,
+with three corrections that survive the scale because all three are fractions of
+the head's own size.
+
+- **the idle drift**, `hypot(1.7, 1.2)` css px against a 60px radius, so 3.5%
+- **the breathing**, up to 2% off the scale
+- **the squash**, up to the module's own 8% ceiling. The card's scale is volume
+  preserving, so a squashed circle is an ellipse and what has to reach the corner
+  is its **short** semi axis.
+
+**The squash was missing from the first cut and `growCoverage` found it**: the
+reverse grow measured **0.970** of the corner on a frame the field claimed to be
+covering, which is a wedge of the old paper behind a disc that had supposedly
+swallowed it.
+
+**The second fault was worse and less obvious.** The slack was folded into the
+final scale but `reachOf` still divided by the bare geometry, so `coverU` — the
+moment the field comes up — fired when the *ideal* disc covered, while the real
+one was still two per cent short. The slack has to be in the requirement, not
+only in the destination, or it is not slack at all. `needSafe` is that
+requirement now and `reachOf` divides by it.
+
+`growCoverage(gplan, mplan, fps)` walks the real `mascotFrame` over the real
+window and reports what actually happened, because a bound derived from the idle
+layer says nothing about a pose the clip put on the same frames. **A mascot mark
+whose entrance falls inside a covered stretch is a clip error**, and this is the
+number that catches it.
+
+#### Presence, and the pop the preview found
+
+A grow **out** does not give him back. He became the page: that is the whole
+point of it, and after the last frame of one he is still the page until something
+hands him over. The first cut returned him the moment the window ended and he
+snapped into his corner at full size on the new theme, which is a cut, and the
+12fps preview showed it at 6.82s.
+
+So presence is a latch rather than a product, and `composeTransitions` gives the
+vote to **the latest transition that has actually started**. That is well defined
+without the function knowing what time it is, because every frame carries its own
+plan's `at` and whether it has begun, and a plan that has not started has no
+opinion about a page it has not touched. `composeTransitions` is also what merges
+two of them: translates add, rotations add, scales multiply, opacities multiply,
+and the page writes `translate rotate scale` in that order so he is carried to
+where he stands **and then** grows about the place he is standing.
+
+#### The cross
+
+Off one side and back on the other, in a new place. Anticipation against the
+travel, an accelerating departure, a gap with nothing on screen, then an arrival
+on `btk.pop` whose own overshoot is the settle.
+
+**The departure is `btk.drift` read backwards.** A thing leaving frame
+accelerates, and none of the four house curves does that — `pop` overshoots,
+`glide` is symmetric, `heavy` and `drift` both arrive early. Reading one
+backwards is an acceleration and is not a new curve: no fifth bezier, no fifth
+name, nothing for two files to disagree about. Sampled, it is 0.19 at the halfway
+point where drift is 0.81.
+
+He travels far enough that the ink **and its glow** are out. The wide glow is a
+blur of the plate and a gaussian is visible to about three sigma, so the reach
+past the ink is three times the blur radius rather than one. Off frame he is
+switched off rather than merely moved, because a plate and two blur layers parked
+outside the viewport are still rastered.
+
+The lean is a fraction of the travel rather than its own tween, so the tip and the
+move can never disagree about when the move happened.
+
+**One thing it cannot do, and it is worth knowing.** `planMascot` derives the
+resting turn from `pos`, once, so that he looks into the frame rather than out of
+it — from the right corner that is -0.35. Cross him to the left corner and that
+same -0.35 points him off the side of the screen. `rig-test.mjs` hit it and the
+fix is the mascot's own api rather than anything new: a mark may hold the turn,
+so a mark before the cross holds it at `+TURN.bias`. In the right corner that
+reads as looking toward the side he is about to leave through, which is the
+anticipation the move wants anyway.
+
+#### It sits above `lib/pictograms.mjs` and does not weaken it
+
+The scene engine refuses three scenes at once or an overlap past 0.45s: a handoff
+is a handoff, not a dissolve. Nothing here changes that. This file never touches a
+scene, a part or a step — it operates on the mascot layer and on one full frame
+field, and a clip that runs a grow over a scene handoff is still bound by the
+scene engine's own rule.
+
+### `rig-test.mjs` — twelve seconds that exercise both
+
+Two files, always the same two paths, overwritten every run:
+`demo/out/rig-light.mp4` and `demo/out/rig-dark.mp4`. `mascot-test.mjs`'s rule
+and `mascot-test.mjs`'s reason.
+
+The cut, and every element the two modules carry is in it:
+
+```
+0.00   the page, camera at z 1.12, drift running
+0.40   the push, 2.20s on glide, to z 1.19
+3.40   the snap: anticipate 0.18, hit 0.20, hold 0.30, settle 0.50, x1.14
+3.79   the shake, 0.55s, 24px nominal and 8.8 realised
+4.70   back out to z 1.14
+5.60   the grow OUT. light to dark. covers at 6.19, he is gone at 6.63
+6.72   the second line draws on the new paper, and he is not there
+7.60   the grow IN. dark to light. the field shrinks back into him
+8.80   the cross: out right, back left, lands in the other corner
+10.00  curious, and he is looking into the frame from the new side
+12.00  end
+```
+
+**There is no fade anywhere in it, and that is the reason the two grows are in
+that order.** The reverse grow is how he comes back: between them he is not
+hidden, he *is* the page.
+
+**The mascot is outside the camera**, the way `record.mjs` keeps its cursor
+outside. The grow's cover arithmetic is against the frame, and a head the camera
+was also scaling would make the covering scale a function of where the camera
+happened to be. Which means the drift is still running on the scene, underneath a
+grow that has completely covered it — deliberately, because it proves the two
+layers do not need to know about each other.
+
+It is silent. The question is whether the picture moves correctly, and a sound on
+the snap would be the thing being judged. `lib/sfx.mjs` has `servo` for a snap
+zoom and `glitch` for a hit whenever a real clip wants them.
+
+#### The numbers, measured
+
+| | |
+|---|---|
+| cover scale, from the bottom right corner | **16.53** |
+| plate at rest | 120 css px, 240 device |
+| plate at the handover, as rendered | **3999 x 4103 device px** |
+| the frame's own diagonal | 2203 device px |
+| camera zoom range | 1.128 to 1.380, floor 1.089, **0 frames under** |
+| worst one frame camera move | 45.6px against an eighth of the frame, 67.5 |
+| realised shake peak | 8.8 css px, 17.6 device |
+| copy box air at the tightest crop | 25.7px, at 3.65s on z 1.380 |
+| worst reach under the field | 1.014 out and 1.009 in by plan, 1.151 and 1.103 measured |
+| handover colour gap | 6 of 255 both ways, against a tolerance of 12 |
+| still frames | 0 |
+
+**22 guards, all green, at 12fps and at 60fps, in both themes.** The 12fps
+preview was reviewed frame by frame through `skills/video-review` first: it found
+three faults — the pop after the grow out, the headline cut in half by the snap,
+and the gaze pointing out of frame after the cross — and all three were fixed
+before the masters.
 
 ## Why demo/ is safe to have in a public repo
 
