@@ -77,6 +77,18 @@ All headless Chrome, all tooling. The renderers first:
   the lunge is derived from the containment rather than chosen, and two new
   recipes in `lib/sfx.mjs` carry the sound: `tick` for a foot and `crunch` for
   a bite. Out to `demo/out/post15-dark-1080x1920.mp4`. See The fifteenth clip.
+- **`post16.mjs`** renders a 5.70 second clip, vertical, dark only, **and it is
+  the first one whose camera pulls back instead of pushing in.** A client asks
+  for one small change, then forty seven more: the mascot alone in the middle of
+  a black frame with one glowing pill beside his head, he brightens and agrees,
+  and then a bass hit snaps the camera out and the screen is covered in forty
+  seven identical pills. He goes flat, blinks once slowly, and two faults take
+  him and then them. `lib/camera.mjs` does the whole move as a `snap` with a
+  multiplier **under one** and a **negative** anticipation, which is a push in
+  as the wind-up for a pull back; nothing in the module was touched to allow it.
+  No new sound recipes — five cues out of `chirp`, `popDeep` and `glitch`, with
+  0.91s left deliberately empty for the trending sound. Out to
+  `demo/out/post16-dark-1080x1920.mp4`. See The sixteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -4440,6 +4452,367 @@ next virtual time budget never expired.
 - **The review is in `demo/out/review-post15.md`**, which is gitignored like
   everything else in there.
 
+
+## The sixteenth clip — one small change, and a camera that pulls back
+
+`post16.mjs`. 5.70 seconds, vertical, dark only. A client asks for one small
+change, then forty seven more.
+
+The mascot alone in the middle of a black frame with one glowing pill beside his
+head reading `one small change`. He brightens, agrees, holds still for a second.
+Then a bass hit: the camera snaps out, the screen is covered in forty seven
+identical pills, and the line at the top changes from `client said one small
+change` to `47 small changes later`. His eyes go flat, he blinks once slowly, and
+the signal takes him and leaves the work behind. Then it takes that too and puts
+the wordmark up.
+
+post15 is the template. What is new is the direction of the move and everything
+that fell out of it.
+
+### The punchline is a zoom out, and that inverts the rig
+
+Every camera in `demo/` before this one pushes in, because a push is a close and
+a close is what a punchline you can point at wants. This one is the opposite
+shape: the joke is not a thing you get nearer to, it is the **amount of it**, and
+the only way a frame says "there are forty seven of these" is to stop looking at
+one.
+
+`lib/camera.mjs` does the whole move and **nothing in it was touched.** `by` on a
+snap is a multiplier, so 0.68 is a snap out for the same reason 1.22 is a snap
+in, and the module already allowed it — no clip had ever asked.
+
+**The anticipation is negative, and that is arithmetic rather than a trick.** The
+module writes the wind-up as `sz = 1 - anticipate`, so a positive number pulls
+back before a push in. The wind-up for a *pull back* is a push in, so the number
+is negative and the same three beats land: cram in 3.5% for a tenth of a second,
+rip out, let `btk.pop`'s own overshoot go a touch too wide and come back. z 1.50
+to 1.02, which opens the frame up by 2.16 in area.
+
+### `__cam.edges()` is the wrong instrument for this clip
+
+post15's camera guard is `minZoomFor` and `__cam.edges()`, and both answer the
+same question: the rig is exactly the stage's size, so at z under 1 a border
+comes into shot. That is why post15's zoom never leaves 1.
+
+This clip's zoom **does** go under one — 0.970 at the overshoot — and no border
+comes into shot, because the thing filling the frame is not the rig, it is the
+label field, and the field is laid out bigger than the page on purpose. So
+`edges`, which measures `#cam-rig`'s own box and knows nothing about content
+hanging outside it, would report a fault on every frame of the reveal and be
+wrong about all of them. `minZoomFor` says 1.0333 and the plan goes under it,
+correctly.
+
+What replaces both is a measurement of the field itself. `__p16.fieldBox()` reads
+the rendered envelope of every pill on the screen and the guard is that the
+envelope reaches past the frame on every frame the field is up. **Three sides,
+not four:** the top of this frame is the caption band's and the field
+deliberately stops under it, so that side is guarded the other way round — there
+has to be clear black up there.
+
+### Forty seven does not fit at the module's own copy floor, and the file says so
+
+The brief allowed fewer and asked for the number. The number is **forty seven, at
+a 25 device px cap**, which is under `BUBBLE.minCap`'s 32 — the floor
+`lib/mascot.mjs` puts on the one piece of copy in its layer. It is the only place
+in the file a house floor is crossed and it is crossed with an argument.
+
+The copy is read **once, big**: the hero pill is a 32.2px cap over his head for
+two and a half seconds before the field exists. So the field is recognition
+rather than reading, and a reader decoding one of forty seven identical pills has
+already been given the string. The floor exists for a caption seen for the first
+time; this is the same words again.
+
+`fieldFit` is a solve rather than a guess. The core rect is the frame's own
+tightest visible window minus the reserved caption band, the grid is four columns
+by twelve rows, and the type size is the largest whose turned pill still tiles
+that grid at the allowed overlap — bisected, because both constraints are affine
+in the size. **The alternatives are printed on every run** so the trade is
+visible rather than asserted: 32 labels would be a 27.6px cap and 24 would be
+37px, against 47 at 25.
+
+**The copy is two lines because of the same solve.** One line of `one small
+change` is 850 units wide at font size 100 against a pill 217 tall, and a 9:1
+ribbon does not tile a rectangle three times as tall as it is wide. Broken over
+two lines the pill is 1.8:1 and the same forty seven fit at a third again the
+type size.
+
+### The caption swap waits for the frame to settle, and it is worth 98 page px
+
+A strip of the frame is a different page rectangle at every zoom, so the band's
+page extent is a **union walked over every frame a caption is up for**, mapped
+back through `cameraFrame`. Nothing about it is typed.
+
+The first cut swapped the two lines on the hit frame, which meant a caption was
+up during the wind-up, when the camera is still pushed in at 1.55. That union
+reaches down to page 273 and the field has to start under it. Held off 0.20s,
+until the frame has very nearly settled, the union stops at 175 — **98 page px of
+field height back, and the type went from a 22.4px cap to a 25.**
+
+It is also the better beat. The hit knocks the words off, the frame rips out, and
+the new words land as it settles. Two hundred milliseconds with no caption, under
+a bass hit and a shake and forty seven labels arriving, is not a gap anybody
+sees. What it is not is a cross fade in the middle of a bass hit, which is two
+things politely taking turns.
+
+`planMascot` is handed `band: null` for the same reason the band is not a page
+rectangle: the module checks a bubble against page space and this clip has no
+module bubble in it, so handing it a screen band would be handing it the wrong
+units.
+
+### The field is two populations and only one of them is counted
+
+`btk.pop` carries the snap past its mark and back, and the shake moves the whole
+picture nine css px on top of that, so the widest frame of the reveal is wider
+than the frame it settles on. A field laid out to the resting frame would open a
+strip with no labels in it for the three frames of the overshoot.
+
+So the grid is extended outward until the pills reach past the widest frame the
+plan can produce — left, right and down, **not up** — and every label is
+classified rather than placed by hand. **Core** labels are the forty seven fully
+inside the frame on every frame after the camera stops; those are what the count
+is about and what the legibility floor is measured on. **Bleed** labels are the
+ring outside them, present so the overshoot and the shake never open an empty
+edge, and neither counted nor guarded for legibility. Both numbers are printed.
+
+**Not up, and a rendered frame said so twice.** The first cut ran the grid into
+the strip above the words, which is what the widest frame wants covered. That
+strip is outside the platform safe area, so at rest it holds one row of pills
+clipped by the top of the picture; and during the wind-up the camera is still
+pushed in and the same row is off frame entirely, so it arrives out of nowhere a
+tenth of a second after the hit. The top of this frame belongs to the caption
+band, and black with one line of words in it is what a header is.
+
+### The frame stops on the snap, not on the knock, and 22 css px is the difference
+
+`SHAKE_END` and `SNAP_END` are two constants because they are two moments. The
+knock is over at 3.28 and the camera is over at 3.34, and it is the second one
+the field is sized against: between them the zoom is still under its resting
+value and the picture is still wider than it ends up. Sized off the knock, the
+"tightest frame" came out 546 css px wide against a resting frame of 524, and
+**the core rect it sized was wider than the frame it is supposed to fit inside.**
+
+The same 3.34 is what fixes `unimpressed`'s mark at 3.40. A state change under a
+camera that is still pulling back is two moves at once and neither of them reads,
+and both ends of that are guarded so the number cannot drift back.
+
+### The zoom window silently clamped the start, and now it cannot
+
+`resolveCamera` runs the start through `fitTarget`, which **clamps it to the
+plan's own zoom window and says nothing** — the `clamped` list it keeps is about
+legs. At a ceiling of 1.40 a start of 1.50 was quietly rendered at 1.40, which
+put the resting zoom at 0.95 instead of 1.02 and sized the whole field against a
+frame 42 css px wider than the one that ships. Nothing failed; the numbers were
+just wrong.
+
+The window is 0.85 to 1.60 now, and the guard re-reads `cam.start.z` off the
+resolved plan and compares the leg zoom times the snap against the destination
+that was asked for. That is the general lesson rather than this clip's: **a
+number a library may adjust is a number to read back.**
+
+### The snap is a move and not a cut, and the flat ceiling could not tell
+
+post15's guard here is a flat ceiling — an eighth of the frame in one frame — and
+it is right for a camera that only ever glides. This one snaps, and a snap out
+across half the frame's scale in 0.30s moves the transform 87 css px on its
+fastest frame, which is 16% of the frame width and is what the brief asked for. A
+ceiling written for a glide fails it for being a snap.
+
+So the test is `lib/camera.mjs`'s own, the one `shakeEnv` is proved with: sample
+four times as densely and the worst one frame step must come down. Measured, 86.7
+px at 60Hz against 22.9 at 240Hz, **a ratio of 0.264 where a held signal reports
+1.000.** That is the difference between a snap and a jump, and it is also exactly
+what decides whether `--blur` smears it correctly. The flat ceiling stays as a
+backstop, at a quarter of the frame.
+
+### Some of them are in front of him, and which ones is derived
+
+The brief asks for labels behind him and labels over him. That is two wrappers at
+two z-indexes inside the rig and one rule: **a label in front may cover his plate
+and may not cover his face.** His eyes go flat and he blinks once slowly, and a
+pill over either of those is the performance deleted.
+
+There is no share and no coin flip in it. **Front and back is only a visible
+difference for a label that reaches him at all**, so those are the front layer
+and every other label is behind him; of the ones that reach him, any whose box
+ever touches his eye or brow ink goes behind him instead. Six reach him, three
+are in front, three went behind because of the face rule.
+
+The first cut used his ink plus the whole glow reach as the window that decides
+it, and the glow reaches sixty css px: twenty two of the forty seven ended up in
+the front layer, a third of the field drawn in front of a head none of them
+touch. It is the ink plus fourteen now, which is a quarter of a pill's height.
+
+Both windows are composed here on the module's own numbers — the grid geometry,
+then the card's rotate and scale about the zone's centre — and walked over every
+frame the field is up rather than taken at rest, because `unimpressed` sinks him
+and drifts him away while the idle layer never stops.
+
+### How much of each pill you can see is a measurement, and it picks the seed
+
+Forty seven identical pills overlapping is the brief. A pill covered so far that
+it stops reading as a pill is what would break it. So the occlusion is measured:
+the core rect is rasterised at two css px, every pill is painted in the order the
+page paints it — back layer, then his plate, then the front layer — and each core
+pill's own share of surviving cells is the number.
+
+That number picks the seed. **The layout's seed is searched the way the blink's
+is**, over five hundred layouts, keeping the one whose worst covered pill shows
+the most of itself. It comes back at 65% worst and 91% mean — and five hundred
+returns the same answer a hundred and forty did, which is worth knowing: that is
+the grid's own ceiling at this overlap rather than a seed nobody has found yet.
+
+The lever that moves it is `overlapY`, and it was swept on rendered frames rather
+than chosen. At 18% the type solves a whole device pixel bigger and the ink
+covers 100% of the core rect, and the worst placed pill had the bottom half of
+its second line under the pill below it. At 14% the type is a 25px cap, the ink
+covers 92%, and the mean pill shows 91% of itself. 10% was also measured — 24px,
+85% — and no denser a read for it.
+
+### The field crosses the platform safe area on purpose
+
+The house checklist says nothing we draw may sit inside the platform margins, and
+it is the right rule for copy. **The field is not copy, it is a texture**, and it
+is post15's argument about the bug walking in through the left margin in a new
+place: every side of the frame is outside the safe area, so there is no field
+that covers the frame and also never crosses a safe line, and a field pulled
+inside the margins is not a covered screen, it is a rectangle of labels floating
+in a black border.
+
+What the rule protects is the copy that has to be read, and all of that is inside
+and guarded separately: the caption, the hero pill and the end card. **19 of the
+47 are fully inside the safe area** and that number is in the report, so the
+decision is visible rather than silent.
+
+### The pill is the module's pill at another size, plus a glow
+
+Drawn here rather than by `lib/mascot.mjs`, because the brief is a rounded pill
+with the bubble's own outline **standing alone** — no dots climbing off his head
+to it. So it is this file's element in the module's own three tokens: the page
+colour as the fill, the site's `--bub` as the outline, the face colour as the
+ink. The padding and the corner are in em, so one font size sets the whole thing
+and `BUBBLE`'s own 22 and 12 against a 26px size are 0.846em and 0.462em.
+
+One thing is added that the module's bubble deliberately does not have: **a
+glow.** `lib/mascot.mjs` keeps its bubble outside the glow layers on purpose,
+because a thought is a sibling of the head rather than a part of it. Here the
+labels are the picture, and the picture is lit. It is two box shadows and two
+text shadows rather than a filter: a css filter on seventy seven of these would
+blur seventy seven surfaces on every frame of the clip.
+
+**The hero pill's gap is off his ink rather than off his light, and that is what
+makes the push in possible at all.** A pill held clear of the whole sixty pixel
+halo needs the head's own diameter again of empty frame above it, which at any
+real start zoom is not there. The module's own bubble sits five css px off the
+plate — it is a sibling of the card, not a thing keeping its distance from it —
+so twenty two off the ink is generous by the house's own measure, and it puts the
+pill in the outer glow, which is where a lit label on a lit head belongs.
+
+`HEAD_DROP` is what bounds the start zoom: how far he would have to sit under the
+middle of the safe band for the pill to fit between the band and his crown. At
+z 1.50 it comes out at **nothing**, and it stays in the file for being zero,
+because push in further and it goes positive and says by how much.
+
+### Five sounds, no new recipes, and a gap left on purpose
+
+Nothing is placed by hand and nothing was written for this clip.
+
+| at | sound | from |
+|---|---|---|
+| 2.02s | `chirp`, 640 to 940 Hz | the first nod bottoming out, off `agreeing`'s own mark |
+| 2.94s | `popDeep`, 78 to 42 Hz over 0.34s | the hit, on the frame the snap begins |
+| 4.33s | `chirp`, 430 to 372 Hz | the middle of the slow blink's shut, off the idle schedule |
+| 4.70s | `glitch` | the first fault, and he goes |
+| 5.04s | `glitch`, shorter and lower | the second fault, and the wordmark arrives |
+
+**The two bleeps are the same voice pointed two ways**, which is the whole design
+of the sad one. The brief asked for flat and sad, so it is `chirp` with the glide
+taken nearly out of it and pointed down: 430 to 372 hertz, a whole tone, over a
+glide that does not finish inside the note. `annoyed` was the other candidate and
+it is two notes, which is two events on a beat the brief gives one to; `sigh` is
+breath rather than a bleep.
+
+`mascotCues(plan)` is called and **declined**, and the report says so rather than
+leaving it unsaid. It offers a `ding` on the agreement beat, and `ding` means yes
+everywhere in `demo/` and would be a second sound on a beat the brief gives one
+bleep.
+
+**There is 0.91s with nothing in it at all, from 3.36s to 4.27s, and it is
+guarded.** Einz puts the trending sound on in the app, and the place a track's
+own drop lands is immediately after a bass hit. It is also, not coincidentally,
+the stretch where the picture is holding still.
+
+### The two faults, and why the first one has no tear in it
+
+post12's ending with the build up taken off, twice. The first takes him and
+leaves the field, which is the joke's last line: the work outlives the person
+doing it. The second takes the field and puts the wordmark up.
+
+`.tear` copies the wordmark into its bands, and **on the first fault there is
+nothing to copy**: the wordmark is not born yet, the field is seventy seven
+elements out of a grid and the mascot is one dom subtree driven by two modules'
+runtimes. So the first fault's bands are dropouts rather than tears — a strip of
+a screen covered in copy going flat black, which is what a picture losing a line
+of itself looks like, and the more honest of the two anyway. The second fault's
+bands carry the wordmark, because by then the wordmark is all there is.
+
+The wordmark is born on the **frame** the field is cut rather than at the time,
+which is post13's correction: a cut time that rounds down would put an empty
+frame between the two.
+
+### What the review pass changed
+
+`skills/video-review` found three things and one of them was a real fault.
+
+**The hold after the camera stopped was 1.64s.** The first fault was at 4.98 and
+between the camera stopping at 3.34 and anything happening there was the drift,
+his sink into `unimpressed` and one blink, over a completely static field — a
+quarter of a six second clip on one frame. `GLA.at` is 4.70 now and `GLB.at` and
+`SECONDS` follow it, so the clip runs 5.70 instead of 5.98. The blink's own seed
+search moved with the window and came back with a **slower** blink than it had,
+361ms against 356, beginning at 4.19 and shut across 4.33 — so it ends about
+0.18s before the fault rather than 0.64s before it. The wall still gets 2.10s to be read.
+
+The other two are decisions rather than faults and both are written up above: the
+hero pill reads as above his head rather than beside it, which is the only
+placement the start zoom leaves room for, and a few pills have their second line
+clipped by the pill below, which is the overlap the wall is made of, bounded and
+measured.
+
+### The guards this clip added
+
+65 of them, and the ones worth naming:
+
+- **the count**, and the floor it is held to. 47 core labels fully inside the
+  frame on every frame after the camera stops, at a cap over this clip's own
+  stated 24px floor, with `BUBBLE.minCap` named in the message so the exception
+  cannot be read as an oversight.
+- **the coverage and the occlusion.** The ink covers at least 85% of the core
+  rect, the worst covered core label shows at least 62% of itself and the mean at
+  least 85%.
+- **the field covers the three open sides** on every rendered sample, and stops
+  under the band on the fourth.
+- **no label of the seventy seven enters the caption band** on any frame a
+  caption is up for, and **no label in front of him ever covers his eyes or
+  brows**, both walked frame by frame.
+- **the reveal is one frame**: nothing at the frame before, all forty seven at
+  the frame itself, the hero pill cut on it, the caption cut on it, and the new
+  caption landing 0.20s later — checked at both rates.
+- **the zoom window did not quietly clamp the start**, and the snap lands where
+  it was aimed.
+- **the snap is a move rather than a cut**, by the density test rather than by a
+  ceiling.
+- **the frame stops on the snap rather than on the knock**, which is what the
+  field is sized against.
+- **exactly one idle blink in the flat beat**, and it is a slow one.
+- **19 of the 47 are inside the platform safe area** and the rest cross it
+  deliberately — a number rather than a silence.
+
+### Outstanding
+
+- The count is one constant. If 25 device px reads too small on a phone,
+  `FIELD.n` at 32 gives 27.6 and at 24 gives 37, and everything else follows on
+  its own.
+- The trending sound. The gap is measured and guarded and it is Einz's to fill.
 
 ## The og card
 

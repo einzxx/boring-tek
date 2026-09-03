@@ -6,6 +6,103 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-03: `demo/post16.mjs`, the sixteenth clip, one small change.
+  5.70s, vertical, dark only, and the first one whose camera pulls back instead
+  of pushing in.** A client asks for one small change, then forty seven more:
+  he is alone in the middle of a black frame with one glowing pill beside his
+  head, he brightens and agrees, a bass hit snaps the camera out and the screen
+  is covered in forty seven identical pills, he goes flat, blinks once slowly,
+  and two faults take him and then them. Out to
+  `demo/out/post16-dark-1080x1920.mp4`. **65 guards green at 12fps and at 60
+  with the shutter open.** The long version is The sixteenth clip in
+  `demo/README.md`; what is worth carrying forward:
+  - **`lib/camera.mjs` snaps out with no change to the module.** `by` is a
+    multiplier, so 0.68 is a snap out for the same reason 1.22 is a snap in, and
+    **the anticipation is negative**, because the wind-up for a pull back is a
+    push in and the module writes the wind-up as `1 - anticipate`. z 1.50 to
+    1.02, which opens the frame by 2.16 in area. Nothing in lib was touched by
+    this clip at all.
+  - **`resolveCamera` clamps `start.z` to the plan's own zoom window and says
+    nothing about it.** The `clamped` list it keeps is about legs. A ceiling of
+    1.40 quietly rendered a start of 1.50 at 1.40, which put the resting zoom at
+    0.95 instead of 1.02 and sized the whole label field against a frame 42 css
+    px wider than the one that ships — nothing failed, the numbers were just
+    wrong. **A number a library may adjust is a number to read back**, and the
+    guard now does. This is a lib behaviour worth knowing rather than a lib
+    fault: clamping a target into a stated window is the right thing for it to
+    do.
+  - **`__cam.edges()` and `minZoomFor` are the wrong instruments for a
+    composed frame whose content is bigger than the rig.** Both answer "the rig
+    is the stage's size, so z under 1 shows a border", and this clip's zoom goes
+    to 0.970 with no border in shot because the label field is laid out past the
+    page on purpose. `__p16.fieldBox()` measures the field's own rendered
+    envelope instead, on three sides — the fourth is the caption band's and has
+    to be clear black.
+  - **`SHAKE_END` and `SNAP_END` are two moments and the second one is the one a
+    layout is sized against.** `btk.pop` carries a snap past its mark and back,
+    so between the knock ending and the camera stopping the picture is still
+    wider than it ends up. Sized off the knock, the "tightest frame" came out 22
+    css px wider than the resting frame and the core rect it produced was wider
+    than the frame it is meant to fit inside.
+  - **A screen band is not a page band once there is a camera.** The reserved
+    caption band is in screen css px and its page extent is a union walked over
+    every frame a caption is up for. `planMascot` is handed `band: null` for the
+    same reason — the module checks a bubble against page space.
+  - **Holding the caption swap 0.20s past the hit is worth 98 page px of field
+    height.** A caption up during the snap's wind-up, when the camera is still
+    pushed in, drags the band's page union 98px down the page. Held until the
+    frame has nearly settled, the type goes from a 22.4 device px cap to a 25 —
+    and the hit knocking the words off and the new ones landing as it settles is
+    the better beat anyway.
+  - **Forty seven labels fit at a 25 device px cap, which is under
+    `BUBBLE.minCap`'s 32, and that is the one house floor this clip crosses.**
+    The argument is that the copy is read once at a 32.2px cap for two and a half
+    seconds before the field exists, so the field is recognition rather than
+    reading. The trade is printed on every run: 32 labels would be 27.6 and 24
+    would be 37. **`FIELD.n` is one constant and everything follows from it** —
+    if 25 reads too small on a phone, change that number and nothing else.
+  - **The field is two populations and only one is counted.** 47 core labels
+    fully inside the frame on every frame after the camera stops, plus a bleed
+    ring outside them so the snap's overshoot and the shake never open an empty
+    edge. The ring goes left, right and down and **not up**: a row of pills in
+    the strip above the words is clipped by the top of the picture at rest and
+    off frame entirely during the wind-up, so it arrives out of nowhere.
+  - **The field crosses the platform safe area on purpose**, which is post15's
+    argument about the bug walking in through the left margin in a new place: the
+    field is a texture rather than copy, every side of the frame is outside the
+    safe area, and a field pulled inside the margins is a rectangle of labels in
+    a black border. 19 of the 47 are fully inside it and that number is in the
+    report. Every piece of copy that has to be read — the caption, the hero pill,
+    the end card — is inside and guarded separately.
+  - **Front or back is derived from whether it would show.** A label is drawn in
+    front of him only if it reaches his ink, and never if it reaches his eye or
+    brow ink. No share, no coin flip. The first cut used his ink plus the whole
+    sixty pixel glow reach and put a third of the field in the front layer.
+  - **A third seed search, on the same discipline as the blink's.** How much of
+    each pill you can see is rasterised and measured, and the layout's seed is
+    the best of five hundred. Five hundred returns the same 65% a hundred and
+    forty did, so that is the grid's own ceiling at this overlap rather than a
+    seed nobody has found — the levers are `overlapY` and `FIELD.n`, and the
+    `overlapY` sweep is in the file.
+  - **A flat one-frame-move ceiling cannot tell a snap from a cut.** post15's
+    eighth-of-a-frame guard fails a snap out for being a snap. The test is
+    `lib/camera.mjs`'s own, the one `shakeEnv` is proved with: sample four times
+    as densely and the worst step must come down. 86.7px at 60Hz against 22.9 at
+    240Hz, a ratio of 0.264 where a held signal reports 1.000.
+  - **No new sound recipes.** Five cues out of `chirp`, `popDeep` and `glitch`,
+    and the two bleeps are the same voice pointed two ways — rising for the yes,
+    nearly flat and falling for the blink. `mascotCues`' `ding` is **declined**
+    and the report says so. **0.91s of the mix is left empty on purpose**, right
+    after the bass hit, which is where a trending sound's own drop lands and
+    where the picture is holding still. Einz adds it in the app.
+  - **The video-review pass found one real fault and it is fixed.** The hold
+    between the camera stopping and the first fault was 1.64s over a completely
+    static field, a quarter of the clip on one frame. The first fault moved from
+    4.98 to 4.70, the clip went from 5.98s to 5.70, and the blink's seed search
+    moved with its window and came back with a slower blink than it had. The
+    review is `demo/out/review-post16.md`, which is gitignored with the rest of
+    `demo/out/`.
+
 - **Closed 2026-09-02: the two open lib faults post15 wrote down, both fixed in
   `demo/lib/` and neither in a clip.**
   - **`lib/mascot.mjs` takes `thought`, one option with four values.**
