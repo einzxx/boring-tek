@@ -89,13 +89,14 @@ All headless Chrome, all tooling. The renderers first:
   No new sound recipes — five cues out of `chirp`, `popDeep` and `glitch`, with
   0.91s left deliberately empty for the trending sound. Out to
   `demo/out/post16-dark-1080x1920.mp4`. See The sixteenth clip.
-- **`post17.mjs`** renders a 6.91 second clip, vertical, dark only, **and it is
+- **`post17.mjs`** renders a 7.41 second clip, vertical, dark only, **and it is
   the first one whose whole clock is cut from one spoken line, and the first to
   use the module's thought bubble over the crown.** A chat panel fades in on a
   black frame and types itself `message for the next generation?` while the
   voice reads it; the panel slides 120px down out of the way, a hard fault hands
-  the mascot the frame above it, he takes a beat and a slow blink, and thinks
-  `don't come`. Then the second fault takes the lot and puts the wordmark up.
+  the mascot the frame above it, he takes a beat and a slow blink, thinks
+  `don't come` and winks. Then the second fault takes the lot and puts the
+  wordmark up.
   **The typing is cut to the read word by word** — each word's characters land
   across that word's own spoken span — and everything downstream of the voice is
   derived from it. `thought: 'over-right'` is `lib/mascot.mjs`'s own placement,
@@ -4829,14 +4830,14 @@ measured.
 
 ## The seventeenth clip — one line, and everything cut from it
 
-`post17.mjs` renders 6.91 seconds, vertical, dark only, out to
+`post17.mjs` renders 7.41 seconds, vertical, dark only, out to
 `demo/out/post17-dark-1080x1920.mp4`.
 
 A chat panel fades in on an empty black frame and types itself
 `message for the next generation?` while the voice reads it. The panel slides
 120px down out of the way, a hard fault hands the mascot the frame above it, he
-takes a beat and one slow blink, and thinks `don't come`. The second fault takes
-the lot and puts the wordmark up.
+takes a beat and one slow blink, and thinks `don't come` — then winks. The
+second fault takes the lot and puts the wordmark up.
 
 post16 is the template for the shape of the file and post14 for the panel and
 the read. Two things here are new: **the whole clock is cut from one spoken
@@ -4889,19 +4890,107 @@ times, and nothing had asked for it since. This clip asks outright as
 `over-right` rather than letting `over` derive the side, because what `over`
 derives it from is which corner he is standing in and he is standing in neither.
 
-**The hold is 0.90s and it is the module's ceiling, not a choice.** The brief
-asks for the thought to be fully up for about two seconds. `bubbleAt` computes
-`holdFor = max(0.42, min(BUBBLE.hold, room))` and `BUBBLE.hold` is 0.90, so a
-single bubble cannot be held longer than that from outside the module — and
-`bubbles: [...]`, the other spelling, runs the quick profile and caps at 0.30,
-which is worse. The brief also says lib is untouched. The two cannot both be
-satisfied, so the number is printed beside `BUBBLE.hold` in the guard and reads
-as a ceiling rather than as an oversight.
+**The hold is 0.90s of the module's and 0.50s of this file's, and the join is
+measured.** `bubbleAt` computes `holdFor = max(0.42, min(BUBBLE.hold, room))`
+and `BUBBLE.hold` is 0.90, so a single bubble cannot be held longer than that
+from outside the module — and `bubbles: [...]`, the other spelling, runs the
+quick profile and caps at 0.30, which is worse. Lib is untouched, so 0.90 is
+what the plan can be asked for.
 
-What the clip buys back is the **whole** of it: the fault lands on the frame the
-pill would begin to leave, so the thought is taken at full size rather than
-politely shrinking first. First dot to cut is 1.38s and the pill itself is on
-the screen for 1.24 of that.
+The extra half second is taken **without touching a number the module owns.**
+From `BUB.leaving` to the cut this file hands the page the module's own last
+fully up bubble frame again — read once, a ten thousandth before its own hold
+ends, so it is the pill at rest rather than the first frame of an exit — and
+lets everything else on the face run on real time. That is not a freeze and it
+is not a second animation: during its own hold the module holds `o` and `sc` at
+exactly those values and nothing else, so the extra frames are the same still
+pill for the same reason the first 0.90s are. `bubbleTime` is the one function
+that does it, and it is proved twice — the numbers this file hands the page are
+checked at full size and full opacity on all 84 frames, and the **rendered** pill
+is measured either side of the join and does not move by a hundredth of a css
+pixel.
+
+The fault still lands on the frame the pill would begin to leave, so the thought
+is taken at full size rather than politely shrinking first. Fully up is **1.40s**,
+first dot to cut is 1.88s, and the pill itself is on the screen for 1.74 of that.
+
+### He is alive under it, and it is two layers this file composes
+
+A face holding one expression for a second and a half with nothing moving on it
+is a still frame with a pill over it, and 0.90s of that was already the thin
+part of the first cut. The module's own idle over this stretch moves the card
+1.7 css px sideways, 1.5 up and down and a third of a degree, which is
+technically not frozen and reads as held.
+
+Both layers are **composed on top of `mascotFrame`'s own output** rather than
+written into the plan, because there is no flat and calm state that tilts and
+there is no wink in the state table. `card` is the seam: the module's own words
+for it are "what the head is actually drawn with", and it is what `headRect` and
+every clearance downstream read — so adding there adds to the head that is
+measured as well as to the one that is painted.
+
+**The alive layer** is a tilt to 2.0 degrees, a drift of 3.0 css px across and
+2.6 down, and a breath to x0.988, on four incommensurate periods so nothing in
+it is ever back where it was. It ramps in over 0.45s off the calm curve, so it
+grows out of his arrival rather than switching on.
+
+**Two of its three channels are one sided, and the cluster is why.**
+`crownReach` walked the highest his crown gets over the bubble's own window and
+hung the dots five px off that, before any of this existed — so a move that
+raised the crown would spend a gap the module already paid for. The drift only
+ever goes down and the breath only ever shrinks, both written as `(1 - cos)/2`
+so they start at rest and never change sign, which makes the clearance true by
+construction rather than by luck. The guard walks it anyway: the crown reaches
+3.25 in the zone against the 2.37 the module measured, and the half second of
+extra hold is outside the window it walked, which is exactly why that guard is
+here.
+
+**The tilt is free either way**, because the plate is a circle and `headRect`
+says so: at radius 0.5 the axis aligned box of a rotated ellipse is the ellipse,
+so a rotation changes nothing about the head's extent. The whole read of it is
+the eye line, which is the only thing on this face that has an angle — two
+degrees puts about three device px between the two eyes' heights and it is the
+difference between a head and a sticker.
+
+### The wink, which is one channel over one window
+
+The near eye's lid, driven to shut and back on the module's own two lid curves —
+`btk.shut` and `btk.open`, written here as the beziers they are in
+`mascotEases`, because a lid that closes evenly reads as a shutter and inventing
+a curve for this would be inventing the one thing the module already got right.
+
+**The right eye**, which is the side the thought is on, so the closed eye and
+the answer are 90 device px apart rather than 190 and the read is one glance
+rather than two. It lands 0.18s after the pill does: late enough that the two
+are not one event, early enough that it is still an answer.
+
+**The hold at the bottom is what separates a wink from a blink.** The module's
+own blinks hold for 30 to 60 thousandths; this holds for 150, which is long
+enough to be a decision. 110ms to shut, 150 held, 190 to open — it opens slower
+than it shuts, which is the module's rule and the reason `open` is the longer
+curve.
+
+**The seed carries one more constraint because of it.** A blink under a wink is
+both eyes shutting and the joke is gone, so `pickSeed` refuses any schedule with
+an idle blink within `WINK.clear` of the window — 0.18s either side. That is a
+search constraint rather than a guard on one seed, because the schedule is the
+seed's and there is no other lever on it. The seed moved from 3610 to 390 and
+the beat's slow blink came back at 360ms.
+
+**And a rendered frame corrected how it is measured.** The first cut read the
+two eyes off `getBoundingClientRect` and reported the open eye as 92% open on
+every frame of the wink. That is not the lid, it is the tilt: a client rect is
+the axis aligned box of a turned shape, so at two degrees a 13 by 4.4 iris
+reports a box a tenth taller than itself and the lid's bottom edge lands a
+quarter of a unit low with it. It is `headRect`'s own lesson in a second place.
+`getBBox` is the untransformed geometry and the lid's `translate` is the whole
+blink, so the share is exact and the rotation cannot touch it; the device px
+come off the plate's client rect, which is honest because a circle does not get
+wider when you turn it.
+
+Measured that way: at the shut the winking eye shows **0 device px of itself and
+the other shows 21.1**, and the open one never dips below its full height on any
+frame of the window.
 
 ### He is 26 css px left of centre, and the pill is why
 
@@ -4990,13 +5079,11 @@ entrance, a hold and its exit.
 
 **The slow blink comes off the idle layer**, post13's move and post16's: the seed
 is searched over six thousand for one that puts exactly one blink inside the beat
-and the slowest one wins. It came back at 361ms on seed 3610. **The whole blink
-has to fit, not just its start** — the first cut searched on the blink's own `t`
-and found one whose lid was still coming back up as the first dot climbed, and a
-blink and a thought on the same frames are two things happening and neither of
-them reads. He blinks once more while the thought holds, and that one is
-deliberate: a face holding one expression for 0.9s with nothing moving on it is a
-still frame with a pill over it.
+and the slowest one wins, and now also for one that keeps the idle layer clear of
+the wink. It came back at 360ms on seed 390. **The whole blink has to fit, not
+just its start** — the first cut searched on the blink's own `t` and found one
+whose lid was still coming back up as the first dot climbed, and a blink and a
+thought on the same frames are two things happening and neither of them reads.
 
 ### The empty opening is in the signature, because the vignette is
 
@@ -5018,7 +5105,13 @@ knows a number for it. 0 repeats in 83 frames at twelve and in 415 at sixty.
 | 2.17s | `popDeep`, 84 to 46 Hz over 0.24s | the frame the panel starts moving |
 | 2.69s | `glitch` | the first fault, and he arrives |
 | 4.51s | `pop` | `mascotCues`, and it is **taken** |
-| 5.75s | `glitch`, shorter and lower | the second fault, and the wordmark arrives |
+| 6.25s | `glitch`, shorter and lower | the second fault, and the wordmark arrives |
+
+The wink has no sound on it. The brief named five and none of them is a wink,
+and the gesture is 90 device px of one eye — a cue on it would be louder than
+the thing it is a cue for. What that leaves is 1.7s from the pop on the pill to
+the second fault with nothing in the bus at all, which is where a track's own
+line would go.
 
 The thud is deliberately not post16's impact: 84 to 46 hertz over a quarter of a
 second is a box being pushed out of the way rather than a bass hit.
@@ -5038,7 +5131,7 @@ its worst. **No music, by design rather than by omission.**
 
 ### The guards this clip added
 
-71 of them, and the ones worth naming:
+88 of them, and the ones worth naming:
 
 - **every character lands inside its own word's spoken span**, re-derived on the
   guard's side rather than trusted, and the typing never goes backwards.
@@ -5055,8 +5148,19 @@ its worst. **No music, by design rather than by omission.**
 - **he is born on the fault's own frame**, and that frame is a torn one.
 - **the film was sized off the module's bubble profile and the plan agrees** —
   `in` and `leaving` compared against the arithmetic that decided `SECONDS`.
-- **the thought is fully up for exactly `BUBBLE.hold`**, and the fault takes it
-  on the frame it would begin to leave.
+- **the thought is fully up for `BUBBLE.hold` plus `HOLD_EXTRA`**, the fault
+  takes it on the frame it would begin to leave, the pill is at full size and
+  full opacity on all 84 frames of it, and the **rendered** pill does not move
+  across the join between the module's half of the hold and this file's.
+- **the alive layer is a drift rather than a jitter and never stands still** —
+  0.14 css px in a frame at its fastest, 0 held frames — and **his crown never
+  rises into the cluster**, which is what the one sided drift and the shrink only
+  breath are for.
+- **the wink is a wink**: the winking eye reaches a full shut, the other eye is
+  exactly what the module said on every frame of it and never dips below its own
+  full height, no idle blink comes within 0.18s, and both eyes are open a frame
+  either side. Measured in svg user units rather than off client rects, because
+  the tilt inflates a client rect and read as 92% on the first pass.
 - **the whole cluster, dots and all, clears the safe area on every frame it is
   up**, and the pill's own right edge — the thing `OFF_X` was computed from — is
   re-measured at its worst spring frame.
@@ -5067,19 +5171,26 @@ its worst. **No music, by design rather than by omission.**
 
 ### What the review pass found
 
-Three things, and none of them a fault. The 0.90s hold and the 4.9% off centre
-are both written up above and both are forced by the brief's own two halves
-pulling against each other; the 21.4 characters a second is the honest
-consequence of cutting the typing to the read. The review is
-`demo/out/review-post17.md`, which is gitignored with the rest of `demo/out/`.
+Three things on the first cut, and none of them a fault. The 4.9% off centre and
+the 21.4 characters a second are both written up above and both are honest
+consequences of the brief. The third was the hold, at 0.90s against the two
+seconds asked for, and **the second cut is the answer to it**: `HOLD_EXTRA` puts
+the film at 7.41s, and the alive layer and the wink are what a second and a half
+of held thought needed to not be a still frame. The review is
+`demo/out/review-post17.md`, which is gitignored with the rest of `demo/out/`
+and describes the first cut.
 
 ### Outstanding
 
-- **Two seconds of thought needs a number in `lib/mascot.mjs`.** `BUBBLE.hold` at
-  0.90 is the ceiling. Raising it would change every clip that has ever shown a
-  bubble, so it is a decision rather than an edit.
+- **Holding the answer longer is one constant.** `HOLD_EXTRA` is 0.50 and the
+  film follows it: the fault, the end card and `SECONDS` are all derived off it,
+  so any number in there costs exactly itself and nothing else has to move.
 - **The centring is Einz's call.** `PILL_AIR` and `OFF_X` are two constants; dead
   centre puts the punchline 45 device px inside the right margin.
+- **The wink is silent, and that is a gap rather than a decision.** The brief
+  named five sounds and none of them is on it. There is 1.7s between the pop on
+  the pill and the second fault with nothing in the bus at all, which is where a
+  trending sound would sit if this clip gets one.
 - **The clip has no posting pack.** Caption, tweet and three tags per platform
   are all undecided.
 

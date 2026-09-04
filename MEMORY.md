@@ -6,15 +6,73 @@ names in here either.
 
 ## Status
 
+- **Second cut 2026-09-04: `demo/post17.mjs` holds the answer half a second
+  longer and he is alive under it. 7.41s, 88 guards green at 12fps and at 60
+  with the shutter open.** Three things changed and all three are in
+  `demo/post17.mjs` only; lib is still untouched.
+  - **`BUBBLE.hold`'s 0.90s ceiling is worked around without touching a number
+    the module owns.** From `BUB.leaving` to the cut the file hands the page the
+    module's **own last fully up bubble frame** again — read once, a ten
+    thousandth before its own hold ends, so it is the pill at rest rather than
+    the first frame of an exit — and lets the rest of the face run on real time.
+    That is not a freeze: during its own hold the module holds `o` and `sc` at
+    exactly those values and nothing else, so the extra frames are the same
+    still pill for the same reason the first 0.90s are. `bubbleTime` is the one
+    function that does it. **Proved twice**: the numbers are checked at full size
+    and full opacity on all 84 frames, and the *rendered* pill is measured either
+    side of the join and does not move by a hundredth of a css pixel. Fully up is
+    1.40s now, first dot to cut 1.88s.
+  - **`HOLD_EXTRA` is one constant and the film follows it.** The fault, the end
+    card and `SECONDS` are all derived off it, so 6.91s became 7.41s and nothing
+    else had to be retimed by hand. The `RUN` window moved by the same half
+    second rather than being widened to hide the change.
+  - **The alive layer, and two of its three channels are one sided on purpose.**
+    A tilt to 2.0 degrees, a drift of 3.0 css px across and 2.6 down and a breath
+    to x0.988, on four incommensurate periods, ramped in over 0.45s — composed
+    onto `mascotFrame`'s own `card`, which is the seam the module documents and
+    is what `headRect` reads, so the head that is measured is the head that is
+    painted. **The drift only goes down and the breath only shrinks because
+    `crownReach` hung the dots five px off a crown it walked before any of this
+    existed**, and a move that raised the crown would spend a gap the module
+    already paid for. Both are written as `(1 - cos)/2` so they start at rest and
+    never change sign. **The tilt is free**, because the plate is a circle and
+    `headRect` says the axis aligned box of a rotated ellipse is the ellipse — it
+    reads entirely through the eye line.
+  - **The wink is one channel over one window**: the right eye's lid, on the
+    module's own `btk.shut` and `btk.open` written as the beziers they are. The
+    right eye because that is the side the thought is on, 0.18s after the pill
+    lands, and **the 150ms hold at the bottom is what makes it a wink** — the
+    module's own blinks hold 30 to 60.
+  - **The seed now carries a second constraint**, and it is a search constraint
+    rather than a guard: no idle blink within 0.18s of the wink, because a blink
+    under a wink is both eyes shutting and the joke is gone. Seed moved 3610 →
+    390, and the beat's slow blink came back at 360ms.
+  - **`getBoundingClientRect` cannot measure an eye once the card is turned, and
+    that is `headRect`'s own lesson in a second place.** The first cut read the
+    two eyes off client rects and reported the open eye as 92% open on every
+    frame of the wink — which is not the lid, it is the tilt: a client rect is
+    the axis aligned box of a turned shape, so at two degrees a 13 by 4.4 iris
+    reports a box a tenth taller than itself. `getBBox` plus the lid's own
+    `translate` is exact and rotation cannot touch it; the device px come off the
+    plate's client rect, because a circle does not get wider when you turn it.
+    Measured that way the winking eye shows **0 device px of itself and the other
+    21.1**.
+  - **A guard about a composed frame has to say whose move it is measuring.** The
+    first version capped the composed card's one frame step at 1.2 css px and
+    failed at 1.52 — which is mark two's own entrance, the module's move, not the
+    alive layer's. It reports both now and guards the layer's own, at 0.14.
+  - **The wink is silent and that is a gap rather than a decision.** 1.7s from
+    the pop on the pill to the second fault with nothing in the bus.
+
 - **Built 2026-09-04: `demo/post17.mjs`, the seventeenth clip, message for the
-  next generation. 6.91s, vertical, dark only, and the first one whose whole
-  clock is cut from one spoken line.** A chat panel fades in on a black frame
+  next generation. First cut 6.91s, vertical, dark only, and the first one whose
+  whole clock is cut from one spoken line.** A chat panel fades in on a black frame
   and types itself `message for the next generation?` while the voice reads it,
   the panel slides 120px down out of the way, a hard fault hands the mascot the
   frame above it, he takes a beat and one slow blink, and thinks `don't come`.
   The second fault takes the lot and puts the wordmark up. Out to
   `demo/out/post17-dark-1080x1920.mp4`. **71 guards green at 12fps and at 60
-  with the shutter open.** The long version is The seventeenth clip in
+  with the shutter open**, and the second cut above is what ships. The long version is The seventeenth clip in
   `demo/README.md`; what is worth carrying forward:
   - **The typing is cut to the read word by word, and that is the whole file.**
     `typePlan` is handed the voice's own word list and lays each word's
@@ -37,14 +95,12 @@ names in here either.
     asked for as `over-right` because the derived side is a fact about which
     corner he is standing in and he is standing in neither.
   - **`BUBBLE.hold` is 0.90 and that is a ceiling on a single bubble, not a
-    choice.** The brief asked for the thought fully up for about two seconds.
-    `bubbleAt` writes `min(BUBBLE.hold, room)`, and the other spelling —
-    `bubbles: [...]` — runs the quick profile and caps at 0.30. With lib
-    untouched, two seconds is not reachable. What the clip buys back is the
-    whole of it: the fault lands on the frame the pill would begin to leave, so
-    the thought is cut at full size rather than shrinking first. **Two seconds
-    would need a number changed in the module, which touches every clip that has
-    ever shown a bubble — a decision rather than an edit.**
+    choice.** `bubbleAt` writes `min(BUBBLE.hold, room)`, and the other spelling
+    — `bubbles: [...]` — runs the quick profile and caps at 0.30. The first cut
+    stopped there and said so; **the second cut re-serves the module's own last
+    fully up frame for another half second**, which is how a clip gets past that
+    ceiling without changing a number every clip with a bubble in it shares. See
+    the second cut above.
   - **A pill is never centred over a head and cannot be.** The module puts the
     first dot on the plate's own centre line and the pill's near corner 26 css
     px along the row from it, and **no head size fixes it**: `crownX` scales with

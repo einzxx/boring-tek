@@ -46,18 +46,60 @@
    outright as `over-right`, because the derived side is a fact about which
    corner he is standing in and he is standing in the middle.
 
-   **the hold is 0.90s and that is the module's own ceiling, not a choice.**
-   the brief asks for the thought to be fully up for about two seconds.
+   ---------- the hold is the module's 0.90s and half a second of this file ----
+
    `bubbleAt` computes `holdFor = max(0.42, min(BUBBLE.hold, room))` and
-   `BUBBLE.hold` is 0.90, so a single bubble cannot be held longer than that
-   from outside the module — and `bubbles: [...]`, the other spelling, runs the
-   quick profile and caps at 0.30, which is worse. the brief also says lib is
-   untouched. so the thought is up for as long as the module allows and the
-   report prints the number beside `BUBBLE.hold` so it reads as a ceiling rather
-   than as an oversight. what the clip does buy back is the **whole** of it: the
-   fault lands on the frame the pill would begin to leave, so the thought is
-   taken at full size rather than politely shrinking first. first dot to cut is
-   1.38s and the pill itself is on the screen for 1.24 of that.
+   `BUBBLE.hold` is 0.90, so **a single bubble cannot be held longer than that
+   from outside the module** — and `bubbles: [...]`, the other spelling, runs
+   the quick profile and caps at 0.30, which is worse. lib is untouched, so 0.90
+   is what the plan can be asked for.
+
+   the extra half second is taken **without touching a number the module owns**:
+   from `BUB.leaving` to the cut this file hands the page the module's own last
+   fully up bubble frame again, and lets everything else on the face run on real
+   time. that is not a freeze and it is not a second animation — during its own
+   hold the module holds `o` and `sc` at exactly these values and nothing else,
+   so the extra frames are the same still pill for the same reason the first
+   0.90s of it are. `bubbleTime` is the one function that does it, the pill's
+   rendered box is compared across the join, and the guard says which half of
+   the hold came from where.
+
+   the fault still lands on the frame the pill would begin to leave, so the
+   thought is taken at full size rather than politely shrinking first. fully up
+   is 1.40s, first dot to cut is 1.88s, and the pill itself is on the screen for
+   1.74 of that.
+
+   ---------- and he is alive under it, which is two things ----------
+
+   a face holding one expression for a second and a half with nothing moving on
+   it is a still frame with a pill over it, and 0.90s of that was already the
+   thin part of the first cut. so two layers go on, both composed on top of the
+   module's own frame rather than written into the plan, because there is no
+   flat-and-calm state that tilts and there is no wink in the state table.
+
+   **the alive layer** is a tiny tilt, a micro drift and a breath, on four
+   incommensurate periods so nothing in it is ever back where it was. it is
+   composed onto `mascotFrame`'s own `card`, which is the seam the module
+   documents — "what the head is actually drawn with" — so `headRect` and every
+   clearance downstream reads the head that is actually painted.
+
+   **two of its three channels are one sided on purpose.** the drift only ever
+   goes down and the breath only ever shrinks, and both are about the cluster:
+   `crownReach` walked the highest his crown gets over the bubble's own window
+   and hung the dots five px off that, so a move that raises the crown eats a
+   gap the module already spent. the tilt is free either way, because the plate
+   is a circle and rotating a circle does not change its extent — it reads
+   entirely through the eye line, which is the only thing on the face that has
+   an angle.
+
+   **the wink** is one channel over one window: the near eye's lid, driven to
+   shut and back on the module's own two lid curves, `btk.shut` and `btk.open`,
+   written here as the beziers they are. the other eye is passed through
+   untouched and is guarded to be open on every frame of it, and the seed search
+   is given one more constraint — no idle blink may come within `WINK.clear` of
+   the window — because a blink under a wink is both eyes shutting and the joke
+   is gone. it lands 0.18s after the pill does, which is late enough that the
+   two are not one event and early enough that it is still an answer.
 
    ---------- he is 26 css px left of centre, and the pill is why ----------
 
@@ -250,6 +292,13 @@ const GLB = { for: 0.34, wmFor: 0.09 };
 /* how long the end card is on the screen, which is the brief's about 1.2s. */
 const END_HOLD = 1.16;
 
+/* ---------- and half a second more of the thought ----------
+   the module's own hold is `BUBBLE.hold` and it is capped there; this is what
+   this file adds after it, by re-serving the module's own last fully up bubble
+   frame. see the header for why that is a hold rather than a freeze. the fault
+   and the end card follow it, so the film grows by exactly this much. */
+const HOLD_EXTRA = 0.50;
+
 /* ---------- the cut ----------
    two marks and both of them `neutral`, which is the brief: he is alive and
    flat and he never smiles. the brief also asks for a beat and a slow blink
@@ -327,8 +376,11 @@ const DUCK = 0.60;
 const VOICE_TRIM = -1.5;
 const MAX_REDUCTION = 5.0;
 /* the clip's own window rather than a number, because the length is cut from a
-   take and a take is measured. the brief asks for six to seven. */
-const RUN = { min: 6.0, max: 7.0 };
+   take and a take is measured. the first cut's brief asked for six to seven and
+   landed at 6.91; holding the answer half a second longer moves the whole back
+   half with it, so the window moves by the same half second rather than being
+   widened to hide the change. */
+const RUN = { min: 6.5, max: 7.5 };
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -359,6 +411,13 @@ function bezier(x1, y1, x2, y2) {
   };
 }
 const GLIDE = bezier(.45, 0, .55, 1);          /* the calm in out */
+/* the module's own two lid curves, `btk.shut` and `btk.open`, written here as
+   the beziers they are in `mascotEases`. a lid that closes evenly reads as a
+   shutter, so shut is x squared near enough and open is its mirror and longer —
+   which is what makes a blink read as a blink rather than as a flicker, and is
+   the whole reason the wink below borrows them rather than inventing a curve. */
+const LID_SHUT = bezier(.55, 0, .78, .62);
+const LID_OPEN = bezier(.22, .38, .45, 1);
 const span = (t, a, b) => (b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a))));
 const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
@@ -565,12 +624,73 @@ const M2 = +(M1 + M_GAP).toFixed(4);
 const BUB_IN = +(M2 + STATES.neutral.entry + 0.12).toFixed(4);
 const BUB_FULL = +(BUB_IN + BUBBLE.in).toFixed(4);
 const BUB_LEAVING = +(BUB_FULL + BUBBLE.hold).toFixed(4);
-const GLB_AT = BUB_LEAVING;
+/* where the pill actually stops being fully up, which is the module's hold plus
+   this file's own. the fault is on that frame, so the thought is cut at full
+   size rather than shrinking first. */
+const BUB_CUT = +(BUB_LEAVING + HOLD_EXTRA).toFixed(4);
+const GLB_AT = BUB_CUT;
 const SECONDS = +(GLB_AT + END_HOLD).toFixed(4);
 
 const MAS_IN_FRAME = Math.round(M1 * FPS);
 const CUT_FRAME = Math.round(GLB_AT * FPS);
 const WM_IN = (CUT_FRAME - 1) / FPS;
+
+/* ---------- the alive layer ----------
+   the module's own idle over this stretch is a card that moves 1.7 css px
+   sideways, 1.5 up and down and a third of a degree, which is a face that is
+   technically not frozen and reads as held. this is what goes on top of it, and
+   every number is small on purpose: the brief asks for a tiny tilt, a micro
+   drift and a breath, not for a performance.
+
+   four incommensurate periods, so no two frames of it are ever the same and
+   nothing in it is back where it was a second ago — post10's argument about a
+   single sine standing still twice a period, applied to a channel that has to
+   carry a second and a half.
+
+   **`driftY` and `breathe` are one sided and that is the interesting number
+   here.** the cluster hangs five css px off the highest his crown got over the
+   bubble's own window, which `crownReach` walked before the dots were placed. a
+   drift that lifted him or a breath that grew him would spend that gap. so the
+   drift only ever goes down and the breath only ever shrinks, which keeps the
+   crown at or under what the module measured by construction rather than by
+   luck — and the guard walks it anyway. the tilt is free: the plate is a circle
+   and `headRect` says so, so a rotation changes nothing about its extent and
+   the whole read of it is the eye line. */
+const ALIVE = {
+  from: +(M1 + STATES.neutral.entry).toFixed(4),
+  ramp: 0.45,
+  tilt: 2.0, tiltFor: 3.10,        /* degrees, and how long one cycle takes */
+  driftX: 3.0, driftXFor: 2.30,    /* css px either way */
+  driftY: 2.6, driftYFor: 2.90,    /* css px, down only */
+  breathe: 0.012, breatheFor: 2.10,/* of the card's scale, shrink only */
+};
+
+/* ---------- the wink ----------
+   the one thing on his face that is this file's rather than the module's, and
+   it is one channel over one window: the near eye's lid, on the module's own
+   two lid curves. there is no wink in the state table and lib is untouched, so
+   composing it onto `mascotFrame`'s own eye is the only place it can live.
+
+   **the right eye**, which is the side the thought is on, so the closed eye and
+   the answer are 90 device px apart rather than 190 and the read is one glance
+   rather than two.
+
+   the hold at the bottom is what separates a wink from a blink: the module's
+   own blinks hold for 30 to 60 thousandths and this holds for 150, which is
+   long enough to be a decision. it opens slower than it shuts, which is the
+   module's rule and the reason `open` is the longer curve. */
+const WINK = {
+  eye: 1,
+  at: +(BUB_FULL + 0.18).toFixed(4),
+  close: 0.11, hold: 0.15, open: 0.19,
+  /* how much clear air the idle layer has to leave either side of it. a blink
+     under a wink is both eyes shutting, which is not a wink. */
+  clear: 0.18,
+};
+WINK.shutFrom = +(WINK.at + WINK.close).toFixed(4);
+WINK.shutTo = +(WINK.shutFrom + WINK.hold).toFixed(4);
+WINK.end = +(WINK.shutTo + WINK.open).toFixed(4);
+WINK.shutAt = +((WINK.shutFrom + WINK.shutTo) / 2).toFixed(4);
 
 /* ==========================================================================
    the mascot
@@ -602,6 +722,12 @@ const BLINK_WINDOW = [
 const blinkEnd = b => +(b.t + b.close + b.hold + b.open).toFixed(4);
 const blinksNear = pl => pl.idle.blinks.filter(b => blinkEnd(b) > BLINK_WINDOW[0] && b.t < BLINK_WINDOW[1]);
 const blinkInside = b => b.t >= BLINK_WINDOW[0] && blinkEnd(b) <= BLINK_WINDOW[1];
+/* and the second constraint the seed carries, which the wink added: an idle
+   blink anywhere near it would shut the other eye too, and two eyes closing is
+   not a wink. it is a search constraint rather than a guard on one seed,
+   because the schedule is the seed's and there is no other lever on it. */
+const blinksAtWink = pl => pl.idle.blinks.filter(b =>
+  blinkEnd(b) > WINK.at - WINK.clear && b.t < WINK.end + WINK.clear);
 const MARKS = [
   { t: M1, state: 'neutral' },
   { t: M2, state: 'neutral', bubble: THOUGHT },
@@ -629,11 +755,15 @@ function pickSeed() {
     try { pl = planFor(s); } catch (err) { continue; }
     const near = blinksNear(pl);
     if (near.length !== 1 || !blinkInside(near[0])) continue;
+    if (blinksAtWink(pl).length) continue;
     const b = near[0];
     const len = b.close + b.hold + b.open;
     if (!best || len > best.len) best = { seed: s, blink: b, len: +len.toFixed(4) };
   }
-  if (!best) throw new Error('no seed in six thousand puts exactly one idle blink inside the beat');
+  if (!best) {
+    throw new Error('no seed in six thousand puts exactly one whole idle blink inside the beat '
+      + 'and none within ' + WINK.clear + 's of the wink');
+  }
   return best;
 }
 const SEED = pickSeed();
@@ -692,6 +822,13 @@ const PLATE = {
    sized the film, so the sound, the cut and the guards all look at the thought
    the render actually draws. */
 const BUB = plan.marks[1].bubbles[0];
+/* ---------- the module's own last fully up bubble frame ----------
+   read once, off the module, a ten thousandth before its own hold ends — which
+   is inside the hold, so it is the pill at rest rather than the first frame of
+   an exit. `bubbleTime` hands this back for every frame of the extra hold, so
+   the half second this file adds is the same still pill the module was already
+   drawing and not a second animation of one. */
+const BUB_HELD = mascotFrame(plan, BUB.leaving - 1e-4).bubble;
 /* the blink the seed was chosen for, likewise. */
 const BLINK = blinksNear(plan)[0];
 const BLINK_AT = +(BLINK.t + BLINK.close + BLINK.hold / 2).toFixed(4);
@@ -779,9 +916,87 @@ function phosphor(t, amp, slow, fast, phase) {
 /* ==========================================================================
    one instant
    ========================================================================== */
+/* ---------- the alive layer, as a function of time ----------
+   four sines on incommensurate periods, ramped in off the calm curve so it
+   grows out of his arrival rather than switching on. `k` is the ramp itself and
+   it is reported, because a layer that is on is a fact worth being able to see
+   in the log rather than infer from a picture. */
+function aliveAt(t) {
+  const k = GLIDE(span(t, ALIVE.from, ALIVE.from + ALIVE.ramp));
+  if (k <= 0) return { rot: 0, x: 0, y: 0, sc: 1, k: 0 };
+  const u = t - ALIVE.from;
+  const w = (period, phase) => Math.sin(2 * Math.PI * u / period + phase);
+  /* the two one sided channels are written as (1 - cos)/2, which is nought at
+     u nought and never negative — so they start at rest and only ever go the
+     one way the cluster can afford. see the note on ALIVE. */
+  const half = period => 0.5 * (1 - Math.cos(2 * Math.PI * u / period));
+  return {
+    rot: +(k * ALIVE.tilt * w(ALIVE.tiltFor, 0.62)).toFixed(4),
+    x: +(k * ALIVE.driftX * w(ALIVE.driftXFor, 1.94)).toFixed(4),
+    y: +(k * ALIVE.driftY * half(ALIVE.driftYFor)).toFixed(4),
+    sc: +(1 - k * ALIVE.breathe * half(ALIVE.breatheFor)).toFixed(5),
+    k: +k.toFixed(4),
+  };
+}
+
+/* ---------- the wink, as a lid level ----------
+   nought is the module's own open and one is its own shut, which is the unit
+   `mascotFrame` hands back per eye. shut on `btk.shut`, hold, open on
+   `btk.open`, and nothing outside the window. */
+function winkAt(t) {
+  if (t <= WINK.at || t >= WINK.end) return 0;
+  if (t < WINK.shutFrom) return +LID_SHUT(span(t, WINK.at, WINK.shutFrom)).toFixed(4);
+  if (t < WINK.shutTo) return 1;
+  return +(1 - LID_OPEN(span(t, WINK.shutTo, WINK.end))).toFixed(4);
+}
+
+/* which bubble frame the page is handed. real time until the module's own hold
+   runs out, then its own last fully up frame for `HOLD_EXTRA`, then real time
+   again shifted by it — so an exit, if this clip ever let one play, would still
+   be the module's exit rather than a jump. */
+function bubbleTime(t) {
+  if (t < BUB.leaving) return t;
+  if (t < BUB_CUT) return null;                     /* the held frame */
+  return +(t - HOLD_EXTRA).toFixed(6);
+}
+
 function frameAt(t, f) {
   const mas = mascotFrame(plan, t);
   const g = glitchAt(f);
+
+  /* ---- the thought, held past the module's own ceiling ---- */
+  const bt = bubbleTime(t);
+  if (bt === null) mas.bubble = BUB_HELD;
+  else if (bt !== t) mas.bubble = mascotFrame(plan, bt).bubble;
+
+  /* ---- the alive layer, composed onto the card the module drew ----
+     `card` is what the head is actually drawn with, which is the module's own
+     words for it, and it is what `headRect` and every clearance downstream
+     read — so adding here is adding to the head that is measured as well as to
+     the one that is painted. */
+  const al = aliveAt(t);
+  if (al.k > 0) {
+    mas.card = {
+      ...mas.card,
+      x: +(mas.card.x + al.x).toFixed(4),
+      y: +(mas.card.y + al.y).toFixed(4),
+      rot: +(mas.card.rot + al.rot).toFixed(4),
+      sx: +(mas.card.sx * al.sc).toFixed(5),
+      sy: +(mas.card.sy * al.sc).toFixed(5),
+    };
+  }
+
+  /* ---- and the wink, which is one eye's lid and nothing else ----
+     the level is the larger of the module's and this file's, so an idle blink
+     that ever did land here would shut the eye rather than fight over it. the
+     seed search is what makes sure one never does, and the guard re-checks the
+     other eye is open on every frame of the window. */
+  const wk = winkAt(t);
+  if (wk > 0) {
+    const eyes = mas.eyes.slice();
+    eyes[WINK.eye] = { ...eyes[WINK.eye], lid: +Math.max(eyes[WINK.eye].lid, wk).toFixed(4) };
+    mas.eyes = eyes;
+  }
 
   /* the two cuts, both on frames rather than on times: a cut time that rounds
      down would put an empty frame between two things that are meant to swap. */
@@ -1053,6 +1268,7 @@ window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(plan))};
 ${mascotRuntime()}
 window.__P17 = ${JSON.stringify({
     WM, VW, VH, DSF, PANEL: { ...PANEL, typed: PANEL.typed },
+    PLATE_UNITS: HEAD.plate.s,
   })};
 ${scenePage.toString()}
 scenePage();
@@ -1169,6 +1385,48 @@ function scenePage() {
         left: +(r.left * d).toFixed(1), top: +(r.top * d).toFixed(1),
         right: +((P.VW - r.right) * d).toFixed(1), bottom: +((P.VH - r.bottom) * d).toFixed(1),
       };
+    },
+
+    /* how much of each eye is actually showing, off the two rendered rects
+       rather than off the lid number this file wrote.
+
+       the module draws a lid as a slab in the card's own colour sitting above
+       the iris and slides it down by `lid * eye.h`, so what is left of the eye
+       is everything under the slab's bottom edge.
+
+       **it is measured in the svg's own units rather than off
+       `getBoundingClientRect`, and a rendered frame is why.** the alive layer
+       turns the card, and a client rect is the axis aligned box of a turned
+       shape: at two degrees a 13 by 4.4 iris reports a box a tenth taller than
+       itself and the lid's bottom edge lands a quarter of a unit low with it,
+       which read as the open eye being 92% open on every frame of the wink.
+       that is `headRect`'s own lesson in a second place. `getBBox` is the
+       untransformed geometry and the lid's translate is the whole blink, so the
+       share is exact and the rotation cannot touch it.
+
+       the device px come off the **plate's** client rect, which is honest for
+       the same reason the module's own measurement is: the plate is a circle
+       and a circle does not get wider when you turn it. */
+    eyeBoxes() {
+      const d = P.DSF;
+      const plate = document.querySelector('#m-zone .m-face .m-plate').getBoundingClientRect();
+      const perUnit = plate.width / P.PLATE_UNITS;
+      return [...document.querySelectorAll('.m-eye')].map(g => {
+        const iris = g.querySelector('.m-iris');
+        const lid = g.querySelector('.m-lid');
+        const ib = iris.getBBox();
+        const lb = lid.getBBox();
+        const lm = lid.transform.baseVal.consolidate();
+        const gm = g.transform.baseVal.consolidate();
+        const sy = gm ? gm.matrix.d : 1;
+        const lidBottom = lb.y + lb.height + (lm ? lm.matrix.f : 0);
+        const shown = Math.max(0, (ib.y + ib.height) - Math.max(ib.y, lidBottom));
+        return {
+          hPx: +(ib.height * sy * perUnit * d).toFixed(1),
+          shownPx: +(shown * sy * perUnit * d).toFixed(1),
+          share: +(ib.height > 0 ? shown / ib.height : 0).toFixed(4),
+        };
+      });
     },
 
     /* the pill on its own, so the shift the header argues for can be checked
@@ -1415,6 +1673,12 @@ async function render() {
   const sigs = [];
   let panelWorst = null, panelSamples = 0, collide = [];
   let bubWorst = null, bubSamples = 0, pillWorst = null;
+  /* the wink, measured on the picture: the widest the two eyes are ever apart,
+     and the other eye's worst share on the same frame. */
+  let winkWorst = null, winkSamples = 0;
+  /* and the pill's rendered box either side of the join between the module's
+     own hold and this file's, so "the same still pill" is a measurement. */
+  const pillJoin = {};
   const wall = Date.now();
 
   for (let f = 0; f < N; f++) {
@@ -1459,6 +1723,31 @@ async function render() {
           if (o.mo) {
             const hp = headPageRect(o.mas).rect;
             if (overlaps(hp, pb.cssRect)) collide.push('at ' + t.toFixed(2) + 's');
+          }
+        }
+        /* the wink, on every frame of its window. it is one channel and it is
+           the joke, so it is measured on every frame rather than sampled. */
+        if (o.mo && t >= WINK.at && t <= WINK.end) {
+          const eb = await page.evaluate(() => window.__p17.eyeBoxes());
+          winkSamples++;
+          const gap = eb[1 - WINK.eye].share - eb[WINK.eye].share;
+          if (!winkWorst || gap > winkWorst.gap) {
+            winkWorst = {
+              t: +t.toFixed(3), gap: +gap.toFixed(4),
+              winking: eb[WINK.eye], other: eb[1 - WINK.eye],
+            };
+          }
+          if (!winkWorst.otherLow || eb[1 - WINK.eye].share < winkWorst.otherLow) {
+            winkWorst.otherLow = eb[1 - WINK.eye].share;
+          }
+        }
+        /* the pill either side of the join, one frame each. */
+        if (o.mo && o.mas.bubble.o > 0.5) {
+          const key = t < BUB.leaving ? 'module' : 'extra';
+          if (!pillJoin[key] || Math.abs(t - (key === 'module' ? BUB.leaving - 0.05 : BUB.leaving + 0.05))
+              < Math.abs(pillJoin[key].t - (key === 'module' ? BUB.leaving - 0.05 : BUB.leaving + 0.05))) {
+            const pb = await page.evaluate(() => window.__p17.pillBox());
+            pillJoin[key] = { t: +t.toFixed(3), ...pb };
           }
         }
         /* and the thought, on every frame it is up: it is the punchline and the
@@ -1515,11 +1804,15 @@ async function render() {
     [BLINK_AT, 'j-the-slow-blink'],
     [BUB.in + BUBBLE.step, 'k-the-dots'],
     [BUB_FULL, 'l-the-thought'],
-    [(BUB_FULL + BUB_LEAVING) / 2, 'm-holding'],
-    [BUB_LEAVING - 1 / FPS, 'n-the-last-frame-of-it'],
-    [GLB_AT, 'o-the-second-fault'],
-    [GLB_AT + GLB.for + 0.06, 'p-the-wordmark'],
-    [SECONDS - 0.05, 'q-the-last-frame'],
+    [WINK.at, 'm-the-wink-begins'],
+    [WINK.shutAt, 'n-the-wink'],
+    [WINK.end, 'o-both-eyes-back'],
+    [BUB_LEAVING, 'p-the-join'],
+    [(BUB_LEAVING + BUB_CUT) / 2, 'q-still-holding'],
+    [BUB_CUT - 1 / FPS, 'r-the-last-frame-of-it'],
+    [GLB_AT, 's-the-second-fault'],
+    [GLB_AT + GLB.for + 0.06, 't-the-wordmark'],
+    [SECONDS - 0.05, 'u-the-last-frame'],
   ];
   for (const [want, name] of stills) {
     const fr = Math.min(N - 1, Math.max(0, Math.round(want * FPS)));
@@ -1541,6 +1834,38 @@ async function render() {
     await paint(page, frameAt(t, fr));
     await shoot(cdp, path.join(bdir, 'b' + String(i).padStart(2, '0')
       + '-' + t.toFixed(3) + 's.png'));
+    await advance(STEP);
+  }
+
+  /* ---------- the wink, frame by frame ----------
+     0.45s is twenty seven frames at sixty and five and a half at twelve, so the
+     preview cannot answer whether one eye reads as closed while the other
+     reads as open. thirty stills a sixtieth apart across the shut, the hold and
+     the open, and a crop of the face on the shut frame at three times, which is
+     the "does it read at phone size" picture. */
+  const wdir = path.join(VERIFY, 'wink');
+  fs.mkdirSync(wdir, { recursive: true });
+  for (let i = 0; i < 30; i++) {
+    const t = +(WINK.at - 1 / 60 + i / 60).toFixed(4);
+    const fr = Math.round(t * FPS);
+    await paint(page, frameAt(t, fr));
+    await page.evaluate(now => window.__dmRaf(now), (fr + 1) * STEP);
+    await shoot(cdp, path.join(wdir, 'w' + String(i).padStart(2, '0')
+      + '-' + t.toFixed(3) + 's.png'));
+    await advance(STEP);
+  }
+  {
+    const fr = Math.round(WINK.shutAt * FPS);
+    await paint(page, frameAt(fr / FPS, fr));
+    await page.evaluate(now => window.__dmRaf(now), (fr + 1) * STEP);
+    const c = headPageRect(frameAt(fr / FPS, fr).mas).rect;
+    const pad = 18;
+    const shot = await cdp.send('Page.captureScreenshot', {
+      format: 'png', captureBeyondViewport: false,
+      clip: { x: Math.max(0, c.x - pad), y: Math.max(0, c.y - pad),
+        width: c.w + pad * 2, height: c.h + pad * 2, scale: 3 },
+    });
+    fs.writeFileSync(path.join(VERIFY, 'the-wink-3x.png'), Buffer.from(shot.data, 'base64'));
     await advance(STEP);
   }
 
@@ -1567,6 +1892,7 @@ async function render() {
     built, meas, caps, sigs, frames: N,
     panel: panelWorst, panelSamples, collide,
     bubble: bubWorst, bubSamples, pill: pillWorst,
+    wink: winkWorst, winkSamples, pillJoin,
   };
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
   return state;
@@ -1706,6 +2032,72 @@ console.log('  so he sits ' + OFF_X + ' css px (' + (OFF_X * DSF).toFixed(0)
   + ' device) left of the frame\'s middle. no head size fixes it — see the header');
 console.log('');
 
+/* ---------- the alive layer and the wink, walked ----------
+   what this file adds to the module's own card, measured over the window it is
+   on rather than read off the constants, plus the worst one frame step of the
+   composed card and the highest his crown gets while the thought is up. the
+   last of those is the one that matters: the cluster was hung five px off a
+   crown `crownReach` walked before any of this existed. */
+const ALIVE_REPORT = (() => {
+  const R = HEAD.plate.s / 2 * plan.unit;
+  const cyz = (HEAD.plate.y + HEAD.plate.s / 2) * plan.unit;
+  let rot = 0, dx = 0, dy = 0, sc = 1, step = 0, stepAt = 0, still = 0;
+  let own = 0, ownAt = 0;
+  let crown = Infinity, crownAt = 0, prev = null, prevA = null;
+  const f1 = Math.round(GLB_AT * 60);
+  for (let f = Math.round(ALIVE.from * 60); f <= f1; f++) {
+    const t = f / 60;
+    const a = aliveAt(t);
+    rot = Math.max(rot, Math.abs(a.rot));
+    dx = Math.max(dx, Math.abs(a.x));
+    dy = Math.max(dy, a.y);
+    sc = Math.min(sc, a.sc);
+    const c = frameAt(t, f).mas.card;
+    if (prev) {
+      /* the composed card's step, which includes the module's own entrances —
+         mark two's arrival is the biggest one frame move in this whole stretch
+         and it is the module's, not this file's. */
+      const d = Math.hypot(c.x - prev.x, c.y - prev.y);
+      if (d > step) { step = d; stepAt = +t.toFixed(2); }
+      if (d < 1e-6 && Math.abs(c.rot - prev.rot) < 1e-6 && Math.abs(c.sy - prev.sy) < 1e-6) still++;
+      /* and this layer's own, which is the number "drift or jitter" is about. */
+      const da = Math.hypot(a.x - prevA.x, a.y - prevA.y);
+      if (da > own) { own = da; ownAt = +t.toFixed(2); }
+    }
+    prev = c; prevA = a;
+    if (t >= BUB.in && t <= GLB_AT) {
+      const top = cyz + c.y - R * c.sy;
+      if (top < crown) { crown = top; crownAt = +t.toFixed(2); }
+    }
+  }
+  return {
+    rot: +rot.toFixed(3), dx: +dx.toFixed(2), dy: +dy.toFixed(2),
+    sc: +sc.toFixed(5), step: +step.toFixed(3), stepAt, still,
+    own: +own.toFixed(4), ownAt,
+    crown: +crown.toFixed(3), crownAt,
+  };
+})();
+
+console.log('the alive layer and the wink');
+console.log('  from ' + ALIVE.from.toFixed(2) + 's, ramped in over ' + ALIVE.ramp.toFixed(2)
+  + 's: tilt to ' + ALIVE_REPORT.rot + ' degrees, drift ' + ALIVE_REPORT.dx
+  + ' css px across and ' + ALIVE_REPORT.dy + ' down, breath to x' + ALIVE_REPORT.sc);
+console.log('  the module\'s own idle over the same stretch is 1.7 css px across, 1.5 up and '
+  + 'down and a third of a degree, which is what "too still" was');
+console.log('  this layer moves the card at most ' + ALIVE_REPORT.own + ' css px in a frame (at '
+  + ALIVE_REPORT.ownAt + 's); the composed card peaks at ' + ALIVE_REPORT.step + ' at '
+  + ALIVE_REPORT.stepAt + 's, which is mark two\'s own entrance rather than this layer');
+console.log('  and it never stands still: ' + ALIVE_REPORT.still + ' held frames');
+console.log('  his crown reaches ' + ALIVE_REPORT.crown + ' in the zone at ' + ALIVE_REPORT.crownAt
+  + 's against the ' + plan.thought.crownTop + ' crownReach hung the dots off — the drift is '
+  + 'one sided and the breath only shrinks, so it cannot go higher');
+console.log('  the wink: eye ' + WINK.eye + ' (screen ' + (WINK.eye ? 'right' : 'left') + '), '
+  + WINK.at.toFixed(2) + '..' + WINK.end.toFixed(2) + 's — ' + (WINK.close * 1000).toFixed(0)
+  + 'ms shut, ' + (WINK.hold * 1000).toFixed(0) + ' held, ' + (WINK.open * 1000).toFixed(0)
+  + ' open, on the module\'s own two lid curves. it lands '
+  + ((WINK.at - BUB_FULL) * 1000).toFixed(0) + 'ms after the pill does');
+console.log('');
+
 console.log('the beats');
 const beats = [
   [0, 'black, empty, the vignette breathing'],
@@ -1723,7 +2115,10 @@ const beats = [
   [M2, 'the second mark: he takes a breath'],
   [BUB.in, 'the first dot climbs off his crown'],
   [BUB.full, '"' + THOUGHT + '" is fully up, and the pop is on the pill'],
-  [BUB.leaving, 'and the second fault takes it while it is still up, '
+  [WINK.at, 'the wink: one eye shuts and opens, the other stays open'],
+  [BUB.leaving, 'the module\'s own hold runs out and this file holds the same '
+    + 'frame for ' + HOLD_EXTRA.toFixed(2) + 's more'],
+  [GLB_AT, 'and the second fault takes it while it is still fully up, '
     + GLB.for.toFixed(2) + 's of it'],
   [WM_IN, 'the wordmark snaps in over ' + GLB.wmFor.toFixed(2) + 's and holds '
     + (SECONDS - WM_IN - GLB.wmFor).toFixed(2) + 's'],
@@ -1993,8 +2388,10 @@ check(plan.bias === 0,
   'he looks straight down the lens: resting turn ' + plan.bias);
 {
   let worst = null;
+  /* the composed frame rather than the plan's, because the alive layer is on
+     the card and the card is what the head is drawn with. */
   for (let f = MAS_IN_FRAME; f < CUT_FRAME; f++) {
-    const a = headPageRect(mascotFrame(plan, f / FPS)).air;
+    const a = headPageRect(frameAt(f / FPS, f).mas).air;
     const near = Math.min(a.left, a.top, a.right, a.bottom);
     if (!worst || near < worst.near) worst = { t: +(f / FPS).toFixed(2), near: +near.toFixed(1), ...a };
   }
@@ -2017,17 +2414,6 @@ check(plan.bias === 0,
     'his eyes are open again before the first dot climbs: the lid is back at '
     + blinkEnd(BLINK).toFixed(2) + 's and the dot starts at ' + BUB.in.toFixed(2)
     + 's, ' + ((BUB.in - blinkEnd(BLINK)) * 1000).toFixed(0) + 'ms later');
-  /* and he is **alive** under the thought rather than still. a face holding one
-     expression for 0.9s with nothing moving on it is a still frame with a pill
-     over it, which is the one thing the house's own "no frozen face" rule is
-     about. one idle blink in there is right; two would be a tic, and one landing
-     on the frame the pill arrives would be two events sharing a frame. */
-  const after = plan.idle.blinks.filter(b => blinkEnd(b) > BUB.full && b.t < BUB.leaving);
-  check(after.length === 1,
-    'he is alive under the thought rather than held: ' + after.length + ' idle blink while it '
-    + 'is up' + (after.length ? ', at ' + after[0].t.toFixed(2) + 's' : ''));
-  check(after.every(b => Math.abs(b.t - CUES[0].t) > 0.10),
-    'and it is not on the frame the pill lands, which would be two events sharing one beat');
 }
 check(rep60.frozenFrames === 0, 'the face is never frozen: ' + rep60.frozenFrames + ' frames');
 check(rep60.maxSquash <= 0.081, 'the squash peaks at ' + (rep60.maxSquash * 100).toFixed(1) + '%');
@@ -2042,20 +2428,51 @@ check(Math.abs(BUB.in - BUB_IN) < 1e-6 && Math.abs(BUB.leaving - BUB_LEAVING) < 
   + BUB.in.toFixed(3) + ' against ' + BUB_IN.toFixed(3) + ', leaving ' + BUB.leaving.toFixed(3)
   + ' against ' + BUB_LEAVING.toFixed(3));
 check(Math.abs((BUB.leaving - BUB.full) - BUBBLE.hold) < 1e-6,
-  'it is fully up for ' + (BUB.leaving - BUB.full).toFixed(2) + 's, which is BUBBLE.hold\'s '
-  + BUBBLE.hold + ' exactly — the module\'s own ceiling on a single bubble, not a number '
-  + 'chosen here. the brief asked for about two and lib is untouched; see the header');
-check(Math.abs(CUT_FRAME / FPS - BUB.leaving) <= 1 / FPS + 1e-9,
-  'and the fault takes it on the frame it would begin to leave, so the thought is cut at '
-  + 'full size rather than shrinking first: cut at ' + (CUT_FRAME / FPS).toFixed(3)
-  + 's against ' + BUB.leaving.toFixed(3));
+  'the module holds it for ' + (BUB.leaving - BUB.full).toFixed(2) + 's, which is '
+  + 'BUBBLE.hold\'s ' + BUBBLE.hold + ' exactly — its own ceiling on a single bubble, and '
+  + 'the most the plan can be asked for with lib untouched');
+check(Math.abs((BUB_CUT - BUB.full) - (BUBBLE.hold + HOLD_EXTRA)) < 1e-6,
+  'and this file holds the same frame for ' + HOLD_EXTRA.toFixed(2) + 's after it, so the '
+  + 'thought is fully up for ' + (BUB_CUT - BUB.full).toFixed(2) + 's in all');
+check(Math.abs(CUT_FRAME / FPS - BUB_CUT) <= 1 / FPS + 1e-9,
+  'the fault takes it on the frame it would begin to leave, so the thought is cut at full '
+  + 'size rather than shrinking first: cut at ' + (CUT_FRAME / FPS).toFixed(3)
+  + 's against ' + BUB_CUT.toFixed(3));
+{
+  /* the held half is the module's own frame rather than a fade, a freeze or a
+     second animation of one, and there are two ways of saying that. the numbers
+     this file hands the page are the module's own values held at their own rest,
+     and the rendered pill does not move across the join. */
+  let bad = 0, worst = null;
+  const f0 = Math.ceil(BUB.full * 60), f1 = Math.round(BUB_CUT * 60) - 1;
+  for (let f = f0; f <= f1; f++) {
+    const b = frameAt(f / 60, f).mas.bubble;
+    if (Math.abs(b.pill.sc - 1) > 1e-6 || Math.abs(b.pill.o - 1) > 1e-6 || b.text !== THOUGHT) {
+      bad++;
+      if (worst == null) worst = f / 60;
+    }
+  }
+  check(bad === 0,
+    'the pill is at full size and full opacity on every one of the ' + (f1 - f0 + 1)
+    + ' frames between it landing and the fault: ' + bad + ' frames off'
+    + (worst == null ? '' : ', first at ' + worst.toFixed(3) + 's'));
+}
+if (state.pillJoin && state.pillJoin.module && state.pillJoin.extra) {
+  const a = state.pillJoin.module.cssRect, b = state.pillJoin.extra.cssRect;
+  const moved = Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y),
+    Math.abs(a.w - b.w), Math.abs(a.h - b.h));
+  check(moved < 0.02,
+    'and the rendered pill does not move across the join: ' + moved.toFixed(3)
+    + ' css px between ' + state.pillJoin.module.t + 's, inside the module\'s own hold, and '
+    + state.pillJoin.extra.t + 's, inside this file\'s');
+}
 check(BUB.text === THOUGHT,
   'the pill says "' + BUB.text + '"');
 {
-  const onScreen = +(BUB.leaving - (BUB.in + BUBBLE.step * 2)).toFixed(3);
-  check(onScreen > 1.1,
+  const onScreen = +(BUB_CUT - (BUB.in + BUBBLE.step * 2)).toFixed(3);
+  check(onScreen > 1.6,
     'the pill itself is on the screen for ' + onScreen.toFixed(2) + 's and the whole gesture, '
-    + 'first dot to cut, runs ' + (BUB.leaving - BUB.in).toFixed(2) + 's');
+    + 'first dot to cut, runs ' + (BUB_CUT - BUB.in).toFixed(2) + 's');
 }
 if (state.bubble) {
   check(state.bubble.air >= 0,
@@ -2075,6 +2492,91 @@ if (state.pill) {
 check(OFF_X > 0 && OFF_X < 30,
   'he sits ' + OFF_X + ' css px left of the frame\'s middle, and it is derived rather than '
   + 'chosen: exactly what the pill needs to keep ' + PILL_AIR + 'px inside the safe line');
+
+/* ---------- the alive layer ----------
+   what this file adds to the module's own card, checked against the thing it is
+   for: he is not held, he does not jitter, and he cannot spend the clearance
+   `crownReach` bought the dots. */
+check(ALIVE_REPORT.rot > 1.0 && ALIVE_REPORT.rot <= ALIVE.tilt + 0.01,
+  'the tilt reaches ' + ALIVE_REPORT.rot + ' degrees against the ' + ALIVE.tilt
+  + ' asked for, which is a fifth of what a state uses and is the brief\'s "tiny"');
+check(ALIVE_REPORT.dx > 1.5 && ALIVE_REPORT.dx <= ALIVE.driftX + 0.01
+  && ALIVE_REPORT.dy > 1.5 && ALIVE_REPORT.dy <= ALIVE.driftY + 0.01,
+  'the drift reaches ' + ALIVE_REPORT.dx + ' css px across and ' + ALIVE_REPORT.dy
+  + ' down, against the module\'s own idle of 1.7 and 1.5 over the same stretch');
+check(ALIVE_REPORT.sc <= 1 - ALIVE.breathe * 0.9 && ALIVE_REPORT.sc >= 1 - ALIVE.breathe - 1e-4,
+  'the breath reaches x' + ALIVE_REPORT.sc + ', and it only ever shrinks — see the note on '
+  + 'ALIVE for why that direction is not a preference');
+check(ALIVE_REPORT.still === 0,
+  'the composed card never stands still: ' + ALIVE_REPORT.still + ' held frames between '
+  + ALIVE.from.toFixed(2) + 's and the cut, which is what "too still" was about');
+check(ALIVE_REPORT.own < 0.35,
+  'and it is a drift rather than a jitter: this layer moves the card at most '
+  + ALIVE_REPORT.own + ' css px in a frame, at ' + ALIVE_REPORT.ownAt + 's');
+check(ALIVE_REPORT.step < 2.5,
+  'the composed card peaks at ' + ALIVE_REPORT.step + ' css px a frame at ' + ALIVE_REPORT.stepAt
+  + 's, which is mark two\'s own entrance and is the module\'s move rather than this one');
+check(ALIVE_REPORT.crown >= plan.thought.crownTop - 0.01,
+  'his crown never rises into the cluster: it reaches ' + ALIVE_REPORT.crown
+  + ' in the zone at ' + ALIVE_REPORT.crownAt + 's against the ' + plan.thought.crownTop
+  + ' crownReach hung the dots five px off, and the extra half second of hold is outside '
+  + 'the window the module walked');
+
+/* ---------- the wink ----------
+   one channel, one window, and the other eye is the thing that makes it a wink
+   rather than a blink — so it is checked on every frame of it, twice: on the
+   numbers this file wrote and on the two rendered rects. */
+check(WINK.at > BUB.full && WINK.end < BUB_CUT,
+  'the wink is inside the hold: ' + WINK.at.toFixed(2) + '..' + WINK.end.toFixed(2)
+  + 's, which is ' + ((WINK.at - BUB.full) * 1000).toFixed(0) + 'ms after the pill lands and '
+  + ((BUB_CUT - WINK.end) * 1000).toFixed(0) + 'ms before the fault');
+{
+  let shut = 0, otherWorst = 0, off = 0;
+  for (let f = Math.floor(WINK.at * 60); f <= Math.ceil(WINK.end * 60); f++) {
+    const t = f / 60;
+    const o = frameAt(t, f).mas;
+    const m = mascotFrame(plan, t);
+    shut = Math.max(shut, o.eyes[WINK.eye].lid);
+    otherWorst = Math.max(otherWorst, o.eyes[1 - WINK.eye].lid);
+    if (Math.abs(o.eyes[1 - WINK.eye].lid - m.eyes[1 - WINK.eye].lid) > 1e-9) off++;
+  }
+  check(shut >= 0.999,
+    'the winking eye shuts all the way: lid reaches ' + shut.toFixed(4) + ' and holds there '
+    + (WINK.hold * 1000).toFixed(0) + 'ms, against the module\'s own blinks which hold 30 to 60');
+  check(off === 0 && otherWorst < 0.05,
+    'and the other eye is exactly what the module said on every frame of it and stays open: '
+    + off + ' frames changed, worst lid ' + otherWorst.toFixed(4));
+  const before = frameAt(WINK.at - 1 / 60, Math.round((WINK.at - 1 / 60) * 60)).mas;
+  const after = frameAt(WINK.end + 1 / 60, Math.round((WINK.end + 1 / 60) * 60)).mas;
+  check(before.eyes[WINK.eye].lid < 0.02 && after.eyes[WINK.eye].lid < 0.02,
+    'it opens and shuts inside its own window: both eyes are open a frame either side of it');
+}
+{
+  const clash = plan.idle.blinks.filter(b =>
+    blinkEnd(b) > WINK.at - WINK.clear && b.t < WINK.end + WINK.clear);
+  check(clash.length === 0,
+    'no idle blink comes within ' + WINK.clear + 's of the wink, which is a search constraint '
+    + 'on the seed rather than luck: ' + clash.length + ' near it');
+  const under = plan.idle.blinks.filter(b => blinkEnd(b) > BUB.full && b.t < BUB_CUT);
+  check(true,
+    under.length + ' idle blink(s) land under the thought as well as the wink'
+    + (under.length ? ', at ' + under.map(b => b.t.toFixed(2)).join(', ') : '')
+    + ' — the alive layer is what carries the rest of the hold');
+}
+if (state.wink) {
+  const w = state.wink;
+  check(w.gap >= 0.95,
+    'and it reads on the picture rather than in the plan: at ' + w.t + 's the winking eye shows '
+    + w.winking.shownPx + ' device px of itself and the other ' + w.other.shownPx
+    + ', a difference of ' + (w.gap * 100).toFixed(0) + '% of an eye, measured off the two '
+    + 'rendered rects over ' + state.winkSamples + ' frames');
+  check(w.winking.shownPx <= 1.0,
+    'the winking eye is fully covered at its shut: ' + w.winking.shownPx + ' device px showing '
+    + 'out of ' + w.winking.hPx);
+  check(w.otherLow >= 0.98,
+    'the other eye never dips below ' + (w.otherLow * 100).toFixed(0) + '% of itself while it '
+    + 'happens, so nothing on the frame reads as a blink');
+}
 
 /* ---------- the end ---------- */
 {
