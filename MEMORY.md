@@ -6,6 +6,88 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-04: `demo/post17.mjs`, the seventeenth clip, message for the
+  next generation. 6.91s, vertical, dark only, and the first one whose whole
+  clock is cut from one spoken line.** A chat panel fades in on a black frame
+  and types itself `message for the next generation?` while the voice reads it,
+  the panel slides 120px down out of the way, a hard fault hands the mascot the
+  frame above it, he takes a beat and one slow blink, and thinks `don't come`.
+  The second fault takes the lot and puts the wordmark up. Out to
+  `demo/out/post17-dark-1080x1920.mp4`. **71 guards green at 12fps and at 60
+  with the shutter open.** The long version is The seventeenth clip in
+  `demo/README.md`; what is worth carrying forward:
+  - **The typing is cut to the read word by word, and that is the whole file.**
+    `typePlan` is handed the voice's own word list and lays each word's
+    characters across **that word's spoken span**, so the letters of
+    `generation` appear while `generation` is being said and the space in front
+    of a word lands a third of the way into the silence before it. post14 spread
+    a line evenly across a read window; this is the same idea done properly, and
+    it is what makes the picture and the sound one event rather than two laid on
+    the same grid. The tokens are matched against the engine's own words and a
+    mismatch throws.
+  - **Everything downstream of the voice is derived.** The read's sound lands on
+    `VOICE_AT` and the typing, the slide, the fault, both marks, the thought,
+    the end card and `SECONDS` all follow it. A slower read moves the whole film.
+  - **21.4 characters a second is the honest cost of that**, three times post14's
+    7.1. It does not read as a machine, because it is fast inside a word and
+    still between them, but it reads as text arriving rather than as a person
+    typing. The lever is the take's rate and it costs 0.3s, which is over the
+    brief's ceiling, so it was not taken and the number is printed on every run.
+  - **`lib/mascot.mjs`'s `thought: 'over'` is used by a clip for the first time**,
+    asked for as `over-right` because the derived side is a fact about which
+    corner he is standing in and he is standing in neither.
+  - **`BUBBLE.hold` is 0.90 and that is a ceiling on a single bubble, not a
+    choice.** The brief asked for the thought fully up for about two seconds.
+    `bubbleAt` writes `min(BUBBLE.hold, room)`, and the other spelling —
+    `bubbles: [...]` — runs the quick profile and caps at 0.30. With lib
+    untouched, two seconds is not reachable. What the clip buys back is the
+    whole of it: the fault lands on the frame the pill would begin to leave, so
+    the thought is cut at full size rather than shrinking first. **Two seconds
+    would need a number changed in the module, which touches every clip that has
+    ever shown a bubble — a decision rather than an edit.**
+  - **A pill is never centred over a head and cannot be.** The module puts the
+    first dot on the plate's own centre line and the pill's near corner 26 css
+    px along the row from it, and **no head size fixes it**: `crownX` scales with
+    the head and the dots, the gaps and the pill do not. `don't come` is 190.7
+    css wide, 196.4 at its spring, so off a dead centre head it reaches 22 css px
+    past the right safe line. The clip moves him 26.42 css px (53 device, 4.9% of
+    the width) left rather than putting the punchline in the platform's button
+    column. `OFF_X` is derived off the measured pill and its worst spring frame,
+    printed on every run, and the guard re-measures the rendered cluster.
+    **Whether that is the right side of the trade is Einz's call.**
+  - **A single `bubble` is placed by the module at `settled + 0.12`**, so a mark
+    carrying a thought cannot also carry a beat in front of it. Two `neutral`
+    marks is what buys the beat and the slow blink, and the second entrance
+    reads as a breath rather than as a state change.
+  - **The whole blink has to fit the window, not just its start.** The first cut
+    searched on the blink's own `t` and found one whose lid was still coming back
+    up as the first dot climbed. He blinks once more under the thought and that
+    one is deliberate — a face holding one expression for 0.9s with nothing
+    moving on it is a still frame with a pill over it.
+  - **A liveness signature has to be gated by what is drawn, and it has to know
+    about the layers node does not write.** The film opens on 0.20s of black with
+    only the vignette on it, which is a css animation, so the signature would
+    have swept a run of frames it could not see. The mascot's channels now only
+    count on frames he is on, and the vignette carries a `phosphor` brightness
+    this file writes.
+  - **The panel is post14's, redrawn dark**: its own ground and a hairline rather
+    than page ink on page paper, because `--fg` on a near black page is a light
+    slab. Type at 26 css px, 38 device of cap, wrapping to exactly two lines, and
+    the height worked out of its own parts rather than typed. The model name is
+    gone and a mic and a waveform are drawn in css in its place.
+  - **No camera, and that is a decision.** Nothing in the brief moves the frame.
+    The panel slides on its own transform, which is an element moving inside a
+    still frame — the opposite of a camera move, and the right shape, because
+    what slides is the thing making room.
+  - **No new sound recipes.** Eight `key` ticks off the typing's own list, one
+    soft `popDeep` thud on the slide, two `glitch` faults, and `mascotCues`' own
+    `pop` — **taken** here where post16 declined its `ding`. No music, which is
+    the brief.
+  - **The video-review pass found three things and none of them a fault**: the
+    0.90s hold, the 4.9% off centre and the typing speed, all three of them the
+    brief's own two halves pulling against each other. The review is
+    `demo/out/review-post17.md`, gitignored with the rest of `demo/out/`.
+
 - **Built 2026-09-03: `demo/post16.mjs`, the sixteenth clip, one small change.
   5.70s, vertical, dark only, and the first one whose camera pulls back instead
   of pushing in.** A client asks for one small change, then forty seven more:

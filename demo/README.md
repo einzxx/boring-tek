@@ -89,6 +89,19 @@ All headless Chrome, all tooling. The renderers first:
   No new sound recipes — five cues out of `chirp`, `popDeep` and `glitch`, with
   0.91s left deliberately empty for the trending sound. Out to
   `demo/out/post16-dark-1080x1920.mp4`. See The sixteenth clip.
+- **`post17.mjs`** renders a 6.91 second clip, vertical, dark only, **and it is
+  the first one whose whole clock is cut from one spoken line, and the first to
+  use the module's thought bubble over the crown.** A chat panel fades in on a
+  black frame and types itself `message for the next generation?` while the
+  voice reads it; the panel slides 120px down out of the way, a hard fault hands
+  the mascot the frame above it, he takes a beat and a slow blink, and thinks
+  `don't come`. Then the second fault takes the lot and puts the wordmark up.
+  **The typing is cut to the read word by word** — each word's characters land
+  across that word's own spoken span — and everything downstream of the voice is
+  derived from it. `thought: 'over-right'` is `lib/mascot.mjs`'s own placement,
+  used by a clip for the first time. No new sound recipes: key ticks, one soft
+  `popDeep` thud, two `glitch` faults and `mascotCues`' own `pop`. Out to
+  `demo/out/post17-dark-1080x1920.mp4`. See The seventeenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -4813,6 +4826,262 @@ measured.
   `FIELD.n` at 32 gives 27.6 and at 24 gives 37, and everything else follows on
   its own.
 - The trending sound. The gap is measured and guarded and it is Einz's to fill.
+
+## The seventeenth clip — one line, and everything cut from it
+
+`post17.mjs` renders 6.91 seconds, vertical, dark only, out to
+`demo/out/post17-dark-1080x1920.mp4`.
+
+A chat panel fades in on an empty black frame and types itself
+`message for the next generation?` while the voice reads it. The panel slides
+120px down out of the way, a hard fault hands the mascot the frame above it, he
+takes a beat and one slow blink, and thinks `don't come`. The second fault takes
+the lot and puts the wordmark up.
+
+post16 is the template for the shape of the file and post14 for the panel and
+the read. Two things here are new: **the whole clock is cut from one spoken
+line**, and **`lib/mascot.mjs`'s `over` thought placement is used by a clip for
+the first time**.
+
+### The read is the typing, word for word
+
+The brief asks for the question to type itself with key ticks and for the voice
+to read it as it types. Those are two ways of describing one event, so they are
+built as one: `typePlan` is handed the voice's own word list and lays each word's
+characters across **that word's spoken span**. The letters of `generation` appear
+while `generation` is being said, and the space in front of a word lands a third
+of the way into the silence before it.
+
+That is not a flourish, it is what fixes the pace. Thirty two characters spread
+evenly across a 1.49s read would be a constant 21.4 a second, which is a field
+being filled by a machine. Cut to the words it is fast inside a word and still
+between them, which is what typing sounds like and, more to the point, is what
+the ear is already hearing. **The tokens are matched to the engine's own words
+rather than assumed to line up**, and a mismatch is a throw: a typing pass that
+quietly fell out of step with the read would look like a timing choice rather
+than like a bug.
+
+**The whole film hangs off it.** The read's sound lands on `VOICE_AT` and every
+number after that is derived — the typing ends when the last word does, the panel
+slides a beat later, the fault is a beat after the panel lands, he is born on the
+fault, the thought hangs off his second mark, and the film ends a held card after
+the thought is taken. Nothing downstream of the voice is typed, so a slower read
+moves the entire film with it.
+
+The rate is the voice module's own. `calm` is en-US-AndrewNeural at -8%, already
+under the neural default because the neural default is faster than a person
+reading a short line to camera, and the brief asks for a natural pace. There is
+no per-clip override on it at all.
+
+### 21.4 characters a second is fast, and it is the honest consequence
+
+It is three times post14's 7.1 and twice a quick human typist. It is written down
+rather than hidden because it is the one place the design costs something: it
+reads as *text arriving* rather than as *a person typing*. The lever, if that
+ever matters more than the sync, is the take's rate — `-25%` stretches the words
+to about 1.8s and brings it to 17.5 — and it costs about 0.3s, which puts the
+film over the brief's seven second ceiling. It was not taken.
+
+### The thought is the module's, over the crown, and it is the first clip to ask
+
+`lib/mascot.mjs` grew `thought: 'over'` after post15 hand placed a bubble three
+times, and nothing had asked for it since. This clip asks outright as
+`over-right` rather than letting `over` derive the side, because what `over`
+derives it from is which corner he is standing in and he is standing in neither.
+
+**The hold is 0.90s and it is the module's ceiling, not a choice.** The brief
+asks for the thought to be fully up for about two seconds. `bubbleAt` computes
+`holdFor = max(0.42, min(BUBBLE.hold, room))` and `BUBBLE.hold` is 0.90, so a
+single bubble cannot be held longer than that from outside the module — and
+`bubbles: [...]`, the other spelling, runs the quick profile and caps at 0.30,
+which is worse. The brief also says lib is untouched. The two cannot both be
+satisfied, so the number is printed beside `BUBBLE.hold` in the guard and reads
+as a ceiling rather than as an oversight.
+
+What the clip buys back is the **whole** of it: the fault lands on the frame the
+pill would begin to leave, so the thought is taken at full size rather than
+politely shrinking first. First dot to cut is 1.38s and the pill itself is on
+the screen for 1.24 of that.
+
+### He is 26 css px left of centre, and the pill is why
+
+The cluster hangs to one side of the crown: the module puts the first dot on the
+plate's own centre line and the pill's near corner 26 css px along the row from
+it, so **a pill is never centred over a head and cannot be**. `don't come`
+measures 190.7 css at `BUBBLE.size` and its spring carries it to 196.4, which off
+a dead centre head puts its right edge at 492.4 against a safe line at 470.
+
+**No head size fixes it.** `crownX` scales with the head; the dots, the gaps and
+the pill do not, so the pill's offset from the frame's middle is the same 26px at
+any size. So it is either a mascot 53 device px off centre or a punchline 45
+device px inside the platform's right button column, and this file takes the
+first. `OFF_X` is derived from the pill's own measured width and its own worst
+spring frame — walked at 240Hz, the rate `crownReach` is walked at, because
+`btk.pop` carries the spring past its mark — and it is zero if it ever stops
+being needed. It comes out at 26.42, which is 4.9% of the frame's width.
+
+It reads as deliberate once the thought is up, because the head and the pill
+balance about the middle. In the 1.2s before it arrives he reads as slightly left
+of a centred panel, and that is the cost. **The number is printed on every run
+and the guard re-measures the rendered cluster on every frame it is up**, so the
+trade is visible rather than asserted.
+
+### The panel is post14's, drawn dark
+
+The same picture of the box a person types into, in this file's own css, with the
+three changes the brief asks for: it is centred rather than sitting under a mark,
+the model name is gone, and the right of the controls row carries a mic and a
+waveform instead. No logo in it and nothing lifted off anybody's product.
+
+post14 drew it as `--fg` on `--bg`, which is a dark box on a white page. This
+page is already near black, so the panel is its own two tokens: a ground a little
+above the page (`#12151b`) and a hairline outline. That is what an input looks
+like on a dark app, and it is the only way a dark box reads on a dark frame. The
+type is the page's ink with the file's own soft glow on it, so the panel belongs
+to the same light as the head and the wordmark rather than sitting on the frame
+as a cut out.
+
+**The type is 26 css px**, which is post14's 23 grown for the middle of the
+frame: it measures 38 device px of cap against the 32 floor and the question
+wraps to exactly two lines in the panel's own box. Both are measured on the
+rendered face on every run.
+
+**The panel's height is worked out of its own parts** rather than typed: two
+lines of type under the top padding, the controls row above the bottom padding,
+and the 18 css px left between them is guarded against a floor of 12. The text
+block is top anchored and the row is bottom anchored, so a line growing from
+nothing to two lines cannot move the plus or the icons under it — which is what a
+real input does and is also what stops the frame twitching every fourth
+character.
+
+The mic is a capsule, an open arc and a stem; the waveform is five rounded bars.
+Neither is in a ring, because one framed icon beside one bare one reads as a
+mistake. The caret is inline, so it travels with the text through the wrap
+without anything measuring where the text got to, and the placeholder is inset
+five px behind it — post14's rendered frame paid for that one.
+
+### There is no camera
+
+post15 and post16 are both built on `lib/camera.mjs` and this one is not, because
+nothing in the brief moves the frame. The panel slides 120px on its own transform
+on the calm in-out, which is an element moving inside a still frame — the
+opposite of a camera move, and the right one here, because what slides is the
+thing making room and the room is what he arrives into. A spring on it would be
+the panel having an opinion.
+
+It lands at 2.61 and the fault is at 2.69, so nothing is still moving when he
+arrives, and both ends of that are guarded. Its worst one frame step is 8.3 css
+px, well under a twelfth of the frame, so it is a move rather than a cut and the
+shutter smears it.
+
+### Two neutral marks, because the beat needs one
+
+Both marks are `neutral`: he is alive and flat and he never smiles, which is the
+brief. The second one exists because the brief asks for a beat and a slow blink
+between him arriving and him thinking, and **a single `bubble` on a mark is
+placed by the module at `settled + 0.12`** — so a mark carrying the thought
+cannot also carry the beat in front of it. The second `neutral` is a breath
+rather than a state change: the module's entrance settles the head onto rest from
+2.8% under it and brings the eyes down off a hair of widening, which is what a
+head does before it thinks.
+
+`M_GAP` is 1.10 against the module's own floor of 1.06 for `neutral` — its
+entrance, a hold and its exit.
+
+**The slow blink comes off the idle layer**, post13's move and post16's: the seed
+is searched over six thousand for one that puts exactly one blink inside the beat
+and the slowest one wins. It came back at 361ms on seed 3610. **The whole blink
+has to fit, not just its start** — the first cut searched on the blink's own `t`
+and found one whose lid was still coming back up as the first dot climbed, and a
+blink and a thought on the same frames are two things happening and neither of
+them reads. He blinks once more while the thought holds, and that one is
+deliberate: a face holding one expression for 0.9s with nothing moving on it is a
+still frame with a pill over it.
+
+### The empty opening is in the signature, because the vignette is
+
+The film opens on 0.20s of black with nothing on it but the vignette, and the
+vignette is a css animation the render does not write. So the liveness signature
+would have been blind to the only layer moving in it, and would have reported a
+clean sweep over a run of frames it could not see.
+
+Two things fix it. The signature is **gated by what is actually drawn** — the
+mascot's twenty channels only count on frames he is on — and the vignette gets a
+brightness this file writes, `phosphor` on two incommensurate periods, so node
+knows a number for it. 0 repeats in 83 frames at twelve and in 415 at sixty.
+
+### The sound, and no new recipes
+
+| at | sound | from |
+|---|---|---|
+| 0.51..2.01s | 8 x `key` | the typing's own list, one per four characters plus the two ends |
+| 2.17s | `popDeep`, 84 to 46 Hz over 0.24s | the frame the panel starts moving |
+| 2.69s | `glitch` | the first fault, and he arrives |
+| 4.51s | `pop` | `mascotCues`, and it is **taken** |
+| 5.75s | `glitch`, shorter and lower | the second fault, and the wordmark arrives |
+
+The thud is deliberately not post16's impact: 84 to 46 hertz over a quarter of a
+second is a box being pushed out of the way rather than a bass hit.
+
+`mascotCues(plan)` is **accepted** here where post16 declined it. It offers one
+cue, a `pop`, and the module puts it on the pill rather than on the first dot,
+because the dots are the anticipation and the pill is the arrival and a sound on
+the wind-up is early for the thing it is the sound of. There is no `ding` on
+offer, because there is no agreement beat.
+
+The mix is post11's and post14's rig: the read on top, the bus ducked to 0.60
+while a word is being said, and a loudness loop that keeps its best pass rather
+than its last. It settles at 8.40 dB of lift, -15.4 LUFS and 4.32 dB of gain
+reduction against a 5 dB allowance — the ceiling winning over the target again,
+which is post12's argument and post14's. The bus stays 33 dB under the read at
+its worst. **No music, by design rather than by omission.**
+
+### The guards this clip added
+
+71 of them, and the ones worth naming:
+
+- **every character lands inside its own word's spoken span**, re-derived on the
+  guard's side rather than trusted, and the typing never goes backwards.
+- **the typing is the read at both ends**, to the thousandth, and the read's own
+  sound starts on `VOICE_AT` measured off the waveform rather than off the word
+  list.
+- **the question wraps to exactly two lines at 38 device px of cap**, and the
+  panel's two blocks leave 18 css px of air with a floor of 12 — both measured on
+  the rendered face.
+- **the panel is inside the safe area at both its positions**, on every sampled
+  frame, and his ink never touches it.
+- **the slide is exactly 120 css px**, it lands before the fault, and it is a
+  move rather than a cut.
+- **he is born on the fault's own frame**, and that frame is a torn one.
+- **the film was sized off the module's bubble profile and the plan agrees** —
+  `in` and `leaving` compared against the arithmetic that decided `SECONDS`.
+- **the thought is fully up for exactly `BUBBLE.hold`**, and the fault takes it
+  on the frame it would begin to leave.
+- **the whole cluster, dots and all, clears the safe area on every frame it is
+  up**, and the pill's own right edge — the thing `OFF_X` was computed from — is
+  re-measured at its worst spring frame.
+- **exactly one idle blink in the beat, whole**, and exactly one more under the
+  thought so the hold is not a still frame.
+- **the second fault takes him and the panel on one frame**, and the wordmark is
+  born on that frame rather than at that time.
+
+### What the review pass found
+
+Three things, and none of them a fault. The 0.90s hold and the 4.9% off centre
+are both written up above and both are forced by the brief's own two halves
+pulling against each other; the 21.4 characters a second is the honest
+consequence of cutting the typing to the read. The review is
+`demo/out/review-post17.md`, which is gitignored with the rest of `demo/out/`.
+
+### Outstanding
+
+- **Two seconds of thought needs a number in `lib/mascot.mjs`.** `BUBBLE.hold` at
+  0.90 is the ceiling. Raising it would change every clip that has ever shown a
+  bubble, so it is a decision rather than an edit.
+- **The centring is Einz's call.** `PILL_AIR` and `OFF_X` are two constants; dead
+  centre puts the punchline 45 device px inside the right margin.
+- **The clip has no posting pack.** Caption, tweet and three tags per platform
+  are all undecided.
 
 ## The og card
 
