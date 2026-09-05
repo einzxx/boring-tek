@@ -103,16 +103,16 @@ All headless Chrome, all tooling. The renderers first:
   used by a clip for the first time. No new sound recipes: key ticks, one soft
   `popDeep` thud, two `glitch` faults and `mascotCues`' own `pop`. Out to
   `demo/out/post17-dark-1080x1920.mp4`. See The seventeenth clip.
-- **`post18.mjs`** renders an 11.40 second clip, vertical, **light only, and it
-  is the first one with a gaze layer and the first whose captions are set in a
-  face the module does not own.** Somebody else's model ships: the mark fades in
-  with `CHATGPT 6 ASTRA IS HERE` typing itself under it, the effort slider walks
-  to Max, a chat panel types `not using ai for your business yet? your competitor
-  already does` while the voice reads the same line, and the mark comes back
-  bigger with `future. here.` over a small robot's head before the signal tears.
-  The mark is `demo/assets/chatgpt-logo.png`, a transparent black png placed as a
-  background and cropped rather than altered. Captions in Manrope ExtraBold,
-  refitted in the page against the face that actually renders. Out to
+- **`post18.mjs`** renders a 12.63 second clip, vertical, **light only, and it
+  is the first one with a gaze layer, the first whose captions are set in a face
+  the module does not own, and the first that spells a word out so the
+  synthesiser reads it as letters.** Somebody else's model ships: the mark fades
+  in with `ChatGPT 6` bold under it and `ASTRA IS HERE` typing itself below, the
+  effort slider walks to Max, a chat panel types `not using ai for your business
+  yet? your competitor already does` while the voice reads the same line, and the
+  mark comes back bigger and turning with `future. here.` over a small robot's
+  head before the signal tears. Captions in Manrope ExtraBold, refitted in the
+  page against the face that actually renders. Out to
   `demo/out/post18-light-1080x1920.mp4`. See The eighteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
@@ -5207,7 +5207,7 @@ and describes the first cut.
 
 ## The eighteenth clip — the future is here
 
-`post18.mjs` renders 11.40 seconds, vertical, **light only**, out to
+`post18.mjs` renders 12.63 seconds, vertical, **light only**, out to
 `demo/out/post18-light-1080x1920.mp4`. Somebody else's model ships, the effort
 slider walks to Max, a chat panel says the thing the clip is actually about, and
 the mark comes back bigger with a two word thought over a small robot's head.
@@ -5219,7 +5219,7 @@ the mark comes back bigger with a two word thought over a small robot's head.
     node post18.mjs --stills             the readable frames only, no video
     node post18.mjs --encode-only        re-encode from kept frames
 
-**This is the second cut and it is a different film.** The first one ran 23.11s
+**This is the third cut and the second shape.** The first one ran 23.11s
 and carried three scenes this one does not have at all: the question that asked
 *how*, the four windows that did the work, and the cursor that took the computer
 off him. What is left is five beats — the mark arrives, the slider goes to Max,
@@ -5351,6 +5351,42 @@ Four failures across two rendered passes and every one was a real finding:
    module's own guard doing its job before a browser was opened.
 
 83 guards green at 12fps and at 60 with the shutter open.
+
+
+### What the fix round changed
+
+- **The opening says the name once.** There was a small `ChatGPT` under the mark
+  and a three line michroma headline under that which spelled it out again. The
+  headline is gone; what is left is two lines — `ChatGPT 6` in Manrope 800 at 40
+  css px, which is the face already in the page for the captions and the only one
+  here allowed a weight over 500, and `ASTRA IS HERE` in michroma under it at 44
+  device px of cap.
+- **The name is spelled in the copy: `chat g p t 6`.** The brief asked for it to
+  land as two words and `speak()` escapes its input before it builds the ssml — a
+  stray ampersand in a line about r&d would otherwise end the document — so a
+  `say-as` tag written into the copy arrives at the synthesiser as literal angle
+  brackets. The engine hands back `chat | g | p | t | 6` as five separate word
+  boundaries, which is the evidence that the letters are read as letters, and a
+  guard checks exactly that on every run. Nothing on the screen carries the
+  spelling.
+- **The typing is a window rather than a word match now.** post17's
+  `typeToWords` refuses a copy whose tokens do not match the read's, and the
+  read's tokens are five where the copy's are one. `ASTRA IS HERE` is laid across
+  the span from `astra` to `here` with post14's jittered window instead, and both
+  ends are still the read's own words.
+- **The read is warmer**: -8, -6, -4 with the pitch up, so it opens unhurried and
+  lands, with a 0.40s breath after the panel line. The spelling costs about 0.9s
+  and the warmth costs the rest — the film went from 11.40 to 12.63.
+- **He stands 110 css px lower**, which is the brief's hundred to a hundred and
+  forty. It buys 132 css px between the panel's bottom edge and his crown where
+  there were 22. The caption band went down 20 with him and his chin still clears
+  the highest caption ink by 66.
+- **The mark turns while the thought plays.** A fifth of a turn from the moment
+  it lands in the middle to the fault, on post14's curve rather than the house
+  in-out: every bezier whose second control point ends at one arrives at zero
+  speed, so a mark eased to a stop under a held thought is a still frame with a
+  pill beside it. It is still turning when the cut lands and the guard measures
+  the last frame's step against the average to prove it.
 
 ### What is open
 

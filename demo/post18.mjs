@@ -15,12 +15,31 @@
 
    out to demo/out/post18-light-1080x1920.mp4.
 
-   this is the second cut of post18 and it is a different film. the first one ran
-   23.11s and carried three scenes this one does not have at all — the question
-   that asked how, the four windows that did the work, and the cursor that took
-   the computer off him. what is left is five beats: the mark arrives, the
-   slider goes to max, the panel says the thing, the mark comes back and he
-   thinks two words, and the signal tears.
+   this is the third cut of post18 and the second shape. the first one ran 23.11s
+   and carried three scenes neither of the others has — the question that asked
+   how, the four windows that did the work, and the cursor that took the computer
+   off him. what is left is five beats: the mark arrives, the slider goes to max,
+   the panel says the thing, the mark comes back and he thinks two words, and the
+   signal tears.
+
+   ---------- what the fix round changed ----------
+
+   **the opening says the name once.** there was a small `ChatGPT` under the mark
+   and a three line michroma headline under that which spelled it out again. the
+   headline is gone; what is left is two lines — `ChatGPT 6` in Manrope 800 at 40
+   css px, and `ASTRA IS HERE` in michroma under it, typed against the read.
+
+   **the name is spelled in the copy.** `chat g p t 6`, because `speak()` escapes
+   its input and an ssml `say-as` never reaches the engine. see the read.
+
+   **the read is warmer and slower**, -8 / -6 / -4 with the pitch up, with a real
+   breath between the last two lines.
+
+   **he stands 110 css px lower**, which is what buys the air the brief asked for
+   between him and everything above him.
+
+   **the mark turns while the thought plays**, a bit over a quarter turn on
+   post14's curve, from the moment it lands in the middle to the fault.
 
    ---------- the clock, and it is eleven rather than ten ----------
 
@@ -154,20 +173,32 @@ const CENTRE_Y = (SAFE_CSS.top + (VH - SAFE_CSS.bottom)) / 2;
    the read
    ==========================================================================
    three lines, one take each, **and the delivery is per line the way post11's
-   is**: the rate and the pitch carry the shape rather than the speed. the news
-   is bright and quick, the argument is a shade slower because it is the line
-   that has to land, and the payoff is bright again. the voice is the house
-   narrator and the brief's "natural, calm, slightly amused" is what those three
-   settings are for.
+   is**: the rate and the pitch carry the shape rather than the speed. all three
+   sit under the neural default with the pitch up, which is what "warm, like a
+   person telling a friend" is in numbers, and they get gently quicker across the
+   film — -8, -6, -4 — so the read opens unhurried and lands.
+
+   ---------- the name is spelled, because ssml never reaches the engine -------
+
+   the brief asks for `chat gpt` to land as two words, chat then g p t. `speak()`
+   escapes its input before it builds the ssml — a stray ampersand in a line about
+   r&d would otherwise end the document — so a `say-as` tag written into the copy
+   arrives at the synthesiser as literal angle brackets and is read out.
+
+   so the copy spells it: **`chat g p t 6`**. the engine hands back `chat | g | p
+   | t | 6` as five separate word boundaries, which is the evidence that the
+   letters are being read as letters rather than as a word, and the guard below
+   checks exactly that on every run. nothing on the screen carries the spelling:
+   the page says `ChatGPT 6`.
 
    `gap` is the silence **after** the line, measured on the waveform rather than
    left to the synthesiser's trailing air. the first one is not a breath: it is
    the whole slider scene, and it is derived off that scene rather than typed. */
 const LINES = [
-  { text: 'chatgpt 6 astra is here, and it is a big one', rate: '0%', pitch: '+3Hz', gap: null },
+  { text: 'chat g p t 6 astra is here, and it is a big one', rate: '-8%', pitch: '+3Hz', gap: null },
   { text: 'not using ai for your business yet? your competitor already does',
-    rate: '-4%', pitch: '+1Hz', gap: 0.24 },
-  { text: 'the future is here', rate: '0%', pitch: '+3Hz', gap: null },
+    rate: '-6%', pitch: '+1Hz', gap: 0.40 },
+  { text: 'the future is here', rate: '-4%', pitch: '+3Hz', gap: null },
 ];
 const VOICE = 'calm';
 /* where the first take's own sound lands on the clip's clock. it is late enough
@@ -192,35 +223,58 @@ const LOGO = {
   natural: { w: 3840, h: 2160 },
   hero: { size: 120, cx: 270, cy: 188 },
   corner: { size: 44, cx: 104, cy: 118 },
-  close: { size: 160, cx: 270, cy: 290 },
+  /* higher than the first cut's 290 and bigger than the hero, which is the
+     brief: it comes back to a frame with nothing else on it but him and a
+     thought, so it can afford the room. */
+  close: { size: 160, cx: 270, cy: 236 },
   in: 0.28,             /* the fade at the top of the film */
   move: 0.38,           /* out to the corner */
   back: 0.44,           /* and back to the middle, bigger */
+  /* ---------- and it turns while the thought plays ----------
+     a fifth of a turn across the second it is home for, which at this
+     size is a drift rather than a spin: a mark that turned once in that window
+     would be a loading spinner.
+
+     **it is not on the house in-out, and post14 paid for that lesson.** every
+     bezier whose second control point ends at one arrives at zero speed, so a
+     mark eased to a stop under a held thought is a still frame with a pill
+     beside it. `TURNING` is the same family with the ceiling taken off: it still
+     eases in, because a thing that arrives already spinning reads as a
+     mechanism, and it is still turning when the fault lands. */
+  turns: 0.18,
+  turnIn: 0.10,         /* it is still for this long after it lands */
 };
 
-/* ---------- the product's own name, under the mark ----------
-   set in the body face rather than the display one: it is a name being shown
-   rather than a headline being made, and Michroma at this size next to the
-   michroma title under it would be two headlines. */
-const WORD = { text: 'ChatGPT', size: 26, top: 262, in: 0.22 };
+/* ---------- the name, under the mark ----------
+   **one line, bold, and bigger than the first cut's.** the first cut had a small
+   `ChatGPT` here and a three line michroma headline under it that spelled the
+   name out again — the same word twice, once small and once enormous. the
+   headline is gone and this line carries the name.
 
-/* ---------- the title ----------
-   the read, on the screen, in the display face, and **three lines because that
-   is what makes it big**. michroma carries nearly a fifth of an em of tracking,
-   so twenty three characters on one line fit at about 16 css px and measure 24
-   device px of cap — under the 32 floor every piece of copy in this repo is held
-   to, and nowhere near the brief's "big". broken at its own two spaces the
-   widest line is nine characters, which fits at 34 and measures **51**.
+   it is set in Manrope 800, which is already in the page for the captions: the
+   brief asks for bold and the body face is held to 400 and 500 by the brand, so
+   the weight comes from the face that is allowed to have one. it is a name being
+   shown rather than a headline being made, which is why it is not michroma. */
+const WORD = { text: 'ChatGPT 6', size: 40, top: 272, in: 0.22 };
 
-   the breaks are real rather than wraps: three elements, and the characters at
-   the seams are the two spaces, so the copy is one string to the typing and
-   three blocks to the layout and neither has to know about the other. */
+/* ---------- the second line ----------
+   `ASTRA IS HERE`, one line, in the display face, typed against the read.
+
+   thirteen characters fitted across 330 css px set at about 27 and measure 40
+   device px of cap, over the 32 floor every piece of copy here is held to. the
+   first cut had twenty three characters over three lines at 60 device px and it
+   said the name twice; this says the half the line above it does not.
+
+   **the typing is a window rather than a word match now.** post17's `typeToWords`
+   lays each word's characters across that word's own spoken span and refuses a
+   copy whose tokens do not match the read's — and the read's tokens are now
+   `chat | g | p | t | 6 | astra | is | here` because the name is spelled. so the
+   line is laid across the span from `astra` to `here` with post14's jittered
+   window instead, and the two ends are still the read's own words. */
 const TITLE = {
-  text: 'CHATGPT 6 ASTRA IS HERE',
-  cuts: [9, 15],        /* the two spaces, which are the two line breaks */
-  w: 340,               /* fitted to this, in the page */
-  top: 330,
-  lineH: 1.16,
+  text: 'ASTRA IS HERE',
+  w: 330,               /* fitted to this, in the page */
+  top: 336,
   minCapPx: 32,
   keyEvery: 3,          /* one tick per this many characters, plus the ends */
   hold: 0.12,           /* how long it stays up after the last character */
@@ -314,7 +368,7 @@ const PILL_AIR = 4;
 
    the face is Manrope ExtraBold rather than the module's Space Grotesk 700. see
    the header for why, and `capRefit` in the page for what it costs. */
-const CAP_BOX = { x: 70, y: 660, w: 400, h: 130 };
+const CAP_BOX = { x: 70, y: 680, w: 400, h: 130 };
 const CAP = {
   style: 'float', perCard: 3, floatSize: 42, lead: 0.10, hold: 0.24, bodyGap: 0.30,
   family: 'Manrope', weight: 800, tracking: -0.015,
@@ -359,10 +413,12 @@ const WAV_CEILING = -1.5;
 const DUCK = 0.60;
 const VOICE_TRIM = -1.5;
 const MAX_REDUCTION = 5.0;
-/* the brief asks for nine to ten. the window is what the film can honestly be
-   with all five beats and this copy — see the header — and the two cuts that
-   would take it under ten are printed at the bottom of every run. */
-const RUN = { min: 10.0, max: 11.8 };
+/* the window is what the film can honestly be with all five beats and this copy.
+   it moved up by about a second and a quarter in the fix round and both halves of
+   that are the brief's own: spelling `chat g p t 6` costs about 0.9s over saying
+   it as one word, and a warm read at -8/-6/-4 costs the rest. the two cuts that
+   would take it back are printed at the bottom of every run. */
+const RUN = { min: 11.5, max: 13.6 };
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -394,6 +450,10 @@ function bezier(x1, y1, x2, y2) {
 }
 const GLIDE = bezier(.45, 0, .55, 1);       /* the calm in out */
 const POP = bezier(.34, 1.4, .64, 1);       /* the site's own spring */
+/* post14's turn curve: the house family with the second control point off the
+   ceiling, so a thing turning under a held frame is still turning when the cut
+   lands. see LOGO.turns. */
+const TURNING = bezier(.35, 0, .70, .82);
 const span = (t, a, b) => (b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a))));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, p) => a + (b - a) * p;
@@ -644,10 +704,10 @@ function word(beat, name) {
   return w;
 }
 
-/* scene one ends a beat after the last character of the title, which is the
-   fifth word of the first line rather than its last: the tail, "and it is a big
-   one", plays over a title that is already up. */
-const titleUntil = b => b[0].words[TITLE_WORDS - 1].end;
+/* scene one ends a beat after the last character of the second line, which is
+   the read's own `here` rather than its last word: the tail, "and it is a big
+   one", plays over a line that is already up. */
+const titleUntil = b => word(b[0], 'here').end;
 const sc2At = b => +Math.max(titleUntil(b) + TITLE.hold, b[0].sound.end + 0.10).toFixed(4);
 /* scene two has no voice on it at all, so its length is its own arithmetic and
    the read's first silence is worked out from it. */
@@ -656,8 +716,6 @@ const sc3At = b => +(sc2At(b) + EFFORT.for).toFixed(4);
    what the typing is laid across. */
 const PANEL_LEAD = 0.30;
 const sc4At = b => +(b[1].sound.end + 0.18).toFixed(4);
-/* how many words of the first line the title carries. */
-const TITLE_WORDS = 5;
 
 /* the silence after each line, floored at the line's own written gap. */
 function gapFor(i, beats) {
@@ -680,7 +738,8 @@ const SC3_AT = sc3At(B);
 const SC4_AT = sc4At(B);
 
 /* scene one */
-const TITLE_TYPE = typeToWords(TITLE.text, B[0].words.slice(0, TITLE_WORDS), 0x18a3c1);
+const TITLE_TYPE = typeAcross(TITLE.text, word(B[0], 'astra').start,
+  word(B[0], 'here').end, 0x18a3c1, TITLE.keyEvery);
 const LOGO_AT = 0.00;
 const WORD_AT = 0.16;
 
@@ -701,6 +760,8 @@ const PANEL_OUT = SC4_AT;
 
 /* scene four */
 const LOGO_BACK_AT = +(SC4_AT + 0.04).toFixed(4);
+/* where the turn starts: after it has arrived and been still for a beat. */
+const LOGO_TURN_AT = +(LOGO_BACK_AT + LOGO.back + LOGO.turnIn).toFixed(4);
 
 /* ---------- the marks ----------
    five, and the brief names the state for every one of them: curious at the
@@ -830,7 +891,14 @@ const CENTRED_LEFT = +(VW / 2 - (HEAD.plate.x + HEAD.plate.s / 2) * plan.unit).t
 const OFF_X = +Math.max(0,
   CENTRED_LEFT + PILL_X0 + PILL_W * PILL_SC - (VW - SAFE_CSS.right) + PILL_AIR).toFixed(2);
 
-const MAS = { cx: +(VW / 2 - OFF_X).toFixed(2), cy: 540 };
+/* ---------- where he stands ----------
+   **110 css px lower than the first cut of this rebuild**, which is the brief's
+   own hundred to a hundred and forty. what it buys is air: 132 css px between
+   the panel's bottom edge and his crown where there were 22, and the opening
+   reads as a mark with a name under it rather than as a stack that runs into a
+   robot. the band went down 20 with him and his chin still clears the highest
+   caption ink by 40. */
+const MAS = { cx: +(VW / 2 - OFF_X).toFixed(2), cy: 650 };
 plan.box = {
   left: +(CENTRED_LEFT - OFF_X).toFixed(2),
   top: +(MAS.cy - (HEAD.plate.y + HEAD.plate.s / 2) * plan.unit).toFixed(2),
@@ -1036,6 +1104,10 @@ function frameAt(t, f) {
     size: +mix3(LOGO.hero.size, LOGO.corner.size, LOGO.close.size).toFixed(2),
     x: +mix3(LOGO.hero.cx, LOGO.corner.cx, LOGO.close.cx).toFixed(2),
     y: +mix3(LOGO.hero.cy, LOGO.corner.cy, LOGO.close.cy).toFixed(2),
+    /* and it turns, but only once it is home: the whole rotation lives between
+       the moment it lands in the middle and the fault, so nothing turns while it
+       is travelling and nothing turns before it exists. */
+    rot: +(TURNING(span(t, LOGO_TURN_AT, GLB_AT)) * 360 * LOGO.turns).toFixed(3),
   };
 
   /* ---- the name and the title ----
@@ -1212,7 +1284,8 @@ ${mascotCss(plan)}
   left:var(--lg-x,0px); top:var(--lg-y,0px);
   margin-left:calc(var(--lg-s,0px) / -2); margin-top:calc(var(--lg-s,0px) / -2);
   background-image:url("/logo.png"); background-size:cover; background-position:center;
-  opacity:var(--lg-o,0); will-change:opacity;
+  opacity:var(--lg-o,0); transform:rotate(calc(var(--lg-r,0) * 1deg));
+  will-change:opacity,transform;
 }
 /* the mark gets less than half the ink's split, and that is post14's rendered
    frame rather than a preference: the mascot is a 225px disc and 4.5px of
@@ -1224,8 +1297,8 @@ ${mascotCss(plan)}
 /* ---- the product's own name ---- */
 .word{position:absolute; left:50%; top:${WORD.top}px; transform:translateX(-50%);
   z-index:3; pointer-events:none; white-space:nowrap;
-  font-family:var(--body); font-weight:500; font-size:${WORD.size}px;
-  letter-spacing:.01em; color:var(--fg); opacity:var(--wd-o,0)}
+  font-family:"${CAP.family}",var(--mono); font-weight:800; font-size:${WORD.size}px;
+  letter-spacing:-.01em; color:var(--fg); opacity:var(--wd-o,0)}
 
 /* ---- the title ----
    three lines of michroma, fitted in the page rather than guessed, because the
@@ -1412,7 +1485,7 @@ ${EFFORT.dots.map(x => '      <span class="ef-dot" style="left:' + (x - EFFORT.x
   </div>
 
   <div class="word" id="word">${WORD.text}</div>
-  <div class="title" id="title"><span id="title-a"></span><span id="title-b"></span><span id="title-c"></span></div>
+  <div class="title" id="title"><span id="title-a"></span></div>
   <div id="mas-cut">${mascotMarkup(plan)}</div>
   <div id="logo"></div>
 
@@ -1467,7 +1540,7 @@ function scenePage() {
   const logo = document.getElementById('logo');
   const wordEl = document.getElementById('word');
   const title = document.getElementById('title');
-  const titleLines = ['title-a', 'title-b', 'title-c'].map(id => document.getElementById(id));
+  const titleLines = [document.getElementById('title-a')];
   const effort = document.getElementById('effort');
   const efFill = document.getElementById('ef-fill');
   const efKnob = document.getElementById('ef-knob');
@@ -1499,14 +1572,10 @@ function scenePage() {
       right: +((P.VW - r.right) * d).toFixed(1), bottom: +((P.VH - r.bottom) * d).toFixed(1),
     };
   };
-  /* the title's three lines, as the typing will write them: the copy is one
-     string and the two cuts are its two spaces. */
-  const titleSlice = n => {
-    const t = P.TITLE.text, c = P.TITLE.cuts;
-    const ends = [c[0], c[1], t.length];
-    const starts = [0, c[0] + 1, c[1] + 1];
-    return starts.map((s, i) => (n <= s ? '' : t.slice(s, Math.min(n, ends[i]))));
-  };
+  /* one line now, so the slice is a slice. it stays a function and an array of
+     one because the block, the fit and the apply all read it, and a second line
+     would be one entry rather than a rewrite. */
+  const titleSlice = n => [P.TITLE.text.slice(0, n)];
 
   window.__p18 = {
     ready: true,
@@ -1662,6 +1731,7 @@ function scenePage() {
       logo.style.setProperty('--lg-s', o.logo.size.toFixed(2) + 'px');
       logo.style.setProperty('--lg-x', o.logo.x.toFixed(2) + 'px');
       logo.style.setProperty('--lg-y', o.logo.y.toFixed(2) + 'px');
+      logo.style.setProperty('--lg-r', o.logo.rot.toFixed(3));
       logo.style.visibility = o.logo.o > 0.002 ? 'visible' : 'hidden';
 
       wordEl.style.setProperty('--wd-o', o.word.o.toFixed(4));
@@ -1875,6 +1945,7 @@ async function render() {
 
       if (k === 0) {
         let s = o.mo * 7 + o.logo.o * 11 + o.logo.size * 13 + o.logo.x * 17 + o.logo.y * 19
+          + o.logo.rot * 197
           + o.word.o * 23 + o.title.o * 29 + o.title.n * 31
           + o.effort.o * 37 + o.effort.knob * 41 + o.effort.fill * 43 + o.effort.level * 47
           + o.panel.o * 53 + o.panel.y * 59 + o.panel.n * 61 + o.panel.caret * 67
@@ -2150,9 +2221,12 @@ console.log('  ' + B.reduce((a, b) => a + (b.sound.end - b.sound.start), 0).toFi
 console.log('');
 
 console.log('the typing');
-console.log('  the title: ' + TITLE_TYPE.chars + ' characters, ' + TITLE_TYPE.from.toFixed(2) + '..'
-  + TITLE_TYPE.until.toFixed(2) + 's, cut to the first ' + TITLE_WORDS + ' words of the read, '
-  + TITLE_TYPE.cps.toFixed(1) + ' characters a second on average');
+console.log('  the second line: "' + TITLE.text + '", ' + TITLE_TYPE.chars + ' characters, '
+  + TITLE_TYPE.from.toFixed(2) + '..' + TITLE_TYPE.until.toFixed(2)
+  + 's, laid across the read\'s own "astra" to "here", ' + TITLE_TYPE.cps.toFixed(1)
+  + ' characters a second');
+console.log('  the name above it is "' + WORD.text + '" in ' + CAP.family + ' 800 at '
+  + WORD.size + 'css px, and it does not type: it is a name being shown');
 console.log('  the panel: ' + TYPING.chars + ' characters, ' + TYPING.from.toFixed(2) + '..'
   + TYPING.until.toFixed(2) + 's, ' + TYPING.cps.toFixed(1) + ' a second, laid across the line '
   + 'the voice is reading. ceiling is ' + PANEL.cpsCeiling);
@@ -2200,7 +2274,7 @@ const beats = [
   [WORD_AT, 'the name arrives under it'],
   [MARKS[0].t, 'curious: he looks up at it, one eye wide'],
   [TITLE_TYPE.from, 'the title starts typing, cut to the read'],
-  ...B[0].words.slice(0, TITLE_WORDS).map(w => [w.start, '  "' + w.word + '"']),
+  ...B[0].words.map(w => [w.start, '  "' + w.word + '"']),
   [BLINK_AT, 'the blink, ' + (SEED.len * 1000).toFixed(0) + 'ms of lid, off the idle layer'],
   [TITLE_TYPE.until, 'the title is in, and the line finishes over it'],
   [SC2_AT, 'the mark leaves for the corner, the name and the title go with it'],
@@ -2379,33 +2453,36 @@ check(V.gaps[1] >= LINES[1].gap - 1e-6,
   + 's, at or over its own floor of ' + LINES[1].gap);
 
 /* ---------- the title ---------- */
-check(TITLE_TYPE.from === B[0].words[0].start
-  && TITLE_TYPE.until === B[0].words[TITLE_WORDS - 1].end,
-  'the title is the read at both ends: first character on "' + B[0].words[0].word + '" at '
-  + TITLE_TYPE.from.toFixed(3) + 's, last on "' + B[0].words[TITLE_WORDS - 1].word + '" at '
-  + TITLE_TYPE.until.toFixed(3) + 's');
+check(TITLE_TYPE.from === word(B[0], 'astra').start
+  && TITLE_TYPE.until <= word(B[0], 'here').end + 1e-9
+  && TITLE_TYPE.until >= word(B[0], 'here').start,
+  'the second line is laid across the read\'s own two words: the first character is on "astra" '
+  + 'at ' + TITLE_TYPE.from.toFixed(3) + 's and the last one lands inside "here", at '
+  + TITLE_TYPE.until.toFixed(3) + 's against the word\'s own '
+  + word(B[0], 'here').start.toFixed(3) + '..' + word(B[0], 'here').end.toFixed(3)
+  + ' — the window ends on the word and the jitter leaves the last character a hair short of '
+  + 'it, which is what typeAcross does and typeToWords does not');
+check(TITLE.text.split(/\s+/).length === 3 && !/CHATGPT/.test(TITLE.text),
+  'and it does not say the name again: the page carries "' + WORD.text + '" once, in '
+  + CAP.family + ' 800 at ' + WORD.size + 'css px, and "' + TITLE.text + '" under it');
 {
-  let bad = 0;
-  const toks = [];
-  const re = /\S+/g;
-  let m;
-  while ((m = re.exec(TITLE.text))) toks.push({ a: m.index, b: m.index + m[0].length });
-  for (let k = 0; k < toks.length; k++) {
-    for (let i = toks[k].a; i < toks[k].b; i++) {
-      const t = TITLE_TYPE.at[i];
-      if (t < B[0].words[k].start - 1e-6 || t > B[0].words[k].end + 1e-6) bad++;
-    }
-  }
-  check(bad === 0, 'every character of the title lands inside its own word\'s spoken span: '
-    + bad + ' outside');
+  /* the name is spelled in the copy so the engine reads it as letters, and the
+     word list is the evidence: five tokens where a word would be one. */
+  const first = B[0].words.slice(0, 5).map(w => w.word.toLowerCase());
+  check(first.join(' ') === 'chat g p t 6',
+    'the read spells the name rather than saying it: the engine handed back '
+    + first.map(w => '"' + w + '"').join(', ') + ' as separate word boundaries, which is what '
+    + 'makes it "chat g p t six" rather than "chatgpt six"');
+  check(!/chatgpt/i.test(LINES[0].text),
+    'and the copy never contains the joined form, because ssml never reaches the engine — '
+    + 'speak() escapes its input. see the read');
 }
-check(TITLE.cuts.every(c => TITLE.text[c] === ' '),
-  'the title breaks on its own two spaces rather than through a word: characters '
-  + TITLE.cuts.join(' and ') + ' of "' + TITLE.text + '"');
+check(TITLE_TYPE.cps < 20,
+  'it types at ' + TITLE_TYPE.cps.toFixed(1) + ' characters a second across those two words');
 if (state.built) {
   check(state.built.title.capPx >= TITLE.minCapPx,
-    'the title measures ' + state.built.title.capPx + ' device px of cap, floor is '
-    + TITLE.minCapPx + ' — which is what the three line break bought');
+    'the second line measures ' + state.built.title.capPx + ' device px of cap, floor is '
+    + TITLE.minCapPx);
   check(state.built.end.capPx >= END.minCapPx,
     'the end card measures ' + state.built.end.capPx + ' device px of cap, floor is ' + END.minCapPx);
 }
@@ -2650,6 +2727,26 @@ if (state.meas) {
   check(before.mas.bubble.pill.sc > 0.99,
     'the thought is cut at full size rather than shrinking away first: the pill is at x'
     + before.mas.bubble.pill.sc.toFixed(3) + ' on the last frame it is on');
+}
+{
+  /* the mark turns only once it is home, and it is still turning when the fault
+     lands — post14's correction to the house curve. */
+  const before = frameAt(LOGO_TURN_AT - 0.02, Math.round((LOGO_TURN_AT - 0.02) * FPS)).logo.rot;
+  const mid = frameAt((LOGO_TURN_AT + GLB_AT) / 2, Math.round((LOGO_TURN_AT + GLB_AT) / 2 * FPS)).logo.rot;
+  const at = frameAt(GLB_AT - 1 / FPS, CUT_FRAME - 1).logo.rot;
+  const last = at - frameAt(GLB_AT - 2 / FPS, CUT_FRAME - 2).logo.rot;
+  const avg = (360 * LOGO.turns) / (GLB_AT - LOGO_TURN_AT) / FPS;
+  check(before === 0 && mid > 0 && at > 0,
+    'the mark is still until it is home and turns from there: 0 degrees at '
+    + (LOGO_TURN_AT - 0.02).toFixed(2) + 's, ' + mid.toFixed(1) + ' half way and ' + at.toFixed(1)
+    + ' on the last frame before the fault');
+  check(at <= 360 * LOGO.turns + 0.01 && at > 360 * LOGO.turns * 0.9,
+    'it turns ' + at.toFixed(1) + ' degrees of the ' + (360 * LOGO.turns).toFixed(0)
+    + ' asked for, which at this size is a drift rather than a spinner');
+  check(last > avg * 0.5,
+    'and it has not stopped when the cut lands: ' + last.toFixed(3) + ' degrees on the last '
+    + 'frame against an average of ' + avg.toFixed(3) + ' — the house curve with post14\'s '
+    + 'ceiling taken off');
 }
 check(GL_WINDOWS_60.length === 1,
   'there is exactly one fault in the film, ' + GL_WINDOWS_60[0].frames + ' frames of it at sixty');

@@ -6,7 +6,39 @@ names in here either.
 
 ## Status
 
-- **Second cut 2026-09-05: `demo/post18.mjs` is a different film. 11.40s, light,
+- **Fix round 2026-09-05: `demo/post18.mjs`, five changes and one of them is a
+  pronunciation. 12.63s, 88 guards green at 12fps and at 60 with the shutter
+  open.** The opening said the name twice and now says it once; the read is warm
+  and spells the name; he stands 110 css px lower; and the mark comes back higher
+  and turns while the thought plays.
+  - **`speak()` escapes its input, so ssml never reaches the engine.** A
+    `say-as` written into the copy arrives at the synthesiser as literal angle
+    brackets and is read out. The way to make `chat gpt` land as letters is to
+    **spell it in the copy** — `chat g p t 6` — and the evidence it worked is the
+    word list: five separate word boundaries where a word would be one. That is
+    now a guard rather than a hope, and nothing on the screen carries the
+    spelling.
+  - **Spelling a word costs about 0.9s of read**, and a warm delivery costs the
+    rest: the film went 11.40 → 12.63 against a brief that had asked for nine to
+    ten. Both halves of that were asked for in the same round.
+  - **`typeToWords` refuses a copy whose tokens do not match the read's**, which
+    is exactly what it is for, and spelling the name broke that match. The second
+    line is laid across the span from `astra` to `here` with post14's jittered
+    window instead. **Its last character lands a jitter short of the window's own
+    end** — typeAcross normalises the weights, not the last instant — so a guard
+    written as an equality against the word's end fails on a film that is
+    correct. It checks the character is inside the word now.
+  - **A rotation under a held frame needs post14's curve, not the house in-out.**
+    Every bezier whose second control point ends at one arrives at zero speed, so
+    a mark eased to a stop under a held thought is a still frame with a pill
+    beside it. The guard measures the last frame's own step against the average
+    rather than trusting the curve's name.
+  - **Manrope is in the page for the captions, so the name above the title can be
+    bold.** The brand holds Space Grotesk to 400 and 500; the caption face is
+    allowed a weight, and reusing it for one line of chrome is cheaper than a
+    fourth family.
+
+- **Second cut 2026-09-05, superseded by the fix round above: `demo/post18.mjs` is a different film. 11.40s, light,
   five beats, and three whole scenes gone.** The question that asked *how*, the
   four windows that did the work and the cursor that took the computer off him
   are all cut. What is left: the mark arrives with `CHATGPT 6 ASTRA IS HERE`
