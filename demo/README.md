@@ -114,6 +114,17 @@ All headless Chrome, all tooling. The renderers first:
   head before the signal tears. Captions in Manrope ExtraBold, refitted in the
   page against the face that actually renders. Out to
   `demo/out/post18-light-1080x1920.mp4`. See The eighteenth clip.
+- **`post19.mjs`** renders an 8.65 second clip, vertical, **dark only, and it is
+  the first one that measures somebody else's assets before it places them and
+  the first that squashes the mascot with a layer of its own.** A chat panel asks
+  `which ai do you use?`, the model label flicks through Claude, Gemini, ChatGPT,
+  Grok and Copilot half a second apart with each one's mark popping in above it,
+  the mascot's head turns to the label quicker every time until the room goes
+  round, the signal breaks, and he drops in from off the top of the frame and
+  smashes flat with `all of them.` over his head. post17 is the template for the
+  panel, the two faults and the held thought; post18 for the captions, the gaze
+  and the guards. Out to `demo/out/post19-dark-1080x1920.mp4`. See The nineteenth
+  clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -5397,6 +5408,238 @@ Four failures across two rendered passes and every one was a real finding:
 - **The loudness loop stops at -15.4 LUFS** rather than -14, because the pass
   that would reach the target costs more limiting than the 5 dB allowance. Third
   clip in a row to land a decibel under.
+
+## The nineteenth clip — which ai do you use
+
+`post19.mjs` renders 8.65 seconds, vertical, **dark only**, out to
+`demo/out/post19-dark-1080x1920.mp4`. 103 guards, green at 12fps and at 60 with
+the shutter open at six subframes. A chat panel asks the question, the model
+name flicks through five of them with their marks over it, the mascot gets dizzy
+following the label, the signal breaks, and he lands in the middle of the frame
+flat as gum with the answer over his head.
+
+    node post19.mjs                      1080x1920, 60fps, dark
+    DEMO_FPS=12 node post19.mjs          the fast preview pass
+    node post19.mjs --blur               60fps with the shutter open
+    node post19.mjs --plan               every number printed, nothing rendered
+    node post19.mjs --stills             the readable frames only, no video
+    node post19.mjs --keep-frames        leave the jpegs on disk
+    node post19.mjs --encode-only        re-encode from kept frames
+
+post17 is the template: its panel, its dark tokens, its two faults, its wordmark
+and its `bubbleTime`. post18 is the template for the captions, the gaze layer and
+the shape of the guards. `lib/` is untouched by all three.
+
+### Five marks, measured before they are placed
+
+`demo/assets/logo-*.png` are somebody else's and they are placed as backgrounds:
+no filter, no recolour, no redraw, nothing in the file reaches their pixels.
+
+**Fitting them "to the same height" is not the same as drawing them in the same
+box.** All five files are square and the ink inside the square is not: Claude
+fills 82% of its canvas, Grok 54%. Drawn in one 88px box the Grok mark would
+render two thirds the size of the Claude one and the row would read as five logos
+at five sizes.
+
+So every file is decoded once per run with `ffmpeg` — a raw rgba dump and one
+scan for the alpha bounding box — and each element's box is solved so that **the
+ink** is 88 css px tall with its own centre on the one spot. The box keeps the
+file's natural ratio to six decimals, so `background-size: 100% 100%` is exact
+and nothing can be stretched. The guard re-checks all five inks land on the same
+height and the same centre, to within half a thousandth of a pixel.
+
+**The same measurement is what the safe area check reads.** The element is the
+whole square canvas and most of it is nothing, so a box measurement reported the
+Grok mark 29 device px outside a margin its ink is 40 px inside. `markInk` turns
+the box into the ink rect, spring included, and that is what is walked.
+
+**The files are not what the brief described.** The brief says white on
+transparent; what is on disk is five app icons — a rounded tile each, four on
+white and Grok's on sage, and the Claude and Copilot tiles carrying their own
+wordmark inside them. The brief also says never redraw or recolour, so they are
+placed as they are and the mismatch is written down rather than painted over. It
+costs two things: the row is five bright tiles on a near black page rather than
+five marks in the page's own light, and at 1.63s and 3.63s the tile says the word
+the label under it is already saying. **Swapping the files for actual transparent
+marks fixes both and changes no code** — the measurement reads whatever is on
+disk.
+
+### The label is the payload, so it is on the far right and it is 24px
+
+The brief puts the plus on the left and the mic, the waveform and the model label
+on the right. The label is the **rightmost** of the three and that is this file's
+call: the panel is 388 css px wide and its right hand group starts near the
+middle of the frame, so a label sitting inside the icons would cycle five names
+across the frame's own centre line — directly over the mascot's head, with
+nothing for him to turn toward. At the far right it is 80 css px off his centre
+line, which is a head turn.
+
+It is set at 24 css px, which measures **34 device px of cap** against the house's
+32 floor. That is large for a piece of chrome and it is deliberate: the five names
+are what the clip is about, and a 15px model picker is a detail rather than a
+beat. The name sits in a 100.6 css px cell as wide as the longest of the five,
+right aligned, so `ChatGPT` arriving cannot shove `Medium` sideways — post18's
+fixed cell, and the guard measures both.
+
+**There are five clicks and not four.** The panel arrives carrying `Claude`, so
+the first stop lands on the name it is already showing and brings its mark with
+it. That is the picker being flicked through from where it already was, which is
+what the brief describes and what the guard says out loud.
+
+### One plan, two sizes, and the card is what changes
+
+He is at post12's centre size, 148, for the landing and at his corner size, 120,
+under the panel. `planMascot` takes one size, so the plan is made at 148 and the
+first half of the film scales the **card** by 120/148 — the same seam post17's
+alive layer and post18's gaze layer are composed on, and the seam `headRect` and
+every clearance downstream already read. The plate centre is the zone centre to
+the unit, so scaling the card scales the head about its own middle and moves
+nothing.
+
+The bubble is a sibling of the card rather than a child of it, so it is not
+scaled — and it does not need to be: it is only ever up in the second half, at
+full size. The guard says so rather than assuming it.
+
+### The smash, and why the fall is 0.47s
+
+**The length of the fall was set by the shutter rather than by taste.** It fell in
+0.36s at first — 560 css px, 3100 a second, **52 css px on the frame it lands** —
+and with the shutter open at post10's four subframes that is 25 device px between
+one sample and the next, on a head whose eyes are 19 device px tall. `tmix`
+blended it into four separated copies of a face rather than into a smear. It is
+the fastest move any clip in `demo/` has asked for and the first where four
+subframes is not enough. Eight is the direct fix and it did not finish: 4152
+captures, killed for memory on this machine. Six finishes, at 3114.
+
+So the fall is 0.47s, which is 40 css px a frame and 13.2 device px between
+samples at six — they overlap, the frame at 4.50s is a graded smear with the eyes
+as vertical streaks, and the compression frame at 4.633s is sharp. **The extra
+0.11s came out of the fault rather than out of the clock**: the fall used to start
+half way through the first glitch and now starts on its first frame, so the
+landing is at 4.56s either way and nothing downstream of it moved. He falls
+through the whole tear now, which is the better read of the two anyway. The peak
+is a guard, checked under 42 css px a frame with the device px between samples
+printed beside it.
+
+The fall is `p²`, because that is what gravity is and no bezier says it more
+clearly. He stretches a tenth on the way down, hits, compresses to 1.52 wide by
+0.66 tall over 70ms, and springs out of it on a damped cosine that goes below
+zero exactly once — one stretch on the way back at 12% of the compression, then a
+settle under 1% of it.
+
+**The chin stays on the ground while he is flat**, and that is arithmetic rather
+than an extra channel: a card scaled about its own centre would lift its bottom
+edge by the height it lost, so the same frame that writes the squash writes
+`R * (1 - sy)` of downward offset against it. Without it he reads as a balloon
+being squeezed in mid air instead of as a thing landing. Over 481 samples from
+the landing to the `delighted` mark the bottom edge moves at most 1.4 css px.
+
+Past that mark the state owns the card, and the guard's window stops there rather
+than pretending otherwise: `delighted`'s entrance lifts the head on purpose.
+
+### The answer is held past the module's ceiling
+
+`bubbleAt` caps a single bubble's hold at `BUBBLE.hold`, which is 0.90s, so from
+outside the module that is the longest a pill can be up. The read's second line
+runs 3.35s and the pill has to still be on the frame when it finishes, so
+post17's `bubbleTime` is here unchanged: real time until the module's own hold
+runs out, then its own last fully up bubble frame for `HOLD_EXTRA`, then real
+time again shifted by it. Nothing else on the face is held — the idle layer, the
+breath and the spring out of the smash all run on the clip's own clock
+underneath, and the liveness signature proves it with 0 identical frames.
+
+`HOLD_EXTRA` is derived rather than typed: it is exactly the distance from the
+module's own leaving frame to the fault, and the fault is whichever of the read's
+last sound and the last caption card finishes later. It comes out at 1.09s.
+
+### The reel, and the one blink
+
+The gaze is post18's layer with this clip's own divisors, and the divisors are
+the tuning: everything he looks at is inside a narrow band above him, so a
+response written for post18's frame — where the thing to look at was 350 px
+overhead — would turn a head three degrees for a target 60 px sideways and read
+as nothing. He turns to the label on all five switches and quicker every time,
+0.26s down to 0.10s, and settles back to the panel between them. It reaches 4.1
+degrees of tilt and 2.9 css px of lean.
+
+The reel is measured **back off the fault** rather than forward off the last
+stop, so it fills every frame there is between the last name landing and the
+signal breaking rather than running on into a frame he is not on. The eyes
+describe a small circle and the head rolls a quarter turn out of phase, both
+under a sine that starts at nought and ends there.
+
+The blink is the idle layer's, found by a seed search over six thousand seeds
+with **two** constraints: exactly one whole blink inside the reel's window, and
+**none at all across the punchline**. The second one was added after a frame:
+the lid is a card coloured slab, so a blink under the pill is a blank face for a
+fifth of a second at exactly the moment the answer arrives, and it read as a bug.
+
+### What the frames changed after the guards were green
+
+- **The fall got 0.11s longer and started earlier.** Above: the four subframe
+  blend showed four copies of a face where a smear should be. The clock did not
+  move.
+- **The panel came 6 css px off the safe line on each side.** post17 takes the
+  full safe width and the `--guides` pass put its border exactly on the magenta
+  rectangle, 0 px in hand, on the side the platform hangs its buttons down. It is
+  12 device px now and it is still the tightest thing in the film.
+- **The mark swap became a hard cut.** It was a 90ms crossfade, which is right
+  for a transparent mark and wrong for these: two opaque tiles at half opacity is
+  one printed through the other, and the frame showed Grok through Copilot. The
+  guard checks one mark on the frame at any opacity at all, walked at 240Hz.
+- **The module's shadow is turned off.** `lib/mascot.mjs` says in its own words
+  that the shadow is off in dark and declares `--m-shadow-o:0` to do it — and
+  nothing reads that variable: the page half writes the shadow's opacity from the
+  frame, and the ellipse is filled with `--face`, which on dark is near white. It
+  is invisible for most of a clip because the head sits on top of it; this one
+  takes the head away for a third of a second. The rule is the clip's, `lib` is
+  not touched, and what it implements is the module's own comment.
+- **The cards are four words wide with three breaks the read does not carry.**
+  Three to a card cut this copy into `which ai do`, `is knowing which` and
+  `one for what` — `which | one` split down the middle, which is the failure the
+  review checklist names. Breaks after `ai`, `is` and `one`, marked on the caption
+  copy only after the synthesiser has spoken, give `which ai` / `do you use?` /
+  `all of them` / `the boring part is` / `knowing which one` / `for what`.
+
+### The sound
+
+Five kinds and the brief names all five. Nothing is a new recipe and there is
+still not one audio file in the repo.
+
+| what | how |
+|---|---|
+| the key ticks | `key`, off the typing plan's own list, one per three characters plus the ends |
+| the five clicks | `click` at −29 dB rather than the table's −25: five inside two seconds is a picker being flicked rather than five events |
+| the splat | `crunch` taken low and wet — 190 down to 70 hertz under a 1200 ceiling — at −27 dB, because the brief says soft |
+| the pill | `mascotCues`' own `pop`, taken |
+| the two faults | `glitch`, on the frame each is taken |
+
+### The clock, and it is 8.65 against a brief that asked for eight
+
+Three lengths in the brief are fixed and they add up before anything else is
+drawn: the question is 1.33s of sound, the label cycle is five stops half a
+second apart and therefore 2.00s with no voice on it, and the answer is 3.35s.
+That is 6.7s of content the brief specified, and on top of it the film still has
+to raise a panel, break the signal twice, drop a mascot, hold a thought and show
+a wordmark.
+
+The two cuts that would take it under eight are printed at the bottom of every
+run and neither is free: dropping `the boring part is knowing which one for what`
+buys 2.4s and the whole point of the clip, and taking the cycle to 0.36s a stop
+buys 0.56s and stops reading as a picker being flicked through.
+
+### What is open
+
+- **The five assets are app icons, not the transparent marks the brief
+  described.** Above. It is the one thing that would change the look of the first
+  half and it needs no code.
+- **It is 8.65s against a brief that asked for eight**, and the arithmetic is
+  above.
+- **The thinnest beat is 4.99..5.28s**: he has landed and settled and the first
+  dot has not climbed yet. About a third of a second of a small white circle on
+  black, with the answer audibly mid-sentence over it.
+- **The clip has no posting pack.** Caption, tweet and three tags per platform
+  are all undecided.
 
 ## The og card
 

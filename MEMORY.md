@@ -6,6 +6,42 @@ names in here either.
 
 ## Status
 
+- **New 2026-09-05: `demo/post19.mjs`, which ai do you use. 8.65s, dark only,
+  103 guards green at 12fps and at 60 with the shutter open at six subframes.** A chat panel asks
+  the question, the model label flicks through Claude, Gemini, ChatGPT, Grok and
+  Copilot half a second apart with each one's mark popping in above it, the
+  mascot's head turns to the label quicker every time until the room goes round,
+  the signal breaks, and he drops in from off the top of the frame and smashes
+  flat with `all of them.` over his head. post17 is the template for the panel,
+  the two faults and the held thought; post18 for the captions, the gaze and the
+  guards. `lib/` untouched.
+  - **Two firsts.** It measures somebody else's assets before it places them —
+    five square pngs decoded with ffmpeg for their alpha bounding box, so the
+    *ink* is fitted to one height rather than the canvas — and it squashes the
+    mascot with a layer of its own, chin held on the ground line by arithmetic.
+  - **The five files are not what the brief described.** The brief says white on
+    transparent; what is in `demo/assets` is five app icons, tiles and all, two
+    of them carrying their own wordmark. Never redraw or recolour beats it, so
+    they ship as they are and the mismatch is written down in three places.
+    Swapping the files fixes the look and changes no code.
+  - **The fall's length is a shutter number.** It fell in 0.36s at first, which
+    is 52 css px on the frame it lands, and four subframes blended that into four
+    stacked copies of a face. Eight would have fixed it and the render was killed
+    for memory at 4152 captures. It is 0.47s now and it starts on the fault's own
+    first frame instead of half way through it, so the extra 0.11s comes out of
+    the fault and **the landing does not move** — 13.2 device px between samples
+    at six subframes, and the samples overlap.
+  - **Four faults the guards were green on and only a frame could show**: the
+    panel's border sitting exactly on the safe line, a crossfade printing one
+    opaque tile through another, the module's dark shadow painting a pale
+    ellipse the fall exposed, and three caption cards that were fragments rather
+    than phrases. See the Decisions entry.
+  - **It is 8.65s against a brief that asked for eight**, and 6.7s of that is
+    three lengths the brief itself fixed. The two cuts that would close the gap
+    are printed on every run.
+  - Review at `demo/out/review-post19-dark-1080x1920.md`, full write up under
+    The nineteenth clip in `demo/README.md`.
+
 - **Fix round 2026-09-05: `demo/post18.mjs`, five changes and one of them is a
   pronunciation. 12.63s, 88 guards green at 12fps and at 60 with the shutter
   open.** The opening said the name twice and now says it once; the read is warm
@@ -2046,6 +2082,15 @@ Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
+- **`demo/post19.mjs` is the nineteenth clip and the second dark one built on
+  post17's panel.** 8.65s, 1080x1920, 60fps, out to
+  `demo/out/post19-dark-1080x1920.mp4`. It needs five untracked files in
+  `demo/assets/`: `logo-claude.png`, `logo-gemini.png`, `logo-chatgpt.png`,
+  `logo-grok.png`, `logo-copilot.png`. Each one is decoded once per run for its
+  alpha bounding box, so the row is fitted by ink rather than by canvas, and the
+  safe area check reads the ink too. Full write up under The nineteenth clip in
+  `demo/README.md`.
+
 - **`demo/post14.mjs` is the fourteenth clip and the light one.** 13.03s,
   1080x1920, 60fps, out to `demo/out/post14-light-1080x1920.mp4`. Four firsts
   between them: somebody else's mark on the screen, the mascot moved rather than
@@ -2716,6 +2761,93 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-05 — five squares are not five marks, and the alpha box is the difference
+
+`demo/assets/logo-*.png` are all square and all the same shape, and drawing them
+in one box is still wrong: the ink inside the square is a different fraction of
+it in every file. Claude fills 82% of its canvas, Copilot 83%, Gemini and ChatGPT
+61%, Grok 54%. Fitted to one 88px box the Grok mark renders two thirds the size
+of the Claude one and a row that is supposed to read as five equals reads as five
+sizes.
+
+So each file is decoded once per run — `ffmpeg -f rawvideo -pix_fmt rgba` and one
+scan for the alpha bounding box — and each element's geometry is solved from that:
+the box keeps the file's natural ratio to six decimals and is placed so the ink is
+88 css px tall with its own centre on the spot. Nothing is hardcoded; the
+measurement reads whatever is on disk.
+
+**The same number is what the safe area check has to read.** Measuring the element
+reported the Grok mark 29 device px *outside* a margin its ink is 40 px inside,
+because most of its element is nothing. A clip that trusted that would have moved
+a centred row off centre to satisfy an artefact.
+
+### 2026-09-05 — post19's four faults that only a frame could show
+
+Every one of these was found after the guards were green, by looking at rendered
+frames. It is the fourth clip in a row where that is where the real defects were.
+
+- **The panel's border sat exactly on the safe line.** post17 takes the full safe
+  width and that argument still holds, but 0 px in hand on the side the platform
+  hangs its button column down is not clearance. Six css px in on each side, and
+  it is still the tightest thing in the film at 12 device px.
+- **A crossfade printed one opaque tile through another.** 90ms of overlap on the
+  mark swap, which is right for a transparent mark and wrong for an app icon: at
+  3.69s Grok was visible through Copilot. It is a hard cut on one frame now, and
+  the guard checks one mark at *any* opacity rather than over a half.
+- **The module's shadow paints a pale ellipse on dark.** `lib/mascot.mjs` says in
+  its own words that the shadow is off in dark and declares `--m-shadow-o:0` to do
+  it, and nothing reads that variable: the page half writes the shadow's opacity
+  from the frame, and the ellipse is filled with `--face`, which on dark is near
+  white. It is invisible in every clip so far because the head sits on top of it.
+  post19 takes the head away for a third of a second and it showed. **`lib` is
+  untouched** — the clip carries `#m-shadow{visibility:hidden}` and a guard on the
+  computed style. Worth fixing in the module the next time it is opened.
+- **Three caption cards were fragments.** Three words to a card cut this read into
+  `which ai do`, `is knowing which` and `one for what`, splitting `which one` down
+  the middle. Four to a card plus three break points marked on the caption copy
+  only — the same mechanism `markLines` already used for the seam between two
+  lines — gives six cards that are all phrases.
+
+### 2026-09-05 — how fast a thing may fall is a property of the shutter, not of the animation
+
+post19 drops the mascot 560 css px in 0.36s, which is 3100 a second and 52 css px
+on the frame it lands. With the shutter open at post10's four subframes that is 25
+device px between one sample and the next, on a head whose eyes are 19 device px
+tall, and `tmix` blended it into four separated copies of a face rather than into a
+smear. It is the fastest move any clip in `demo/` has asked for and it is the
+first one where four is not enough.
+
+Eight subframes is the direct fix and **it did not finish**: 4152 captures, and
+the render was killed for memory on this machine. Six finishes, at 3114.
+
+So the length of the fall was set by the blend rather than by taste: 0.47s, which
+is 40 css px a frame and 13.2 device px between samples at six — they overlap, and
+the rendered frame at 4.50s is a graded smear with the eyes as vertical streaks
+while the compression frame at 4.633s is sharp.
+
+**The 0.11s came out of the fault rather than out of the clock.** The fall used to
+start half way through the first glitch and now starts on its first frame, so the
+landing is at 4.56s either way and nothing downstream of it moved. It also falls
+through the whole tear now, which is the better read of the two.
+
+The number is a guard: the peak is computed from `DROP.from` and `DROP.for` and
+checked under 42 css px a frame, with the device px between samples printed beside
+it.
+
+### 2026-09-05 — a bubble under a blink is a blank face, so the seed search gets a second constraint
+
+The lid is a card coloured slab, so a blink is the face colour covering the eyes.
+Under a thought bubble that is a blank white disc at exactly the moment the
+punchline lands, and post19's first cut shipped one: the still at the pill's own
+arrival had no eyes in it.
+
+The seed search already looked for exactly one whole idle blink inside a named
+window. It now also refuses any seed that puts a blink across the punchline — the
+window from a fifth of a second before the pill is full to a third after, scored
+on the *shut* part of the blink rather than the whole of it, because the open is a
+lid travelling back up a face that is already readable. Six thousand seeds is
+still enough to satisfy both.
 
 ### 2026-09-02 — the camera comes out of the clips, and the shake is the opposite of the glitch
 
