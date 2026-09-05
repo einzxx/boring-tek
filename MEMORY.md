@@ -6,6 +6,143 @@ names in here either.
 
 ## Status
 
+- **Second cut 2026-09-05: `demo/post18.mjs` is a different film. 11.40s, light,
+  five beats, and three whole scenes gone.** The question that asked *how*, the
+  four windows that did the work and the cursor that took the computer off him
+  are all cut. What is left: the mark arrives with `CHATGPT 6 ASTRA IS HERE`
+  typing under it, the effort slider walks to Max, a chat panel types `not using
+  ai for your business yet? your competitor already does` while the voice reads
+  the same line, the mark comes back bigger and he thinks `future. here.`, and
+  the signal tears. **83 guards green at 12fps and at 60 with the shutter open.**
+  Out to `demo/out/post18-light-1080x1920.mp4`. The long version is The
+  eighteenth clip in `demo/README.md`; what is worth carrying forward:
+  - **The voice only pass ran before a browser was opened, and it is worth
+    keeping as a habit.** Three lines at three deliveries each, measured, then
+    the picks laid on one clock with the silences in — 7.46s of sound, and the
+    film's own length known before a frame existed. The shipped deliveries are
+    0% / -4% / 0% with the pitch up on the two outer lines, which is post11's
+    rule: the shape carries the register, not the speed.
+  - **A face this file asks for is only half the job: the module fits its own.**
+    `lib/captions.mjs` measures the float style's cards in Space Grotesk 700 and
+    solves a size from that. Manrope 800 is a different width for the same
+    string, so the module's size was the wrong one and the widest card would have
+    crossed the box. `capRefit` measures the cards **as they render**, at a probe
+    size, and solves again, dividing by the same `maxScale` the module divides by.
+    lib untouched: a rule and a measurement in the clip.
+  - **`over` measures the pill from the plate's centre line, `beside` from the
+    zone's right edge**, and on a 204 css px pill that is 95 px of difference.
+    Even so `future. here.` costs 40.2 css px of head shift, 7.4% of the frame,
+    derived off the pill's own measured width and its worst spring frame. **The
+    em width was an estimate and the render corrected it**: the guard compares
+    the rendered pill against the solve on every run, and it caught 7 px.
+  - **A box written `left:0; right:0` reports the frame's own edges back to the
+    safe area check**, and it also makes a fit divide by the box rather than by
+    the ink. It happened twice more in this file — the title and the slider's
+    label — after post14 wrote it down about its end card. `width:max-content`
+    with a centring translate is the fix, every time.
+  - **`planMascot` refused a mark by a hundredth of a second and said so.** The
+    module's own guard, in the planner, before a browser opened: `curious` needs
+    1.24s before `delighted` and the slider gave it 1.23. He goes curious a
+    breath before the mark starts moving now, which is what a head does when
+    something is about to happen and is also what buys the room.
+  - **The brand's only accent is green and this clip has blue in it**, by the
+    brief: a caret, a gauge arc and a send button inside the picture of somebody
+    else's input box. The token is declared inside the panel's own block, nothing
+    outside reads it, and it leaves when the panel does. The slider's fill stayed
+    green for the same reason the blue is confined — the brief named colours for
+    the panel and not for the control.
+  - **Open:** 11.40s against a brief that asked for nine to ten, with the two
+    cuts that would fix it named in the run log; he stands 7.4% left of centre for
+    the whole film; and the loudness loop stops at -15.4 LUFS for the third clip
+    in a row, because the pass that would reach -14 costs more limiting than the
+    allowance.
+
+- **First cut 2026-09-05, superseded by the one above: `demo/post18.mjs`, less asking and
+  more giving it a job. 23.11s, 1080x1920, light only, out to
+  `demo/out/post18-light-1080x1920.mp4`. The first one with four windows doing
+  the work around him, the first with a gaze layer, and the second that puts
+  somebody else's mark on the screen.** Somebody else's model ships, the effort
+  slider walks to max, a question that asks *how* becomes an instruction that
+  says *what*, four windows open one per noun around him, a cursor takes the
+  computer off him, and he gives up and looks at you. **79 guards green at 12fps
+  and at 60.** The long version is The eighteenth clip in `demo/README.md`; what
+  is worth carrying forward:
+  - **The brief's clock did not survive the read and the copy was cut rather
+    than the delivery.** Seven scenes and "about sixteen seconds" against five
+    lines that measure **20.29s of speech on their own** at the house narrator's
+    own pace. The copy came down by a third to 13.79s and the film still runs
+    23.11, because the brief's clock did not count the silent slider beat, the
+    retype that finishes 1.6s after its line, the cursor that keeps working, or
+    the thought and its hold. **A read pushed to fit is a hurried read** —
+    post14's lesson — so the copy is what moved. Every second of the difference
+    is named in the run log and the one cut that buys a whole beat rather than a
+    fraction of one is dropping the slider scene.
+  - **The silence after a line is a function of what the picture has to do in
+    it.** post14 typed its gaps because both were breaths; three of these four
+    are a picture finishing. `buildVoice` takes a `gapFor` and is handed the
+    beats laid down so far, so each silence is derived off the same numbers the
+    picture is drawn from and floored at the line's own written gap. The scene
+    boundaries are written once as functions of the beats and both `gapFor` and
+    the constants read the same expressions. `word(beat, 'work')` asks a beat
+    for a word **by name**, so a rewrite that moves a word throws rather than
+    quietly moving a beat.
+  - **The gaze is one layer and it is the performance.** Six things to watch and
+    none of them is in the state table, because a state is a pose rather than a
+    direction. A list of page points with a time and a duration each, eased on
+    the house curve, composed onto `mascotFrame`'s own card and eyes the way
+    post17's wink is composed onto its lid: an eye offset in grid units, a tilt
+    in degrees and a lean in css px, all three off one vector and all three
+    capped. **Two targets are functions of time** — the knob and the cursor are
+    moving while he watches them — and a target being looked away from is frozen
+    at the instant the look began, so a blend is between two points rather than
+    between a point and a chase. **The durations are the acting**: 0.34, 0.28,
+    0.22 and 0.18 across the four windows is the brief's "getting quicker each
+    time" and it is those four numbers and nothing else.
+  - **A block that spans the frame reports the frame back to you.** The title
+    was `left:0;right:0`, so its spans measured 540 css px, the fit divided 300
+    by 540 instead of by the ink, and it rendered three sizes too big and 140
+    device px outside the safe area. `width:max-content` with a centring
+    translate is the whole fix and the max-width comes off while the probe is
+    up. post14 wrote this down about its end card; this is the same fault in a
+    second place and it will be a third one day.
+  - **`over` measures from the plate's centre line and `beside` from the zone's
+    right edge, and that is the difference between fitting and not.** A one word
+    pill hung `beside` a centred head crossed the right safe line by 24 device
+    px; the same pill asked for as `over-right` lands with 106 to spare and
+    nothing moved. The brief's three word thought would need 70 css px of head
+    shift at `BUBBLE.size` and 70 px left of centre is under a window, so the
+    thought is one word and the trade is printed on every run.
+  - **A window arrives on the pop curve and the pop curve overshoots.** Half a
+    per cent past one puts a box whose edge is exactly on the safe line 0.3
+    device px outside it for three frames. They sit one css px inside it now.
+    The panel does not need it because nothing springs its scale.
+  - **Two guards are walked on every frame rather than sampled**, and that is
+    what caught `surprised` putting his ink into the two top windows for eight
+    frames: the frames that fail are the ones a state is at its peak on, and a
+    sampler at eight a second walks straight past them. The windows moved up
+    twelve css and he moved down ten; the walked worst gap is now 12.75 css px.
+  - **The end card is the one held run in the film and it is a named
+    exception.** Every other clip ends on a dark page with a phosphor breathing
+    under the wordmark, which is what carries the last second past the liveness
+    guard. On white there is nothing to breathe, and the brief says "hold, end".
+    So the run after the card has arrived is exempt by name and by frame, and
+    every frame before it is checked exactly as it was: 0 repeats in 265 frames.
+    Inventing a drift under a card that is meant to be still would be worse.
+  - **Somebody else's mark, cropped rather than altered.** The file is 3840x2160
+    with the knot centred on white and no alpha; the page is `#ffffff` exactly,
+    so the white it is drawn on is the white it came with. It is a background at
+    `cover` on a square box, which crops the canvas the file ships with and
+    cannot distort it. The header is read in node, because a background has no
+    natural size to report.
+  - **No new sound recipes and no music.** 64 cues, nine kinds. `agreeing`'s own
+    ding is **declined** so the one ding in the film is the completion chime,
+    where a yes is what it means.
+  - **Open, and worth watching on a phone before it is called deliberate:** the
+    top third of the frame is empty for the last six seconds, from the moment
+    the question shrinks away on `less asking` to the end. And the loudness loop
+    stops at -15.2 LUFS rather than -14, because the pass that would reach the
+    target costs more limiting than the 5 dB allowance.
+
 - **Second cut 2026-09-04: `demo/post17.mjs` holds the answer half a second
   longer and he is alive under it. 7.41s, 88 guards green at 12fps and at 60
   with the shutter open.** Three things changed and all three are in

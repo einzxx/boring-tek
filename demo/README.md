@@ -103,6 +103,17 @@ All headless Chrome, all tooling. The renderers first:
   used by a clip for the first time. No new sound recipes: key ticks, one soft
   `popDeep` thud, two `glitch` faults and `mascotCues`' own `pop`. Out to
   `demo/out/post17-dark-1080x1920.mp4`. See The seventeenth clip.
+- **`post18.mjs`** renders an 11.40 second clip, vertical, **light only, and it
+  is the first one with a gaze layer and the first whose captions are set in a
+  face the module does not own.** Somebody else's model ships: the mark fades in
+  with `CHATGPT 6 ASTRA IS HERE` typing itself under it, the effort slider walks
+  to Max, a chat panel types `not using ai for your business yet? your competitor
+  already does` while the voice reads the same line, and the mark comes back
+  bigger with `future. here.` over a small robot's head before the signal tears.
+  The mark is `demo/assets/chatgpt-logo.png`, a transparent black png placed as a
+  background and cropped rather than altered. Captions in Manrope ExtraBold,
+  refitted in the page against the face that actually renders. Out to
+  `demo/out/post18-light-1080x1920.mp4`. See The eighteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -5193,6 +5204,163 @@ and describes the first cut.
   trending sound would sit if this clip gets one.
 - **The clip has no posting pack.** Caption, tweet and three tags per platform
   are all undecided.
+
+## The eighteenth clip — the future is here
+
+`post18.mjs` renders 11.40 seconds, vertical, **light only**, out to
+`demo/out/post18-light-1080x1920.mp4`. Somebody else's model ships, the effort
+slider walks to Max, a chat panel says the thing the clip is actually about, and
+the mark comes back bigger with a two word thought over a small robot's head.
+
+    node post18.mjs                      1080x1920, 60fps, light
+    DEMO_FPS=12 node post18.mjs          the fast preview pass
+    node post18.mjs --blur               60fps with the shutter open
+    node post18.mjs --plan               every number printed, nothing rendered
+    node post18.mjs --stills             the readable frames only, no video
+    node post18.mjs --encode-only        re-encode from kept frames
+
+**This is the second cut and it is a different film.** The first one ran 23.11s
+and carried three scenes this one does not have at all: the question that asked
+*how*, the four windows that did the work, and the cursor that took the computer
+off him. What is left is five beats — the mark arrives, the slider goes to Max,
+the panel says the thing, the mark comes back and he thinks two words, and the
+signal tears. post14 is still the template for the shape of the file and post17
+for the typing cut to the read.
+
+### The clock, and it is eleven rather than ten
+
+The brief asks for nine to ten seconds. **The voice only pass ran first** — the
+brief asked for it and it is worth keeping as a habit — and measured the three
+lines at three deliveries each:
+
+| line | -8% | -4% | 0% |
+| --- | --- | --- | --- |
+| chatgpt 6 astra is here, and it is a big one | 2.94s | 2.81s | 2.71s |
+| not using ai for your business yet? your competitor already does | 4.04s | 3.88s | 3.71s |
+| the future is here | 0.95s | 0.92s | 0.88s |
+
+The shipped deliveries are 0% / -4% / 0% with the pitch up on the two outer
+lines, which is post11's rule: **the shape carries the register, not the speed.**
+That is 7.46s of sound. On top of it the film carries a slider scene with no
+voice on it at all (1.54s), a thought the brief asks to hold about a second and a
+half (1.38s, which is the module's own 0.48 in plus 0.90 hold, not a number this
+file typed) and an end card (0.82s).
+
+It lands at 11.40. The two cuts that would take it under ten are printed at the
+bottom of every run and neither is free: dropping `and it is a big one` off the
+first line buys 0.9s, and dropping the slider buys 1.54s and a whole beat.
+
+### The captions are set in Manrope, and the fit had to be redone
+
+The brief asked for a cleaner, more modern sans with a better weight than the
+one the float style ships with. **Manrope ExtraBold**: a geometric grotesque with
+a tall x height and a much heavier 800 than Space Grotesk has at 700, which is
+what a burned in caption at 30 css px on a phone wants. It measures 44 device px
+of cap.
+
+`lib/` is untouched, so the face is one rule in this file over the module's — and
+that is only half the job. **`lib/captions.mjs` fits the float style by measuring
+its cards in Space Grotesk at 700**, which is the face it sets them in and is not
+the face this clip asks for. A heavier face measured against a lighter one is a
+card that overflows its own box.
+
+So `capRefit` measures the cards **as they render**, at a probe size, and solves
+the size again from the widest of them, dividing by the same `maxScale` the
+module divides by because a word springs about its own centre. The module fitted
+30.0 css px against its own face; the refit lands 30.4 against Manrope's, off
+`your competitor already`. Three families now arrive in the one request —
+Michroma, Manrope 800 and Space Grotesk 400 and 500 — and Space Grotesk's 700 is
+gone with the module's caption face, so the body face is back inside the two
+weights the brand allows it.
+
+### The panel carries blue, and it is the only place in the brand that does
+
+The brief asks for a blinking blue caret, a blue gauge arc and a round blue
+button with a white waveform. Green is the only accent this brand owns, so the
+argument is post14's about drawing somebody else's product: the panel is a
+picture of a thing a viewer recognises, and what makes it recognisable is its
+shape and its one colour. `--pn-blue` is declared inside the panel's own block,
+nothing outside it reads the token, and it leaves when the panel does.
+
+The caret blinks on the clip's own clock — a square wave every 1.06s computed in
+node — rather than on a css animation, for the reason every moving value in
+demo/ is computed in node: one captured frame carries five or six BeginFrames and
+a css animation resolves about five times too fast.
+
+### He is 40 css px left of centre and the thought is why
+
+`future. here.` measures 204 css px at `BUBBLE.size` and the module hangs a
+pill's near corner 26 css px along the row from the plate's own centre line. Off
+a dead centre head that puts its right edge 36 px past the safe line before the
+spring, and `btk.pop` carries it further.
+
+So the zone is shifted and the shift is **derived from the pill's own measured
+width and its own worst spring frame**, which is post17's move at a bigger cost:
+40.2 css px, 7.4% of the frame. It reads as deliberate once the thought is up,
+because the head and the pill balance about the middle; for the nine seconds
+before that he is a robot standing a little left of a centred mark. **Whether
+that is the right side of the trade is Einz's call**, and the number is printed
+on every run.
+
+**The em width was an estimate and the render corrected it.** The first pass
+guessed 5.752 em for the string and the rendered pill came back 210.2 css at its
+worst spring frame against a solve of 203.5 — so the shift was 7 px short and the
+pill sat 5.5 device px outside the safe line. The guard compares the two on every
+run and the constant is now 6.0031, measured rather than reasoned.
+
+### The states are the brief's own five
+
+Five marks and the brief names the state for every one: `curious` at the mark,
+`curious` at the knob, `delighted` on Max, `agreeing` at the line, `delighted` at
+the end with the thought on it. **There is no `neutral` and no `unimpressed`
+anywhere in the film**, which the guard checks by name rather than by hope.
+
+`planMascot` refused the second mark at 1.23s when `curious` needs 1.24 before
+`delighted`, and said so in the planner rather than in a render — so he goes
+curious a breath **before** the mark starts moving, which is what a head does
+when something is about to happen and is also what buys the mark its room.
+
+The blink in the opening is the idle layer's and the seed is searched for it:
+exactly one whole blink inside the window, close, hold and open. The widening the
+brief asks for is `curious`'s own, one eye to 1.8 and the other to 1.1.
+
+### The gaze, and the two boxes that reported the frame back
+
+The gaze layer is the first cut's and it stays: a list of page points with a time
+and a duration each, eased on the house curve, composed onto `mascotFrame`'s own
+card and eyes. Four looks — the mark above him, the knob (a function of time,
+because it is moving), the panel, and then you.
+
+Two boxes in this file were written `left:0; right:0` and both reported the
+frame's own edges back to the safe area check: the title, which also made the fit
+divide 340 by 540 and set the type three sizes too big, and the slider's label.
+Both are `width:max-content` with a centring translate now. **That is the same
+fault post14 wrote down about its end card, in a third and fourth place.**
+
+### What the guards found
+
+Four failures across two rendered passes and every one was a real finding:
+
+1. **The title's block spanned the frame**, so it fitted against the box rather
+   than the ink and drew 140 device px outside the safe area.
+2. **The slider's label did the same thing**, and was caught by the same guard on
+   the next pass.
+3. **The pill's em width was an estimate** and the rendered pill was 7 css px
+   wider than the solve, which put it outside the safe line.
+4. **`planMascot` refused the plan** by a hundredth of a second, which is the
+   module's own guard doing its job before a browser was opened.
+
+83 guards green at 12fps and at 60 with the shutter open.
+
+### What is open
+
+- **It is 11.40s against a brief that asked for nine to ten**, and the arithmetic
+  is above.
+- **He stands 7.4% left of centre for the whole film** to keep a two word thought
+  inside the safe line.
+- **The loudness loop stops at -15.4 LUFS** rather than -14, because the pass
+  that would reach the target costs more limiting than the 5 dB allowance. Third
+  clip in a row to land a decibel under.
 
 ## The og card
 
