@@ -114,17 +114,17 @@ All headless Chrome, all tooling. The renderers first:
   head before the signal tears. Captions in Manrope ExtraBold, refitted in the
   page against the face that actually renders. Out to
   `demo/out/post18-light-1080x1920.mp4`. See The eighteenth clip.
-- **`post19.mjs`** renders an 8.65 second clip, vertical, **dark only, and it is
+- **`post19.mjs`** renders an 11.15 second clip, vertical, **dark only, and it is
   the first one that measures somebody else's assets before it places them and
   the first that squashes the mascot with a layer of its own.** A chat panel asks
-  `which ai do you use?`, the model label flicks through Claude, Gemini, ChatGPT,
-  Grok and Copilot half a second apart with each one's mark popping in above it,
-  the mascot's head turns to the label quicker every time until the room goes
-  round, the signal breaks, and he drops in from off the top of the frame and
-  smashes flat with `all of them.` over his head. post17 is the template for the
-  panel, the two faults and the held thought; post18 for the captions, the gaze
-  and the guards. Out to `demo/out/post19-dark-1080x1920.mp4`. See The nineteenth
-  clip.
+  `which ai do you use?`, then the voice reads five model names and the label, the
+  mark and the caption all land on the word each one starts — Claude, Gemini,
+  ChatGPT, Grok, Copilot — while the mascot's head turns to the label quicker every
+  time until the room goes round. The signal breaks and he drops in from off the
+  top of the frame and smashes flat with `all of them.` over his head. post17 is
+  the template for the panel, the two faults and the held thought; post18 for the
+  captions, the gaze and the guards. Out to
+  `demo/out/post19-dark-1080x1920.mp4`. See The nineteenth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -5411,12 +5411,12 @@ Four failures across two rendered passes and every one was a real finding:
 
 ## The nineteenth clip — which ai do you use
 
-`post19.mjs` renders 8.65 seconds, vertical, **dark only**, out to
-`demo/out/post19-dark-1080x1920.mp4`. 103 guards, green at 12fps and at 60 with
-the shutter open at six subframes. A chat panel asks the question, the model
-name flicks through five of them with their marks over it, the mascot gets dizzy
-following the label, the signal breaks, and he lands in the middle of the frame
-flat as gum with the answer over his head.
+`post19.mjs` renders 11.15 seconds, vertical, **dark only**, out to
+`demo/out/post19-dark-1080x1920.mp4`. 110 guards, green at 12fps and at 60 with
+the shutter open at six subframes. A chat panel asks the question, the voice reads
+five model names and the label and the mark land on each one as it is said, the
+mascot gets dizzy following the label, the signal breaks, and he lands in the
+middle of the frame flat as gum with the answer over his head.
 
     node post19.mjs                      1080x1920, 60fps, dark
     DEMO_FPS=12 node post19.mjs          the fast preview pass
@@ -5464,6 +5464,49 @@ the label under it is already saying. **Swapping the files for actual transparen
 marks fixes both and changes no code** — the measurement reads whatever is on
 disk.
 
+### The names are spoken, and every stop is cut to its own word
+
+**The second round gave the five names a voice, and that changed what a stop
+is.** They used to be half a second apart, which is a number; now every one of
+them is the start of its own spoken word, which is a fact about the read. The
+label, the mark, the click and the caption card all land on the same frame,
+because they are all hung off the same word.
+
+It is one take rather than five stitched together — `claude. gemini. chat g p t.
+grok. copilot.` — because a picker being flicked through is a list and a person
+reading a list puts their own spacing in it. What comes back is 0.81, 0.90, 1.37
+and 0.93 seconds between the stops. The long one is `chat g p t` taking four
+tokens to say, and the label sitting on ChatGPT a third longer than on the others
+is the read being honest rather than a beat going wrong. A full stop after each
+name rather than a comma, because each one is a statement and because `cardBreak`
+breaks on it: one caption card per name, for free.
+
+**The name is spelled in the copy, and post18 is why.** `speak()` escapes its
+input before it builds the ssml, so a `say-as` written into the copy arrives at
+the synthesiser as literal angle brackets and is read out. The only way to make it
+land as letters is to spell it, and the evidence is the word list: `chat | g | p |
+t` comes back as four separate word boundaries where a word would be one, and the
+guard checks exactly that.
+
+**Nothing on the screen carries the spelling.** The label says `ChatGPT` and the
+caption says `chatgpt`, folded back into one drawn word spanning the four spoken
+tokens by `markLines` — see `SPELLED`. The fold is checked twice: that the drawn
+words are exactly the folded list, and that the only difference between the 25
+words the voice said and the 22 the band draws is those three swallowed tokens.
+
+### The name spot is empty until the question is finished
+
+The panel used to arrive carrying `Claude`, which made the first stop a click on a
+name that was already showing. It arrives with the spot **empty** now, and
+`Claude` is the first thing to appear in it.
+
+Empty rather than a grey dash, and that is the brand rather than taste: the house
+rule is no punctuation dash anywhere a visitor can read, and a standing dash in a
+picture of a ui is an argument nobody should have to have. The cell keeps its own
+width either way, so the first name landing moves nothing — which is the whole
+reason the cell is fixed. The guard walks every frame before the first stop rather
+than sampling one either side of it.
+
 ### The label is the payload, so it is on the far right and it is 24px
 
 The brief puts the plus on the left and the mic, the waveform and the model label
@@ -5481,10 +5524,9 @@ beat. The name sits in a 100.6 css px cell as wide as the longest of the five,
 right aligned, so `ChatGPT` arriving cannot shove `Medium` sideways — post18's
 fixed cell, and the guard measures both.
 
-**There are five clicks and not four.** The panel arrives carrying `Claude`, so
-the first stop lands on the name it is already showing and brings its mark with
-it. That is the picker being flicked through from where it already was, which is
-what the brief describes and what the guard says out loud.
+**All five stops are real.** The panel arrives with the spot empty, so the first
+one puts a name where there was none rather than landing on the name it was
+already showing.
 
 ### One plan, two sizes, and the card is what changes
 
@@ -5562,11 +5604,13 @@ as nothing. He turns to the label on all five switches and quicker every time,
 0.26s down to 0.10s, and settles back to the panel between them. It reaches 4.1
 degrees of tilt and 2.9 css px of lean.
 
-The reel is measured **back off the fault** rather than forward off the last
-stop, so it fills every frame there is between the last name landing and the
-signal breaking rather than running on into a frame he is not on. The eyes
-describe a small circle and the head rolls a quarter turn out of phase, both
-under a sine that starts at nought and ends there.
+The reel is hung off the **last stop** rather than measured back off the fault. It
+was the other way round in the first cut, when the stops were half a second apart
+and the fault was the only fixed thing near them; now the last name has a voice on
+it and a length of its own, so the reel starts a breath before `copilot` is said,
+peaks on it, and dies before the signal breaks. The eyes describe a small circle
+and the head rolls a quarter turn out of phase, both under a sine that starts at
+nought and ends there.
 
 The blink is the idle layer's, found by a seed search over six thousand seeds
 with **two** constraints: exactly one whole blink inside the reel's window, and
@@ -5601,6 +5645,26 @@ fifth of a second at exactly the moment the answer arrives, and it read as a bug
   copy only after the synthesiser has spoken, give `which ai` / `do you use?` /
   `all of them` / `the boring part is` / `knowing which one` / `for what`.
 
+### The loudness loop learned to bisect, because post19 fell off its cliff
+
+post17's and post18's loop walked straight at the target and stopped the moment a
+pass cost more limiting than the 5 dB allowance, keeping whichever earlier pass was
+closest. **That leaves a cliff and post19 went over it.** The first pass sat at
+−21.2 LUFS, the jump the target asked for was 7.2 dB, and 7.2 cost more than the
+allowance — so the loop stopped and kept lift nought, and the film would have
+shipped seven decibels quiet. Nothing in between was ever tried.
+
+A pass over the allowance is a **ceiling** now rather than a stop: the last lift
+under it and the first one over it bracket the answer and the loop halves the gap
+until it is under a fifth of a decibel. It still keeps its best pass rather than
+its last and it still refuses to buy loudness with limiting; the only thing that
+changed is that it looks between the two numbers it already has. Eight passes,
+bracketed between 6.53 and 6.64 dB, landing at 6.53 for −15.8 LUFS with 4.98 dB of
+limiting. A guard catches the seven decibel miss.
+
+It is worth lifting into `lib/sfx.mjs` next time that file is open, since every
+clip in `demo/` carries a copy of this loop.
+
 ### The sound
 
 Five kinds and the brief names all five. Nothing is a new recipe and there is
@@ -5614,19 +5678,16 @@ still not one audio file in the repo.
 | the pill | `mascotCues`' own `pop`, taken |
 | the two faults | `glitch`, on the frame each is taken |
 
-### The clock, and it is 8.65 against a brief that asked for eight
+### The clock, and the eight second brief is two rounds old
 
-Three lengths in the brief are fixed and they add up before anything else is
-drawn: the question is 1.33s of sound, the label cycle is five stops half a
-second apart and therefore 2.00s with no voice on it, and the answer is 3.35s.
-That is 6.7s of content the brief specified, and on top of it the film still has
-to raise a panel, break the signal twice, drop a mascot, hold a thought and show
-a wordmark.
+It ran 8.65s with the cycle silent. **Giving the names a voice added 2.54s on its
+own**: the five of them are 4.54s of sound where there were 2.00s of nothing. Of
+the 11.15s, 8.70s is speech.
 
-The two cuts that would take it under eight are printed at the bottom of every
-run and neither is free: dropping `the boring part is knowing which one for what`
-buys 2.4s and the whole point of the clip, and taking the cycle to 0.36s a stop
-buys 0.56s and stops reading as a picker being flicked through.
+The two cuts that would still shorten it are printed at the bottom of every run
+and neither is free: dropping `the boring part is knowing which one for what` buys
+2.4s and the whole point of the clip, and reading the names without the full stops
+between them buys a few tenths and takes the beat out of the list.
 
 ### What is open
 

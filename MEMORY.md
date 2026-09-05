@@ -6,15 +6,26 @@ names in here either.
 
 ## Status
 
-- **New 2026-09-05: `demo/post19.mjs`, which ai do you use. 8.65s, dark only,
-  103 guards green at 12fps and at 60 with the shutter open at six subframes.** A chat panel asks
-  the question, the model label flicks through Claude, Gemini, ChatGPT, Grok and
-  Copilot half a second apart with each one's mark popping in above it, the
-  mascot's head turns to the label quicker every time until the room goes round,
-  the signal breaks, and he drops in from off the top of the frame and smashes
-  flat with `all of them.` over his head. post17 is the template for the panel,
-  the two faults and the held thought; post18 for the captions, the gaze and the
-  guards. `lib/` untouched.
+- **Fix round 2026-09-06: `demo/post19.mjs`, the names get a voice and the label
+  starts empty. 11.15s, 110 guards green at 12fps and at 60 with the shutter open
+  at six subframes.** The panel's name spot is empty until the question is fully
+  typed and `Claude` is the first thing in it. The voice reads all five names, and
+  **every stop is the start of its own spoken word** rather than half a second
+  after the last one, so the label, the mark, the click and the caption card all
+  land on the same frame. `chat g p t` is spelled in the copy and folded back into
+  `chatgpt` for the caption. Giving the names a voice added 2.54s.
+  - **The loudness loop learned to bisect, and post19 is why**: it would have
+    shipped at -21.2 LUFS with every guard green. See the Decisions entry, and
+    lift it into `lib/sfx.mjs` next time that file is open — every post file
+    carries a copy of the loop with the same cliff in it.
+
+- **New 2026-09-05: `demo/post19.mjs`, which ai do you use.** A chat panel asks
+  the question, five model names land as they are spoken with each one's mark
+  popping in above, the mascot's head turns to the label quicker every time until
+  the room goes round, the signal breaks, and he drops in from off the top of the
+  frame and smashes flat with `all of them.` over his head. post17 is the template
+  for the panel, the two faults and the held thought; post18 for the captions, the
+  gaze and the guards. `lib/` untouched.
   - **Two firsts.** It measures somebody else's assets before it places them —
     five square pngs decoded with ffmpeg for their alpha bounding box, so the
     *ink* is fitted to one height rather than the canvas — and it squashes the
@@ -2761,6 +2772,48 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-06 — a straight walk at a loudness target has a cliff in it, so the loop bisects
+
+post17's and post18's loudness loop walks at the target and stops the moment a pass
+costs more limiting than `MAX_REDUCTION`, keeping whichever earlier pass was
+closest. Every clip in `demo/` carries a copy of it and none had found the hole.
+
+post19's second cut sat at **-21.2 LUFS** on the first pass. The jump the target
+asked for was 7.2 dB. 7.2 cost more than the 5 dB allowance, so the loop stopped
+and kept lift nought — and the film would have gone out seven decibels quiet with
+every guard green, because the guards only checked the limiter and the true peak.
+**Nothing between 0 and 7.2 was ever tried**, and 6.53 was sitting there.
+
+A pass over the allowance is a ceiling now rather than a stop: the last lift under
+it and the first over it bracket the answer, and the loop halves the gap until it
+is under a fifth of a decibel. Eight passes, bracketed between 6.53 and 6.64,
+landing at 6.53 for -15.8 LUFS with 4.98 dB of limiting. There is a guard on the
+answer as well as on the limiter now — under two decibels off the target, which is
+where this house's dark clips land, and it is the seven decibel miss it catches
+rather than the two.
+
+**It lives in `demo/post19.mjs` and it belongs in `lib/sfx.mjs`.** Until it is
+lifted, every other post file still has the cliff in it.
+
+### 2026-09-06 — when the picture is cut to the read, a beat is a word rather than a number
+
+post19's first cut spaced the five model stops half a second apart because the
+brief said so and there was no voice on them. The second cut gave them a voice, and
+half a second stopped being a number anybody could choose: a stop is where its name
+starts being said.
+
+So `clickAt` reads the beat by name — `word(b[1], MARKS_FILES[i].say)` — and the
+label, the mark, the click and the caption card all land on the same frame because
+they are hung off the same word. What the read gives back is 0.81, 0.90, 1.37 and
+0.93 seconds, and the uneven one is `chat g p t` taking four tokens to say. **That
+unevenness is the point**: a picker that sits on a longer name longer is a picker,
+and one that moves on a metronome is a slideshow.
+
+Two things followed. The reel is hung off the last stop instead of being measured
+back off the fault, because the last name now has a length of its own. And the
+caption folds the four spoken tokens of the spelled name back into one drawn word,
+because post18's rule stands: nothing on the screen carries the spelling.
 
 ### 2026-09-05 — five squares are not five marks, and the alpha box is the difference
 

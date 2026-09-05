@@ -1,9 +1,10 @@
 /* the boring tek — post19, which ai do you use.
 
-   about nine seconds on black, 1080x1920. a chat panel asks the question, the
-   model name flicks through five of them with their marks over it, the mascot
-   gets dizzy following the label, the signal breaks and he lands in the middle
-   of the frame flat as gum with the answer over his head: all of them.
+   about eleven seconds on black, 1080x1920. a chat panel asks the question, the
+   voice reads five model names and the label and the mark land on each one as it
+   is said, the mascot gets dizzy following the label, the signal breaks and he
+   lands in the middle of the frame flat as gum with the answer over his head:
+   all of them.
 
      node post19.mjs                      1080x1920, 60fps, dark
      DEMO_FPS=12 node post19.mjs          the fast preview pass
@@ -99,22 +100,44 @@
    module's own leaving frame to the fault, and the fault is the read's own last
    sound plus a beat.
 
-   ---------- it runs about nine seconds and the brief asked for eight ----------
+   ---------- a beat is a word rather than a number ----------
 
-   three things in the brief are fixed lengths and they add up before anything
-   else is drawn: the question is 1.33s of sound, the label cycle is five stops
-   half a second apart and therefore 2.00s with no voice on it, and the answer is
-   3.35s. that is 6.7s of content the brief specified, and on top of it the film
-   still has to raise a panel, break the signal twice, drop a mascot, hold a
-   thought and show a wordmark.
+   the five stops used to be half a second apart, which is a number. the second
+   round gave the names a voice and half a second stopped being anybody's to
+   choose: **a stop is where its name starts being said.** `clickAt` reads the
+   beat by name, so the label, the mark, the click and the caption card all land
+   on one frame because they are all hung off one word.
 
-   it lands at 8.65. the number is printed on every run and the two cuts
-   that would take it under eight are printed with it, because neither of them is
-   free: dropping `the boring part is knowing which one for what` buys 2.4s and
-   the whole point of the clip, and taking the cycle to 0.36s a stop buys 0.56s
-   and stops reading as a picker being flicked through.
+   what the read gives back is 0.81, 0.90, 1.37 and 0.93 seconds between them, and
+   the uneven one is `chat g p t` taking four tokens to say. that unevenness is
+   the point: a picker that sits on a longer name longer is a picker, and one that
+   moves on a metronome is a slideshow.
 
-   ---------- and four things the frames changed after the guards were green ---
+   two things follow. the reel is hung off the last stop rather than measured back
+   off the fault, because the last name now has a length of its own. and the
+   caption folds the spelled name's four spoken tokens back into one drawn word,
+   because post18's rule stands — see SPELLED.
+
+   ---------- and the label starts empty ----------
+
+   the panel used to arrive carrying `Claude`, which made the first stop a click
+   on a name that was already showing. it arrives with the spot empty now and
+   `Claude` is the first thing in it. empty rather than a grey dash, because the
+   house rule is no punctuation dash anywhere a visitor can read. the cell keeps
+   its width either way, so the first name landing moves nothing.
+
+   ---------- it runs eleven seconds, and the eight is two rounds old ----------
+
+   it ran 8.65s with the cycle silent. **giving the names a voice added 2.54s on
+   its own**: the five of them are 4.54s of sound where there were 2.00s of
+   nothing. of the 11.15s, 8.70s is speech.
+
+   the two cuts that would still shorten it are printed at the bottom of every run
+   and neither is free: dropping `the boring part is knowing which one for what`
+   buys 2.4s and the whole point of the clip, and reading the names without the
+   full stops between them buys a few tenths and takes the beat out of the list.
+
+   ---------- and five things the frames changed after the guards were green ---
 
    every one of these was found by looking at a rendered frame, which is what the
    frames are for.
@@ -139,6 +162,12 @@
    **the cards are four words wide with three breaks the read does not carry.**
    three to a card cut this copy into `which ai do`, `is knowing which` and
    `one for what`. see CARD_BREAKS.
+
+   **the loudness loop bisects.** post17's and post18's walked straight at the
+   target and stopped on the first pass it could not keep. post19 sat at -21.2
+   LUFS, the jump the target asked for cost more limiting than the allowance, and
+   the loop kept lift nought — a film seven decibels quiet with every guard green.
+   it brackets and halves now. see the mix.
 */
 
 import puppeteer from 'puppeteer-core';
@@ -208,22 +237,53 @@ const CORNER = 120;
 /* ==========================================================================
    the read
    ==========================================================================
-   two lines, one take each.
+   three lines, one take each.
 
-   the first is on the voice's own rate and pitch, written out rather than left
-   off: the brief asks for the question to be read naturally and `calm`'s own
-   -8% is already what this house means by natural. it is spelled here because
-   `speak()` resolves the default before it caches, so a line that left them out
-   would refetch on every run rather than hit the cache.
+   the first two are on the voice's own rate and pitch, written out rather than
+   left off: the brief asks for the question to be read naturally and for the
+   names to be read the same way, and `calm`'s own -8% is what this house means
+   by natural. they are spelled out here because `speak()` resolves the default
+   before it caches, so a line that left them off would refetch on every run
+   rather than hit the cache.
 
-   the second is a shade quicker with the pitch up, because it is the answer
+   the third is a shade quicker with the pitch up, because it is the answer
    rather than the question and an answer is delivered rather than read.
 
-   `gap` is the silence **after** the line, measured on the waveform. the first
-   one is not a breath: it is the whole label cycle plus the fault plus the fall,
-   and it is derived off those rather than typed. */
+   ---------- the names are one take, and the picture is cut to it ------------
+
+   five names in one breath rather than five takes stitched together: a picker
+   being flicked through is a list, and a person reading a list puts their own
+   spacing in it. **so the clicks are not half a second apart any more — every
+   one of them is the start of its own spoken word**, and the spacing that comes
+   back is 0.81, 0.90, 1.37 and 0.93 seconds. the long one is chat g p t taking
+   four tokens to say, and the label sitting on it longer is the read being
+   honest rather than a beat going wrong.
+
+   a full stop after each name rather than a comma, because each one is a
+   statement and because `cardBreak` breaks on it: one caption card per name,
+   for free.
+
+   ---------- and the name is spelled, because ssml never reaches the engine ---
+
+   post18 paid for this one. `speak()` escapes its input before it builds the
+   ssml — a stray ampersand would otherwise end the document — so a `say-as`
+   written into the copy arrives at the synthesiser as literal angle brackets and
+   is read out. the way to make it land as letters is to **spell it in the copy**,
+   and the evidence is the word list: `chat | g | p | t` comes back as four
+   separate word boundaries where a word would be one, and the guard checks
+   exactly that on every run.
+
+   **nothing on the screen carries the spelling.** the label says `ChatGPT` and
+   the caption says `chatgpt`, folded back into one word from the four spoken
+   tokens by `markLines` — see SPELLED.
+
+   `gap` is the silence **after** the line, measured on the waveform, and neither
+   of the two here is typed: the names follow the question by a beat, and the
+   answer is placed off the landing. */
 const LINES = [
   { text: 'which ai do you use?', rate: '-8%', pitch: '-2Hz', gap: null },
+  { text: 'claude. gemini. chat g p t. grok. copilot.',
+    rate: '-8%', pitch: '-2Hz', gap: null },
   { text: 'all of them. the boring part is knowing which one for what',
     rate: '+2%', pitch: '+2Hz', gap: null },
 ];
@@ -256,12 +316,16 @@ const PRE = 0.06, POST = 0.10, EDGE_FADE = 0.012;
    code: the measurement below reads whatever is on disk. */
 const LOGOS = {
   cx: 270, cy: 158, ink: 88,
+  /* `say` is the read's own word each one's click lands on, by name rather than
+     by index: a rewrite that moves a name has to move the beat with it rather
+     than have the beat quietly move on its own. `chat` is the first of the four
+     tokens the spelled name comes back as. */
   files: [
-    { key: 'claude', name: 'Claude', file: 'logo-claude.png' },
-    { key: 'gemini', name: 'Gemini', file: 'logo-gemini.png' },
-    { key: 'chatgpt', name: 'ChatGPT', file: 'logo-chatgpt.png' },
-    { key: 'grok', name: 'Grok', file: 'logo-grok.png' },
-    { key: 'copilot', name: 'Copilot', file: 'logo-copilot.png' },
+    { key: 'claude', name: 'Claude', file: 'logo-claude.png', say: 'claude' },
+    { key: 'gemini', name: 'Gemini', file: 'logo-gemini.png', say: 'gemini' },
+    { key: 'chatgpt', name: 'ChatGPT', file: 'logo-chatgpt.png', say: 'chat' },
+    { key: 'grok', name: 'Grok', file: 'logo-grok.png', say: 'grok' },
+    { key: 'copilot', name: 'Copilot', file: 'logo-copilot.png', say: 'copilot' },
   ],
   in: 0.24,             /* the pop, with the spring's own overshoot on it */
   from: 0.72,           /* the size it springs up from */
@@ -307,17 +371,29 @@ PANEL.bottom = +(PANEL.y + PANEL.h).toFixed(2);
 PANEL.room = +(PANEL.h - PANEL.pad * 2 - PANEL.textH - PANEL.rowH).toFixed(2);
 
 /* ---------- the model label ----------
-   `Claude` in the page's own ink at 24 css px and `Medium` after it, smaller and
-   in the muted token, which is the site's own grey. the name cycles and the
-   effort word does not, which is the brief. */
+   a name in the page's own ink at 24 css px and `Medium` after it, smaller and in
+   the muted token, which is the site's own grey. the name cycles and the effort
+   word does not, which is the brief.
+
+   ---------- and the name spot is empty while the question types -------------
+
+   the panel used to arrive carrying `Claude`, which made the first click a stop
+   on a name that was already showing. the brief asks for the spot to be empty
+   until the question is finished, so `Claude` is the **first** thing that
+   appears there rather than the thing that was there all along.
+
+   it is empty rather than a grey dash, and that is the brand rather than taste:
+   the house rule is no punctuation dash anywhere a visitor can read, and a
+   standing dash in a picture of a ui is exactly the argument nobody should have
+   to have. the cell keeps its own width either way, so nothing moves when the
+   first name lands — which is the whole reason the cell is fixed. */
 const MODEL = { size: 24, effSize: 16, eff: 'Medium', gap: 7 };
 const CYCLE = {
-  step: 0.50,           /* between two stops, which is the brief's half second */
-  lead: 0.12,           /* after the question's own last sound, the first stop */
-  /* on the last name, before the signal breaks. it is not a pause: it is the
-     room the dizziness needs, and `DIZZY.for` is measured back off the fault, so
-     shortening this shortens the reel. */
-  hold: 0.46,
+  /* the silence between the question and the names. the stops themselves are not
+     spaced by a number any more: each one is the start of its own spoken word.
+     see the read. */
+  lead: 0.24,
+  hold: 0.30,           /* after the last name's own sound, before the break */
 };
 
 /* ---------- the fall and the smash ----------
@@ -401,6 +477,19 @@ const CAP = {
    which `cardBreak` breaks on and which is dropped again before a card is drawn.
    nothing about the audio or the timing can move. */
 const CARD_BREAKS = ['ai', 'is', 'one'];
+/* ---------- and the spelled name is folded back into one word ----------
+   the read says `chat g p t` because that is the only way to make the engine read
+   letters as letters — see the read. the caption must not: four cards reading
+   chat, g, p and t is the spelling on the screen, which is exactly what post18
+   said nothing may carry.
+
+   so the four tokens are folded into one drawn word spanning from the first's
+   start to the last's end, keeping whatever punctuation the last one carried so
+   the card still breaks after it. `from` and `to` are read words by name and each
+   has to match exactly one, the same discipline the breaks keep. the copy is
+   lowercase because the captions are: the label above is where the name is set
+   the way its owner sets it. */
+const SPELLED = [{ from: 'chat', to: 't', as: 'chatgpt' }];
 
 /* ---------- the wordmark ----------
    post17's, unchanged: three lines on the middle of the safe band, in michroma,
@@ -442,7 +531,7 @@ const VOICE_TRIM = -1.5;
 const MAX_REDUCTION = 5.0;
 /* the window the film can honestly be with these three fixed lengths in it. see
    the header for the arithmetic and for the two cuts that would move it. */
-const RUN = { min: 8.1, max: 9.1 };
+const RUN = { min: 10.7, max: 11.7 };
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -769,9 +858,10 @@ function word(beat, name) {
   return w;
 }
 
-const cycleAt = b => +(b[0].sound.end + CYCLE.lead).toFixed(4);
-const clickAt = (b, i) => +(cycleAt(b) + i * CYCLE.step).toFixed(4);
-const glaAt = b => +(clickAt(b, NAMES.length - 1) + CYCLE.hold).toFixed(4);
+/* every stop is the start of its own spoken word, by name. the picture is cut to
+   the read here exactly as the typing is. */
+const clickAt = (b, i) => word(b[1], MARKS_FILES[i].say).start;
+const glaAt = b => +(b[1].sound.end + CYCLE.hold).toFixed(4);
 /* the fall starts on the fault's own first frame and lands a beat after it
    clears, so he falls through the whole tear. see DROP. */
 const dropAt = b => +(glaAt(b) + DROP.lead).toFixed(4);
@@ -781,9 +871,14 @@ function gapFor(i, beats) {
   const floor = LINES[i].gap == null ? 0.24 : LINES[i].gap;
   const soundEnd = beats[i].sound.end;
   let want = floor;
+  /* the names follow the question by a beat. the question's own sound ends after
+     its last character is typed, so the first stop cannot land while the panel is
+     still filling however this number is set — and the guard says so rather than
+     leaving it to be inferred. */
+  if (i === 0) want = CYCLE.lead;
   /* the answer starts a breath before he hits, so "all" is in the air and "them"
      lands on the splat. */
-  if (i === 0) want = landAt(beats) - DROP.voiceLead - soundEnd;
+  if (i === 1) want = landAt(beats) - DROP.voiceLead - soundEnd;
   return +Math.max(floor, want).toFixed(4);
 }
 
@@ -808,6 +903,10 @@ const CAP_OUT = +Math.max(...cap.groups.map(g => g.out)).toFixed(4);
 /* ---------- and now every number in the film, once ---------- */
 const TYPING = typeToWords(PANEL.typed, B[0].words, 0x19c4a7);
 const CLICKS = NAMES.map((_, i) => clickAt(B, i));
+/* the whole cycle, end to end, so the report can say what the read spaced it at
+   rather than what a constant asked for. */
+const CYCLE_FOR = +(CLICKS[CLICKS.length - 1] - CLICKS[0]).toFixed(4);
+const CYCLE_GAPS = CLICKS.slice(1).map((t, i) => +(t - CLICKS[i]).toFixed(3));
 const GLA_AT = glaAt(B);
 const DROP_AT = dropAt(B);
 const LAND_AT = landAt(B);
@@ -839,7 +938,7 @@ const FAULT_LEAD = 0.16;
    a signal breaking through a card still on the frame is a cut landing on a
    word. it is the read here by a hair either way, and the arithmetic says which
    on every run rather than a number typed once and left. */
-const FAULT_AT = +Math.max(B[1].sound.end + FAULT_LEAD, CAP_OUT + 0.05).toFixed(4);
+const FAULT_AT = +Math.max(B[2].sound.end + FAULT_LEAD, CAP_OUT + 0.05).toFixed(4);
 const HOLD_EXTRA = +Math.max(0, FAULT_AT - BUB_LEAVING).toFixed(4);
 const GLB_AT = +(BUB_LEAVING + HOLD_EXTRA).toFixed(4);
 const SECONDS = +(GLB_AT + END_HOLD).toFixed(4);
@@ -862,9 +961,14 @@ const WM_IN = (CUT_B - 1) / FPS;
    signal breaking rather than running on into a frame he is not on. it starts a
    breath before the fifth stop, which is what makes it read as the last switch
    being one too many. */
-const DIZZY = { for: 0.62, ex: 1.5, ey: 1.1, rot: 2.6, turns: 1.6 };
-DIZZY.end = GLA_AT;
-DIZZY.at = +(GLA_AT - DIZZY.for).toFixed(4);
+const DIZZY = { for: 0.80, lead: 0.16, ex: 1.5, ey: 1.1, rot: 2.6, turns: 1.6 };
+/* it starts a breath **before the last name is said** rather than being measured
+   back off the fault, which is what the first cut did when the stops were half a
+   second apart and the fault was the only thing near them. now the last name has
+   a voice on it and a length of its own, so the reel is hung off the stop: it is
+   building as `copilot` lands, peaks on it, and dies before the signal breaks. */
+DIZZY.at = +(CLICKS[CLICKS.length - 1] - DIZZY.lead).toFixed(4);
+DIZZY.end = +(DIZZY.at + DIZZY.for).toFixed(4);
 const BLINK_WINDOW = [+(DIZZY.at - 0.10).toFixed(4), +(GLA_AT - 0.04).toFixed(4)];
 const blinkEnd = b => +(b.t + b.close + b.hold + b.open).toFixed(4);
 const blinksNear = pl => pl.idle.blinks.filter(b => blinkEnd(b) > BLINK_WINDOW[0] && b.t < BLINK_WINDOW[1]);
@@ -1242,10 +1346,8 @@ function frameAt(t, f) {
     o: goneA ? 0 : +GLIDE(span(t, PANEL.at, PANEL.at + PANEL.in)).toFixed(4),
     n: pn, ph: pn ? 0 : 1,
     caret: ((t - PANEL.at) % PANEL.caretFor) < PANEL.caretFor / 2 ? 1 : 0,
-    /* which of the five the label reads. it is `Claude` before the first stop
-       because that is what the panel arrives carrying, and the first stop lands
-       on it again — the picker is being flicked through from where it already
-       was, which is why there are five clicks and five marks rather than four. */
+    /* which of the five the label reads, or -1 for none: the spot is empty until
+       the question is finished and `Claude` is the first thing in it. */
     model: modelAt(t),
   };
 
@@ -1282,8 +1384,11 @@ function frameAt(t, f) {
   return { t: +t.toFixed(4), f, mas, mo, gz, dz, kq, dy, panel, logos, wm, vig, g };
 }
 
+/* which of the five the label reads, or **-1 for none of them**, which is what it
+   reads while the question is typing: the panel arrives with the name spot empty
+   and `Claude` is the first thing to appear in it. see MODEL. */
 function modelAt(t) {
-  let k = 0;
+  let k = -1;
   for (let i = 0; i < CLICKS.length; i++) if (t >= CLICKS[i] - 1e-9) k = i;
   return k;
 }
@@ -1320,16 +1425,42 @@ function markLines(beats) {
         + 'has to match exactly one');
     }
   }
+  for (const f of SPELLED) {
+    for (const end of ['from', 'to']) {
+      const n = all.filter(x => x === f[end]).length;
+      if (n !== 1) {
+        throw new Error('the spelled name\'s "' + f[end] + '" matches ' + n + ' words in the '
+          + 'read, and it has to match exactly one');
+      }
+    }
+  }
+  const folds = [];
   for (const b of beats) {
-    b.words.forEach((w, k) => {
+    for (let k = 0; k < b.words.length; k++) {
+      const w = b.words[k];
+      const f = SPELLED.find(x => bareOf(w.word) === x.from);
+      if (f) {
+        let j = k;
+        while (j < b.words.length && bareOf(b.words[j].word) !== f.to) j++;
+        if (j >= b.words.length) {
+          throw new Error('the spelled name starts at "' + f.from + '" and never reaches "'
+            + f.to + '" in "' + b.text + '"');
+        }
+        const tail = (b.words[j].word.match(/[.!?,;:]["')\]]?$/) || [''])[0];
+        folds.push({ as: f.as, tokens: j - k + 1, start: w.start, end: b.words[j].end });
+        out.push({ word: f.as + tail, start: w.start, end: b.words[j].end });
+        if (!tail) marked.push(f.as);
+        k = j;
+        continue;
+      }
       const last = k === b.words.length - 1;
       const already = /[.!?,;:]["')\]]?$/.test(w.word);
       const wanted = last || CARD_BREAKS.includes(bareOf(w.word));
       if (wanted && !already) marked.push(w.word);
       out.push({ word: wanted && !already ? w.word + ',' : w.word, start: w.start, end: w.end });
-    });
+    }
   }
-  return { words: out, marked };
+  return { words: out, marked, folds };
 }
 
 /* ==========================================================================
@@ -1590,7 +1721,7 @@ ${MARKS_FILES.map((m, i) => '  <div class="mark" id="mark' + i + '" aria-hidden=
       <span class="panel-right">
         <span class="mic"><span class="mic-cap"></span><span class="mic-arc"></span><span class="mic-stem"></span></span>
         <span class="wave">${[7, 13, 20, 12, 6].map(h => '<span style="height:' + h + 'px"></span>').join('')}</span>
-        <span class="pn-model"><span class="pn-name" id="pn-name">${NAMES[0]}</span><span class="pn-eff">${MODEL.eff}</span></span>
+        <span class="pn-model"><span class="pn-name" id="pn-name"></span><span class="pn-eff">${MODEL.eff}</span></span>
       </span>
     </div>
   </div>
@@ -1819,7 +1950,9 @@ function scenePage() {
       panel.style.setProperty('--pn-car', (o.panel.o > 0.02 ? o.panel.caret : 0).toFixed(3));
       const want = P.PANEL.typed.slice(0, o.panel.n);
       if (panelLine.textContent !== want) panelLine.textContent = want;
-      const nm = P.NAMES[o.panel.model];
+      /* -1 is the empty spot the panel arrives with. the cell keeps its own
+         width, so the first name landing moves nothing. */
+      const nm = o.panel.model < 0 ? '' : P.NAMES[o.panel.model];
       if (pnName.textContent !== nm) pnName.textContent = nm;
       panel.style.visibility = o.panel.o > 0.002 ? 'visible' : 'hidden';
 
@@ -2289,15 +2422,19 @@ function soundCues() {
 console.log('the boring tek — post19, which ai do you use');
 console.log('');
 
-console.log('the read — two takes, ' + VOICE + ', one per line, delivery per line');
+console.log('the read — three takes, ' + VOICE + ', one per line, delivery per line');
 for (const b of B) {
   console.log('  ' + b.sound.start.toFixed(2) + '..' + b.sound.end.toFixed(2) + 's  rate '
     + b.rate.padStart(4) + ' pitch ' + b.pitch.padStart(5) + '  ' + b.wps.toFixed(2) + ' wps  '
     + (b.cached ? 'cached' : 'fetched') + '  "' + b.text + '"');
 }
 console.log('  ' + B.reduce((a, b) => a + (b.sound.end - b.sound.start), 0).toFixed(2)
-  + 's of sound in all, and the silence between them is ' + V.gaps[0].toFixed(2)
-  + 's — the label cycle, the fault and the fall, derived off the picture');
+  + 's of sound in all, and the silences between them are '
+  + V.gaps.map(g => g.toFixed(2)).join(', ') + 's — a beat after the question, and then '
+  + 'the fault and the fall');
+console.log('  the name is spelled in the copy so the engine reads it as letters: the word list '
+  + 'came back as ' + B[1].words.slice(2, 6).map(w => '"' + w.word + '"').join(', ')
+  + ', four boundaries where a word would be one');
 console.log('');
 
 console.log('the marks — five files, measured, then placed');
@@ -2309,6 +2446,15 @@ for (const m of MARKS_FILES) {
 console.log('  all five inks land ' + LOGOS.ink + ' css px tall (' + (LOGOS.ink * DSF)
   + ' device) centred on ' + LOGOS.cx + ',' + LOGOS.cy + ' — see the header for why the '
   + 'canvas is not the mark');
+console.log('');
+
+console.log('the cycle, cut to the read rather than spaced by a number');
+for (let i = 0; i < NAMES.length; i++) {
+  console.log('  ' + CLICKS[i].toFixed(2) + 's  ' + NAMES[i].padEnd(8) + 'on the read\'s own "'
+    + MARKS_FILES[i].say + '"' + (i ? '  +' + CYCLE_GAPS[i - 1].toFixed(2) + 's' : ''));
+}
+console.log('  ' + CYCLE_FOR.toFixed(2) + 's end to end, and the label spot is empty until the '
+  + 'first of them at ' + CLICKS[0].toFixed(2) + 's');
 console.log('');
 
 console.log('the typing');
@@ -2337,7 +2483,8 @@ console.log('  the mark row: ink ' + LOGOS.ink + ' tall at ' + LOGOS.cx + ',' + 
 console.log('  the panel: ' + PANEL.w + ' x ' + PANEL.h + ' at ' + PANEL.x + ',' + PANEL.y
   + ', ' + PANEL.room.toFixed(1) + ' css of air between its two blocks');
 console.log('  the label: "' + NAMES.join('", "') + '" in a ' + NAME_CELL
-  + ' css cell at ' + LABEL_PT[0] + ',' + LABEL_PT[1] + ', with "' + MODEL.eff + '" after it');
+  + ' css cell at ' + LABEL_PT[0] + ',' + LABEL_PT[1] + ', with "' + MODEL.eff + '" after it, '
+  + 'and the cell empty until ' + CLICKS[0].toFixed(2) + 's');
 console.log('  him, under the panel: plate ' + (HEAD.plate.s * plan.unit * SC_A).toFixed(1)
   + ' css / ' + (plan.headPx * SC_A).toFixed(0) + ' device px at ' + MAS.cx + ',' + CY_A
   + ' — his corner size, the card scaled ' + SC_A);
@@ -2357,19 +2504,19 @@ console.log('the beats');
 const beats = [
   [0, 'black, empty'],
   [PANEL.at, 'the panel fades in over ' + PANEL.in.toFixed(2) + 's, placeholder "'
-    + PANEL.placeholder + '", label "' + NAMES[0] + ' ' + MODEL.eff + '"'],
+    + PANEL.placeholder + '", the name spot empty and "' + MODEL.eff + '" after it'],
   [MAS_IN, 'he fades up under it, at his corner size'],
   [M_CURIOUS, 'curious: he watches the panel'],
   [TYPING.from, 'the question starts typing, cut to the read word by word'],
   ...B[0].words.map(w => [w.start, '  "' + w.word + '"']),
-  [TYPING.until, 'the question is in'],
-  ...CLICKS.map((t, i) => [t, '  the picker clicks to ' + NAMES[i] + ', the mark pops in above, '
-    + 'and his head turns to the label']),
+  [TYPING.until, 'the question is in, and the label spot is still empty'],
+  ...CLICKS.map((t, i) => [t, '  "' + NAMES[i].toLowerCase() + '" — the picker clicks to '
+    + NAMES[i] + ', the mark pops in above, and his head turns to the label']),
   [DIZZY.at, 'and the room goes round, ' + DIZZY.for.toFixed(2) + 's of it'],
   [BLINK_AT, '  the blink, ' + (SEED.len * 1000).toFixed(0) + 'ms of lid, off the idle layer'],
   [GLA_AT, 'the first fault, ' + GLA.for.toFixed(2) + 's of it — the panel, the mark and him'],
   [DROP_AT, 'he falls, from ' + DROP.from + ' css px up, on p squared'],
-  [B[1].sound.start, 'the answer starts'],
+  [B[2].sound.start, 'the answer starts'],
   [LAND_AT, 'he lands, and the splat with him'],
   [LAND_AT + SMASH.flat, '  flat: ' + (1 + SMASH.k).toFixed(2) + ' wide by '
     + (1 / (1 + SMASH.k)).toFixed(2) + ' tall, chin on the ground'],
@@ -2397,8 +2544,23 @@ const under = checkUnderVoice(mix.voiceOut, mix.bus);
 const baseMix = mix.out.slice();
 const passes = [];
 const miss = q => Math.abs(q - TARGET_LUFS);
+/* ---------- and it bisects rather than stopping on the first pass it cannot keep
+   post17's and post18's loop walked straight at the target and stopped the moment
+   a pass cost more limiting than the allowance, keeping whichever earlier pass was
+   closest. **post19 fell off the cliff that leaves.** the first pass sat at -21.2
+   LUFS, the jump the target asked for was 7.2 dB, and 7.2 cost more than the 5 dB
+   allowance — so the loop stopped and kept lift nought, and the film went out
+   seven decibels quiet. nothing in between was ever tried.
+
+   so a pass that is over the allowance is a **ceiling** rather than a stop: the
+   last lift under it and the first one over it bracket the answer, and the loop
+   halves the gap until it is under a fifth of a decibel. it still keeps its best
+   pass rather than its last, and it still refuses to buy loudness with limiting —
+   the only thing that changed is that it now looks between the two numbers it
+   already has instead of giving up between them. */
 let lift = 0, best = null;
-for (let i = 0; i < 12; i++) {
+let liftUnder = 0, liftOver = null;     /* a lift inside the allowance, and one outside */
+for (let i = 0; i < 14; i++) {
   mix.out.set(baseMix);
   if (lift) applyGain(mix.out, lift);
   const l = limit(mix.out, WAV_CEILING);
@@ -2410,11 +2572,17 @@ for (let i = 0; i < 12; i++) {
   /* the ceiling wins when it wins, and it is post12's and post14's argument: a
      read with a lot of crest on it buys its last decibels of loudness entirely
      with limiting, and that is not louder, it is denser. */
-  if (l.reduction <= MAX_REDUCTION && (!best || miss(m.lufs) < miss(best.lufs))) {
-    best = { ...pass, kept: true };
+  const ok = l.reduction <= MAX_REDUCTION;
+  if (ok && (!best || miss(m.lufs) < miss(best.lufs))) best = { ...pass, kept: true };
+  if (ok && Math.abs(m.lufs - TARGET_LUFS) < 0.25) break;
+  if (ok) liftUnder = lift; else liftOver = lift;
+  if (liftOver == null) {
+    /* still climbing, and the target says how far. */
+    lift = +(lift + (TARGET_LUFS - m.lufs)).toFixed(2);
+  } else {
+    if (liftOver - liftUnder < 0.2) break;
+    lift = +((liftUnder + liftOver) / 2).toFixed(2);
   }
-  if (Math.abs(m.lufs - TARGET_LUFS) < 0.25 || l.reduction > MAX_REDUCTION) break;
-  lift = +(lift + (TARGET_LUFS - m.lufs)).toFixed(2);
 }
 mix.out.set(baseMix);
 if (best && best.lift) applyGain(mix.out, best.lift);
@@ -2435,7 +2603,9 @@ console.log(describeMix(sfx.report, {
       + under.worst.at.toFixed(2) + 's), over ' + under.windows + ' windows a word is in'
     : under.over.length + ' windows have the bus over the voice, the worst at '
       + under.over[0].t + 's',
-  'the loudness loop': passes.length + ' passes, kept lift ' + (best ? best.lift.toFixed(2) : '?')
+  'the loudness loop': passes.length + ' passes, bisected between ' + liftUnder.toFixed(2)
+    + ' and ' + (liftOver == null ? 'no ceiling' : liftOver.toFixed(2)) + ' dB, kept lift '
+    + (best ? best.lift.toFixed(2) : '?')
     + ' dB at ' + (after.lufs == null ? '?' : after.lufs) + ' LUFS, limiter took '
     + (lim.reduction > 0.01 ? lim.reduction.toFixed(2) + ' dB' : 'nothing')
     + ', allowance ' + MAX_REDUCTION,
@@ -2499,12 +2669,15 @@ console.log('  the smash reached ' + state.squash.k.toFixed(3) + ' at ' + state.
   + state.step.px + ' css px at ' + state.step.t + 's');
 console.log('  a still per beat in ' + path.relative(ROOT, VERIFY));
 console.log('');
-console.log('  the clock, against the brief\'s eight: ' + SECONDS.toFixed(2) + 's, of which '
-  + B.reduce((a, b) => a + (b.sound.end - b.sound.start), 0).toFixed(2) + 's is speech, '
-  + ((CLICKS.length - 1) * CYCLE.step).toFixed(2) + 's is the label cycle with no voice on it, '
-  + (GLB_AT - BUB.in).toFixed(2) + 's is the thought and ' + (SECONDS - WM_IN).toFixed(2)
-  + 's is the end card. the two cuts that would take it under eight: dropping "the boring part '
-  + 'is knowing which one for what" off the answer, and taking the cycle to 0.36s a stop');
+console.log('  the clock: ' + SECONDS.toFixed(2) + 's, of which '
+  + B.reduce((a, b) => a + (b.sound.end - b.sound.start), 0).toFixed(2) + 's is speech — '
+  + (B[1].sound.end - B[1].sound.start).toFixed(2) + 's of it the five names, which used to be '
+  + '2.00s of silence. the thought is ' + (GLB_AT - BUB.in).toFixed(2) + 's and the end card '
+  + (SECONDS - WM_IN).toFixed(2) + 's.');
+console.log('  the brief\'s eight is two rounds old now: giving the names a voice added '
+  + ((B[1].sound.end - B[1].sound.start) - 2.00).toFixed(2) + 's on its own. the two cuts that '
+  + 'would still shorten it: dropping "the boring part is knowing which one for what" off the '
+  + 'answer, and reading the names without the full stops between them');
 
 if (!KEEP && !ONLY_ENCODE) {
   fs.rmSync(FRAMES, { recursive: true, force: true });
@@ -2530,20 +2703,38 @@ check(SECONDS >= RUN.min && SECONDS <= RUN.max,
 
 /* ---------- the read ---------- */
 check(B.every(b => b.timing === 'engine'),
-  'both takes\' word times come off the engine rather than off an estimate');
+  'all three takes\' word times come off the engine rather than off an estimate');
 check(Math.abs(B[0].sound.start - VOICE_AT) < 0.001,
   'the first take\'s own sound starts on VOICE_AT: ' + B[0].sound.start.toFixed(3)
   + 's, measured off the waveform rather than off the word list');
-check(new Set(LINES.map(l => l.rate + l.pitch)).size === 2,
+check(new Set(LINES.map(l => l.rate + l.pitch)).size >= 2,
   'the delivery is per line rather than per clip: '
-  + LINES.map(l => l.rate + '/' + l.pitch).join(', '));
-check(V.gaps[0] > (CLICKS.length - 1) * CYCLE.step,
-  'the silence after the question is ' + V.gaps[0].toFixed(2) + 's, which is the whole cycle ('
-  + ((CLICKS.length - 1) * CYCLE.step).toFixed(2) + 's) plus the fault and the fall — derived off '
-  + 'the picture rather than typed');
-check(!/chatgpt/i.test(LINES.map(l => l.text).join(' ')),
-  'the read never says the name at all, so the "chat g p t spelled out" rule cannot be broken: '
-  + 'the five names are on the screen and nowhere in the copy the voice is handed');
+  + LINES.map(l => l.rate + '/' + l.pitch).join(', ') + ' — the question and the names are read '
+  + 'on the voice\'s own numbers, which is the brief\'s natural, and the answer is delivered');
+check(Math.abs(V.gaps[0] - CYCLE.lead) < 1e-6,
+  'the names follow the question by ' + V.gaps[0].toFixed(2) + 's of silence, and the second gap '
+  + 'is ' + V.gaps[1].toFixed(2) + 's — the fault and the fall, derived off the picture rather '
+  + 'than typed');
+{
+  /* the name is spelled in the copy so the engine reads it as letters, and the
+     word list is the evidence: four tokens where a word would be one. */
+  const spelled = B[1].words.slice(2, 6).map(w => bareOf(w.word));
+  check(spelled.join(' ') === 'chat g p t',
+    'the read spells the name rather than saying it: the engine handed back '
+    + spelled.map(w => '"' + w + '"').join(', ') + ' as separate word boundaries, which is what '
+    + 'makes it "chat g p t" rather than "chatgpt"');
+  check(!/chatgpt/i.test(LINES.map(l => l.text).join(' ')),
+    'and the joined form is nowhere in the copy the voice is handed, because ssml never reaches '
+    + 'the engine — speak() escapes its input. see the read');
+  const drawn = cap.groups.flatMap(g => g.words.map(w => w.word));
+  check(drawn.includes('chatgpt') && !drawn.includes('chat') && !drawn.includes('g'),
+    'and nothing on the screen carries the spelling: the caption draws "chatgpt" as one word, '
+    + 'folded from the four spoken tokens, and the label says "' + NAMES[2] + '"');
+  check(CUT.folds.length === 1 && CUT.folds[0].tokens === 4,
+    'the fold is ' + CUT.folds[0].tokens + ' tokens wide and spans '
+    + CUT.folds[0].start.toFixed(2) + '..' + CUT.folds[0].end.toFixed(2) + 's, which is the '
+    + 'whole of what was said rather than a word laid over part of it');
+}
 
 /* ---------- the typing ---------- */
 check(TYPING.from === B[0].words[0].start
@@ -2645,16 +2836,31 @@ if (state.meas) {
 
 /* ---------- the label ---------- */
 check(CLICKS.length === NAMES.length && CLICKS.every((t, i) => i === 0 || t > CLICKS[i - 1]),
-  'five stops, ' + CYCLE.step.toFixed(2) + 's apart: '
-  + NAMES.map((n, i) => n + ' at ' + CLICKS[i].toFixed(2)).join(', '));
+  'five stops, and every one of them is the start of its own spoken word rather than a number: '
+  + NAMES.map((n, i) => n + ' on "' + MARKS_FILES[i].say + '" at ' + CLICKS[i].toFixed(2)).join(', '));
+check(CLICKS.every((t, i) => Math.abs(t - word(B[1], MARKS_FILES[i].say).start) < 1e-9),
+  'each one lands on the frame its name starts being said on, to the millisecond, and the gaps '
+  + 'the read put between them are ' + CYCLE_GAPS.map(g => g.toFixed(2)).join(', ') + 's — the '
+  + 'long one is chat g p t taking four tokens to say');
 {
   const seen = CLICKS.map(t => frameAt(t + 0.01, Math.round((t + 0.01) * FPS)).panel.model);
   check(seen.every((k, i) => k === i),
     'and the label reads them in order: ' + seen.map(k => NAMES[k]).join(', '));
-  const first = frameAt(PANEL.at + PANEL.in, Math.round((PANEL.at + PANEL.in) * FPS)).panel.model;
-  check(first === 0,
-    'the panel arrives carrying "' + NAMES[0] + '", which is why there are five clicks and not '
-    + 'four: the first one lands on the name it is already showing and brings its mark with it');
+  /* the spot is empty for the whole of the panel arriving and the question
+     typing, and `Claude` is the first thing in it. walked rather than sampled,
+     because a single frame either side of the boundary proves nothing about the
+     four seconds between them. */
+  let filled = null;
+  for (let f = 0; f < Math.round(CLICKS[0] * FPS); f++) {
+    if (frameAt(f / FPS, f).panel.model >= 0) { filled = +(f / FPS).toFixed(2); break; }
+  }
+  check(filled === null,
+    'and the name spot is empty on every frame before the first stop: nothing is in it while the '
+    + 'panel arrives or while the question types, so "' + NAMES[0] + '" is the first thing to '
+    + 'appear there rather than the thing that was there all along');
+  check(TYPING.until < CLICKS[0],
+    'the question is fully typed at ' + TYPING.until.toFixed(2) + 's and the first stop is at '
+    + CLICKS[0].toFixed(2) + ', ' + (CLICKS[0] - TYPING.until).toFixed(2) + 's later');
 }
 if (state.meas) {
   const n = state.meas.name;
@@ -2940,12 +3146,25 @@ if (state.caps) {
 
 /* ---------- the captions ---------- */
 {
-  const said = V.words.map(w => w.word.replace(/[.,]$/, ''));
+  /* the cards are checked against the marked and folded list rather than against
+     the raw read, because one drawn word is deliberately not one spoken word: the
+     spelled name is four tokens on the wire and one word on the screen. the
+     arithmetic of that is checked on the line under it, so the fold cannot quietly
+     swallow anything else. */
+  /* a full stop and a comma are dropped before a card is drawn and a question
+     mark is not, which is captions.mjs' own rule and is right: the mark is the
+     sentence. so the strip here is the same two characters and no more. */
+  const said = CUT.words.map(w => w.word.replace(/[.,]$/, ''));
   const drawn = cap.groups.flatMap(g => g.words.map(w => w.word));
   check(said.length === drawn.length && said.every((w, i) => w === drawn[i]),
-    'the cards carry the words the voice actually said, in order, and **both lines are '
+    'the cards carry the words the voice said, in order, and **all three lines are '
     + 'captioned**, which is the brief: ' + drawn.length + ' drawn against ' + said.length
-    + ' spoken');
+    + ' after the fold');
+  const swallowed = CUT.folds.reduce((a, f) => a + f.tokens - 1, 0);
+  check(V.words.length - swallowed === CUT.words.length,
+    'and the only difference between the ' + V.words.length + ' words the voice said and the '
+    + CUT.words.length + ' the band draws is the fold: ' + swallowed + ' token(s) swallowed by '
+    + CUT.folds.length + ' spelled name, and nothing else');
   const cards = cap.groups.map(g => g.words.map(w => w.word).join(' '));
   check(cards.every(c => c.split(' ').length <= CAP.perCard),
     'the cards are ' + cards.map(c => '"' + c + '"').join(', ') + ' \u2014 four words at the most, '
@@ -2953,7 +3172,7 @@ if (state.caps) {
   check(CAP_OUT < GLB_AT,
     'the last card is out at ' + CAP_OUT.toFixed(2) + 's, before the fault at ' + GLB_AT.toFixed(2)
     + ' — and the fault is derived off whichever of the two finishes last, which here is '
-    + (B[1].sound.end + FAULT_LEAD >= CAP_OUT + 0.05 ? 'the read' : 'the last card'));
+    + (B[2].sound.end + FAULT_LEAD >= CAP_OUT + 0.05 ? 'the read' : 'the last card'));
 }
 if (state.built && state.built.capRefit) {
   const r = state.built.capRefit;
@@ -3058,6 +3277,18 @@ check(under.over.length === 0,
   + under.windows + ' windows a word is actually being spoken in');
 check(lim.reduction <= MAX_REDUCTION,
   'the limiter took ' + lim.reduction.toFixed(2) + ' dB, allowance is ' + MAX_REDUCTION);
+if (after && after.ok) {
+  /* two decibels, which is where this house's dark clips land: post17, post18 and
+     post19's first cut all stopped a decibel or so under the target because the
+     allowance ran out first, and that is the trade the allowance exists to make.
+     what this catches is the seven decibel miss, not the two. */
+  check(after.lufs >= TARGET_LUFS - 2.0,
+    'and the loop got within ' + Math.abs(after.lufs - TARGET_LUFS).toFixed(2) + ' dB of '
+    + TARGET_LUFS + ' LUFS over ' + passes.length + ' passes, bisecting between a lift the '
+    + 'allowance holds and one it does not — the straight walk this loop used to do stopped at '
+    + 'the first pass it could not keep and would have shipped this film at '
+    + passes[0].lufs.toFixed(1));
+}
 if (lu && lu.ok) {
   check(lu.truePeak <= PEAK_CEILING + 0.15,
     'the mp4\'s true peak is ' + lu.truePeak + ' dBFS against a ' + PEAK_CEILING + ' ceiling');
