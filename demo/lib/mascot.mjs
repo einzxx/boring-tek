@@ -887,10 +887,22 @@ export const HANDS = {
      lands 27.06 by 26.08 grid units against a 60 unit head. the sheet's own is
      110 by 106 px against a 244 px head, which is 27.0 by 26.1. */
   box: 32.5,
-  /* the page coloured outline, in grid units: three device px at size 128 and
-     three and a half at 148, against a reference whose own finger lines are
-     four and a quarter at the first of those. */
-  edge: 0.75,
+  /* the page coloured outline, in grid units: **one and a half device px at
+     size 128** and one and three quarters at 148, against a reference whose own
+     finger lines are four and a quarter at the first of those.
+
+     it was 0.75 — three device px — for one build, and the review called it
+     bold. it is a **separation** rather than a drawn line: all it has to do is
+     say that the hand is in front of the face and not part of it, and at three
+     px it was doing that by drawing a black border round the glove, which is a
+     sticker. halved it is a hairline that reads as a cut.
+
+     **what this costs is h.264, and it is worth writing down.** the encoder
+     eats thin dark lines on white first; at crf 17 and 1080 wide, three device
+     px survives cleanly and one and a half softens. it is a deliberate trade
+     and the guard below now asserts the thin band rather than the thick one, so
+     nothing can drift back without a decision. */
+  edge: 0.375,
   /* a hand goes with the head on a turn and it goes less far than an eye does,
      for the same reason the yap hand does — it is held in front of the face
      rather than wrapped around it. the card's own squeeze already pulls the
@@ -902,6 +914,28 @@ export const HANDS = {
      reason: a path that closes is a path a viewer starts to recognise. the two
      hands are given different ones, so the pair never moves as one object. */
   idle: { amp: 0.42, rot: 1.15, period: [6.7, 5.9], rotPeriod: [8.3, 7.1] },
+  /* ---------- how long the brows take to get out of the way ----------
+     it is **the brows' own entrance and not the hand's travel**, and that
+     distinction is the whole of a bug the first cut shipped.
+
+     a pose that covers the face gates the brows off — see `hcover` — and the
+     gate was written on the pose's own `entry`, which for a facepalm is 1.02s
+     because that is how long a hand takes to cross a head. the state under it
+     raises its brows in 0.30s. so the brows went up to **0.725** and then took
+     most of a second to dim, which is not hidden, it is grey: the review saw
+     exactly that and said so.
+
+     the two are racing, so the gate has to be quicker than the thing it is
+     cancelling. `unimpressed` raises its brows over 0.30s on the calm curve and
+     `surprised` over 0.20s on the snap; the gate starts on the mark and closes
+     in this, which leaves the drawn brow under **four thousandths** under the
+     first and under **four hundredths** under the second, for two frames. that
+     is not a brow, it is a rounding error.
+
+     and there is room to be this quick, because the ceiling is not tight: a
+     brow under `surprised` already steps **0.429** of its own opacity in one
+     frame, and the worst this gate writes is 0.034. */
+  coverFor: 0.18,
 };
 
 /* the file's own frame, which every wrist and every `d` above is written in. */
@@ -1150,16 +1184,25 @@ export const HAND_POSES = {
     label: 'one hand over the face, fingers folded over the crown',
     shape: 'facepalm',
     entry: 1.02, hold: 1.30, exit: 0.34, both: false,
-    /* **it lands on the other half of the face from the sheet's own panel.**
-       the sheet drops the hand onto the side of the forehead the acting hand
-       comes from; on screen that reads as a hand resting beside the face rather
-       than over it, because the wrist enters at the edge nearest it and the
-       fingers fan away toward nothing. mirrored, the wrist enters near the
-       middle and the fingers fan across the crown, which is the gesture. it is
-       the one pose in the table written against the reference rather than off
-       it, and the reflection is exact: 64 minus the number it was. */
-    at: { x: 35.5, y: 32.0, rot: 0, sc: 1.06 },
-    mark: { chan: 'x', to: 35.5 },
+    /* **read off the sheet's own grid, and it took two passes to get there.**
+       `demo/out/poses/ref-grid.mjs` draws the card's 64 unit grid over the
+       reference crop with our own ink box on top of it, and the sheet's hand
+       covers x 25 to 52 in the space this table is written in — the far eye and
+       the forehead above it, with the near eye clear. at 45.0 ours lands 25.3
+       to 51.5, which is the panel to within half a unit.
+
+       it shipped at 28.5 and then at 35.5, and both were wrong for the same
+       reason: **the tool was measuring the unmirrored drawing.** `handShape`
+       gives the screen right hand the reflection, so the ink runs the other way
+       from the wrist, and a box drawn without that sign is a box for a hand
+       that is not on the screen. 35.5 put the hand over the near eye with the
+       far one clear, which is the reference back to front. ref-grid takes the
+       sign now.
+
+       y is the sheet's from the first pass and is untouched: 9.9 to 34.4
+       against its 8 to 33. */
+    at: { x: 45.0, y: 32.0, rot: 0, sc: 1.06 },
+    mark: { chan: 'x', to: 45.0 },
     /* the one pose that puts a hand where the brows are. see `hcover`. */
     covers: true,
     build(B, k) {
@@ -2895,12 +2938,17 @@ function engineFor(plan) {
       }
       onNow = [...m.hands.on];
       for (const k of m.hands.acting) HP.build(HB, k);
-      /* and the brows out of the way of a pose that lands on them, on the
-         pose's own windows so the two can never drift apart: gone by the time
-         the hand arrives, back by the time it has left. */
+      /* and the brows out of the way of a pose that lands on them. it closes on
+         the mark and it closes **quickly** — `HANDS.coverFor` rather than the
+         pose's own entrance, because the state under it is raising those brows
+         at the same moment and over a third of the time, so a gate written on
+         the hand's travel loses the race and leaves them grey for a second.
+
+         it opens again on the pose's own exit, where there is nothing to race:
+         the hand is leaving and the state is doing whatever it was doing. */
       if (HP.covers) {
         tl.fromTo(ch.hcover, { v: 0 },
-          { v: 1, duration: HP.entry, ease: H.glide, immediateRender: false }, m.t);
+          { v: 1, duration: HANDS.coverFor, ease: H.glide, immediateRender: false }, m.t);
         tl.fromTo(ch.hcover, { v: 1 },
           { v: 0, duration: HP.exit, ease: H.glide, immediateRender: false }, m.hands.leaving);
       }
@@ -4038,7 +4086,29 @@ export function mascotCss(plan) {
   fill:none; stroke:var(--eye); stroke-width:${n(HANDS.edge / (HANDS.box / SHAPE_BOX))};
   stroke-linejoin:round; stroke-linecap:round;
 }
-.m-glove{will-change:transform}
+/* ---------- and there is no will-change on a glove, which is the fix for a
+   one frame flash ----------
+   it carried a will-change:transform hint for one build, the way the card and the
+   eyes do, and the moment the glow below went on top of it the dark facepalm
+   started dropping frames: **nine one frame blanks** in the 60fps cut, all
+   inside the two and a half seconds the hand is over the face, none in the
+   light cut and none in the states clip. a blank frame was the plate and the
+   glow and nothing else — no hand, no eyes, no brows.
+
+   the two are the same fact. a will-change:transform hint asks chrome to promote a
+   glove to its own composited layer; a css filter on the group **above** it has
+   to pull that layer back down and re-raster it into the filter every frame.
+   under the recorder each captured frame is a handful of BeginFrames rather
+   than a wall clock second, so a raster that misses is not a dropped frame on a
+   screen — it is a frame in the file. that is the "two layers fighting" a
+   review would see and cannot name.
+
+   nothing is lost by dropping it. the hint is a hint: the transform is still
+   written once per glove per frame and chrome still handles it, the way it
+   handles every other per frame transform in this file that never asked to be
+   promoted. what is gained is that the filter has one thing to raster instead
+   of racing four. */
+
 /* ---------- and the head's own glow, on a hand ----------
    dark theme only, exactly like the face's, because a glow on white is a smudge
    and a floating hand needs the same grounding a floating head does — without
@@ -5492,13 +5562,18 @@ function selfTest() {
   /* the edge, in the unit it has to survive h.264 in, at both head sizes a clip
      uses — the corner's 128 and the centred 148. it is a stroke in grid units,
      so unlike the bubble's border it cannot be floored to a whole css pixel by
-     chrome; what is checked is that it lands thick enough to read and thinner
-     than the reference's own finger lines, which measure about 4.25 device px
-     against a head this size. */
+     chrome.
+
+     **the band is the thin one now.** it used to be 2.8 to 4.25 device px, the
+     top of it being the reference's own finger lines; the review called three
+     px bold and it was right — this is a separation rather than a drawn line,
+     and at three px it was a black border round a sticker. the floor is one
+     device px, which is the point below which an encoder has nothing left to
+     keep, and the ceiling is half what the reference draws. */
   for (const sz of [128, 148]) {
     const e = HANDS.edge * (sz / GRID) * STAGE.dsf;
-    ok('the separation edge is readable and thinner than the reference at size ' + sz,
-      e >= 2.8 && e < 4.25, e.toFixed(2) + ' device px');
+    ok('the separation edge is a hairline rather than a border at size ' + sz,
+      e >= 1.0 && e < 2.13, e.toFixed(2) + ' device px');
   }
 
   /* ---------- how big a hand is, and it is one number now ----------
@@ -5612,6 +5687,14 @@ function selfTest() {
          and a glow on it would be a halo round the cut rather than round the
          hand. */
       && !css.includes('.m-hands-edge{filter')
+      /* **and no promotion hint on a glove**, which is a one line rule with a
+         nine frame bug behind it: a will-change under a filter makes chrome
+         re-raster a promoted layer into that filter every frame, and under the
+         recorder a raster that misses is a blank frame in the file rather than
+         a dropped one on a screen. it is asserted because it is invisible —
+         adding the hint back looks like an optimisation and reads as correct.
+         see the note beside the rule. */
+      && !css.includes('.m-glove{will-change')
       /* and nothing at all on a plan with no gloves, which is what keeps every
          clip written before this byte identical. */
       && !mascotCss(planMascot({ marks: [{ t: 0.3, state: 'neutral' }] })).includes('m-hands-ink');
@@ -5649,6 +5732,34 @@ function selfTest() {
     fpB === fpBN && fpUp > 0.9 && fpUnder < 0.004 && fpAfter > 0.9 && fpAfter === fpAfterN,
     'the same face holds them at ' + fpUp.toFixed(3) + ' under no hand and '
     + fpUnder.toFixed(3) + ' under this one, back to ' + fpAfter.toFixed(3) + ' after it');
+  /* ---------- and it is the **worst** frame that is checked, not the settled
+     one ----------
+     this is the guard for what actually shipped. the gate was written on the
+     pose's own 1.02s entrance, the state under it raises its brows in 0.30s, and
+     the settled frame was clean the whole time — so the check passed while the
+     brows went to 0.725 and dimmed slowly for a second in every render. grey is
+     not hidden. so the ceiling is on every frame from the mark to the moment
+     the hand starts leaving, and it is asked of the two states that raise brows
+     at all, because they arrive at different speeds and the fast one is the
+     case the gate has to beat. */
+  let fpWorst = 0, fpWorstAt = null;
+  for (const st of ['unimpressed', 'surprised']) {
+    const P = planMascot({
+      hands: true, bias: 0, seconds: FP_S,
+      marks: [{ t: 0.4, state: st }, { t: 2.2, state: st, hands: 'facepalm' },
+        { t: 6.0, state: st, hands: 'rest' }],
+    });
+    const h = P.marks.find(m => m.hands && m.hands.pose === 'facepalm').hands;
+    for (let f = Math.round(2.2 * 60); f <= Math.round(h.leaving * 60); f++) {
+      for (const b of mascotFrame(P, f / 60).brows) {
+        if (b.o > fpWorst) { fpWorst = b.o; fpWorstAt = st + ' at ' + (f / 60).toFixed(2) + 's'; }
+      }
+    }
+  }
+  ok('no brow is ever grey under a facepalm', fpWorst < 0.05,
+    'worst drawn brow anywhere under the pose is ' + fpWorst.toFixed(4)
+    + ' (' + fpWorstAt + '), against 0.725 before the gate was written on the'
+    + ' brows own timescale rather than the hand travel');
   /* and it fades rather than cutting. the ceiling is the brows' own entrance on
      the same plan with no hand over them, which is a 0.20s pop from nothing and
      is the fastest anything on this face legitimately moves them: a gate that

@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **Fix round 2026-09-06: the facepalm, four ways.** All in
+  `demo/lib/mascot.mjs`. 12,138 frames across 33 plans still byte identical with
+  the hands off, the module's checks pass, and the hands chapter renders green at
+  12fps and at 60, both themes.
+  - **The brows were grey rather than hidden, and the gate was racing.**
+    `hcover` was written on the pose's own `entry`, which for a facepalm is
+    1.02s because that is how long a hand takes to cross a head — but the state
+    under it raises its brows in 0.30s. So the brows went **up to 0.725** and
+    then dimmed slowly for a second, which is exactly what a review sees as
+    grey. The gate is on `HANDS.coverFor` now, 0.18s, which is quicker than the
+    fastest brow entrance on the face: the worst drawn brow anywhere under the
+    pose is 0.0035 under `unimpressed` and 0.035 under `surprised`, for two
+    frames. There is room to be that quick because a `surprised` brow already
+    steps 0.429 of its own opacity in one frame. **The guard now measures the
+    worst frame between the mark and the exit, not the settled one** — the
+    settled frame was clean the whole time the bug was shipping.
+  - **The one frame flash was a promotion hint fighting the glow.** Nine
+    one-frame blanks in the 60fps dark cut, all inside the facepalm, none in
+    light and none in the states clip; a blank frame was the plate and the glow
+    and nothing else. `will-change:transform` on `.m-glove` asks Chrome to
+    promote each glove to its own layer, and the css filter on the group above
+    has to pull that layer back down and re-raster it into the filter every
+    frame. Under the recorder a raster that misses is a frame in the file rather
+    than a dropped frame on a screen. **The hint is gone and the dark clip is at
+    zero spikes over 1257 frames.** The css assertion is in the module because
+    adding it back looks like an optimisation.
+    - Related and *not* ours: a single light-theme blank turned up at 17.2s on
+      one render and did **not** reproduce on a re-render. One frame in 1257,
+      non-deterministic, in a pose with no filter on it — the recorder's own
+      raster hazard, the same family as the compositor stall post2 found.
+  - **The facepalm moved to x 45.0, and the tool was why it took three tries.**
+    `demo/out/poses/ref-grid.mjs` draws the card's grid over the reference crop
+    with our ink box on it, and it was **measuring the unmirrored drawing** —
+    `handShape` gives the screen right hand the reflection, so the ink runs the
+    other way from the wrist and the box was for a hand that is not on screen.
+    28.5 and then 35.5 were both placed against that. The tool takes the sign
+    now (it lives under the gitignored `demo/out/`, so this note is the record),
+    and the sheet's hand covers x 25 to 52 where ours lands 25.3 to 51.5. On the
+    screen that is the far eye and the forehead with the near eye clear.
+  - **The separation edge is halved, 0.75 to 0.375 grid units** — three device
+    px to one and a half at size 128. It is a separation rather than a drawn
+    line, and at three px it was a black border round a sticker. **What it costs
+    is h.264**: at crf 17 and 1080 wide three px survives cleanly and one and a
+    half softens. Deliberate; both guards moved to the thin band so it cannot
+    drift back without a decision.
+
 - **Fix round 2026-09-06: the one handed poses were the wrong hand, and now the
   gloves glow.** Four things off the first traced review, in
   `demo/lib/mascot.mjs`. 12,138 frames across 33 plans still hash byte identical

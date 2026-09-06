@@ -714,10 +714,16 @@ for (const { tag, chapter, state, probe: p, seconds } of results) {
           + 'px against a ' + state.built.headPx + 'px head, which is ' + share.toFixed(3)
           + ' of it on its long side — the band is 0.33 to 0.50');
       }
-      if (H.edgePx < 2.8 || H.edgePx >= 4.25) {
-        fail.push(t + 'the separation edge rendered at ' + H.edgePx + 'px — under 2.8 the encoder '
-          + 'eats it, and 4.25 is the weight of the reference’s own finger lines, which it is '
-          + 'meant to be under');
+      /* the edge, measured off the rendered path rather than trusted. the band
+         is the thin one: a review called three device px bold and it was right,
+         because this is a separation rather than a drawn line and at that
+         weight it was a black border round a sticker. one device px is the
+         floor an encoder has anything left to keep at, and half the reference’s
+         own finger lines is the ceiling. */
+      if (H.edgePx < 1.0 || H.edgePx >= 2.13) {
+        fail.push(t + 'the separation edge rendered at ' + H.edgePx + 'px — under 1.0 there is '
+          + 'nothing left for the encoder to keep, and 2.13 is half the weight of the '
+          + 'reference’s own finger lines, which it is meant to be a hairline against');
       }
       console.log('  ' + t + 'the ' + H.pose + ' glove is ' + H.inkWPx + 'x' + H.inkHPx
         + 'px of ink against a ' + state.built.headPx + 'px head — ' + share.toFixed(3)
