@@ -1258,25 +1258,53 @@ export const HAND_SIDES = ['left', 'right', 'both'];
 
    the numbers, and each is measured against something already in here.
 
-   `drop` is 4.6 **css px**, which is the unit the head's own channel is in and
+   `drop` is 9.0 **css px**, which is the unit the head's own channel is in and
    is worth saying outright because the eye and the hand a few lines away are in
-   grid units. it is a little over half of `agreeing`'s nod and a third of
-   `delighted`'s hop, which is the right size for the thing it is: a nod is a
-   statement and a hop is a whole body, and four of either inside a second is a
-   head being shaken by somebody else rather than a head giggling.
+   grid units. it is a little under three quarters of `delighted`'s hop, which
+   is the right size for the thing it is: a hop is a whole body leaving the
+   ground and this is a body shaking where it stands.
 
-   `period` is 0.22 and `down` is half of it, and **the split is what the yap
-   already paid for**: the pop curve reaches 1.1 by 36% of its own duration, so
-   a move written on it that is shorter than about a tenth of a second puts
-   itself into one frame. at 0.085 the first bounce did exactly that — the head
-   stepped 3.6 css px between two frames, past `agreeing`'s own worst of 3.1 and
-   past `delighted`'s 3.5. at 0.11 down and 0.13 back the worst frame is under
-   both of them, and it is still four and a half bounces a second.
+   **it was 4.6 for one build and the review could not see it.** that is the
+   whole of the change and it is worth writing down why 4.6 looked reasonable on
+   paper: it is a little over half of `agreeing`'s nod, and a nod is a
+   deliberate, readable gesture. but a nod happens **once** and holds at the
+   bottom, and a giggle is four pulses inside a second — each one is on screen
+   for about seven frames, and a move that small and that brief is a texture
+   rather than a motion. a gesture that repeats has to be bigger than one that
+   does not, which is the opposite of the instinct.
 
-   `sq` is 0.030 against the 0.080 ceiling, and it is deliberately half of
-   `agreeing`'s own contact. the squash is what makes a bounce land rather than
-   stop, and a laugh lands on nothing — there is no floor under a floating head.
-   it is the give in the shape and not an impact.
+   ---------- and the amplitude was bought with the curve, not the clock -------
+
+   **`fall` is `drift` and it used to be `pop`, and that one word is where the
+   drop came from.** the ceiling on this move is not the size of it, it is how
+   far the head may step between two frames: `delighted`'s hop is the fastest
+   thing the head ever does and its worst frame is 3.49 css px, and nothing here
+   may pass that. pop's peak slope is 5.63 and it overshoots to 1.1, so it
+   spends a third of its travel going past the mark and coming back — measured,
+   4.6 on pop already stepped 2.99, and 6.0 stepped 3.42. the whole frontier was
+   swept: on pop the most that clears the ceiling at a rate still worth calling
+   a giggle is **6.0**, and getting past that means slowing it to two and a half
+   bounces a second, which is not a giggle, it is a nod with a stutter.
+
+   drift's peak slope is 2.78 and it does not overshoot. same drop, same
+   duration, **half the step** — so 9.0 over 0.13 measures 2.97 against the
+   ceiling's 3.49, where pop could only afford 6.0. and it is the better curve
+   for the move as well as the cheaper one: drift leaves slow, accelerates and
+   coasts in, which is a head being shaken and arriving, while pop's overshoot
+   on a *drop* is the head dipping past the bottom of a bounce that has no floor
+   under it. the return is still `glide`, so the pulse is quick down and easy
+   back, which is the asymmetry the yap hand already argued for.
+
+   `period` is 0.28 and `down` is a shade under half of it. that is 3.6 bounces
+   a second against the 4.5 the smaller drop ran at, and it is the one thing the
+   bigger amplitude cost: a longer fall is what keeps the step under the ceiling.
+   four beats now take 1.12s rather than 0.96, which is why the hold below grew.
+
+   `sq` is 0.030 against the 0.080 ceiling and it did **not** grow with the drop,
+   which is deliberate. under `delighted` the two squashes already stack to 7.0%
+   and there is one point of room; the squash is the give in the shape and not
+   an impact, because a laugh lands on nothing — there is no floor under a
+   floating head. the drop is what carries the read and this is the seasoning.
 
    `arc` is what the eyes are squeezed to, in grid units, and it is
    `delighted`'s trick tighter: that state takes a 4.4 unit pill to 0.40 by 1.28
@@ -1289,7 +1317,12 @@ export const HAND_SIDES = ['left', 'right', 'both'];
    again, because an eye that closes upward is a stare and an eye that closes
    downward is a laugh. */
 export const LAUGH = {
-  drop: 4.6,
+  drop: 9.0,
+  /* the curve the head falls on, and it is the number above in disguise — see
+     the note. it is a name in this table rather than a string in the loop
+     because it is a decision that the amplitude depends on, and a decision
+     nobody can find is a decision that gets undone. */
+  fall: 'drift',
   /* when the first bounce starts, measured from the mark. the pose takes 1.01s
      to get a hand across the face, so this is three frames after it lands: the
      eyes are already shut by then — they go at 0.86, before the hand — and the
@@ -1298,7 +1331,7 @@ export const LAUGH = {
      sound is placed on the same beats and a sound half a bounce late is the
      one fault this part cannot recover from. */
   from: 1.04,
-  period: 0.22, down: 0.11, up: 0.13,
+  period: 0.28, down: 0.13, up: 0.15,
   /* four, each smaller than the last as a share of the first. three reads as a
      stutter and five is a fit; four winding down is the shape `agreeing`'s two
      nods and `wave`'s five rocks both have, and it is the difference between a
@@ -1489,30 +1522,59 @@ export const HAND_POSES = {
      284 against 304 by 283, a palm within a point of the other's, and a wrist
      eleven units along the same edge.
 
-     **the placement moved twice, and both moves are the review's.** it sits a
-     little further right and it is a little smaller: 40.9 and 1.06 are what
-     those two were said against, and 41.3 and 1.02 are what they are now. what
-     that draws, measured by `out/poses/place-laugh.mjs` against the geometry
-     rather than eyed, is ink covering x 19.9 to 43.2 and y 42.5 to 66.6 — the
-     mouth at 29.9 still inside it, the centre at 31.4 rather than 29.9, so the
-     hand has come a unit and a half right and is still half a unit left of the
+     ---------- where it sits, and the angle was the fault ----------
+
+     **the first placement of the new drawing kept the old one's angle and the
+     review rejected the picture again**, and the note is the useful part: the
+     hand did not read as sitting over a mouth, it read as a fist tucked under
+     the jaw. the numbers say why. at minus forty five the drawing's own long
+     axis runs down and to the left, so the ink hung from 42.5 to 66.6 with the
+     mouth at 48.5 sitting on its **top edge** — the hand was under the mouth
+     rather than over it, and four and a half units of it dangled past the chin
+     doing nothing but making a shape below the face.
+
+     so the angle moved and the height moved with it, and the size barely
+     changed at all: minus forty five to **minus fifty two**, which is what lays
+     the fingers flat across the face rather than diagonally down it, and the
+     wrist from 56.7 to 55.3. the size is 1.07 against the 1.06 the earlier
+     review named, which is the answer to that note as well — it asked for "a
+     bit smaller", and what was actually wrong was the angle. a size note is
+     what a reviewer reaches for when a shape is in the wrong place, because the
+     shape is the thing they can see.
+
+     what it draws now, measured by `out/poses/place-laugh.mjs` against the
+     geometry rather than eyed: ink covering x 18.0 to 43.0 and y 42.0 to 67.8.
+     **the mouth at 29.9, 48.5 is a third of the way down it** rather than on its
+     rim, which is where a mouth sits in a hand that is over it — a hand covers
+     the mouth and the chin under it, not the chin alone. the ink's centre is at
+     30.5, half a unit right of the mouth and a unit and a half left of the
      face's own centre line, which is the emoji's off centre hold and the whole
-     reason the yap hand sits where it does. the squeezed eyes now clear the top
-     by 2.4 units rather than 1.8, and the heel hangs 4.6 under the chin rather
-     than 5.0 — both of those are the "a bit smaller" and both are the right
-     direction. it still reaches less far down than the resting pair, which
-     bottoms out at 68.9.
+     reason the yap hand sits where it does.
+
+     the top clears the **lower** of the two eyes it has to clear by 1.25 units:
+     a resting eye bottoms out at 40.7 and the arc a laugh squeezes it to at
+     40.16, so clearing the resting one clears both, and the pose is drawn under
+     a face that could be in any state. the heel hangs 5.8 under the chin, which
+     is still less far down than the resting pair's own 68.9.
 
      it takes the brows with it, `covers`, and that is the second pose to say so
      rather than the first. the hand is nowhere near the brow line here: what
      takes them off is the eyes, which are shut and drawn as two thin arcs, and
      a brow over a shut arc is a third line on a face that is meant to have
-     two. the gate is the same one and for the same reason it is quick. */
+     two. the gate is the same one and for the same reason it is quick.
+
+     **the hold is 1.62 and it is derived rather than chosen.** the head's four
+     bounces take `4 * LAUGH.period` from `LAUGH.from`, and then the shut eyes
+     take a beat and 0.30 to open again; all of that has to finish before
+     `leaving`, or the pose's own exit would be writing `sqz` over the top of the
+     laugh still releasing it — two `fromTo`s on one channel, which is the fight
+     this whole part is arranged to avoid. the guard below states the sum, so a
+     bigger drop that needs a slower bounce cannot quietly outgrow its window. */
   laugh: {
     label: 'one flat hand over the mouth, head bouncing, eyes shut',
     shape: 'laugh',
-    entry: 1.01, hold: 1.40, exit: 0.32, both: false,
-    at: { x: 41.3, y: 56.7, rot: -45, sc: 1.02 },
+    entry: 1.01, hold: 1.62, exit: 0.32, both: false,
+    at: { x: 41.3, y: 55.3, rot: -52, sc: 1.07 },
     mark: { chan: 'x', to: 41.3 },
     covers: true,
     /* ---------- and it is the one pose that makes a sound ----------
@@ -1573,7 +1635,7 @@ export const HAND_POSES = {
       L.set({ sqz: 1 }, { at: 0.86, for: 0.22, ease: 'pop' });
       let at = LAUGH.from;
       for (const f of LAUGH.beats) {
-        L.set({ y: +(LAUGH.drop * f).toFixed(3) }, { for: LAUGH.down, at, ease: 'pop' });
+        L.set({ y: +(LAUGH.drop * f).toFixed(3) }, { for: LAUGH.down, at, ease: LAUGH.fall });
         /* the squash arrives with the bottom of the bounce and lets go on the
            way back up. it is written as two tweens rather than through the
            state builder's own `squash`, which is a landing: that one has a
@@ -2682,6 +2744,32 @@ export function planMascot(opts = {}) {
           + 's of entrance, hold and exit inside ' + room.toFixed(2)
           + 's before the next hands mark');
       }
+      /* ---------- and a pose that moves the head needs room for that too ----
+         `body` writes `hbody` and `exitBodyToRest` writes it again at `leaving`,
+         so a body still going when the exit starts is two `fromTo`s over one
+         window — the fight the whole builder is arranged to avoid, and one with
+         no symptom except a bounce that stops halfway on some frames and not
+         others. the laugh's four bounces plus the beat its eyes take to open
+         run 2.56s from its mark, so a hold that is shorter than that minus the
+         entrance is a hold the pose cannot fit in.
+
+         the body's own last write is measured by running it against a builder
+         that records instead of tweening, so this reads the pose rather than a
+         number kept in agreement with it. through the clock, because a mark
+         that bought a quicker entrance moved the bounces with it. */
+      if (HP.body) {
+        let last = 0;
+        HP.body({ set: (to, opt = {}) => { last = Math.max(last, (opt.at || 0) + (opt.for || 0.20)); } });
+        const needs = poseClock(HP, entry)(last);
+        if (needs > entry + hold + 1e-9) {
+          throw new Error('the hands pose on mark ' + k + ' (' + name + ' at '
+            + out[k].t.toFixed(2) + 's) moves the head for ' + needs.toFixed(2)
+            + 's and is given ' + (entry + hold).toFixed(2)
+            + 's of entrance and hold to do it in — give it '
+            + (needs - entry).toFixed(2) + 's of hold, or leave the hold out'
+            + ' and let it stretch to the next mark');
+        }
+      }
       const side = marks[k].side || 'both';
       const nextOn = side === 'both' ? [1, 1] : side === 'left' ? [1, 0] : [0, 1];
       /* a two handed pose is taken by every hand on screen; a one handed one is
@@ -3019,8 +3107,9 @@ function handsReach(plan) {
    duration, and pop's peak slope is 5.63. that is right in the limit and wrong
    where it matters — over a move short enough to be a problem, one frame is a
    large share of the whole duration and the discrete step is nothing like the
-   derivative. the laugh's own bounce is the worked example: 4.6 css px over
-   0.085s measures 3.6, and the slope model says 5.1.
+   derivative. the laugh's first bounce is the worked example: a 4.6 css px drop
+   written over 0.085s on the pop curve measures 3.6 between two frames, and the
+   slope model says 5.1.
 
    it is charged to the pose whose window the frame falls in, so the message can
    name the pose and the duration rather than a time. a frame inside two windows
@@ -4952,44 +5041,12 @@ export function mascotCss(plan) {
    site's own outline token and it is what the thought bubble is drawn in. */
 .m-zone{
   --face:#0b0d10; --eye:#ffffff; --bub:rgba(11,13,16,.55);
-  /* ---------- the glove's own ink, and it does not follow the theme ----------
-     every other colour in here flips: the plate is --face, the iris is --eye,
-     and --eye is always the page, which is what makes the face read as a hole
-     punched in it rather than as an illustration laid on it. **the gloves came
-     off that switch.** they were --face for one build, which on the dark page
-     is a near white hand on a near white head, separated from it by a hairline
-     cut and from the page by nothing but the halo; the note was that a hand
-     should read as a hand in front of a lit head rather than as another piece
-     of the head, and a hand is ink.
-
-     so the ink is one value on both pages, and it is the light theme's own
-     --face — which is why the light page is untouched to the byte: there
-     var(--face) already *is* #0b0d10. on the dark page it is the change: a
-     black glove over the glowing plate, which is the strongest contrast either
-     theme has and needs no cut at all.
-
-     what carries it over the background, where a black hand on #06070a would
-     be nothing, is the halo below — and that is why the halo stays tinted with
-     --face rather than with this. a black hand lit from behind by the head it
-     is in front of is the picture; a black hand with a black halo is a hole. */
-  --glove:#0b0d10;
-  /* the separation cut, and it exists only where a glove and the head are the
-     same colour. on the light page they are — dark ink on a dark plate — so it
-     is the page colour and it draws the hairline. on the dark page the glove is
-     ink and the plate is nearly white, so there is nothing to separate and the
-     cut is not drawn. it is a token rather than a second rule because the
-     stroke width, the joins and the clip are the same either way and only the
-     paint changes. */
-  --glove-edge:var(--eye);
   --m-shadow-o:1; --m-glow-o:0;
   position:absolute; left:${B.left}px; top:${B.top}px;
   width:${S}px; height:${S}px; z-index:4; pointer-events:none;
 }
 [data-theme=dark] .m-zone{
   --face:#f4f7f5; --eye:#06070a; --bub:rgba(213,219,216,.5);
-  /* --glove is deliberately **not** redefined here: see above. the cut is,
-     because on this page there is nothing to cut. */
-  --glove-edge:transparent;
   /* the shadow is off on black, because a soft black ellipse on #06070a is
      nothing, and the glow does the grounding instead. */
   --m-shadow-o:0; --m-glow-o:1;
@@ -5030,14 +5087,14 @@ export function mascotCss(plan) {
    is uniform and the stroke is the same weight on every edge of it. round joins
    because a glove has no sharp corners. */
 .m-hands{pointer-events:none}
-.m-hands-ink .m-gl{fill:var(--glove)}
+.m-hands-ink .m-gl{fill:var(--face)}
 /* **fill:none, and that is what a traced outline buys.** the drawn version was
    five overlapping shapes, so its edge layer had to paint the face colour under
    the stroke for a later shape to cover an earlier one's outline — without it a
    folded hand came back as a knot of loops. one closed path has no loops to
    hide, and the lines the sheet draws inside a silhouette come with the path. */
 .m-hands-edge .m-gl{
-  fill:none; stroke:var(--glove-edge); stroke-width:${n(HANDS.edge / (HANDS.box / SHAPE_BOX))};
+  fill:none; stroke:var(--eye); stroke-width:${n(HANDS.edge / (HANDS.box / SHAPE_BOX))};
   stroke-linejoin:round; stroke-linecap:round;
 }
 /* ---------- and there is no will-change on a glove, which is the fix for a
@@ -5068,22 +5125,14 @@ export function mascotCss(plan) {
    and a floating hand needs the same grounding a floating head does — without
    it the pair reads as two stickers laid over a head that is lit.
 
-   **and since the glove went to ink it is the only thing holding the hand on
-   the page.** a #0b0d10 glove over the plate is the strongest contrast in
-   either theme and needs nothing; the same glove out over #06070a is a hole,
-   and this is what cuts it out of the background. so the tint stays --face
-   rather than following --glove: it is the light the head is throwing, not
-   the colour of the hand, and a hand haloed in its own ink would be invisible
-   twice over. it also means the halo does its work only where the work is —
-   over the plate, a near white halo on a near white plate paints nothing.
-
    **this layer is deliberately not inside the head's glow, and must not be.**
    the plate's glow is two blurred *copies of the plate*, stacked behind the
    face inside .m-card; the gloves are a sibling of the plate inside the face
-   svg and carry this filter of their own. two separate pictures, and that is
-   what lets a black hand sit in front of a lit head — put the gloves under the
-   plate's filter and either the hand glows white with the head or the head
-   stops glowing with the hand.
+   svg and carry this filter of their own. two separate pictures rather than
+   one, and it is what lets a hand be lit like the head without being part of
+   it: under the plate's own filter a glove would be blurred into the halo
+   instead of casting one, so a pose over the face would smear the glow it was
+   supposed to sit in front of.
 
    **it is scaled to the hand rather than copied off the head.** the plate's two
    blurs are written for a 60 unit square; a hand's box is ${n(HANDS.box)} of the
@@ -6655,33 +6704,30 @@ function selfTest() {
     && mascotMarkup(gp).includes('m-gl-ink0-wave')
     && mascotMarkup(gp).includes('clip-path="url(#m-head)"')
     && mascotCss(gp).includes('.m-hands-edge .m-gl')
-    && mascotCss(gp).includes('fill:none; stroke:var(--glove-edge)')
+    && mascotCss(gp).includes('fill:none; stroke:var(--eye)')
     && mascotPagePlan(gp).hands.edge === HANDS.edge);
 
-  /* ---------- the glove is ink on both pages, and the cut is not ----------
-     three things in one check, because they are one decision. the fill is a
-     token of its own rather than `--face`, so a glove stops following the
-     theme; that token is defined once and **not** redefined under dark, which
-     is what makes the light page byte identical and the dark one black; and the
-     separation cut is the opposite — defined as the page colour and turned off
-     under dark, because a black glove on a near white plate has nothing to be
-     cut out of.
+  /* ---------- the glove is the plate's own ink, and it follows the theme ----
+     **it was taken off the theme for one build and put back, and the check is
+     here so it stays put.** the idea was a hand that reads as a hand in front
+     of a lit head rather than as another piece of it, drawn in one ink on both
+     pages: white on the light page where the plate is dark, and black on the
+     dark page where the plate is lit. it renders, the guards pass, and it is
+     the wrong mascot. the face reads as a hole punched in the page because
+     every colour in it is one of two tokens that swap together; a hand that
+     stays put while the head inverts is a hand from a different drawing, and on
+     the dark page it turns the pair into two black smudges held on by a halo.
 
-     it is asserted on the rules rather than on a rendered pixel for the same
-     reason the glow above is: there is no channel to read, a theme is an
-     attribute, and a rule that says the wrong thing says it on every frame. */
-  ok('a glove is ink on both pages and only the cut follows the theme', (() => {
+     so there are exactly two paints on a glove and they are the same two the
+     rest of him is made of: the plate's fill and the page's colour for the cut.
+     no third token, and no rule under the dark selector that mentions either. */
+  ok('a glove is the plate own ink on both pages', (() => {
     const css = mascotCss(gp);
     const zone = css.slice(css.indexOf('.m-zone{'), css.indexOf('.m-card{'));
-    const dark = zone.slice(zone.indexOf('[data-theme=dark] .m-zone{'));
-    return css.includes('.m-hands-ink .m-gl{fill:var(--glove)}')
-      && zone.includes('--glove:#0b0d10;')
-      && zone.includes('--glove-edge:var(--eye);')
-      /* the whole of "it does not follow the theme": the dark block redefines
-         the cut and says nothing about the ink. */
-      && !dark.includes('--glove:')
-      && dark.includes('--glove-edge:transparent;');
-  })(), 'ink #0b0d10 on both, cut var(--eye) on light and transparent on dark');
+    return css.includes('.m-hands-ink .m-gl{fill:var(--face)}')
+      && css.includes('fill:none; stroke:var(--eye)')
+      && !zone.includes('--glove');
+  })(), 'fill var(--face), cut var(--eye), and no glove token in either theme');
 
   /* ---------- the glove's own glow ----------
      the face's, scaled to the hand and gated on the theme the same way, and it
@@ -6829,13 +6875,49 @@ function selfTest() {
     lgPrev = d;
     if (t > lgOn.marks[0].hands.out) lgEnd = Math.max(lgEnd, Math.abs(d));
   }
-  /* it bounces, and the bounce is the drop plus the pop curve's own overshoot
-     rather than the drop. positive is down, which is the same sign `agreeing`'s
-     nod arrives on. */
-  ok('a laugh bounces the head and puts it back',
-    lgPeak > LAUGH.drop && lgPeak < LAUGH.drop * 1.25 && lgEnd < 1e-6,
+  /* it bounces, it reaches the drop, and it does not go past it. positive is
+     down, which is the same sign `agreeing`'s nod arrives on.
+
+     **the "does not go past it" half used to be the opposite check**, and the
+     change is the whole of why the drop could double. on `pop` the head arrived
+     at 1.1 of the drop and came back, so this asserted a peak *above* the drop
+     and under a quarter more; the overshoot was a third of the travel and the
+     travel is what the step ceiling is spent on. `LAUGH.fall` is `drift` now,
+     which does not overshoot, so the peak is the drop to a rounding error and
+     every css px of the move is a px a viewer sees. asserting that exactly is
+     what stops the curve quietly going back. */
+  ok('a laugh bounces the head to its own drop and puts it back',
+    Math.abs(lgPeak - LAUGH.drop) < 0.02 && lgEnd < 1e-6,
     'peak ' + lgPeak.toFixed(2) + ' css px at ' + lgPeakT.toFixed(2)
-    + 's, and nothing left on the head after the pose is out');
+    + 's against a drop of ' + LAUGH.drop
+    + ', and nothing left on the head after the pose is out');
+
+  /* ---------- and the body finishes before the pose does ----------
+     **this is the guard the bigger drop needed, and it would have caught the
+     bug the bigger drop nearly shipped.** a `body` writes `hbody` and so does
+     `exitBodyToRest`, at `leaving`, and two `fromTo`s over one window is the
+     fight the whole builder is arranged to avoid. nothing enforced the order:
+     the laugh's four bounces plus the beat its eyes take to open again come to
+     `from + 4 * period + 0.40`, and slowing the bounce to buy amplitude pushed
+     that straight past a 1.40s hold with no complaint from anything.
+
+     so the sum is stated here rather than remembered. it is written against the
+     table's own numbers rather than a rendered frame because it is arithmetic,
+     and a clip that supplies its own hold is checked the same way — the clock
+     shifts both sides of it equally, so a shorter entrance never breaks it and
+     a shorter hold does. */
+  ok('a pose body finishes inside its own hold', HAND_POSE_NAMES.every(nm => {
+    const P = HAND_POSES[nm];
+    if (!P.body) return true;
+    let last = 0;
+    P.body({ set: (to, opt = {}) => { last = Math.max(last, (opt.at || 0) + (opt.for || 0.20)); } });
+    return last <= P.entry + P.hold + 1e-9;
+  }), (() => {
+    let last = 0;
+    HAND_POSES.laugh.body({ set: (to, opt = {}) => { last = Math.max(last, (opt.at || 0) + (opt.for || 0.20)); } });
+    return 'the laugh body ends at ' + last.toFixed(2) + 's against a '
+      + (HAND_POSES.laugh.entry + HAND_POSES.laugh.hold).toFixed(2) + 's entrance and hold';
+  })());
   /* and it does not step. the ceiling is the head's own fastest state rather
      than a number invented here: `delighted` moves the card 3.49 css px in a
      frame and `agreeing` 3.05, so a bounce that stayed under the slower of the
@@ -6954,10 +7036,14 @@ function selfTest() {
   /* and the durations actually land where they say. `settled` is the number
      every consumer asks for "when is this pose up", and a mark that bought its
      own entrance has to move it. */
-  const fastLaugh = tPlan({ pose: 'laugh', entry: 0.70, hold: 1.20, exit: 0.30 });
+  /* the hold is 1.60 rather than something rounder because the laugh's own
+     bounce is what sets the floor: four beats and the eyes opening run 2.25s
+     off a 0.70s entrance, so anything under 1.55 is refused — see the check
+     below, and the guard in `planMascot` it is checking. */
+  const fastLaugh = tPlan({ pose: 'laugh', entry: 0.70, hold: 1.60, exit: 0.30 });
   ok('a mark can buy its own entrance, hold and exit',
     fastLaugh.marks[0].hands.entry === 0.70
-    && fastLaugh.marks[0].hands.hold === 1.20
+    && fastLaugh.marks[0].hands.hold === 1.60
     && fastLaugh.marks[0].hands.exit === 0.30
     && Math.abs(fastLaugh.marks[0].hands.settled - 1.10) < 1e-9
     && tPlan('laugh').marks[0].hands.entry === HAND_POSES.laugh.entry,
@@ -7085,6 +7171,15 @@ function selfTest() {
     try { planMascot({ hands: true, bias: 0, seconds: 6.4, marks }); return false; }
     catch (e) { return re.test(e.message); }
   };
+  /* and a hold too short for the head the pose moves. it is the one duration a
+     clip can supply that nothing else would catch: the plan is legal, the room
+     is there, the speed is fine, and what breaks is two tweens on `hbody` over
+     one window — a bounce that stops halfway on some frames and not others. */
+  ok('a hold the pose cannot move its head in is refused', (() => {
+    try { tPlan({ pose: 'laugh', entry: 0.70, hold: 1.20, exit: 0.30 }); return false; }
+    catch (e) { return /moves the head for 2\.25s/.test(e.message) && /give it 1\.55s of hold/.test(e.message); }
+  })(), 'a 0.70s entrance needs 1.55s of hold and 1.20 is refused with both numbers');
+
   ok('a chain into nothing, a chain with an exit and an unknown key are all refused',
     refuses([{ t: 0.4, state: 'neutral', hands: { pose: 'wave', next: true } }],
       /a chain needs a hands mark after it/)

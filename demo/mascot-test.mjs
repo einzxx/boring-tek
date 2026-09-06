@@ -291,10 +291,16 @@ const CHAIN_CUT = [
      which the speed guard allows because the hand starts beside the head rather
      than out at the resting pair — the travel is nearly the same but the pose
      is arriving into a hand that is already moving, and the guard measures the
-     frames rather than the distance. */
+     frames rather than the distance.
+
+     **the hold is 1.75 and it is a floor rather than a taste.** the laugh moves
+     the head as well as the hand, and four bounces plus the beat its eyes take
+     to open run 2.17s off this entrance — a shorter hold would have the pose's
+     own exit writing `hbody` while the bounce was still writing it. it was 1.50
+     for one build and `planMascot` refused it, with the number. */
   {
-    hands: { pose: 'laugh', entry: 0.62, hold: 1.50, exit: 0.30 },
-    state: 'delighted', room: 2.60,
+    hands: { pose: 'laugh', entry: 0.62, hold: 1.75, exit: 0.30 },
+    state: 'delighted', room: 2.85,
   },
   /* and home, both hands, so the clip ends where it started. */
   { hands: 'rest', state: 'neutral', side: 'both', room: 2.10 },

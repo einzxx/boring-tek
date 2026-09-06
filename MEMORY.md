@@ -24,22 +24,63 @@ names in here either.
   - So: previews for "does it compose and does it fit", 60fps for "does it
     move", and re-render at 60 before anything is judged as shipped.
 
-- **Built 2026-09-06: the two open drawings landed, and the hands went black on
-  the dark page.** `demo/assets/hands/laugh.svg` and
+- **Fix round 2026-09-06: the laugh's angle was the fault, and the giggle was
+  invisible.** Second review of the new drawing. Both fixes are in
+  `demo/lib/mascot.mjs`.
+  - **The hand was under the mouth, not over it, and the angle is why.** The new
+    drawing went in at the old pose's `rot: -45`, which runs its long axis down
+    and to the left: ink from 42.5 to 66.6 with the mouth at 48.5 sitting on its
+    **top edge**, and four and a half units dangling past the chin. It read as a
+    fist tucked under the jaw. **`-52` is what lays the fingers flat across the
+    face**, and the wrist came up from 56.7 to 55.3. Now: ink x 18.0 to 43.0, y
+    42.0 to 67.8, the mouth a third of the way down it, top clearing a resting
+    eye by 1.25 units — a resting eye bottoms at 40.7 and a squeezed one at
+    40.16, so clearing the lower one clears both under any state.
+  - **The size was never the problem, which is worth remembering.** The earlier
+    review said "a bit smaller" and it is 1.07 now against the 1.06 it named —
+    essentially unchanged. A size note is what a reviewer reaches for when a
+    shape is in the wrong *place*, because the shape is the thing they can see.
+  - **The giggle went from 4.6 css px to 9.0, and the curve paid for it, not the
+    clock.** The ceiling on the bounce is the head's own fastest state:
+    `delighted`'s hop steps 3.49 css px in a frame and nothing may pass it. The
+    drop was on `pop`, whose peak slope is 5.63 and which overshoots to 1.1 — a
+    third of the travel spent going past the mark and back. Swept the whole
+    frontier: **on pop the most that clears the ceiling at a rate still worth
+    calling a giggle is 6.0**, and past that means slowing to 2.5 bounces a
+    second, which is a nod with a stutter. `LAUGH.fall` is **`drift`** now (peak
+    slope 2.78, no overshoot): 9.0 over 0.13 measures 2.97 against the 3.49
+    ceiling. Same speed, twice the amplitude, and the better curve for the move
+    — drift accelerates and coasts in, which is a head being shaken and
+    arriving. Period 0.22 to 0.28, so 3.6 bounces a second rather than 4.5.
+  - **`sq` did not grow with the drop.** Under `delighted` the two squashes
+    already stack to 7.0% against the 8% ceiling. The drop carries the read.
+  - **A bigger drop needs a longer hold, and nothing was checking that.** Four
+    bounces plus the beat the eyes take to open run 2.56s from the mark; a
+    shorter hold has the pose's own exit writing `hbody` while the bounce is
+    still writing it — two `fromTo`s on one channel, no symptom except a bounce
+    that stops halfway on some frames. Table hold 1.40 to **1.62**, and there
+    are now two guards: one in the self test on the table's own numbers, and one
+    in `planMascot` for a clip that supplies its own hold, which measures the
+    body by running it against a recording builder and names the hold it needs.
+    The chain cut's laugh hold went 1.50 to 1.75 because that guard refused it.
+  - **Validated at 12fps and at 60, both chapters, both themes, all green.**
+    Chain at 60: hand step 10.27 css px against the ceiling of 12, reach
+    14.0/34.7/0.0/10.8 held exactly, head 164.3px off the nearest border against
+    a floor of 140. Hands at 60: hand step 9.79, reach 29.5/34.0/4.6/26.4 held.
+    The states cut and a seven pose hands cut still hash byte identical against
+    the module before this pass, frames and cues. The giggle was also read off
+    the encoded 60fps mp4 rather than off stills — `out/poses/giggle.png` is the
+    frame sheet, and the head visibly rides up and down through it.
+
+- **Built 2026-09-06: the two open drawings landed.** `demo/assets/hands/laugh.svg` and
   `demo/assets/hands/point-side.svg` are traced into `HAND_SHAPES`, wrists
   measured by `demo/out/poses/measure-traced.mjs` — laugh at 121,315 and
   point-side at 153.1,328.3, both with the file's own `even`. Twelve drawings
   now, and **no pose borrows one any more**, which closes the finding the
   traced review left open.
-  - **`laugh` points at its own file and the review's two placement notes went
-    in with it:** a little further right and a little smaller, 40.9/1.06 to
-    41.3/1.02. Measured by `demo/out/poses/place-laugh.mjs` against the
-    geometry rather than eyed — ink x 19.9 to 43.2, y 42.5 to 66.6, the mouth
-    still inside it, the squeezed eyes clearing by 2.4 units against 1.8, the
-    heel 4.6 under the chin against 5.0. The drawing kept the facepalm's own
-    axis on purpose so the row kept `rot: -45`; it is that hand redrawn with
-    the fingers **together** rather than splayed, which is the whole of what
-    the review was asking for.
+  - **`laugh` points at its own file**, which is the facepalm's hand redrawn
+    with the fingers **together** rather than splayed. Placement and motion
+    both went through a second review round — see the entry below.
   - **`point-side` is a new pose rather than a swap.** `point` still aims at
     camera and keeps its file; `point-viewer` is the side-on finger aimed down
     and out at the viewer. The row carries `shape: ['point-side', 'point-side']`
@@ -49,17 +90,23 @@ names in here either.
     screen left hand aimed **into the chin**, and mirrored onto the right hand
     it aimed up and left. A hand points away from the body, so it sits past the
     right ear at `rot: 25` and needs no `side`.
-  - **Hands are ink on both pages now, `--glove:#0b0d10`, defined once and not
-    redefined under dark.** The light page is untouched to the byte because
-    there `var(--face)` already is that colour; the dark page is the change.
-    `--glove-edge` is the opposite — the page colour on light, `transparent` on
-    dark, because a black glove on a near white plate has nothing to be cut out
-    of. **The glow did not need splitting: it never wrapped the gloves.** The
-    plate's glow is two blurred copies of the plate stacked behind the face
-    inside `.m-card`; the gloves are a sibling of the plate inside the face svg
-    and carry their own `drop-shadow`. That halo stays tinted `--face` rather
-    than `--glove` and is now load bearing — it is the only thing holding a
-    black hand on a #06070a page.
+  - **Tried and reverted 2026-09-06: hands as ink on both pages.** For one
+    commit the gloves came off the theme switch onto a `--glove:#0b0d10` of
+    their own — white-page identical, black hands on the dark page held on by
+    the halo. It rendered, every guard passed, and it was the wrong mascot:
+    **the face reads as a hole punched in the page because every colour in it
+    is one of two tokens that swap together**, and a hand that stays put while
+    the head inverts is a hand from a different drawing. On the dark page it
+    turned the pair into two black smudges. Reverted to `var(--face)` for the
+    fill and `var(--eye)` for the cut, in both themes, and there is now a check
+    asserting no third token exists so it cannot drift back.
+  - **The glow never wrapped the gloves and still does not.** The plate's glow
+    is two blurred copies of the plate stacked behind the face inside
+    `.m-card`; the gloves are a sibling of the plate inside the face svg and
+    carry their own `drop-shadow`. Nothing needed splitting. Worth keeping
+    separate for a reason that outlived the black-hands idea: under the plate's
+    own filter a glove would be blurred *into* the halo instead of casting one,
+    so a pose over the face would smear the glow it is meant to sit in front of.
 
 - **Built 2026-09-06: per pose timing and chains, `demo/lib/mascot.mjs`.** A
   hands mark takes `{ pose, entry, hold, exit, next }` as well as a bare name,
@@ -93,11 +140,14 @@ names in here either.
     flash a frame of brows under a hand that never left the face.
   - **New chapter, `--chapter=chain`**, four marks: rest, `point-viewer` at a
     0.34s entrance held for exactly its two jabs and chained, `laugh` at 0.62s
-    against the table's 1.01, rest. Rendered as a 12fps preview both themes,
-    all guards green — worst frame moves a hand 10.24 css px at 60 against the
-    ceiling of 12, reach 14.1/34.7/0.0/12.4 held exactly, head 164.6px off the
-    nearest border against a floor of 140, caption band never entered, three
-    bleeps 0.030s after the hand lands off the shortened entrance.
+    against the table's 1.01, rest. Rendered at 12fps **and at 60**, both
+    themes, all guards green — worst frame moves a hand 10.27 css px at 60
+    against the ceiling of 12, reach 14.0/34.7/0.0/10.8 held exactly, head
+    164.3px off the nearest border against a floor of 140, caption band never
+    entered, three bleeps 0.030s after the hand lands off the shortened
+    entrance. `point-viewer` is the widest thing in the pose table on the right
+    edge — 34.7 grid units past the plate against the hands cut's 34.0 — so it
+    is what sets how far in the head has to stand from now on.
   - `point-viewer` also went into the hands cut, because that chapter's job is
     "do the nine read as nine" and the coverage guard says so. The chain
     chapter is exempt from coverage on purpose — a run of poses is a different
