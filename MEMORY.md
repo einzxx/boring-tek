@@ -6,6 +6,46 @@ names in here either.
 
 ## Status
 
+- **Built 2026-09-06: `demo/post20.mjs`, the point, and it is the first clip that
+  uses the floating hands.** 8.05s, 1080x1920, dark only, out to
+  `demo/out/post20-dark-1080x1920.mp4`. A thought types itself in the middle of a
+  black frame — `everyone says ai will replace u`, word by word with a key tick on
+  each and a green caret after the last one — gets knocked down to the lower third,
+  and the mascot falls into the space it left. He lands, takes a beat, points at the
+  viewer, chains straight into the laugh, and the punchline pops under him: `it
+  will replace the guy who does not use it`. Then post12's fault takes the lot and
+  puts the wordmark up. Full write up under The twentieth clip in `demo/README.md`;
+  this is what a later session cannot re-derive.
+  - **`lib/mascot.mjs` is untouched and it is finally being exercised.** Two hands
+    marks and nothing else: `point-viewer` at 2.72 with a bought 0.34s entrance and
+    a 0.74s hold, `next: true` into `laugh` at 3.80 with a bought 0.62s entrance and
+    a 1.55s hold. Both marks carry `neutral` and **no state ever changes** — the
+    poses say everything, which is the separation the pose layer was built for.
+  - **The brief's clock did not fit and the module is what said so.** The laugh
+    needs 2.09s from its mark (0.54 entrance floor plus a 1.55 hold the module
+    measures off the pose's own `body`) against the brief's 1.4, and coming off a
+    `point-viewer` rather than off a rest it refuses 0.54 as well — the travel is
+    longer and 0.62 is the first entrance under the hand's step ceiling. The point
+    needs 1.06s and that is **`neutral`'s** floor, not the pose's, because every
+    mark carries a state. Hands on to laugh over is **3.15s against the brief's
+    2.0**, and the 1.15s came off the typing rather than off the end.
+  - **The captions are drawn in the clip and that is a finding about `lib/captions.mjs`
+    rather than a preference.** Its `pop` fit measures a card as **one row**, so a
+    six word line and a nine word one both fit to about sixteen css px. Anything
+    longer than the three word cards that style is written for has to be drawn by the
+    caller. What is borrowed is `brandTokens` and `checkCopy`.
+  - **Two things a rendered frame changed.** The first word is on **frame zero**
+    rather than arriving at 0.10 — that frame is the thumbnail and it was black.
+    And **`bias: 0`**, because `pos` defaults to `bottom-left` and the module derives
+    a 0.35 corner bias from it, which turned his face toward the same side the finger
+    already points; a centred mascot accusing the camera wants dead straight on.
+  - **Still open: `point-viewer` does not read as "at you".** On the frame the
+    finger aims at the right border. It reads unmistakably as a point, which `point`
+    could not manage at this head size, and the honest fix is a third traced drawing
+    rather than a number. The copy carries it for now — the line ends in `u`.
+  - Validated at 12fps and at 60 with the shutter open at six subframes, all guards
+    green. Review at `demo/out/review-post20.md`.
+
 - **Convention set 2026-09-06: an mp4 in `demo/out/` is only ever as good as its
   mtime, and a preview and a final are the same filename.** `DEMO_FPS=12` is the
   preview pass and 60 is the final, both write `demo/out/mascot-<tag>.mp4`, and
@@ -2536,6 +2576,13 @@ Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
+- **`demo/post20.mjs` is the twentieth clip and the first one with hands in it.**
+  8.05s, 1080x1920, 60fps, dark only, out to `demo/out/post20-dark-1080x1920.mp4`.
+  It needs no assets at all: the two gloves are traced paths inside
+  `lib/mascot.mjs` and both captions are type. Two hands marks, `point-viewer`
+  chained into `laugh`, under a face that never changes state. Full write up under
+  The twentieth clip in `demo/README.md`.
+
 - **`demo/post19.mjs` is the nineteenth clip and the second dark one built on
   post17's panel.** 8.65s, 1080x1920, 60fps, out to
   `demo/out/post19-dark-1080x1920.mp4`. It needs five untracked files in
@@ -3280,6 +3327,95 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-06 — the first clip with hands in it, and three things the pose layer only tells you when a film asks
+
+`demo/post20.mjs`. The pose table has been in `lib/mascot.mjs` since the traced
+gloves landed and nothing outside `mascot-test.mjs` had ever asked for a pose, so
+every number in it was proved on a strip rather than on a cut. Three things came
+out of the first film that wanted one, and none of them is a bug.
+
+**A pose's floor is not the pose's.** `point-viewer` is given 1.06s in this clip
+and that is `neutral`'s number, not its own: a hands mark **is** a mark, a mark
+carries a state, and two `neutral`s cannot be closer than 0.46 of entrance plus
+0.30 of hold plus 0.30 of exit. So the spacing of a pose sequence is set by
+whatever face is under it, and a clip that wants two poses a second apart has to
+find a state whose table is shorter — or accept the gap. Written down because the
+error message names the state and the thing being placed is a hand, which is one
+step of translation nobody will do twice.
+
+**A bought entrance is not a property of the pose, it is a property of where the
+hand is coming from.** The module's own search names 0.54s as the laugh's floor,
+and that is the laugh coming off a resting pair. Off a `point-viewer` — a hand
+already out past the right ear — the travel is longer and 0.54 moves it 13.5 css
+px on one frame against a ceiling of 12. 0.62 clears it at 11.9. The guard is
+right, the published floor is right, and the two are answers to different
+questions. **Read the refusal, do not read the table.**
+
+**`frame.hands.fit` is a number a clip can invalidate.** post19 composes a fall
+and a smash onto `frame.card` after `mascotFrame` has written it, which is the
+right move — a css transform over the element would leave `headRect` answering
+about a head that is somewhere else. But `fit` is the inverse of the card's own
+two scales and it is what keeps a glove's outline an even weight under a squash,
+and the module computed it from the card **it** wrote. Scale the card afterwards
+and that inverse describes a head that no longer exists. One line fixes it:
+divide `fit.cx` by the same factor and multiply `fit.cy`. post19 never met this
+because it had no gloves on. **Any clip that composes onto `card.sx`/`card.sy`
+with `hands: true` has to finish the composition.**
+
+### 2026-09-06 — the pop caption style measures one row, so a long line has to be drawn by the caller
+
+`lib/captions.mjs`'s `pop` fit sums every word of a card **on a single line** and
+divides the box width by it. That is correct for the style it is written for —
+`perCard` is 3 and a three word Michroma card is one row. It is silently wrong for
+anything longer: post20's six word setup and nine word punchline both fit to about
+sixteen css px, which is a footnote rather than a caption, and `flex-wrap` never
+gets a chance because the size is already small enough that nothing wraps.
+
+**So a caption longer than a few words is drawn by the clip.** post20 does it in
+the pop idiom rather than through the pop engine: Michroma caps, `--fg`, the
+site's spring on every word, wrapped inside a fixed box and fitted **to the
+wrapped block** — the largest size that keeps the taller block inside the box's
+height with no single word wider than it. 34 css px, 52 device px of cap.
+
+Two things are still the module's and should stay: `brandTokens`, so the colours
+come out of `index.html` rather than out of a clip, and `checkCopy`, so the dash
+rule is one rule. **Do not "fix" the engine for this.** Changing the fit to
+measure a wrapped block would change where post6, post7, post9, post10, post11,
+post14, post18 and post19 cut and size their cards, and every one of those is
+already judged.
+
+### 2026-09-06 — a clip whose first frame is empty has no thumbnail
+
+post20's typing used to start at 0.10s, which is one and a half frames at sixty
+and two whole frames at the preview rate. Every guard was green and the frame was
+a black rectangle. **That frame is the thumbnail**, and it is also what a feed
+shows before anybody has decided to watch — post12 cut its own fade up for exactly
+this reason and the note did not generalise, because post12's note is about a
+*fade* and this is about an *offset*.
+
+The fix is not to move the beat. The first word's reveal window opens `wordFor`
+**before** the clip does, so it is finished at t=0, and its key tick stays on
+frame zero: the keystroke that put it there is the first thing you hear and the
+film opens on a thought already half thought. Everything after it is unchanged.
+
+**The general rule: something is drawn on frame zero, and it is a guard rather
+than a habit.** `capAt(0)` is asserted to carry a fully arrived word and a lit
+caret.
+
+### 2026-09-06 — a centred mascot needs `bias: 0`, and the corner bias is why
+
+`TURN.bias` is derived from `pos`, which defaults to `bottom-left`, so a plan that
+says nothing gets a third of a turn to the mascot's right — right for a head
+standing in a corner looking *into* the frame, and wrong the moment a clip moves
+him. post12 and post20 both rewrite `plan.box` to centre him and only post20
+noticed, because post20 is the first one where the composition has a **direction**
+in it: the finger goes to screen right and the inherited bias turned his face the
+same way, so the whole thing leaned out of the frame together.
+
+`bias: 0` is the module's own documented spelling for dead straight on, and it is
+one line in the plan. **Any clip that centres him should say it.** The derivation
+is a default for the placement the module makes, not a fact about the mascot.
 
 ### 2026-09-06 — the gloves become traced paths, and the pose table is measured off the sheet rather than judged
 
