@@ -6,14 +6,46 @@ names in here either.
 
 ## Status
 
-- **Closed 2026-09-06: the mascot has a laugh pose, and it is the first one that
-  moves the head.** `laugh` in `demo/lib/mascot.mjs`: one flat hand over the
-  mouth, the head bouncing four times under it, the eyes squeezed shut into two
-  thin arcs and the brows gone. 12,138 frames across 33 plans still hash byte
+- **Rejected on review 2026-09-06: the laugh's hand reads wrong, and the fix is a
+  drawing rather than a number.** The pose is committed as `f9d2d8e` and it
+  stays in — the rig half of it is right and every guard is green — but **the
+  facepalm's file rotated forty five degrees does not read as a hand over a
+  mouth.** That is the same finding the drawn gloves got and it is the same
+  answer: measuring a reference tells you where to put a hand, it cannot tell
+  you the hand is the wrong hand. A facepalm is drawn to be seen palm on with
+  the wrist coming from the side of the head; turned onto the mouth it is a
+  facepalm lying down, and a viewer reads the pose it was drawn for.
+  - **It needs its own traced file, `demo/assets/hands/laugh.svg`**, drawn for
+    this gesture rather than borrowed. Two notes from the review that are
+    placement rather than drawing and should go into the row when the file
+    arrives: it sits **slightly further right** than it does now, and it is **a
+    bit smaller**. `at.x` 40.9 and `sc` 1.06 are what those two are being said
+    against.
+  - **And `point` still needs `demo/assets/hands/point-side.svg`**, which has
+    been open since the traced review: the sheet's point aims the finger at
+    camera, foreshortened, and at a 240px head the tip closes into the fist. Two
+    open drawings now rather than one, and they are the same kind of open.
+  - **Both are a file swap and nothing else.** `shape` is a name in the pose
+    table and `HAND_SHAPES` is an import, so each is: trace it into
+    `demo/assets/hands/`, paste the path into `HAND_SHAPES` with its coordinates
+    untouched, measure the wrist with `demo/out/poses/measure-traced.mjs`, point
+    the pose's `shape` at it and re-place `at` off `demo/out/poses/ref-grid.mjs`.
+    **Nothing in the module draws a hand and nothing about this changes that** —
+    no new channel, no new curve, no arithmetic. `laugh` keeps its `body`, its
+    `covers`, its sound and its timings whichever drawing is in it.
+  - The rest of the pose is not in question and should not be redone with the
+    file: the head bounces, the eyes shut into arcs, the brows go, the sound
+    lands on the first three bounces, and 12,138 frames are still byte identical
+    with the hands off.
+
+- **Built 2026-09-06 and rejected on review, see above: the mascot has a laugh
+  pose, and it is the first one that moves the head.** `laugh` in
+  `demo/lib/mascot.mjs`: one flat hand over the mouth, the head bouncing four
+  times under it, the eyes squeezed shut into two thin arcs and the brows gone. 12,138 frames across 33 plans still hash byte
   identical with the hands off, the module's own checks pass with seven new ones,
   and the hands chapter renders green at 12fps and at 60, both themes.
   - **It is the facepalm's traced file again, and it is the only pose that
-    borrows a drawing.** There was no eighth panel in the sheet to trace and a
+    borrows a drawing — and it is the half the review rejected.** There was no eighth panel in the sheet to trace and a
     laugh needs a *flat* hand: of the ten files the facepalm is the flat one, an
     open hand palm on with the fingers together, and `wave` is the other open
     hand with its fingers splayed, which over a mouth is somebody waving at their
@@ -7378,6 +7410,11 @@ Not scheduled, parked:
 
 ## Open questions
 
+- **Two hands poses are waiting on a drawing.** Written down 2026-09-06.
+  `demo/assets/hands/laugh.svg` and `demo/assets/hands/point-side.svg` do not
+  exist yet, and until they do `laugh` is the facepalm lying down and `point` is
+  a fist. Neither is a build task in this repo: they are traces, and the swap
+  afterwards is a name in a table. See Status.
 - **Does the scene layer get a type vocabulary?** Raised 2026-08-27 by the
   `unterberg.ai` direction. `lib/pictograms.mjs` has no text in it on purpose, and a
   fake chat ui or a command palette is not a fake chat ui without words. It is the one
