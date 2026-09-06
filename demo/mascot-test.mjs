@@ -170,14 +170,20 @@ function cut() {
    the sides are exercised in the middle of the run rather than at the end: one
    hand, then the other, then both again, so the persistence is on screen — the
    `side` outlives the pose that named it and the next mark that says nothing
-   about it keeps one hand. */
+   about it keeps one hand.
+
+   **`point` asks for the left hand, and that is where "the other side of the
+   head" lives.** the pose table is written once, for the screen right hand, and
+   mirroring the row itself would send that hand across the whole face in the
+   four tenths a jab has — the module says why. which side a one handed pose
+   lands on is `side` on the mark, so it is here. */
 const HANDS_CUT = [
   ['rest', 'neutral', undefined, 2.30],
   ['wave', 'curious', undefined, 2.60],
-  ['thumbs-up', 'delighted', 'left', 2.40],
+  ['thumbs-up', 'delighted', 'right', 2.40],
   ['facepalm', 'unimpressed', 'left', 2.80],
   ['shrug', 'thinking', 'both', 2.60],
-  ['point', 'agreeing', 'right', 2.50],
+  ['point', 'agreeing', 'left', 2.50],
   ['panic', 'surprised', 'both', 2.90],
   /* and back to rest, both hands, so the clip ends where it started and two
      copies of it butt together the way the export's clips do. */

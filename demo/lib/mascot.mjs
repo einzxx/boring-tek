@@ -602,6 +602,18 @@ export const YAP = {
    `point` are one handed and the second hand is the first one flipped, which is
    `mir` on the frame and a sign on the page's own scale.
 
+   **and every one handed file is the screen left hand, because that is the
+   hand the sheet gestures with.** the trace was taken off the sheet as it is
+   drawn, and the sheet waves, thumbs, facepalms and points with the hand on the
+   left of its own panels — which is why `rest-left` and `wave` carry their
+   thumbs on the same side of their frames, and why the comparison crops in
+   `demo/out/poses/cmp-ref-*.png` are horizontally flipped for every pose but
+   `rest`. so a one handed drawing goes into the screen **left** hand unflipped
+   and is reflected for the screen right one, and `handShape` is the whole of
+   that. it shipped the other way round for one build and the review caught it
+   in the first still: a right hand waving with its thumb pointing away from the
+   face is a left hand on the wrong side of a head.
+
    the sheet's own pairs are drawn twice rather than reflected, and they agree
    with each other's mirror to within **0.8 grid units**, which is a pixel and a
    half at the corner size. importing both instead of flipping one is worth that
@@ -1138,8 +1150,18 @@ export const HAND_POSES = {
     label: 'one hand over the face, fingers folded over the crown',
     shape: 'facepalm',
     entry: 1.02, hold: 1.30, exit: 0.34, both: false,
-    at: { x: 28.5, y: 32.0, rot: 0, sc: 1.06 },
-    mark: { chan: 'x', to: 28.5 },
+    /* **it lands on the other half of the face from the sheet's own panel.**
+       the sheet drops the hand onto the side of the forehead the acting hand
+       comes from; on screen that reads as a hand resting beside the face rather
+       than over it, because the wrist enters at the edge nearest it and the
+       fingers fan away toward nothing. mirrored, the wrist enters near the
+       middle and the fingers fan across the crown, which is the gesture. it is
+       the one pose in the table written against the reference rather than off
+       it, and the reflection is exact: 64 minus the number it was. */
+    at: { x: 35.5, y: 32.0, rot: 0, sc: 1.06 },
+    mark: { chan: 'x', to: 35.5 },
+    /* the one pose that puts a hand where the brows are. see `hcover`. */
+    covers: true,
     build(B, k) {
       const A = HAND_POSES.facepalm.at;
       /* up and across onto the face, and it is **0.94 because of the travel**.
@@ -1154,8 +1176,10 @@ export const HAND_POSES = {
         { for: 0.94, ease: 'pop', anti: 0.12, antiFor: 3 / 60 });
       /* the hold is the hand dragging down the face, slowly, on the calm curve.
          it is the whole joke, and it is the one beat in this table where
-         nothing snaps. */
-      B.set(k, { y: A.y + 2.6, rot: A.rot - 4 }, { for: 0.90, at: 0.52, ease: 'glide' });
+         nothing snaps. the four degrees turn with the placement: the drag rolls
+         the fingers down the face rather than off it, so its sign is the
+         mirror's along with everything else in the row. */
+      B.set(k, { y: A.y + 2.6, rot: A.rot + 4 }, { for: 0.90, at: 0.52, ease: 'glide' });
     },
   },
 
@@ -1182,6 +1206,19 @@ export const HAND_POSES = {
     label: 'one index out, the rest a fist',
     shape: 'point',
     entry: 0.40, hold: 1.15, exit: 0.28, both: false,
+    /* **which side of the head this lands on is the clip's call, not the
+       table's**, and that is worth writing down because the obvious fix is the
+       wrong one. a review asked for the point to move to the other side of the
+       head, and mirroring this row is not how: the pose sits just outside the
+       acting hand's own resting place, so reflecting `x` would send that hand
+       sixty eight grid units — more than the width of the head — across the
+       face in the four tenths of a second a jab has. the guard says so outright
+       at fifty two css px a frame, against a ceiling of twelve.
+
+       a hand points from where it is. so the side is `side` on the mark, the
+       way the module already says it is: `side: 'left'` puts the pose on the
+       screen left, mirrored, with the left hand doing it and travelling four
+       units to get there. `demo/mascot-test.mjs` asks for exactly that. */
     at: { x: 64.0, y: 58.5, rot: -18, sc: 1.0 },
     mark: { chan: 'y', to: 58.5 },
     build(B, k) {
@@ -1237,13 +1274,21 @@ export const HAND_POSE_NAMES = Object.keys(HAND_POSES);
 
 /* ---------- which drawing a pose puts in which hand ----------
    a two handed pose carries the sheet's own pair and neither is flipped; a one
-   handed one carries one drawing and the screen left hand is it reflected, so
-   `mir` is minus one there and one everywhere else. `mir` is the whole of the
-   handedness: it is the sign on the page's scale and it is which of the two
-   cached hulls `gloveCorners` hands back. */
+   handed one carries one drawing, and **that drawing is the screen left hand**,
+   so it goes into the left hand as it was traced and the screen right one is it
+   reflected. `mir` is minus one there and one everywhere else. `mir` is the
+   whole of the handedness: it is the sign on the page's scale and it is which
+   of the two cached hulls `gloveCorners` hands back.
+
+   the sign was the other way round for one build and every one handed pose came
+   out as the wrong hand: a wave whose thumb pointed away from the face, a thumb
+   whose knuckles faced out. the test below is written on `wave` for that
+   reason, and the rule it stands for is the one to check a new drawing against
+   — a hand on the right of the head is a right hand, a hand on the left is a
+   left hand, and the thumb is the side nearer the face. */
 export function handShape(pose, k) {
   const S = HAND_POSES[pose].shape;
-  return Array.isArray(S) ? { shape: S[k], mir: 1 } : { shape: S, mir: k === 0 ? -1 : 1 };
+  return Array.isArray(S) ? { shape: S[k], mir: 1 } : { shape: S, mir: k === 0 ? 1 : -1 };
 }
 
 /* ---------- the shape one hand is holding at one instant ----------
@@ -2462,6 +2507,22 @@ function channels(plan) {
     hands: [mirrorHandPose(HANDS_REST, 0), { ...HANDS_REST }],
     /* their own always on layer, tweened only when there are hands to move. */
     hidle: [{ x: 0, y: 0, rot: 0 }, { x: 0, y: 0, rot: 0 }],
+    /* ---------- how much a hand is over the face ----------
+       nought normally and one while a pose declared `covers` is up, and the one
+       thing that reads it is the brows' own opacity. a facepalm lands on the
+       brow line, and two page coloured slabs showing through the fingers of a
+       hand drawn in the same ink as the head is a knot rather than a face — the
+       review said so and this is the answer to it.
+
+       it is a channel rather than a lookup because a brow that vanished on one
+       frame is a pop. it fades out over the pose's own entrance, which is the
+       second the hand takes to cross the face, and back in over its exit, so
+       the brows are gone by the time anything is over them and back by the time
+       the hand is off.
+
+       nothing writes it unless a plan has hands **and** poses one that covers,
+       so on every other clip it sits at nought and multiplies by one. */
+    hcover: { v: 0 },
     pad: { v: 0 },
   };
 }
@@ -2834,6 +2895,15 @@ function engineFor(plan) {
       }
       onNow = [...m.hands.on];
       for (const k of m.hands.acting) HP.build(HB, k);
+      /* and the brows out of the way of a pose that lands on them, on the
+         pose's own windows so the two can never drift apart: gone by the time
+         the hand arrives, back by the time it has left. */
+      if (HP.covers) {
+        tl.fromTo(ch.hcover, { v: 0 },
+          { v: 1, duration: HP.entry, ease: H.glide, immediateRender: false }, m.t);
+        tl.fromTo(ch.hcover, { v: 1 },
+          { v: 0, duration: HP.exit, ease: H.glide, immediateRender: false }, m.hands.leaving);
+      }
       exitHandsToRest(tl, ch, H, HB, m.hands.leaving, m.hands.exit);
     }
   }
@@ -2912,7 +2982,13 @@ function engineFor(plan) {
 export function mascotFrame(plan, t) {
   const eng = engineFor(plan);
   eng.tl.time(t, false);
-  const { a, b, eye, lid, brow, idle, bub, yap } = eng.ch;
+  const { a, b, eye, lid, brow, idle, bub, yap, hcover } = eng.ch;
+  /* one number for the whole brow pair, and it is one rather than two because a
+     hand over half a face still takes both: a single brow left showing under a
+     facepalm is a face with one eyebrow, which is worse than none. it is one at
+     rest, so every clip that never covers anything multiplies by exactly one
+     and writes the number it always wrote. */
+  const browShow = 1 - hcover.v;
 
   const breathe = 1 + IDLE.breathe.amp * (idle.br - 0.5) * 2;
   /* the two turn values. the card takes the lagged one and the eyes take the
@@ -3012,7 +3088,11 @@ export function mascotFrame(plan, t) {
       outside = Math.max(outside, headSD(cx + e.x + sx2 * hw, cy + e.y + sy2 * hh, plan));
     }
     const b = brow[k];
-    if (b.o > 0.004) {
+    /* the drawn opacity rather than the channel's, so a brow hidden under a
+       hand is not counted as ink reaching past the silhouette. it is the same
+       product the frame writes, so the two can never disagree about whether
+       there is a brow on screen. */
+    if (b.o * browShow > 0.004) {
       const th = b.rot * Math.PI / 180, c2 = Math.cos(th), s2 = Math.sin(th);
       const bx = EYE_CX[k] + turnShift(k) * TURN.browShare, by = HEAD.brow.cy + b.y;
       for (const sx2 of [-1, 1]) for (const sy2 of [-1, 1]) {
@@ -3186,7 +3266,7 @@ export function mascotFrame(plan, t) {
     /* the brows go with their own eye, a shade less far, or a turned face would
        have its brows sitting over the bridge of a nose it does not have. */
     brows: brow.map((bw, k) => ({
-      o: n(bw.o), y: n(bw.y), rot: n(bw.rot),
+      o: n(bw.o * browShow), y: n(bw.y), rot: n(bw.rot),
       x: n(turnShift(k) * TURN.browShare),
     })),
     /* the shadow slides with the mass, on the lagged turn, so it is under the
@@ -3958,7 +4038,40 @@ export function mascotCss(plan) {
   fill:none; stroke:var(--eye); stroke-width:${n(HANDS.edge / (HANDS.box / SHAPE_BOX))};
   stroke-linejoin:round; stroke-linecap:round;
 }
-.m-glove{will-change:transform}` : ''}
+.m-glove{will-change:transform}
+/* ---------- and the head's own glow, on a hand ----------
+   dark theme only, exactly like the face's, because a glow on white is a smudge
+   and a floating hand needs the same grounding a floating head does — without
+   it the pair reads as two stickers laid over a head that is lit.
+
+   **it is scaled to the hand rather than copied off the head.** the plate's two
+   blurs are written for a 60 unit square; a hand's box is ${n(HANDS.box)} of the
+   same units, so both radii are multiplied by ${n(HANDS.box / HEAD.plate.s)} and
+   what lands round a glove is the same halo at the same proportion. the head's
+   own numbers are in css px and do not scale with the clip's size, so these are
+   divided back by the unit and come out at the same css px at any size.
+
+   it is two chained drop-shadows rather than two blurred copies of the paths,
+   and that is the one place this differs from the face. the face can afford
+   copies because a plate is one rect; a glove is seven hidden outlines a hand
+   and copying the layer twice would be four more groups for the runtime to
+   place every frame. a drop-shadow is the same picture — the silhouette,
+   blurred, tinted, at that alpha — for one declaration and no extra markup. the
+   second one blurs the first one's output as well as the ink, which adds a halo
+   of a halo at ${n(GLOW.mid.o * GLOW.wide.o * 100)} per cent and is not visible.
+
+   **the radii are doubled and then divided by the unit.** doubled because a
+   drop-shadow's radius is twice the deviation a css blur takes, so half of it is
+   the blur the face is written with; divided because a css length inside an svg
+   is in the element's own user units, which are grid units here, and only the
+   two glow layers outside the svg get to be written in css px.
+
+   the mid is written first so the wide sits behind it, which is the order the
+   two glow svgs are stacked in over the page. */
+[data-theme=dark] .m-hands-ink{
+  filter:drop-shadow(0 0 ${n(2 * GLOW.mid.blur * HANDS.box / HEAD.plate.s / plan.unit)}px color-mix(in srgb, var(--face) ${n(GLOW.mid.o * 100)}%, transparent))
+         drop-shadow(0 0 ${n(2 * GLOW.wide.blur * HANDS.box / HEAD.plate.s / plan.unit)}px color-mix(in srgb, var(--face) ${n(GLOW.wide.o * 100)}%, transparent));
+}` : ''}
 
 /* the glow. two blurred copies of the plate behind it, dark theme only, and it
    is around the head only because the copies are the head. post10's phosphor
@@ -5250,12 +5363,19 @@ function selfTest() {
     'left at ' + symF[0].pose.x + '/' + symF[0].pose.rot
     + ', right at ' + symF[1].pose.x + '/' + symF[1].pose.rot);
   /* and the four one handed poses are the other half of it: one drawing, and
-     the screen left hand is it flipped. the two forms have to agree, which is
-     the thing worth checking rather than either of them on its own — the
+     the screen **right** hand is it flipped. the two forms have to agree, which
+     is the thing worth checking rather than either of them on its own — the
      sheet's own pair and a mirror of one of them are the same hand, and the
-     hull the reach is measured off must come out the same either way. */
-  const oneF = mascotFrame(
-    planMascot({ hands: true, bias: 0, seconds: 4.4, marks: [{ t: 0.3, state: 'neutral', hands: 'wave', side: 'left' }] }),
+     hull the reach is measured off must come out the same either way.
+
+     the sign is checked on both hands rather than on one, because getting it
+     backwards is exactly what shipped: the drawing is the screen left hand, so
+     the left one takes it as traced and the right one is the reflection. a hand
+     on the right of the head is a right hand. */
+  const oneP = planMascot({ hands: true, bias: 0, seconds: 4.4, marks: [{ t: 0.3, state: 'neutral', hands: 'wave', side: 'left' }] });
+  const oneF = mascotFrame(oneP, 1.2).hands.list;
+  const oneR = mascotFrame(
+    planMascot({ hands: true, bias: 0, seconds: 4.4, marks: [{ t: 0.3, state: 'neutral', hands: 'wave', side: 'right' }] }),
     1.2).hands.list;
   let symWorst = 0;
   for (const [a, b] of [['rest-left', 'rest-right'], ['shrug-left', 'shrug-right'],
@@ -5265,7 +5385,8 @@ function selfTest() {
       Math.abs(A.y0 - B.y0), Math.abs(A.y1 - B.y1));
   }
   ok('a one handed pose is one drawing and its reflection',
-    oneF[0].shape === 'wave' && oneF[0].mir === -1 && symWorst < 0.8,
+    oneF[0].shape === 'wave' && oneF[0].mir === 1
+    && oneR[1].shape === 'wave' && oneR[1].mir === -1 && symWorst < 0.8,
     'the sheet own three pairs are the same hand twice to ' + symWorst.toFixed(2)
     + ' grid units, so importing both rather than mirroring one is fidelity, not a different shape');
 
@@ -5464,6 +5585,91 @@ function selfTest() {
     && mascotCss(gp).includes('.m-hands-edge .m-gl')
     && mascotCss(gp).includes('fill:none; stroke:var(--eye)')
     && mascotPagePlan(gp).hands.edge === HANDS.edge);
+
+  /* ---------- the glove's own glow ----------
+     the face's, scaled to the hand and gated on the theme the same way, and it
+     is checked in the css because that is the whole of it: there is no channel
+     to read and no number in a frame, since `glow` is a constant per theme and
+     a rule under the dark selector says the same thing for free.
+
+     what is worth asserting is the size. the drop-shadow's radius is written in
+     the svg's own user units — grid units — so at size 128 the mid one has to
+     come out at twice the face's eleven css px, scaled by the hand against the
+     head and divided back by the two css px a unit is: 5.96. get the unit wrong
+     and it is out by a factor of two in one direction or the other, which is a
+     halo either the size of the head or invisible. */
+  ok('a glove carries the head own glow, scaled to a hand, on dark only', (() => {
+    const css = mascotCss(gp);
+    const i = css.indexOf('[data-theme=dark] .m-hands-ink{');
+    if (i < 0) return false;
+    const rule = css.slice(i, css.indexOf('}', i));
+    const want = 2 * GLOW.mid.blur * HANDS.box / HEAD.plate.s / gp.unit;
+    return Math.abs(want - 5.958) < 0.01
+      && rule.includes('drop-shadow(0 0 ' + n(want) + 'px')
+      && rule.includes(n(2 * GLOW.wide.blur * HANDS.box / HEAD.plate.s / gp.unit) + 'px')
+      && rule.includes('var(--face)')
+      /* the ink layer and not the edge one: the edge is a page coloured stroke
+         and a glow on it would be a halo round the cut rather than round the
+         hand. */
+      && !css.includes('.m-hands-edge{filter')
+      /* and nothing at all on a plan with no gloves, which is what keeps every
+         clip written before this byte identical. */
+      && !mascotCss(planMascot({ marks: [{ t: 0.3, state: 'neutral' }] })).includes('m-hands-ink');
+  })(), 'mid ' + n(2 * GLOW.mid.blur * HANDS.box / HEAD.plate.s / gp.unit)
+    + ' and wide ' + n(2 * GLOW.wide.blur * HANDS.box / HEAD.plate.s / gp.unit)
+    + ' grid units of radius, which is ' + n(GLOW.mid.blur * HANDS.box / HEAD.plate.s)
+    + ' and ' + n(GLOW.wide.blur * HANDS.box / HEAD.plate.s) + ' css px of blur');
+
+  /* ---------- the brows get out from under a facepalm ----------
+     `unimpressed` is the state the test cut puts under the facepalm and it is
+     one of the two that raise the brows, so this is the case that showed the
+     problem: two page coloured slabs on the forehead, under a hand drawn in the
+     same ink as the head, with the hand's own outline running between them.
+
+     three moments rather than one, because a gate that is stuck on is as wrong
+     as a gate that never closes: the brows are untouched before the hand
+     starts, gone while it is there, and back once it has left.
+
+     it is measured as a difference between two plans rather than against a
+     number, because the brows are already being driven by the state on the same
+     frames: one plan poses the hands and the other does not, everything else
+     identical, and the gap between them is the gate and nothing else. */
+  const FP_S = 9.2;
+  const fpMarks = t => [{ t: 0.4, state: 'unimpressed' },
+    { t: 2.2, state: 'unimpressed', ...(t ? { hands: 'facepalm' } : {}) },
+    { t: 6.0, state: 'unimpressed', ...(t ? { hands: 'rest' } : {}) }];
+  const fpP = planMascot({ hands: true, bias: 0, seconds: FP_S, marks: fpMarks(true) });
+  const fpN = planMascot({ hands: true, bias: 0, seconds: FP_S, marks: fpMarks(false) });
+  const fpM = fpP.marks.find(m => m.hands && m.hands.pose === 'facepalm').hands;
+  const fpAt = t => [mascotFrame(fpP, t).brows[0].o, mascotFrame(fpN, t).brows[0].o];
+  const [fpB, fpBN] = fpAt(2.19);
+  const [fpUnder, fpUp] = fpAt(fpM.settled + 0.30);
+  const [fpAfter, fpAfterN] = fpAt(fpM.out + 0.60);
+  ok('a facepalm takes the brows with it',
+    fpB === fpBN && fpUp > 0.9 && fpUnder < 0.004 && fpAfter > 0.9 && fpAfter === fpAfterN,
+    'the same face holds them at ' + fpUp.toFixed(3) + ' under no hand and '
+    + fpUnder.toFixed(3) + ' under this one, back to ' + fpAfter.toFixed(3) + ' after it');
+  /* and it fades rather than cutting. the ceiling is the brows' own entrance on
+     the same plan with no hand over them, which is a 0.20s pop from nothing and
+     is the fastest anything on this face legitimately moves them: a gate that
+     stepped harder than that would be the thing a viewer saw rather than the
+     hand. it is the rendered opacity that is measured, not the gate on its own,
+     because the state is driving the same number on the same frames and what a
+     viewer sees is the product. */
+  let fpStep = 0, fpEntry = 0;
+  for (let f = 1; f < Math.round(FP_S * 60); f++) {
+    fpStep = Math.max(fpStep, Math.abs(mascotFrame(fpP, f / 60).brows[0].o
+      - mascotFrame(fpP, (f - 1) / 60).brows[0].o));
+    fpEntry = Math.max(fpEntry, Math.abs(mascotFrame(fpN, f / 60).brows[0].o
+      - mascotFrame(fpN, (f - 1) / 60).brows[0].o));
+  }
+  ok('the brows fade out from under it rather than blinking off', fpStep <= fpEntry,
+    'worst one frame step ' + fpStep.toFixed(4) + ' of opacity, against '
+    + fpEntry.toFixed(4) + ' for the entrance the same brows already make');
+  /* the poses that do not cover leave them alone, which is the other half of
+     "only the facepalm declares it". */
+  ok('every other pose leaves the brows where the state put them',
+    HAND_POSE_NAMES.filter(nm => HAND_POSES[nm].covers).join(',') === 'facepalm');
   /* every pose carries its own drawing into both gloves and both layers, which
      is twenty eight groups and ten distinct outlines. it is checked because the
      page picks a path by name and a name it cannot find is a hand that does not

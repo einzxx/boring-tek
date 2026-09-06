@@ -6,6 +6,59 @@ names in here either.
 
 ## Status
 
+- **Fix round 2026-09-06: the one handed poses were the wrong hand, and now the
+  gloves glow.** Four things off the first traced review, in
+  `demo/lib/mascot.mjs`. 12,138 frames across 33 plans still hash byte identical
+  with the hands off, the module's own checks pass, and the hands chapter
+  renders green at 12fps and at 60, both themes.
+  - **Every one handed drawing is the screen *left* hand and `handShape` had the
+    sign backwards.** The sheet waves, thumbs, facepalms and points with the
+    hand on the left of its own panels — which is why `compare.mjs` flips every
+    reference crop but `rest` — so a traced file goes into the left hand
+    unflipped and is reflected for the right one. It shipped the other way and
+    every one handed pose was the wrong hand: a wave with its thumb pointing
+    away from the face, a thumb with its knuckles turned out. One character,
+    four poses. The rule to check a new drawing against is **a hand on the right
+    of the head is a right hand, and the thumb is the side nearer the face**.
+  - **The facepalm lands on the other half of the face**, `at.x` 28.5 to 35.5
+    with the drag's four degrees changing sign with it. This is the one row
+    written against the reference rather than off it: the sheet drops the hand
+    on the side the acting hand comes from, which reads as a hand resting beside
+    the face; mirrored, the wrist enters near the middle and the fingers fan
+    across the crown, which is the gesture.
+  - **And it takes the brows with it.** `hcover` is a channel, nought normally
+    and one while a pose that declares `covers` is up, and the brows' opacity is
+    multiplied by its inverse. It fades over the pose's own entrance and back
+    over its exit, so nothing pops — the worst one frame step is 0.126, which is
+    exactly the entrance those brows already make under `surprised`. A hard
+    lookup would have been a brow vanishing on one frame. `facepalm` is the only
+    pose that declares it.
+  - **The pointing hand moved to the other side of the head, and it is a `side`
+    on the mark rather than a number in the table.** Mirroring the pose's own
+    row is the obvious fix and it is wrong: the pose sits just outside the
+    acting hand's resting place, so reflecting `x` sends that hand sixty eight
+    grid units — more than the width of the head — in the four tenths of a
+    second a jab has, and the step guard says so at 52 css px a frame against a
+    ceiling of 12. **A hand points from where it is.** So `demo/mascot-test.mjs`
+    asks for `side: 'left'` and the module's comment says why. `thumbs-up` moved
+    to `'right'` in the same cut to keep both sides exercised.
+  - **The gloves carry the head's own glow, scaled to a hand, dark only.** Two
+    chained `drop-shadow`s on the ink layer at the face's own two blurs and
+    opacities, multiplied by 32.5/60 — the hand's box against the head's — so
+    the halo is the same at the same proportion. It is a drop-shadow rather than
+    two blurred copies because a plate is one rect and a glove is seven hidden
+    outlines a hand: copying the layer twice would be four more groups for the
+    runtime to place every frame, and a drop-shadow is the same picture for one
+    declaration. **The radii are doubled and then divided by `plan.unit`** —
+    doubled because a drop-shadow's radius is twice the deviation a css blur
+    takes, divided because a css length inside an svg is in the element's own
+    user units, which are grid units here. Getting that unit wrong is a halo
+    either the size of the head or invisible, so the check asserts the number:
+    5.958 grid units of radius at size 128, which is 5.96 css px of blur.
+  - **`point` still reads as a fist** and that is unchanged and still a file
+    swap: the traced drawing aims the finger at camera and it closes into the
+    mass. Nothing in the module can fix it.
+
 - **Closed 2026-09-06: the mascot's floating hands are traced vector paths off
   the sheet, and the rejected drawn version is gone.** Ten svgs in
   `demo/assets/hands/` — `rest-left`, `rest-right`, `wave`, `thumbs-up`,
