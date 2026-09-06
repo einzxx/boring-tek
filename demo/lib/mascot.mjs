@@ -561,6 +561,454 @@ export const YAP = {
   periodJit: 0.14,      /* and runs between (1 - this) and (1 + this) of its length */
 };
 
+/* ---------- the floating hands ----------
+   **opt in, and off unless a plan says `hands: true`.** nothing in the markup,
+   the css, the timeline, the frame, the placement or the report exists when it
+   is off, so every clip written before them renders exactly as it did — the
+   self test asserts that on the same artefacts the yap hand's own opt in is
+   asserted on.
+
+   they are not the hand above. `HAND` is one pair of slabs standing in for a
+   mouth, low on the face, and it is a piece of the head. **these are two
+   floating cartoon gloves with no arms**, which is the whole convention: a
+   glove attached to nothing is a hand, and nobody has ever asked where the arm
+   went, because a glove drawn with a stump would need one.
+
+   ---------- what is drawn ----------
+
+   one glove, six shapes, and the second hand is the first one mirrored: a
+   chunky rounded palm, four fingers in a row off the top of it and a thumb off
+   its side, all of them rounded rects on the head's own 64 grid, so a hand is
+   the same ink and the same corner language as everything else in the file.
+
+     the palm     `palm.w` by `palm.h`, cornered at `palm.rx` — a rounded
+                  square rather than a pill, which is what makes it a palm.
+     the fingers  four capsules `fingers.pitch` apart, splayed off their own
+                  bases, each with its own reach so the row is not a comb. they
+                  **do not touch**: the gap is `pitch - w`, which over the page
+                  colour is the only thing that separates them, and see the edge
+                  below for what separates them over the face.
+     the thumb    shorter, thicker, off the palm's `-x` side. the glove is drawn
+                  as the mascot's screen right hand, so its thumb points in
+                  toward the head, and the screen left one is `scale(-1 1)` of
+                  it, which puts that thumb in toward the head as well.
+
+   **the fingertips are slightly flattened**, and it is one number: `tipR` is
+   the corner radius as a share of the finger's width and it is under a half. at
+   a half a capsule ends in a semicircle; at 0.40 it ends in a short flat with
+   two corners, which is what a glove's stitched tip looks like and is what
+   stops four capsules reading as four sausages.
+
+   **a curled finger is a bump on the front of a fist rather than a folded
+   tube.** one capsule cannot fold at two knuckles and a version that tried read
+   as a finger that had been trodden on. so a curl shortens the capsule by
+   `curlLen`, drops its base `curlDrop` into the palm and opens its splay by
+   `curlSplay`: four short capsules fanned on the palm's top edge, which is a
+   knuckle row, and is what the reference's fist actually is at this size.
+
+   ---------- the separation edge ----------
+
+   a white glove on a white face is one shape. **so the glove carries an outline
+   in the page colour, and it is painted only where the hand is over the head.**
+   that is two layers rather than a conditional: the ink layer is unclipped and
+   is fill only, the edge layer is clipped to the plate's own outline and is
+   stroke only, and it is the same clip path every facial feature already uses,
+   so the two can never disagree about where the head ends.
+
+   over the background there is no edge at all, which is right twice over. the
+   glove is already a white shape on a dark page and needs nothing to separate
+   it. and a page coloured stroke out there would not be invisible anyway: the
+   dark theme's glow sits behind the head, so a stroke drawn in `#06070a` over
+   it would read as a dark ring rather than as nothing.
+
+   the edge does two jobs and the second one is free. between the hand and the
+   face it is the separation. **inside the hand it is the finger lines** — the
+   fingers overlap the palm and the stroke follows every shape's own outline, so
+   over the face the row reads as five parts of one hand. over the background
+   the gaps between the fingers do that job instead and the palm and the fingers
+   merge into one silhouette, which is exactly what the reference does.
+
+   **`edge` is 0.75 grid units, which is three device px at the corner size**,
+   and it is thinner than the reference on purpose: that drawing's finger lines
+   measure about four and a quarter device px against a head this size, and at
+   that weight the lines are the thing you see rather than the hand. it is one
+   number for the whole glove, so the thickness is **even everywhere** — the
+   reference's outline is not, and a stroke that thickens round a knuckle is the
+   difference between a drawing and a rig.
+
+   an even stroke is also why the hands cancel the card's deformation rather
+   than riding it. the card squashes and the turn squeezes it, both on x alone,
+   and a stroke under a non uniform scale is thicker on one axis than on the
+   other. so each glove carries the inverse of the card's own two scales about
+   its own origin, which leaves the net transform on it uniform: it **scales
+   with the head, tilts with the head, travels with the turn, and does not
+   deform.** a hand is held beside a face rather than painted on it.
+
+   ---------- where they sit ----------
+
+   the pose table is in card space, on the same 64 grid the face is drawn on,
+   and it is written for the **screen right** hand. the screen left one is the
+   mirror: `x` becomes `64 - x` and `rot` becomes `-rot`, and nothing else
+   changes, because the splay and the thumb angle live inside the glove's own
+   frame and the glove itself is what gets flipped. that is why every pose below
+   is written once.
+
+   the resting pair is the reference's: two hands low beside the head, fingers
+   hanging down and tipped in a little, each wrist tucked against the silhouette
+   with the palm just clear of it. every pose exits back to that. */
+export const HANDS = {
+  /* ---------- the proportions are the reference's, and they are measured ----------
+     `demo/out/poses/measure-ref.mjs` decodes that png, thresholds it, labels the
+     connected components and reports each blob's box and its per row run
+     profile. so these are read off the drawing rather than judged by eye, and
+     the wave hand is the one they are read off because it is the only pose in
+     the sheet with the hand fully open and flat to camera.
+
+     against a head measuring 244px there:
+
+       the whole hand      110 x 106      0.45 x 0.43 of the head
+       the palm             93 wide        0.38 of the head
+       one finger           23 wide        and about 50 long
+       the gap between two   6              a quarter of a finger's width
+       the thumb            22 wide        within a pixel of a finger
+
+     which on the mascot's 60 unit plate is a palm 22.9 across, a finger 5.65 by
+     12.3, a gap of 1.5 and a thumb of 5.4. the numbers below are those, with the
+     finger row pulled in so it sits on the palm rather than past it.
+
+     **the first cut got all of this wrong in the same direction and it read as a
+     starfish.** the palm was 17 against 23, the fingers were 3.3 wide against
+     5.4, and the splay was seven and a half degrees a finger, so four thin
+     spikes fanned off a small lump. what the reference actually draws is the
+     opposite: **a big rounded mitt with short thick fingers held together**, and
+     the two ratios that carry it are the palm's width against a finger's length
+     — 1.83 to 1 here, 1.86 in the drawing — and the gap against a finger's
+     width, a quarter either way. */
+  palm: { w: 23.0, h: 15.0, rx: 7.0 },
+  fingers: {
+    /* **side by side with a small even gap, not fanned.** `splay` is three
+       degrees a step where it was seven and a half, which at the default `sp`
+       leaves the outer pair four and a half degrees off vertical — enough that
+       four capsules are not a comb, nowhere near enough to be a fan. a pose
+       that wants a spread hand raises `sp`; nothing else does.
+
+       the gap is `pitch - w` and over the background it is the only thing
+       separating two fingers, because the edge layer is clipped to the head.
+       one grid unit is four device px at the corner size, which is the bubble
+       outline's number and survives h.264 at crf 17 for the same reason. */
+    w: 5.4, len: 12.6, pitch: 6.4, splay: 3.0, baseY: -12.0,
+    /* out from the thumb: index, middle, ring, little. four equal capsules are
+       a comb; these four are a hand. */
+    reach: [0.93, 1.00, 0.96, 0.86],
+    /* a curled finger is a bump on the front of a fist rather than a folded
+       tube: one capsule cannot fold at two knuckles. a curl shortens it, drops
+       its base into the palm and barely opens its splay — the reference's own
+       fist draws the curled row as three parallel bars, not a fan. */
+    curlLen: 0.58, curlDrop: 1.5, curlSplay: 0.18,
+  },
+  /* **a clear separate chunky shape**, which in the drawing means as wide as a
+     finger and a good deal shorter, with its base far enough out on the palm's
+     flank that the two silhouettes never merge into one lobe. */
+  thumb: { w: 5.8, len: 10.5, x: -10.8, y: -5.0, curlLen: 0.40, curlIn: 38, curlX: 1.2, curlY: 1.0 },
+  /* the tips are rounded. `tipR` is the corner radius as a share of the
+     finger's width and a half is a semicircle; 0.46 is a semicircle with the
+     last hair taken off it, which is a glove's stitched tip and is invisible as
+     a decision until four of them are side by side. */
+  tipR: 0.46,
+  /* the page coloured outline, in grid units: three device px at size 128 and
+     three and a half at 148, against a reference whose own finger lines are
+     four and a quarter at the first of those. */
+  edge: 0.75,
+  /* a hand goes with the head on a turn and it goes less far than an eye does,
+     for the same reason the yap hand does — it is held in front of the face
+     rather than wrapped around it. the card's own squeeze already pulls the
+     anchors in as the silhouette narrows; this is the slide on top of that. */
+  turnShare: 0.35,
+  /* the always on layer, so a hand at rest is never a sticker. three periods
+     per hand — x, y and rotation — and no two of the six are multiples of each
+     other, which is how the head's own drift is written and for the same
+     reason: a path that closes is a path a viewer starts to recognise. the two
+     hands are given different ones, so the pair never moves as one object. */
+  idle: { amp: 0.42, rot: 1.15, period: [6.7, 5.9], rotPeriod: [8.3, 7.1] },
+};
+
+/* the resting glove, as the channel values every pose is written against and
+   every exit returns to. it is `rest`'s own row in the table below, lifted out
+   because `channels()` needs it before the table is read. */
+export const HANDS_REST = {
+  x: 61.5, y: 42.5, rot: 182, sc: 1, o: 1, sp: 0.50,
+  c0: 0.38, c1: 0.30, c2: 0.32, c3: 0.42, ct: 0.24, ta: -40,
+};
+
+/* which hands are on screen, and it is the whole of the side option: `both` is
+   the pair, `left` and `right` are one hand with the other not drawn, which is
+   what "one hand or two" means. it persists across marks the way the turn does,
+   because it is a fact about the composition rather than a gesture. */
+export const HAND_SIDES = ['left', 'right', 'both'];
+
+/* ---------- the poses ----------
+   seven, each a different silhouette at a glance with the sound off, and each
+   an entrance, a hold with its own beat, and an exit back to rest. the shape is
+   the state table's shape and the numbers are in the same units.
+
+   `at` is where the acting hand ends up. `both` says whether the pose is one
+   the pair does together — a shrug is two hands or it is not a shrug — or one a
+   single hand does while the other rests, which is what the reference draws for
+   the wave, the thumb, the facepalm and the point.
+
+   `mark` is the one channel the preflight scores the pose on, exactly as a
+   state declares one: a shrug's read is in rotation and a facepalm's is in
+   where the hand went, and one shared metric would flatter both.
+
+   every `build` is written in the **screen right** hand's own space and `B.set`
+   mirrors it for the other one, so there is not a sign anywhere in this table. */
+export const HAND_POSES = {
+  rest: {
+    label: 'two hands low beside the head',
+    entry: 0.42, hold: 1.00, exit: 0.28, both: true,
+    at: { ...HANDS_REST },
+    mark: { chan: 'y', from: HANDS_REST.y - 1.5, to: HANDS_REST.y },
+    build(B, k) {
+      /* it still has to arrive: a pose that wrote nothing would hold whatever
+         the pose before it left behind. it settles down onto rest from a little
+         above, which reads as two hands being let go of rather than as an
+         entrance.
+
+         **a unit and a half rather than three**, and the reason is the one
+         `neutral` has too: an explicit `from` is a value the channel is not at
+         yet, so the mark's own frame carries a step of exactly that size. three
+         units was six css px in one frame, which is a hand blinking upward
+         before it comes down. one and a half is three css px, under the blink's
+         own 3.5 and under everything else in this table. */
+      B.set(k, { y: HANDS_REST.y }, { from: { y: HANDS_REST.y - 1.5 }, for: 0.40, ease: 'pop' });
+      /* the hold's own beat: the pair drifts a little apart and back on the calm
+         curve, which is a body breathing rather than two stickers. */
+      B.set(k, { x: HANDS_REST.x + 0.7 }, { for: 0.52, at: 0.46, ease: 'glide' });
+      B.set(k, { x: HANDS_REST.x }, { for: 0.60, at: 1.02, ease: 'glide' });
+    },
+  },
+
+  wave: {
+    label: 'one hand up beside the head, open, rocking',
+    entry: 0.44, hold: 1.30, exit: 0.30, both: false,
+    at: { x: 68.0, y: 44.0, rot: 20, sc: 1.0, sp: 1.7, c0: 0, c1: 0, c2: 0, c3: 0, ct: 0, ta: -66 },
+    mark: { chan: 'y', to: 44.0 },
+    build(B, k) {
+      const A = HAND_POSES.wave.at;
+      /* the hand dips before it comes up, which is the same anticipation every
+         state's entrance has and is why this reads as somebody deciding to
+         wave rather than as a hand appearing at head height. */
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc, sp: A.sp, c0: 0, c1: 0, c2: 0, c3: 0, ct: 0, ta: A.ta },
+        { for: 0.40, ease: 'pop', anti: 0.34, antiFor: 4 / 60 });
+      /* and then the rock, which is the pose. five passes, each smaller and
+         quicker than the one before it, so the wave winds down rather than
+         looping — the same argument the two nods in `agreeing` make. */
+      for (const [at, forS, by] of [[0.40, 0.26, 15], [0.66, 0.24, -13], [0.90, 0.24, 12],
+        [1.14, 0.26, -9], [1.40, 0.28, 6]]) {
+        B.set(k, { rot: A.rot + by }, { for: forS, at, ease: 'glide' });
+      }
+    },
+  },
+
+  'thumbs-up': {
+    label: 'one fist, thumb up',
+    entry: 0.40, hold: 1.10, exit: 0.28, both: false,
+    /* **the fist is turned on its side and the thumb points up, which is the
+       one pose in this table whose rotation is not where the hand is but which
+       way it is holding.** with the fingers curled and pointing up, a fist is a
+       lump with four bumps on the top of it and the thumb, which lives on the
+       glove's own left, ends up tucked in against the head — the first cut read
+       as a mitten. turned ninety, the knuckle row faces away from the face, the
+       thumb base swings to the top of the hand, and `ta` takes it back to
+       vertical, which is the whole gesture. */
+    at: { x: 65.0, y: 51.0, rot: 82, sc: 1.06, sp: 0.30, c0: 0.78, c1: 0.74, c2: 0.76, c3: 0.82, ct: 0, ta: -82 },
+    mark: { chan: 'y', to: 51.0 },
+    build(B, k) {
+      const A = HAND_POSES['thumbs-up'].at;
+      /* the fingers close two frames before the hand arrives, so the fist is
+         made on the way up rather than at the top of it. */
+      B.set(k, { c0: A.c0, c1: A.c1, c2: A.c2, c3: A.c3, sp: A.sp }, { for: 0.22, ease: 'pop' });
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc, ct: 0, ta: A.ta },
+        { for: 0.40, at: 2 / 60, ease: 'pop', anti: 0.40, antiFor: 4 / 60 });
+      /* the hold is one small second push, which is what a thumb does when it
+         means it. */
+      B.set(k, { y: A.y - 2.1 }, { for: 0.26, at: 0.62, ease: 'pop' });
+      B.set(k, { y: A.y - 0.4 }, { for: 0.44, at: 0.90, ease: 'glide' });
+    },
+  },
+
+  facepalm: {
+    label: 'one hand over the face, fingers spread',
+    entry: 0.76, hold: 1.30, exit: 0.34, both: false,
+    at: { x: 31.0, y: 28.0, rot: 44, sc: 1.06, sp: 0.85, c0: 0.32, c1: 0.26, c2: 0.28, c3: 0.38, ct: 0.66, ta: -24 },
+    mark: { chan: 'x', to: 31.0 },
+    build(B, k) {
+      const A = HAND_POSES.facepalm.at;
+      /* up and across onto the face, and the fingers open on the way, because a
+         hand that arrived already spread would read as a stamp. */
+      /* **0.66 rather than 0.46, and the number is the travel.** the resting
+         pair now sits where the reference draws it, out past the silhouette,
+         so a hand coming across onto the face crosses thirty three grid units —
+         sixty six css px — and on the pop curve the fastest frame of that at
+         0.46 was sixteen css px, which is a hand arriving as a smear. */
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc },
+        { for: 0.66, ease: 'pop', anti: 0.18, antiFor: 3 / 60 });
+      B.set(k, { sp: A.sp, c0: A.c0, c1: A.c1, c2: A.c2, c3: A.c3, ct: A.ct, ta: A.ta },
+        { for: 0.30, at: 0.10, ease: 'drift' });
+      /* the hold is the hand dragging down the face, slowly, on the calm curve.
+         it is the whole joke, and it is the one beat in this table where
+         nothing snaps. */
+      B.set(k, { y: A.y + 2.6, rot: A.rot - 4 }, { for: 0.90, at: 0.52, ease: 'glide' });
+    },
+  },
+
+  shrug: {
+    label: 'both hands out to the sides, palms turned up',
+    entry: 0.46, hold: 1.10, exit: 0.30, both: true,
+    at: { x: 66.0, y: 58.0, rot: 44, sc: 1.0, sp: 0.35, c0: 0.18, c1: 0.14, c2: 0.62, c3: 0.70, ct: 0.62, ta: -26 },
+    mark: { chan: 'rot', to: 44 },
+    build(B, k) {
+      const A = HAND_POSES.shrug.at;
+      /* both hands turn out and lift together. a shrug that arrived one hand at
+         a time would be two gestures. */
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sp: A.sp, c0: A.c0, c1: A.c1, c2: A.c2, c3: A.c3, ct: A.ct, ta: A.ta },
+        { for: 0.40, ease: 'pop', anti: 0.30, antiFor: 4 / 60 });
+      /* the hold is the second half of a real shrug: the hands come up once
+         more and drop, which is the "well" after the "what". */
+      B.set(k, { y: A.y - 2.4, rot: A.rot + 6 }, { for: 0.28, at: 0.50, ease: 'pop' });
+      B.set(k, { y: A.y + 0.6, rot: A.rot }, { for: 0.50, at: 0.82, ease: 'glide' });
+    },
+  },
+
+  point: {
+    label: 'one index out, the rest a fist',
+    entry: 0.40, hold: 1.15, exit: 0.28, both: false,
+    at: { x: 60.0, y: 48.0, rot: 112, sc: 1.0, sp: 0.30, c0: 0, c1: 0.92, c2: 0.94, c3: 0.98, ct: 0.85, ta: -12 },
+    mark: { chan: 'rot', to: 112 },
+    build(B, k) {
+      const A = HAND_POSES.point.at;
+      B.set(k, { c1: 1, c2: 1, c3: 1, ct: A.ct, sp: A.sp, ta: A.ta }, { for: 0.20, ease: 'pop' });
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc, c0: 0 },
+        { for: 0.34, at: 2 / 60, ease: 'pop', anti: 0.42, antiFor: 4 / 60 });
+      /* two jabs, the second smaller and quicker, which is the shape
+         `agreeing`'s two nods have and is why two of them read as one gesture
+         rather than as a loop. */
+      B.set(k, { x: A.x + 2.6, y: A.y + 1.5 }, { for: 0.16, at: 0.52, ease: 'pop' });
+      B.set(k, { x: A.x, y: A.y }, { for: 0.22, at: 0.70, ease: 'glide' });
+      B.set(k, { x: A.x + 1.7, y: A.y + 1.0 }, { for: 0.14, at: 0.96, ease: 'pop' });
+      B.set(k, { x: A.x, y: A.y }, { for: 0.26, at: 1.12, ease: 'glide' });
+    },
+  },
+
+  panic: {
+    label: 'both hands up on the head, gripping',
+    entry: 0.86, hold: 1.20, exit: 0.30, both: true,
+    at: { x: 64.0, y: 4.0, rot: 222, sc: 1.06, sp: 0.15, c0: 0.84, c1: 0.80, c2: 0.82, c3: 0.88, ct: 0.76, ta: -22 },
+    mark: { chan: 'y', to: 4.0 },
+    build(B, k) {
+      const A = HAND_POSES.panic.at;
+      /* ---------- two gears, and it is arithmetic rather than taste ----------
+         this is the only pose that takes a hand the whole height of the head:
+         rest to the crown is forty two grid units, which is eighty five css px.
+         on the pop curve the fastest frame of a move carries about a fifth of
+         it, so as **one** tween it needed a full second to stay under the
+         ceiling this part is held to — and a second is not a panic, it is a
+         stretch.
+
+         so it is two: the lift, on the calm curve, which does two thirds of the
+         travel at about a third of pop's peak speed, and then the grab, which
+         is short enough that pop's own snap costs nothing. it reads better than
+         the long tween as well, because a big move with a change of gear in it
+         is a hand deciding where to go and then getting there. */
+      B.set(k, { x: 65.5, y: 21.0, rot: 204, sp: A.sp, c0: A.c0, c1: A.c1, c2: A.c2, c3: A.c3, ct: A.ct, ta: A.ta },
+        { for: 0.44, ease: 'glide', anti: 0.16, antiFor: 4 / 60 });
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc },
+        { for: 0.34, at: 0.44, ease: 'pop' });
+      /* the hold is a tremble, and the two hands are deliberately out of phase
+         with each other: two hands shaking together is a machine. */
+      const ph = k ? 0 : 0.055;
+      for (const [at, by] of [[0.86, 1.5], [0.99, -1.3], [1.12, 1.1],
+        [1.25, -0.9], [1.38, 0.7], [1.51, -0.5]]) {
+        B.set(k, { rot: A.rot + by }, { for: 0.13, at: at + ph, ease: 'glide' });
+      }
+      B.set(k, { rot: A.rot }, { for: 0.22, at: 1.68 + ph, ease: 'glide' });
+    },
+  },
+};
+export const HAND_POSE_NAMES = Object.keys(HAND_POSES);
+
+/* ---------- the glove, resolved for one frame ----------
+   one channel object in, one drawable hand out, and it is the only place the
+   curl arithmetic lives. the page is handed base points, angles and lengths and
+   writes them to elements; it decides nothing.
+
+   the fingers are drawn as rects that grow **upward** from their own base, so a
+   curl changes `y` and `height` together and leaves `rx` alone. shortening a
+   rounded rect by scaling it would squash the corner and the flattened tip is
+   the one detail that stops the row reading as sausages. */
+function gloveAt(h) {
+  const F = HANDS.fingers;
+  const fingers = [];
+  for (let i = 0; i < 4; i++) {
+    const c = clamp(h['c' + i], 0, 1);
+    fingers.push({
+      x: n((i - 1.5) * F.pitch),
+      y: n(F.baseY + c * F.curlDrop),
+      a: n((i - 1.5) * F.splay * h.sp * (1 + F.curlSplay * c)),
+      len: n(F.len * F.reach[i] * (1 - F.curlLen * c)),
+    });
+  }
+  const T = HANDS.thumb, ct = clamp(h.ct, 0, 1);
+  return {
+    fingers,
+    thumb: {
+      x: n(T.x + ct * T.curlX), y: n(T.y + ct * T.curlY),
+      a: n(h.ta + ct * T.curlIn), len: n(T.len * (1 - T.curlLen * ct)),
+    },
+  };
+}
+
+/* every corner of every shape a **resolved** glove is made of, in its own local
+   frame, with half a stroke added on each side because that is where the ink
+   really is. it is a list of points rather than a box on purpose: the hand is
+   then rotated, and the box of a rotated box is not the box of the rotated
+   shape. taking the corners first and the box last was worth about four grid
+   units of reach on the poses that hold the hand at an angle, which is eight
+   css px the head does not have to stand in by.
+
+   the placement, the capture region, the safe area rect and the preflight all
+   read this, so none of them can hold a different idea of how big a hand is. */
+export function gloveCorners(g) {
+  const P = HANDS.palm, e = HANDS.edge / 2;
+  const pts = [];
+  for (const dx of [-P.w / 2 - e, P.w / 2 + e]) for (const dy of [-P.h - e, e]) pts.push([dx, dy]);
+  const put = (bx, by, w, len, deg) => {
+    const th = deg * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+    for (const dx of [-w / 2 - e, w / 2 + e]) for (const dy of [e, -len - e]) {
+      pts.push([bx + dx * c - dy * s, by + dx * s + dy * c]);
+    }
+  };
+  for (const f of g.fingers) put(f.x, f.y, HANDS.fingers.w, f.len, f.a);
+  put(g.thumb.x, g.thumb.y, HANDS.thumb.w, g.thumb.len, g.thumb.a);
+  return pts;
+}
+
+/* and the same corners in card space: scaled and rotated by the hand's own
+   transform, then offset to where the hand sits. the card's own transform is
+   deliberately not in here — this is the unit the plate is placed in, and
+   `headRect` is the one place that knows how to put a frame's rotation and
+   scale on top of it. */
+function handBoxCard(h, g) {
+  const th = h.rot * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const [px, py] of gloveCorners(g || gloveAt(h))) {
+    const qx = h.x + h.sc * (px * c - py * s), qy = h.y + h.sc * (px * s + py * c);
+    x0 = Math.min(x0, qx); x1 = Math.max(x1, qx);
+    y0 = Math.min(y0, qy); y1 = Math.max(y1, qy);
+  }
+  return { x0, x1, y0, y1 };
+}
+
 /* ---------- the thought bubble ----------
    two or three words. the guard throws above four, which is the ceiling; two or
    three is the copy rule and `describeMascot` says so when a bubble reaches the
@@ -1051,6 +1499,11 @@ export function planMascot(opts = {}) {
        nothing about this module changes, which is a property the diff harness
        checks rather than a claim made here. */
     hand: false,
+    /* and the two floating gloves, off unless a clip asks for those. same
+       promise, same reason, and they are a different part: `hand` is the mouth
+       that is not a mouth and `hands` is the pair beside him. a clip may carry
+       either, both or neither. see HANDS. */
+    hands: false,
     seed: 0x6b0a11,
     ...opts,
   };
@@ -1097,6 +1550,30 @@ export function planMascot(opts = {}) {
     if (m.yap != null && m.yap !== true && !(Number(m.yap) > 0)) {
       throw new Error('mark ' + m.i + '\'s yap is ' + m.yap
         + ' — it is either `true` for "until the next mark" or a length in seconds');
+    }
+    /* the gloves, and the same rule the yap has: asking for a pose on a plan
+       that draws no hands is asking for something that is not there, and it is
+       a plan error rather than a silent no op. the whole point of a part being
+       opt in is that asking for it is explicit. */
+    if (m.hands != null) {
+      if (!o.hands) {
+        throw new Error('mark ' + m.i + ' asks for the hands pose "' + m.hands
+          + '", and this plan has no hands on it — pass `hands: true`');
+      }
+      if (!HAND_POSES[m.hands]) {
+        throw new Error('no hands pose called "' + m.hands + '" — the seven are '
+          + HAND_POSE_NAMES.join(', '));
+      }
+    }
+    if (m.side != null) {
+      if (m.hands == null) {
+        throw new Error('mark ' + m.i + ' carries a side with no hands pose on it'
+          + ' — a side says which hands are on screen and it needs something to say it about');
+      }
+      if (!HAND_SIDES.includes(m.side)) {
+        throw new Error('mark ' + m.i + '\'s side is "' + m.side + '" — the three are '
+          + HAND_SIDES.join(', '));
+      }
     }
   }
 
@@ -1229,6 +1706,76 @@ export function planMascot(opts = {}) {
     return rec;
   });
 
+  /* ---------- the gloves, as windows ----------
+     a hands pose is a mark like a state is, and it gets the same treatment: an
+     entrance, a hold stretched to fill whatever room there is, and an exit back
+     to the resting pair. the room is measured to the **next hands mark** rather
+     than to the next mark, because the two layers are independent — a clip may
+     change the face four times while the hands hold one pose, and a pose cut
+     short by a mark that says nothing about the hands would be a pose that
+     ended for no reason.
+
+     **`side` is which hands are on screen and it persists**, the way the turn
+     does and for the same reason: it is a fact about the composition rather
+     than a gesture. so a mark that names one hand keeps naming it until another
+     mark says otherwise, and an exit puts the shape back to rest and leaves the
+     side where it was.
+
+     **which hand acts is derived from `pos`**, which is the fact `TURN.bias` is
+     already derived from: he stands in a corner and gestures into the frame
+     rather than out of it, so a head on the left waves with its screen right
+     hand. naming one side in `side` says it outright, the way an explicit
+     `bias` does. */
+  if (o.hands) {
+    for (const rec of out) rec.hands = null;
+    const idx = out.map((r, k) => k).filter(k => marks[k].hands != null);
+    const actingDefault = o.pos.endsWith('right') ? 0 : 1;
+    let on = [1, 1];
+    for (let j = 0; j < idx.length; j++) {
+      const k = idx[j];
+      const name = marks[k].hands, HP = HAND_POSES[name];
+      const next = j + 1 < idx.length ? out[idx[j + 1]].t : seconds;
+      const room = next - out[k].t;
+      const floor = HP.entry + HP.exit + 0.30;
+      if (room < floor) {
+        throw new Error('the hands pose on mark ' + k + ' (' + name + ' at '
+          + out[k].t.toFixed(2) + 's) has ' + room.toFixed(2)
+          + 's before the next hands mark and needs ' + floor.toFixed(2)
+          + 's for its own entrance, a hold and its exit');
+      }
+      const hold = room - HP.entry - HP.exit;
+      const side = marks[k].side || 'both';
+      const nextOn = side === 'both' ? [1, 1] : side === 'left' ? [1, 0] : [0, 1];
+      /* a two handed pose is taken by every hand on screen; a one handed one is
+         taken by the acting hand and the other one, if it is on screen at all,
+         stays at rest — which is what the reference draws. */
+      const acting = HP.both
+        ? [0, 1].filter(kk => nextOn[kk])
+        : [side === 'both' ? actingDefault : (side === 'left' ? 0 : 1)];
+      /* the channel the preflight scores this pose on, resolved for the hand
+         that is actually doing it: the table is written for the screen right
+         hand, so a pose acted on the left one is measured on the mirror. */
+      const mk = { ...HP.mark };
+      if (acting[0] === 0 && (mk.chan === 'x' || mk.chan === 'rot')) {
+        const flip = v => (mk.chan === 'x' ? GRID - v : -v);
+        mk.to = +flip(mk.to).toFixed(4);
+        if (mk.from != null) mk.from = +flip(mk.from).toFixed(4);
+      }
+      out[k].hands = {
+        pose: name, label: HP.label, side, on: nextOn, acting, both: !!HP.both,
+        entry: HP.entry, hold: +hold.toFixed(4), exit: HP.exit,
+        settled: +(out[k].t + HP.entry).toFixed(4),
+        leaving: +(out[k].t + HP.entry + hold).toFixed(4),
+        out: +(out[k].t + HP.entry + hold + HP.exit).toFixed(4),
+        mark: mk,
+      };
+      on = nextOn;
+    }
+    if (!idx.length) {
+      notes.push('the hands are on and nothing poses them, so they hold the resting pair');
+    }
+  }
+
   /* ---------- the yap, as a plan ----------
      the marks say where it runs and this works out every cycle inside those
      windows, before a browser is opened. two reasons it is a list rather than
@@ -1342,6 +1889,9 @@ export function planMascot(opts = {}) {
     /* both are null-ish when the part is off, and every consumer keys off
        `plan.hand` rather than off the geometry being importable. */
     hand: !!o.hand, yap,
+    /* the gloves, and the same contract. `handsReach` is filled in below, once
+       there are frames to measure it against. */
+    hands: !!o.hands, handsReach: null,
     marks: out,
     idle: {
       blinks: blinkPlan(seconds, o.seed),
@@ -1349,6 +1899,27 @@ export function planMascot(opts = {}) {
     },
     notes,
   };
+
+  /* ---------- the gloves move the head in ----------
+     they hang outside the silhouette on every pose the reference draws, so the
+     placement has to hold room for them or a resting hand is the first thing
+     across a platform's own chrome. the reach is measured off the plan's own
+     frames rather than derived off the pose table — see `handsReach` — and the
+     head is then placed against the ink rather than against the plate.
+
+     it runs after the plan object exists because it needs frames, which is the
+     same shape `crownReach` has and for the same reason. nothing built before
+     this point depends on the box. with the gloves off it does not run at all,
+     so a plan that did not ask for them is placed exactly where it always was. */
+  if (plan.hands) {
+    const reach = handsReach(plan);
+    plan.handsReach = reach;
+    plan.box = placeHead(o.pos, o.size, plate, o.margin, {
+      l: reach.l * unit, r: reach.r * unit, t: reach.t * unit, b: reach.b * unit,
+    });
+    notes.push('the hands reach ' + [reach.l, reach.r, reach.t, reach.b].map(v => v.toFixed(1)).join('/')
+      + ' grid units past the plate (left/right/top/bottom), so the head stands that much further in');
+  }
 
   /* the phone size guard, at plan time, because it is arithmetic and there is
      no reason to spend a render finding out. the rendered rect is checked again
@@ -1395,12 +1966,46 @@ export function planMascot(opts = {}) {
 /* where the head sits. bottom left inside the platform safe area is the
    default and is what the export renders, so a clip drops onto a phone video
    with nothing to reposition. the numbers are the plate's, not the box's. */
-function placeHead(pos, size, plate, margin) {
-  const L = SAFE_CSS.left + margin, R = STAGE.w - SAFE_CSS.right - margin;
-  const T = SAFE_CSS.top + margin, Bo = STAGE.h - SAFE_CSS.bottom - margin;
+function placeHead(pos, size, plate, margin, reach) {
+  /* how far past the plate the ink goes on each edge, in css px, which is
+     nothing at all unless the plan carries the gloves. they hang outside the
+     silhouette by design, so the head has to stand further in or a resting hand
+     would be the first thing across a platform's own chrome. it is per edge
+     rather than one number because the poses are not symmetric: `panic` goes
+     over the crown and nothing goes under the chin. */
+  const E = reach || { l: 0, r: 0, t: 0, b: 0 };
+  const L = SAFE_CSS.left + margin + E.l, R = STAGE.w - SAFE_CSS.right - margin - E.r;
+  const T = SAFE_CSS.top + margin + E.t, Bo = STAGE.h - SAFE_CSS.bottom - margin - E.b;
   const left = pos.endsWith('right') ? R - plate.w - plate.off : L - plate.off;
   const top = pos.startsWith('top') ? T - plate.off : Bo - plate.w - plate.off;
   return { left: +left.toFixed(2), top: +top.toFixed(2), size };
+}
+
+/* ---------- how far the gloves actually reach ----------
+   the same instrument `crownReach` is: walk the plan's own frames and take the
+   worst, rather than guess a bound off the pose table and pad it. the poses'
+   hold beats move past their own `at` — a wave rocks fifteen degrees, a point
+   jabs two and a half units, the idle adds another half — and every one of
+   those would have to be re-derived by hand in a second place, which is the
+   kind of second copy this file does not keep.
+
+   it is in card space grid units past the plate's own edges, so it is in the
+   unit the placement works in and the card's rotation is left to `headRect`,
+   which is the one place that knows how to do it. */
+const HANDS_HZ = 120;
+function handsReach(plan) {
+  const P = HEAD.plate, N = Math.round(plan.seconds * HANDS_HZ);
+  const worst = { l: 0, r: 0, t: 0, b: 0 };
+  for (let i = 0; i <= N; i++) {
+    const bx = mascotFrame(plan, i / HANDS_HZ).hands?.box;
+    if (!bx) continue;
+    worst.l = Math.max(worst.l, P.x - bx.x0);
+    worst.r = Math.max(worst.r, bx.x1 - (P.x + P.s));
+    worst.t = Math.max(worst.t, P.y - bx.y0);
+    worst.b = Math.max(worst.b, bx.y1 - (P.y + P.s));
+  }
+  for (const k in worst) worst[k] = +Math.max(0, worst[k]).toFixed(3);
+  return worst;
 }
 
 /* ---------- how high the crown actually gets ----------
@@ -1542,8 +2147,38 @@ function channels(plan) {
        writes it unless the plan carries a yap, so on every clip without a hand
        it sits at nought and is read by nothing. */
     yap: { v: 0 },
+    /* ---------- the two gloves ----------
+       twelve numbers each, and they are the second channel set in this file
+       whose rest is not zero — the first is `turn`. a glove is somewhere rather
+       than something being done, so the seed is the resting pair and an exit
+       returns to it rather than to nought, which is also what makes `rest` a
+       pose a mark can ask for like any other.
+
+       screen left is index nought and screen right is one, and the left one is
+       seeded with the pose table mirrored, so both of them read the same table
+       and neither of them carries a sign. `o` is which hands are on screen and
+       it is the `side` option; it persists across marks the way the turn does.
+
+       nothing reads any of this unless the plan asked for hands, so on every
+       clip without them it sits at rest and is read by nothing. */
+    hands: [mirrorHandPose(HANDS_REST, 0), { ...HANDS_REST }],
+    /* their own always on layer, tweened only when there are hands to move. */
+    hidle: [{ x: 0, y: 0, rot: 0 }, { x: 0, y: 0, rot: 0 }],
     pad: { v: 0 },
   };
+}
+
+/* the pose table is written for the screen right hand, so this is the whole of
+   the other one: `x` reflects across the head's own centre line and `rot`
+   changes sign. the splay and the thumb angle are **not** mirrored, because
+   they live inside the glove's own frame and the glove itself is what gets
+   flipped — mirroring them as well would flip it twice. */
+function mirrorHandPose(to, k) {
+  if (k !== 0) return { ...to };
+  const out = { ...to };
+  if ('x' in to) out.x = GRID - to.x;
+  if ('rot' in to) out.rot = -to.rot;
+  return out;
 }
 
 /* ---------- the builder a state is written against ----------
@@ -1703,6 +2338,79 @@ function builder(tl, ch, H, t0, cfg) {
   };
 }
 
+/* ---------- the builder a hand pose is written against ----------
+   the same discipline as the one above: every call is a `fromTo` with
+   `immediateRender:false`, the `from` comes from a pose tracked at build time
+   because the channel objects still hold their seed, and a pose ends knowing
+   where it left every number so its exit can state that literally.
+
+   the one thing this adds is the mirror. every pose in the table is written for
+   the screen right hand and `set` reflects it for the other one, so a pose that
+   says `x: A.x + 2.6` moves the right hand outward and the left hand outward
+   too, with not a sign anywhere in the table.
+
+   the seeds are the resting pair rather than zero, because a glove is somewhere
+   rather than a gesture — the same reason `turn` rests at the bias. */
+function handsBuilder(tl, ch, H, t0) {
+  const pose = [mirrorHandPose(HANDS_REST, 0), { ...HANDS_REST }];
+  const put = (target, from, to, at, forS, ease) =>
+    tl.fromTo(target, from, { ...to, duration: forS, ease, immediateRender: false }, at);
+  const ez = name => H[name] || H.glide;
+
+  const set = (k, to, opt = {}) => {
+    const dst = mirrorHandPose(to, k);
+    const at = t0 + (opt.at || 0);
+    const forS = opt.for || 0.36;
+    const e = ez(opt.ease || 'pop');
+    const from = {};
+    /* an explicit `from` is how a pose starts somewhere other than where the
+       one before it left, and `rest` is the only user of it: it settles down
+       onto rest from a little above, which is the difference between arriving
+       at rest and having been there. */
+    const seed = opt.from ? mirrorHandPose(opt.from, k) : null;
+    for (const key in dst) from[key] = seed && key in seed ? seed[key] : pose[k][key];
+    const anti = opt.anti || 0;
+    if (anti > 0) {
+      /* the pull the other way first, forward from the mark rather than
+         backward into the frames before it, which is the rule the head's own
+         anticipation follows and for the same reason. */
+      const back = {};
+      for (const key in dst) back[key] = from[key] + (from[key] - dst[key]) * anti;
+      const antiFor = opt.antiFor || 4 / 60;
+      put(ch.hands[k], from, back, at, antiFor, H.glide);
+      put(ch.hands[k], back, dst, at + antiFor, forS, e);
+    } else {
+      put(ch.hands[k], from, dst, at, forS, e);
+    }
+    Object.assign(pose[k], dst);
+  };
+
+  /* which hands are on screen. it is written on its own channel and on its own
+     window so a hand can be taken off screen while the pose is still arriving,
+     and it is deliberately not part of the exit — see `exitHandsToRest`. */
+  const show = (k, o, opt = {}) => {
+    put(ch.hands[k], { o: pose[k].o }, { o }, t0 + (opt.at || 0), opt.for || 0.22, H.glide);
+    pose[k].o = o;
+  };
+
+  return { set, show, pose };
+}
+
+/* the hands' exit. it puts the shape and the placement back to the resting pair
+   and it deliberately **leaves `o` alone**: which hands are on screen is the
+   `side` option and it is a fact about the composition, the way the turn is a
+   fact about where he is facing. a pair that reappeared at the end of every
+   pose would make `side` a flicker instead of a choice. */
+function exitHandsToRest(tl, ch, H, HB, at, forS) {
+  for (let k = 0; k < 2; k++) {
+    const from = HB.pose[k], to = mirrorHandPose(HANDS_REST, k);
+    const f = {}, t = {};
+    for (const key in to) { if (key === 'o') continue; f[key] = from[key]; t[key] = to[key]; }
+    tl.fromTo(ch.hands[k], f,
+      { ...t, duration: forS, ease: H.glide, immediateRender: false }, at);
+  }
+}
+
 /* the exit. every state ends by putting every channel it touched back to rest,
    on the calm curve, so the next state's entrance can state its own `from`
    literally and be right. that contract is what makes the states independent of
@@ -1791,6 +2499,43 @@ function engineFor(plan) {
       put(ch.yap, { v: 0 }, { v: top }, c.at, c.openFor, H.drift);
       put(ch.yap, { v: top }, { v: c.gape }, c.peak, c.settleFor, H.glide);
       put(ch.yap, { v: c.gape }, { v: 0 }, c.closing, c.shutFor, H.glide);
+    }
+  }
+
+  /* ---------- the gloves ----------
+     their own idle first, for the same reason the head's goes first: a pose
+     always writes over a live pair rather than over a still one. two drifts per
+     hand on four periods, none of them a multiple of another, and the two hands
+     are given different ones so the pair never moves as one object.
+
+     the whole block is behind `plan.hands`, so a plan without them builds the
+     timeline it always built. */
+  if (plan.hands) {
+    const HI = HANDS.idle;
+    for (let k = 0; k < 2; k++) {
+      /* the y period is the *other* hand's x period stretched, which is the
+         cheapest way to get six numbers with no common factor out of four. */
+      yo(ch.hidle[k], 'x', HI.amp, HI.period[k]);
+      yo(ch.hidle[k], 'y', HI.amp * 0.8, HI.period[1 - k] * 1.19);
+      yo(ch.hidle[k], 'rot', HI.rot, HI.rotPeriod[k]);
+    }
+    /* which hands are on screen is carried across the marks the way the turn
+       is, because it is the same kind of fact: a side named once holds until
+       something names another one. */
+    let onNow = [1, 1];
+    for (const m of plan.marks) {
+      if (!m.hands) continue;
+      const HP = HAND_POSES[m.hands.pose];
+      const HB = handsBuilder(tl, ch, H, m.t);
+      for (let k = 0; k < 2; k++) HB.pose[k].o = onNow[k];
+      /* the side is written before the pose so a hand leaving the screen is
+         already on its way out while the other one is arriving. */
+      for (let k = 0; k < 2; k++) {
+        if (m.hands.on[k] !== onNow[k]) HB.show(k, m.hands.on[k], { for: 0.20 });
+      }
+      onNow = [...m.hands.on];
+      for (const k of m.hands.acting) HP.build(HB, k);
+      exitHandsToRest(tl, ch, H, HB, m.hands.leaving, m.hands.exit);
     }
   }
 
@@ -2016,6 +2761,78 @@ export function mascotFrame(plan, t) {
     }
   }
 
+  /* ---------- the two gloves ----------
+     they are the other hand in this file and they are nothing like the one
+     above: `hand` is a mouth made of two slabs and it lives inside the head,
+     these are two floating gloves that live beside it.
+
+     every one of them is a placement, a rotation and a scale in card space,
+     plus the six shapes the curl arithmetic resolves — and the one number that
+     is not obvious, which is the counter scale.
+
+     **the card deforms and the gloves must not.** the card's own transform is
+     `sc(1+sq)(1-squeeze)` across and `sc/(1+sq)` down, and a glove riding that
+     would stretch on one axis and, worse, carry a stroke thicker on one axis
+     than the other — the edge is the whole read of this part and an uneven edge
+     is a drawing rather than a rig. so each glove carries the exact inverse of
+     those two about its own origin, which leaves the net transform on it
+     `sc` in both directions: it scales with the head, tilts with the head and
+     travels with the turn, and it does not deform.
+
+     the anchor is **not** counter scaled, and that is the half of it that keeps
+     the pair attached. it is a point in the card's own space, so the squash
+     moves it and the turn's squeeze pulls it in as the silhouette narrows. on
+     top of that the pair slides its own share of the near eye's travel, because
+     a hand held beside a face goes with the head and goes less far than the
+     features on it. */
+  let hands = null;
+  if (plan.hands) {
+    const sqz = TURN.squeeze * Math.abs(tb);
+    const hx = sgn * aq * TURN.shift * HANDS.turnShare;
+    let box = null;
+    const list = eng.ch.hands.map((p, k) => {
+      const id = eng.ch.hidle[k];
+      const live = {
+        ...p,
+        x: p.x + id.x + hx, y: p.y + id.y, rot: p.rot + id.rot,
+      };
+      const g = gloveAt(live);
+      if (live.o > 0.004) {
+        const b = handBoxCard(live, g);
+        box = box ? {
+          x0: Math.min(box.x0, b.x0), x1: Math.max(box.x1, b.x1),
+          y0: Math.min(box.y0, b.y0), y1: Math.max(box.y1, b.y1),
+        } : b;
+      }
+      return {
+        o: n(clamp(live.o, 0, 1)),
+        x: n(live.x), y: n(live.y), rot: n(live.rot),
+        /* the mirror is folded into the scale, so the page writes one transform
+           per glove and never asks which hand it is holding. */
+        sx: n((k === 0 ? -1 : 1) * live.sc), sy: n(live.sc),
+        fingers: g.fingers, thumb: g.thumb,
+        /* the pose with no idle in it, which is what the preflight scores the
+           entrance, the overshoot and the settle on. the always on drift is
+           within a third of a unit and a pose's overshoot is about the same, so
+           judging one against the other would be judging mostly the drift —
+           this is the same reason `fr.pose` exists beside `fr.head`. */
+        pose: { x: n(p.x), y: n(p.y), rot: n(p.rot) },
+      };
+    });
+    hands = {
+      /* the inverse of the card's two scales, which is the only number in the
+         frame that exists to undo something rather than to do it. */
+      fit: { cx: n(1 / ((1 + card.sq) * (1 - sqz))), cy: n(1 + card.sq) },
+      list,
+      /* where the pair's ink actually reaches, in card space grid units, so the
+         placement and the capture region can hold room for it. null when both
+         hands are off screen. */
+      box: box ? {
+        x0: n(box.x0), x1: n(box.x1), y0: n(box.y0), y1: n(box.y1),
+      } : null,
+    };
+  }
+
   const sh = shadowAt(card.lift);
   const now = plan.marks.find(m => t >= m.t && t < m.out);
   /* whichever bubble is up, over every mark and every bubble on it. a mark may
@@ -2070,6 +2887,11 @@ export function mascotFrame(plan, t) {
     /* null on every plan without a hand, which is every plan written before
        there was one. */
     hand,
+    /* and null on every plan without the gloves, which is every plan written
+       before them. the two keys are next to each other on purpose: one is the
+       mouth that is not a mouth and the other is the pair of hands, and a clip
+       may have either, both or neither. */
+    hands,
     glow: plan.theme === 'dark' ? 1 : 0,
     /* `o` is the loudest of the three parts and it is what every guard and every
        visibility test downstream reads, so a cluster mid stagger counts as on
@@ -2200,13 +3022,111 @@ export function headRect(plan, fr) {
     hh = Math.abs(a * s) + Math.abs(b * c);
   }
   const d = STAGE.dsf;
+  /* ---------- and the gloves, when there are any ----------
+     they are ink outside the silhouette, so a rect that ignored them would say
+     the mascot clears a border it is not clearing. the box is grown to hold
+     them and nothing else about this function changes, which is why a plan
+     without them measures exactly what it always measured.
+
+     the chain is worth writing out because it is not the card's. the anchor is
+     a point in card space, so it takes the card's own two scales and its
+     rotation. the glove's **shape** does not: it carries the inverse of those
+     two scales, so what is left on it is a uniform `sc` and a rotation, which
+     is the whole reason a hand does not deform. so the two halves are
+     transformed differently, and folding them together would be wrong in the
+     direction that matters — a squashed head would under-report the reach. */
+  /* the four clearances are carried as clearances rather than as edges, so the
+     no-hands path evaluates the same three expressions it always did — a
+     rewrite of `w - cx - hw` into `w - (cx + hw)` is the same number in algebra
+     and not always the same double, and this function's whole job is to be
+     compared against its own past output. */
+  let l = cx - hw, r = STAGE.w - cx - hw, t2 = cy - hh, b2 = STAGE.h - cy - hh;
+  if (fr.hands) {
+    const O = plan.box.left + (GRID / 2) * u, Oy = plan.box.top + (GRID / 2) * u;
+    for (const h of fr.hands.list) {
+      if (h.o <= 0.004) continue;
+      /* the anchor, through the card's own scale and rotation. */
+      const ax = fr.card.sx * (h.x - GRID / 2), ay = fr.card.sy * (h.y - GRID / 2);
+      const px = c * ax - s * ay, py = s * ax + c * ay;
+      /* and the shape, through a rotation and a uniform scale only. `sx`
+         carries the mirror, so the corner sweep covers both hands. */
+      const th2 = (fr.card.rot + h.rot) * Math.PI / 180;
+      const c2 = Math.cos(th2), s2 = Math.sin(th2);
+      for (const [gx, gy] of gloveCorners(h)) {
+        const ex = h.sx * gx, ey = h.sy * gy;
+        const qx = O + fr.card.x + (px + ex * c2 - ey * s2) * u;
+        const qy = Oy + fr.card.y + (py + ex * s2 + ey * c2) * u;
+        l = Math.min(l, qx); r = Math.min(r, STAGE.w - qx);
+        t2 = Math.min(t2, qy); b2 = Math.min(b2, STAGE.h - qy);
+      }
+    }
+  }
   return {
-    left: +((cx - hw) * d).toFixed(1), top: +((cy - hh) * d).toFixed(1),
-    right: +((STAGE.w - cx - hw) * d).toFixed(1),
-    bottom: +((STAGE.h - cy - hh) * d).toFixed(1),
+    left: +(l * d).toFixed(1), top: +(t2 * d).toFixed(1),
+    right: +(r * d).toFixed(1),
+    bottom: +(b2 * d).toFixed(1),
     /* how far the shadow and the glow reach past the ink, for the report. */
     shadowBottom: +((STAGE.h - (cy + SHADOW.dy * plan.size + plan.size * SHADOW.h / 2 * fr.shadow.sc)) * d).toFixed(1),
     glowReach: +(GLOW.wide.blur * 3 * d).toFixed(1),
+  };
+}
+
+/* ---------- how a thing arrives ----------
+   the anticipation, the entry, the overshoot and the settle, off a track of
+   `{t, v}` rows and the mark it was supposed to hit. it is one function because
+   it answers one question, and a state and a hand pose both ask it: "does it
+   wind up, does it go past, does it come to rest, and how long did each of
+   those take". two copies of this would be two definitions of overshoot. */
+function scoreArrival(rows, mark, entryFor, fps) {
+  const to = mark.to;
+  /* where the channel was when the mark opened. it is scored against where it
+     started, and for most channels that is rest — but the turn is where he is
+     already facing and a glove is where it already is, so it is read off the
+     mark's own first frame rather than assumed. an explicit `from` still wins. */
+  const rest = mark.from != null ? mark.from
+    : rows.length ? rows[0].v : (mark.chan === 'sc' ? 1 : 0);
+  const span = to - rest;
+  const dir = span >= 0 ? 1 : -1;
+  /* the anticipation: how far the channel went the wrong way before it went the
+     right way, and for how many frames. */
+  let antiPeak = 0, antiFrames = 0;
+  for (const r of rows) {
+    if ((r.v - rest) * dir < -1e-4) { antiPeak = Math.max(antiPeak, Math.abs(r.v - rest)); antiFrames++; }
+    else if (antiFrames) break;
+  }
+  /* the arrival: the first frame the channel reaches the mark. */
+  let cross = null;
+  for (let i = 0; i < rows.length; i++) {
+    if ((rows[i].v - to) * dir >= -1e-6) { cross = i; break; }
+  }
+  /* the entrance window is the entrance: from the mark to `settled`, which is
+     where the plan says it has arrived and where the hold is allowed to start
+     moving again. bounding it by a fixed tail instead would score thinking's
+     scan and agreeing's second nod as the entrance failing to settle, which is
+     the opposite of what they are. */
+  let stop = rows.length;
+  for (let i = 0; i < rows.length; i++) if (rows[i].t > entryFor) { stop = i; break; }
+  if (cross == null) stop = 0;
+  /* the overshoot, past the mark, as a share of the move. */
+  let peak = to;
+  if (cross != null) for (let i = cross; i < stop; i++) {
+    if ((rows[i].v - peak) * dir > 0) peak = rows[i].v;
+  }
+  const over = span === 0 ? 0 : Math.abs(peak - to) / Math.abs(span);
+  /* the settle: from the crossing to the last frame outside a two per cent
+     band, which is the frame it actually came to rest on. */
+  const band = Math.abs(span) * 0.02;
+  let last = cross;
+  if (cross != null) {
+    for (let i = cross; i < stop; i++) if (Math.abs(rows[i].v - to) > band) last = i;
+  }
+  return {
+    antiFrames, antiPeak: +antiPeak.toFixed(3),
+    entryFrames: cross == null ? null : cross,
+    entryMs: cross == null ? null : Math.round(cross / fps * 1000),
+    overshoot: +(over * 100).toFixed(1),
+    settleFrames: cross == null ? null : last - cross,
+    settleMs: cross == null ? null : Math.round((last - cross) / fps * 1000),
   };
 }
 
@@ -2230,7 +3150,7 @@ export function mascotMotion(plan, fps, seconds) {
     cardM: { d: 0, t: 0 }, cardR: { d: 0, t: 0 }, cardS: { d: 0, t: 0 },
     eyeM: { d: 0, t: 0 }, eyeS: { d: 0, t: 0 }, lid: { d: 0, t: 0 },
     brow: { d: 0, t: 0 }, lift: { d: 0, t: 0 }, bub: { d: 0, t: 0 },
-    turn: { d: 0, t: 0 }, hand: { d: 0, t: 0 },
+    turn: { d: 0, t: 0 }, hand: { d: 0, t: 0 }, hands: { d: 0, t: 0 },
   };
   const bump = (k, d, t) => { if (d > worst[k].d) worst[k] = { d: +d.toFixed(4), t: +t.toFixed(3) }; };
 
@@ -2258,6 +3178,16 @@ export function mascotMotion(plan, fps, seconds) {
      viewer sees a step — the tip's own travel does, and it is the same unit the
      shake and the blink are argued in. */
   let handStep = 0, handStepAt = 0, handTip = null;
+  /* ---------- and the gloves' own report ----------
+     how far past the plate the drawn ink actually reached on each edge, which
+     is the number the placement held room for and is checked against it; how
+     many frames each hand was on screen, so a `side` that never took can be
+     seen; and the widest one frame move of a hand, in css px, which is the unit
+     the speed of everything else in this file is argued in. */
+  const htrack = plan.marks.map(() => []);
+  const reach = { l: 0, r: 0, t: 0, b: 0 };
+  const onFrames = [0, 0];
+  let handsAnchor = null;
 
   for (let f = 0; f < N; f++) {
     const t = f / fps;
@@ -2300,6 +3230,33 @@ export function mascotMotion(plan, fps, seconds) {
       }
       handTip = tip;
     }
+    if (fr.hands) {
+      const P2 = HEAD.plate, bx = fr.hands.box;
+      if (bx) {
+        reach.l = Math.max(reach.l, P2.x - bx.x0);
+        reach.r = Math.max(reach.r, bx.x1 - (P2.x + P2.s));
+        reach.t = Math.max(reach.t, P2.y - bx.y0);
+        reach.b = Math.max(reach.b, bx.y1 - (P2.y + P2.s));
+      }
+      const now2 = fr.hands.list.map(h => ({ x: h.x * plan.unit, y: h.y * plan.unit, o: h.o }));
+      for (let k = 0; k < 2; k++) if (now2[k].o > 0.5) onFrames[k]++;
+      if (handsAnchor) {
+        for (let k = 0; k < 2; k++) {
+          if (now2[k].o < 0.5 || handsAnchor[k].o < 0.5) continue;
+          bump('hands', Math.hypot(now2[k].x - handsAnchor[k].x, now2[k].y - handsAnchor[k].y), t);
+        }
+      }
+      handsAnchor = now2;
+      /* the pose's own channel, read off the hand that is actually doing it. */
+      for (let k = 0; k < plan.marks.length; k++) {
+        const m = plan.marks[k];
+        if (!m.hands || t < m.t || t > m.hands.leaving) continue;
+        htrack[k].push({
+          t: +(t - m.t).toFixed(4),
+          v: fr.hands.list[m.hands.acting[0]].pose[m.hands.mark.chan],
+        });
+      }
+    }
     for (let k = 0; k < plan.marks.length; k++) {
       const m = plan.marks[k];
       if (t >= m.t && t <= m.leaving) {
@@ -2336,72 +3293,40 @@ export function mascotMotion(plan, fps, seconds) {
       const moved = Math.abs(fr.card.x - prev.card.x) + Math.abs(fr.card.y - prev.card.y)
         + Math.abs(fr.card.rot - prev.card.rot) + Math.abs(fr.card.sy - prev.card.sy) * 40
         + Math.abs(fr.eyes[0].lid - prev.eyes[0].lid) + Math.abs(fr.eyes[0].x - prev.eyes[0].x)
-        + (fr.hand && prev.hand ? Math.abs(fr.hand.open - prev.hand.open) : 0);
+        + (fr.hand && prev.hand ? Math.abs(fr.hand.open - prev.hand.open) : 0)
+        /* the gloves count too: a face that is still for three frames while a
+           hand is waving is not a frozen face. it is nought on every clip
+           without them, so this changes no number that was ever reported. */
+        + (fr.hands && prev.hands
+          ? Math.abs(fr.hands.list[0].x - prev.hands.list[0].x)
+          + Math.abs(fr.hands.list[1].x - prev.hands.list[1].x)
+          + Math.abs(fr.hands.list[0].rot - prev.hands.list[0].rot) * 0.1 : 0);
       if (moved < 1e-4) { still++; if (still >= 3) frozen++; } else still = 0;
     }
     prev = fr;
   }
 
-  const states = plan.marks.map((m, k) => {
-    const rows = track[k];
-    const to = m.mark.to;
-    /* where the channel was when the mark opened. a state is scored against
-       where it started, and for every channel but the turn that is rest — but
-       the turn is where he is already facing, so it is read off the mark's own
-       first frame rather than assumed. an explicit `from` still wins. */
-    const rest = m.mark.from != null ? m.mark.from
-      : rows.length ? rows[0].v : (m.mark.chan === 'sc' ? 1 : 0);
-    const span = to - rest;
-    const dir = span >= 0 ? 1 : -1;
-    /* the anticipation: how far the channel went the wrong way before it went
-       the right way, and for how many frames. */
-    let antiPeak = 0, antiFrames = 0;
-    for (const r of rows) {
-      if ((r.v - rest) * dir < -1e-4) { antiPeak = Math.max(antiPeak, Math.abs(r.v - rest)); antiFrames++; }
-      else if (antiFrames) break;
-    }
-    /* the arrival: the first frame the channel reaches the mark. */
-    let cross = null;
-    for (let i = 0; i < rows.length; i++) {
-      if ((rows[i].v - to) * dir >= -1e-6) { cross = i; break; }
-    }
-    /* the entrance window is the entrance: from the mark to `settled`, which is
-       where the plan says the state has arrived and where every state's hold is
-       allowed to start moving again. bounding it by a fixed tail instead would
-       score thinking's scan and agreeing's second nod as the entrance failing to
-       settle, which is the opposite of what they are. */
-    let stop = rows.length;
-    for (let i = 0; i < rows.length; i++) if (rows[i].t > m.entry) { stop = i; break; }
-    if (cross == null) stop = 0;
-    /* the overshoot, past the mark, as a share of the move. */
-    let peak = to;
-    if (cross != null) for (let i = cross; i < stop; i++) {
-      if ((rows[i].v - peak) * dir > 0) peak = rows[i].v;
-    }
-    const over = span === 0 ? 0 : Math.abs(peak - to) / Math.abs(span);
-    /* the settle: from the crossing to the last frame outside a two per cent
-       band, which is the frame it actually came to rest on. */
-    const band = Math.abs(span) * 0.02;
-    let last = cross;
-    if (cross != null) {
-      for (let i = cross; i < stop; i++) if (Math.abs(rows[i].v - to) > band) last = i;
-    }
-    return {
-      state: m.state, at: m.t, chan: m.mark.chan, to,
-      antiFrames, antiPeak: +antiPeak.toFixed(3),
-      entryFrames: cross == null ? null : cross,
-      entryMs: cross == null ? null : Math.round(cross / fps * 1000),
-      overshoot: +(over * 100).toFixed(1),
-      settleFrames: cross == null ? null : last - cross,
-      settleMs: cross == null ? null : Math.round((last - cross) / fps * 1000),
-      bubble: m.bubbles ? m.bubbles.map(b => b.text).join(' / ') : null,
-    };
-  });
+  const states = plan.marks.map((m, k) => ({
+    state: m.state, at: m.t, chan: m.mark.chan, to: m.mark.to,
+    ...scoreArrival(track[k], m.mark, m.entry, fps),
+    bubble: m.bubbles ? m.bubbles.map(b => b.text).join(' / ') : null,
+  }));
+
+  /* ---------- and the same three numbers for the gloves ----------
+     a pose declares the one channel it is judged on exactly as a state does,
+     and it goes through the same scoring, because "does it wind up, does it
+     overshoot, does it settle" is the same question about a hand as about a
+     head and two implementations of it would drift apart. */
+  const poses = plan.marks.filter(m => m.hands).map(m => ({
+    pose: m.hands.pose, at: m.t, side: m.hands.side, acting: m.hands.acting,
+    chan: m.hands.mark.chan, to: m.hands.mark.to,
+    ...scoreArrival(htrack[m.i], m.hands.mark, m.hands.entry, fps),
+  }));
 
   const keys = plan.idle.blinks.map(blinkKey);
   return {
     frames: N, fps,
-    worst, states,
+    worst, states, poses,
     headPx: plan.headPx, capPx: plan.capPx,
     maxSquash: +maxSq.toFixed(4), maxBreathe: +maxBreathe.toFixed(4),
     maxLead: +maxLead.toFixed(3), lagFrames: +(LAG * 60).toFixed(1),
@@ -2434,6 +3359,37 @@ export function mascotMotion(plan, fps, seconds) {
       gapePx: +((HAND.fingers.len * Math.sin(HAND.open.fingers * Math.PI / 180)
         + HAND.thumb.len * Math.sin(-HAND.open.thumb * Math.PI / 180)
         - HAND.fingers.h / 2 - HAND.thumb.h / 2) * plan.unit * STAGE.dsf).toFixed(1),
+    } : null,
+    /* null on every plan without the gloves, which is every plan written before
+       them, and it is what the self test asserts the opt in on. */
+    hands: plan.hands ? {
+      poses: poses.length,
+      /* how far the drawn ink reached past the plate on each edge, against what
+         the placement held room for. planned is measured off the same frames,
+         so this is a check that the two measurements agree rather than a check
+         on a guess — and it catches a clip that re-planned the marks without
+         re-planning the placement. */
+      reach: {
+        l: +reach.l.toFixed(3), r: +reach.r.toFixed(3),
+        t: +reach.t.toFixed(3), b: +reach.b.toFixed(3),
+      },
+      held: plan.handsReach,
+      overrun: +Math.max(
+        reach.l - plan.handsReach.l, reach.r - plan.handsReach.r,
+        reach.t - plan.handsReach.t, reach.b - plan.handsReach.b).toFixed(3),
+      onFrames,
+      /* one glove's own size in device px, worked out the way the head's is:
+         grid units times the plan's own unit times the device scale. the page
+         measures the rendered box and the two are checked against each other. */
+      wPx: +((HANDS.palm.w + HANDS.thumb.len * 0.55) * plan.unit * STAGE.dsf).toFixed(1),
+      hPx: +((HANDS.palm.h + HANDS.fingers.len) * plan.unit * STAGE.dsf).toFixed(1),
+      palmPx: +(HANDS.palm.w * plan.unit * STAGE.dsf).toFixed(1),
+      fingerPx: +(HANDS.fingers.w * plan.unit * STAGE.dsf).toFixed(1),
+      gapPx: +((HANDS.fingers.pitch - HANDS.fingers.w) * plan.unit * STAGE.dsf).toFixed(1),
+      edgePx: +(HANDS.edge * plan.unit * STAGE.dsf).toFixed(2),
+      /* the widest one frame move of a hand, in css px, which is the unit the
+         blink and the yap are already argued in. */
+      stepCss: +worst.hands.d.toFixed(2), stepAt: worst.hands.t,
     } : null,
     blinks: {
       count: keys.length,
@@ -2517,6 +3473,50 @@ export function mascotMarkup(plan) {
     return `<g class="m-hand" id="m-hand">`
       + bar('m-finger', H2.fingers) + bar('m-thumb', H2.thumb) + `</g>`;
   };
+  /* ---------- the gloves, and only if the plan asked for a pair ----------
+     one glove is a palm, four fingers and a thumb, all rounded rects, and the
+     second hand is the first one's markup again with a mirror written into its
+     transform rather than a second drawing. every shape is drawn at its own
+     rest and every number that moves is written per frame by apply().
+
+     the fingers and the thumb grow **upward** from their own base — `y` is
+     minus the length and `height` is the length — so a curl changes those two
+     and leaves `rx` alone. shortening a rounded rect by scaling it would squash
+     the corner, and the slightly flattened tip is the one detail that stops
+     four capsules reading as four sausages.
+
+     it is drawn twice, and that is the separation edge. the ink layer is
+     unclipped and fill only; the edge layer is the same shapes, clipped to the
+     plate's own outline and stroke only, so the outline exists exactly where
+     the hand is over the face and nowhere else. the clip is the same one the
+     features use, to the unit. */
+  const F = HANDS.fingers, T = HANDS.thumb, PA = HANDS.palm;
+  const cap = (w, len, rr) => `<rect class="m-gl" x="${n(-w / 2)}" y="${n(-len)}"`
+    + ` width="${n(w)}" height="${n(len)}" rx="${n(rr)}"/>`;
+  /* ---------- the digits go behind the mitt, and that is the whole read ----------
+     the fingers and the thumb are drawn first and the palm last, so the palm's
+     own fill covers whatever is tucked under it and only the part of a digit
+     that is actually outside the mitt is on the screen. it is how the reference
+     is constructed and it is what stops a curled hand being a tangle: with the
+     fingers on top, every one of them draws a complete outline over the palm on
+     the edge layer, and `facepalm` and `panic` came back as five loops on the
+     face rather than as a hand with its fingers folded away.
+
+     it costs nothing on the ink layer, where every shape is the same colour. */
+  const glove = (layer, k) => {
+    const id = 'm-gl-' + layer + k;
+    let s = `<g class="m-glove" id="${id}">`;
+    for (let i = 0; i < 4; i++) {
+      s += `<g id="${id}-f${i}">` + cap(F.w, F.len * F.reach[i], F.w * HANDS.tipR) + `</g>`;
+    }
+    s += `<g id="${id}-t">` + cap(T.w, T.len, T.w * HANDS.tipR) + `</g>`;
+    return s + `<rect class="m-gl" x="${n(-PA.w / 2)}" y="${n(-PA.h)}" width="${n(PA.w)}"`
+      + ` height="${n(PA.h)}" rx="${n(PA.rx)}"/></g>`;
+  };
+  const gloves = layer => `<g class="m-hands m-hands-${layer}" id="m-hands-${layer}"`
+    + (layer === 'edge' ? ' clip-path="url(#m-head)"' : '') + `>`
+    + glove(layer, 0) + glove(layer, 1) + `</g>`;
+
   const clip = `<clipPath id="m-head"><rect x="${P.x}" y="${P.y}" width="${P.s}" height="${P.s}" rx="${n(rx)}"/></clipPath>`;
   const face = `<svg class="m-face" viewBox="0 0 ${GRID} ${GRID}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">`
     + `<defs>${clip}</defs>`
@@ -2524,7 +3524,11 @@ export function mascotMarkup(plan) {
     + `<g class="m-features" clip-path="url(#m-head)">`
     + eye(0) + eye(1) + brow(0) + brow(1)
     + (plan.hand ? hand() : '')
-    + `</g></svg>`;
+    + `</g>`
+    /* the gloves sit over the face and outside the clip, because a hand in
+       front of a head covers it and a hand beside one is off it. */
+    + (plan.hands ? gloves('ink') + gloves('edge') : '')
+    + `</svg>`;
   const glowSvg = c => `<svg class="m-glow ${c}" viewBox="0 0 ${GRID} ${GRID}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${plate}</svg>`;
 
   return `<div class="m-zone" id="m-zone">
@@ -2602,7 +3606,37 @@ export function mascotCss(plan) {
 /* the hand. the iris's own fill, so the mouth that is not a mouth is drawn in
    the same ink as the eyes and belongs to the same face. it is a rotation per
    slab per frame and nothing else, written by apply(). */
-.m-finger,.m-thumb{fill:var(--eye); will-change:transform}` : ''}
+.m-finger,.m-thumb{fill:var(--eye); will-change:transform}` : ''}${plan.hands ? `
+
+/* ---------- the floating hands ----------
+   the plate's own fill, so a glove is the same ink as the head: white on the
+   dark page, ink on the light one, and it inverts with the theme for free
+   because both are the same token.
+
+   the edge is the whole reason there are two layers. --eye is defined to always
+   equal the page background, so an outline drawn in it reads as a cut between
+   the hand and whatever is behind it — and the layer carrying it is clipped to
+   the head, so that cut exists over the face and nowhere else. over the
+   background there is no stroke at all: the glove is already a white shape on a
+   dark page, and a page coloured line out there would sit on the dark theme's
+   glow and read as a dark ring rather than as nothing.
+
+   the width is in grid units and each glove cancels the card's own two scales,
+   so the net transform on a hand is uniform and the stroke is the same weight
+   on every edge of it. round joins because a glove has no sharp corners. */
+.m-hands{pointer-events:none}
+.m-hands-ink .m-gl{fill:var(--face)}
+/* the edge layer paints the **same fill as the ink layer** and strokes on top of
+   it, which looks redundant and is the opposite: painting the face colour over
+   the face is invisible, and it is what makes a shape drawn later cover the
+   outline of one drawn earlier. with fill:none every digit tucked behind the
+   mitt drew its whole outline anyway, and a folded hand came back as a knot of
+   loops. it is the one line that turns a stack of shapes into a hand. */
+.m-hands-edge .m-gl{
+  fill:var(--face); stroke:var(--eye); stroke-width:${HANDS.edge};
+  stroke-linejoin:round; stroke-linecap:round;
+}
+.m-glove{will-change:transform}` : ''}
 
 /* the glow. two blurred copies of the plate behind it, dark theme only, and it
    is around the head only because the copies are the head. post10's phosphor
@@ -2693,6 +3727,11 @@ export function mascotPagePlan(plan) {
        half checks the element rather than this, so an older page runtime and a
        newer plan cannot disagree. */
     hand: plan.hand ? { hinge: HAND.hinge } : null,
+    /* and nothing at all about the gloves, which is not an oversight: every
+       number they need arrives on the frame already resolved, and the page
+       finds the elements by id. null when there are none, and the page half
+       checks the element rather than this. */
+    hands: plan.hands ? { edge: HANDS.edge } : null,
   };
 }
 
@@ -2721,6 +3760,25 @@ export function mascotPage() {
      the two can never disagree about whether there is something to write to. */
   const finger = card.querySelector('.m-finger');
   const thumb = card.querySelector('.m-thumb');
+
+  /* the gloves, or nothing. two layers of two hands: the ink layer is the fill
+     and the edge layer is the same shapes clipped to the head, and they are
+     written together in one loop, because two loops is two chances for the
+     outline to be drawing a hand that is somewhere else. */
+  const gloves = ['ink', 'edge'].map(layer => [0, 1].map(k => {
+    const g = document.getElementById('m-gl-' + layer + k);
+    if (!g) return null;
+    return {
+      g: g,
+      fingers: [0, 1, 2, 3].map(i => document.getElementById('m-gl-' + layer + k + '-f' + i)),
+      thumb: document.getElementById('m-gl-' + layer + k + '-t'),
+      rects: [
+        ...[0, 1, 2, 3].map(i => document.getElementById('m-gl-' + layer + k + '-f' + i).firstChild),
+        document.getElementById('m-gl-' + layer + k + '-t').firstChild,
+      ],
+    };
+  }));
+  const hasGloves = !!gloves[0][0];
 
   /* the origin sandwich, written out rather than left to transform-box: a
      translate inside an svg is in user units, so this is exact at any scale and
@@ -2765,12 +3823,62 @@ export function mascotPage() {
           thickPx: +(finger.getBoundingClientRect().height * P.stage.dsf).toFixed(1),
           thumbPx: +(thumb.getBoundingClientRect().width * P.stage.dsf).toFixed(1),
         } : null,
+        /* the gloves as they actually painted. the size is the question "does
+           it read at phone size" asked in the only unit it can be asked in, and
+           the stroke is measured rather than read off the css: the ink layer's
+           rect is the geometry and the edge layer's is the geometry plus half a
+           stroke on every side, so the difference between the two rendered
+           boxes is the stroke, whatever chrome decided to round it to. */
+        hands: hasGloves ? (() => {
+          const ink = gloves[0][1].g.getBoundingClientRect();
+          /* the stroke as it computed, in the svg's own user units, turned into
+             device px by the one conversion the whole file uses. it is read off
+             the computed style rather than off the table for the same reason
+             the bubble's outline is: what was typed and what chrome resolved
+             are two different numbers, and only one of them is on screen. */
+          const sw = parseFloat(getComputedStyle(gloves[1][1].rects[1]).strokeWidth) || 0;
+          const per = P.size / P.grid;
+          return {
+            wPx: +(ink.width * P.stage.dsf).toFixed(1),
+            hPx: +(ink.height * P.stage.dsf).toFixed(1),
+            edgeUnits: +sw.toFixed(3),
+            edgePx: +(sw * per * P.stage.dsf).toFixed(2),
+            gloves: gloves[0].filter(Boolean).length + gloves[1].filter(Boolean).length,
+          };
+        })() : null,
         theme: document.documentElement.getAttribute('data-theme'),
       };
     },
     /* one call switches the theme. both variants go through every guard below,
        which is the point of it being one call. */
     theme(t) { document.documentElement.setAttribute('data-theme', t); },
+
+    /* how big a glove actually is, **after a frame has been applied**, which is
+       the only time the answer means anything: the markup draws every finger
+       stacked on its own base and it is `apply` that fans them out, so measuring
+       this in `build` returns the palm and calls it a hand. it is a separate
+       call rather than a key on `build` for exactly that reason — the two
+       questions are asked at different times. */
+    gloveRect() {
+      if (!hasGloves) return null;
+      const r = gloves[0][1].g.getBoundingClientRect(), d = P.stage.dsf;
+      /* the palm as well as the whole hand, and the palm is the one worth
+         guarding on. the whole hand's box is an axis aligned rect around a
+         rotated shape with a splayed thumb in it, so it swings by a third
+         between a fist and an open hand and says as much about the pose as
+         about the drawing. the palm is the mitt, it is the same size in every
+         pose, and it is the number the reference was measured on: 93px of a
+         244px head there, which is 0.38.
+
+         `getBBox` is geometry rather than layout, so it is read in the svg's own
+         user units and converted once — the same conversion the head uses. */
+      const per = P.size / P.grid;
+      const palm = gloves[0][1].g.lastChild.getBBox();
+      return {
+        wPx: +(r.width * d).toFixed(1), hPx: +(r.height * d).toFixed(1),
+        palmPx: +(palm.width * per * d).toFixed(1),
+      };
+    },
 
     apply(f) {
       card.style.transform = 'translate(' + f.card.x.toFixed(3) + 'px,' + f.card.y.toFixed(3) + 'px) '
@@ -2808,6 +3916,46 @@ export function mascotPage() {
            hinge, where an svg rotation by a positive angle goes down. */
         finger.setAttribute('transform', about(hh.x, hh.y, f.hand.x, 0, -f.hand.fingers, 1, 1));
         thumb.setAttribute('transform', about(hh.x, hh.y, f.hand.x, 0, -f.hand.thumb, 1, 1));
+      }
+
+      /* ---------- the gloves ----------
+         one transform per hand and one per digit, and the only line worth
+         explaining is the middle scale. the card is squashed and squeezed on x
+         alone; the glove carries the inverse of both about its own origin, so
+         what is left on it is the head's uniform scale — it goes with the head
+         and it does not deform, and the stroke on the edge layer stays the same
+         weight on every side of it.
+
+         the mirror is in `sx`, so this loop never asks which hand it is
+         holding, and the two layers are written from the same numbers in the
+         same pass. */
+      if (hasGloves && f.hands) {
+        const fit = 'scale(' + f.hands.fit.cx.toFixed(5) + ' ' + f.hands.fit.cy.toFixed(5) + ') ';
+        for (let L = 0; L < 2; L++) {
+          for (let k = 0; k < 2; k++) {
+            const h = f.hands.list[k], G = gloves[L][k];
+            G.g.style.opacity = h.o.toFixed(4);
+            if (h.o < 0.004) continue;
+            G.g.setAttribute('transform',
+              'translate(' + h.x.toFixed(3) + ' ' + h.y.toFixed(3) + ') ' + fit
+              + 'rotate(' + h.rot.toFixed(3) + ') '
+              + 'scale(' + h.sx.toFixed(4) + ' ' + h.sy.toFixed(4) + ')');
+            for (let i = 0; i < 4; i++) {
+              const d = h.fingers[i];
+              G.fingers[i].setAttribute('transform',
+                'translate(' + d.x.toFixed(3) + ' ' + d.y.toFixed(3) + ') rotate(' + d.a.toFixed(3) + ')');
+              /* a curl shortens the capsule rather than scaling it, so the
+                 flattened tip keeps its own corner at every length. */
+              G.rects[i].setAttribute('y', (-d.len).toFixed(3));
+              G.rects[i].setAttribute('height', d.len.toFixed(3));
+            }
+            const tb = h.thumb;
+            G.thumb.setAttribute('transform',
+              'translate(' + tb.x.toFixed(3) + ' ' + tb.y.toFixed(3) + ') rotate(' + tb.a.toFixed(3) + ')');
+            G.rects[4].setAttribute('y', (-tb.len).toFixed(3));
+            G.rects[4].setAttribute('height', tb.len.toFixed(3));
+          }
+        }
       }
 
       glows[0].style.opacity = (f.glow * P.glow.wide.o).toFixed(4);
@@ -2902,12 +4050,25 @@ export function describeMascot(plan) {
       + (m.bubbles || []).map(b => '  bubble "' + b.text + '" ' + b.in.toFixed(2)
         + '..' + b.out.toFixed(2)).join(''));
     out.push('              ' + m.label);
+    if (m.hands) {
+      const h = m.hands;
+      out.push('              hands: ' + h.pose.padEnd(11) + h.side + ' on screen, '
+        + (h.acting.length > 1 ? 'both act' : 'the ' + (h.acting[0] ? 'right' : 'left') + ' hand acts')
+        + ', entry ' + h.entry.toFixed(2) + ' hold ' + h.hold.toFixed(2)
+        + ' exit ' + h.exit.toFixed(2) + ', to ' + h.out.toFixed(2) + 's');
+    }
   }
   if (plan.thought && plan.thought.mode === 'over') {
     const th = plan.thought;
     out.push('    thought: over the crown, climbing ' + th.side + ' at ' + th.angle
       + ' degrees, lifts ' + th.lifts.join(', ') + ' off the row'
       + (th.asked === 'over' ? ' (from pos ' + plan.pos + ')' : ' (asked for)'));
+  }
+  if (plan.hands) {
+    const r = plan.handsReach;
+    out.push('    hands: on, ' + plan.marks.filter(m => m.hands).length + ' poses, reaching '
+      + [r.l, r.r, r.t, r.b].map(v => v.toFixed(1)).join('/')
+      + ' units past the plate (l/r/t/b), edge ' + HANDS.edge + ' units');
   }
   if (plan.yap) {
     out.push('    hand: ' + plan.yap.count + ' yap cycles over '
@@ -2956,6 +4117,25 @@ export function describeMotion(rep) {
       + rep.hand.gape.hi.toFixed(2) + ', ' + rep.hand.lenPx + 'px long, '
       + rep.hand.thickPx + 'px thick, opening to ' + rep.hand.gapePx + 'px, '
       + 'fastest frame moves the tip ' + rep.hand.stepCss.toFixed(2) + ' css px');
+  }
+  if (rep.hands) {
+    const h = rep.hands;
+    out.push('  hands: one glove is ' + h.wPx + 'x' + h.hPx + 'px, palm ' + h.palmPx
+      + 'px, finger ' + h.fingerPx + 'px with a ' + h.gapPx + 'px gap, edge ' + h.edgePx + 'px');
+    out.push('         reach ' + [h.reach.l, h.reach.r, h.reach.t, h.reach.b].map(v => v.toFixed(1)).join('/')
+      + ' units against ' + [h.held.l, h.held.r, h.held.t, h.held.b].map(v => v.toFixed(1)).join('/')
+      + ' held' + (h.overrun > 0.001 ? '  OVERRUN by ' + h.overrun.toFixed(2) : '')
+      + ', on screen ' + h.onFrames[0] + '/' + h.onFrames[1] + ' of ' + rep.frames + ' frames'
+      + ', fastest frame moves a hand ' + h.stepCss.toFixed(2) + ' css px');
+    out.push('  pose          anti  entry   over   settle   mark');
+    for (const p of rep.poses) {
+      out.push('    ' + p.pose.padEnd(12)
+        + String(p.antiFrames).padStart(3) + 'f'
+        + String(p.entryFrames == null ? '--' : p.entryFrames + 'f').padStart(7)
+        + (p.overshoot.toFixed(1) + '%').padStart(8)
+        + (p.settleMs == null ? '--' : p.settleMs + 'ms').padStart(9)
+        + '   ' + p.chan + ' to ' + p.to + '  ' + p.side);
+    }
   }
   out.push('  frozen: ' + rep.frozenFrames + ' frames inside a run of three or more still ones');
   return out.join('\n');
@@ -3613,6 +4793,265 @@ function selfTest() {
     mascotMarkup(hp).includes('m-finger') && mascotMarkup(hp).includes('m-thumb')
     && mascotCss(hp).includes('.m-finger,.m-thumb')
     && mascotPagePlan(hp).hand.hinge.x === HAND.hinge.x);
+
+  /* ---------- the floating hands ----------
+     the same shape of checks the yap hand gets, starting with the same first
+     one: the part is opt in, so the thing that has to be proved before anything
+     else is that it is **off**. a plan that did not ask for a pair draws
+     nothing, plans nothing, reports nothing and — the one this part adds — is
+     placed in exactly the spot it was placed in before there were any. */
+  const noHands = planMascot({ marks: [{ t: 0.4, state: 'neutral' }], seconds: 3 });
+  const wasBox = planMascot({ marks: [{ t: 0.4, state: 'neutral' }], seconds: 3 }).box;
+  ok('no hands unless a plan asks for a pair',
+    noHands.hands === false && noHands.handsReach === null
+    && mascotFrame(noHands, 1.0).hands === null
+    && !mascotMarkup(noHands).includes('m-gl-')
+    && !mascotCss(noHands).includes('m-hands')
+    && mascotPagePlan(noHands).hands === null
+    && mascotMotion(noHands, 60, 3).hands === null
+    && mascotMotion(noHands, 60, 3).poses.length === 0
+    && noHands.marks.every(m => !('hands' in m)));
+  ok('a pose with no hands is refused', (() => {
+    try { planMascot({ marks: [{ t: 0.4, state: 'neutral', hands: 'wave' }], seconds: 4 }); return false; }
+    catch (e) { return /no hands on it/.test(e.message); }
+  })());
+  ok('an unknown pose is refused', (() => {
+    try { planMascot({ hands: true, marks: [{ t: 0.4, state: 'neutral', hands: 'jazz' }], seconds: 4 }); return false; }
+    catch (e) { return /no hands pose called/.test(e.message); }
+  })());
+  ok('an unknown side is refused', (() => {
+    try { planMascot({ hands: true, marks: [{ t: 0.4, state: 'neutral', hands: 'wave', side: 'up' }], seconds: 4 }); return false; }
+    catch (e) { return /the three are/.test(e.message); }
+  })());
+  ok('a side with nothing to be a side of is refused', (() => {
+    try { planMascot({ hands: true, marks: [{ t: 0.4, state: 'neutral', side: 'left' }], seconds: 4 }); return false; }
+    catch (e) { return /with no hands pose on it/.test(e.message); }
+  })());
+
+  /* the table's own consistency, and it is here because it was wrong once: a
+     pose's `mark` is the value the preflight looks for, so a `mark.to` that
+     does not match the pose's own `at` is a pose scored against a place it was
+     never going to. `shrug` shipped for one build with `at.rot` 76 and a mark of
+     78, and every number in its row of the report was measured against a target
+     the pose could not reach. */
+  ok('every pose is scored against its own target',
+    HAND_POSE_NAMES.every(nm => {
+      const P = HAND_POSES[nm];
+      return Math.abs(P.at[P.mark.chan] - P.mark.to) < 1e-9;
+    }),
+    HAND_POSE_NAMES.map(nm => nm + ' ' + HAND_POSES[nm].mark.chan).join(', '));
+
+  /* every pose in one plan, which is what the test clip renders. */
+  const hMarks = [];
+  let ht = 0.4;
+  for (const nm of HAND_POSE_NAMES) {
+    hMarks.push({ t: +ht.toFixed(2), state: 'neutral', hands: nm });
+    ht += HAND_POSES[nm].entry + HAND_POSES[nm].hold + HAND_POSES[nm].exit + 0.25;
+  }
+  const gp = planMascot({ hands: true, bias: 0, marks: hMarks, seconds: +(ht + 0.4).toFixed(2) });
+  const grep = mascotMotion(gp, 60, gp.seconds);
+  ok('a plan with every pose builds', grep.poses.length === HAND_POSE_NAMES.length,
+    grep.poses.length + ' poses over ' + gp.seconds.toFixed(2) + 's');
+  for (const p of grep.poses) {
+    ok(p.pose + ' arrives', p.entryFrames != null && p.entryFrames > 0, p.entryFrames + ' frames');
+    ok(p.pose + ' overshoots and settles', p.overshoot > 1.0 && p.settleFrames > 0,
+      '+' + p.overshoot.toFixed(1) + '%, settles in ' + p.settleMs + 'ms');
+    /* `rest` is the declared exception on the wind up, and it is the same
+       exception `neutral` is: the only thing it does is arrive at rest, and
+       pulling away from rest first would be a gesture rather than a release. */
+    if (p.pose !== 'rest') ok(p.pose + ' anticipates', p.antiFrames >= 2, p.antiFrames + ' frames back');
+  }
+  /* the speed, in the unit every other argument in this file is had in. the
+     ceiling is twelve rather than the yap's eight, and the difference is the
+     size of the thing moving: the yap measures a fingertip twelve device px
+     across, so eight css px is more than its own width in a frame and it
+     smears. a glove is sixty six device px across and twelve css px is
+     twenty four of them, under a third of it — a shape that big is tracked at
+     that speed. `panic` is what sets the number, because it is the one pose
+     that takes a hand the whole height of the head. */
+  ok('a hand never steps', grep.hands.stepCss < 12,
+    'fastest frame moves a hand ' + grep.hands.stepCss.toFixed(2) + ' css px at '
+    + grep.hands.stepAt.toFixed(2) + 's');
+
+  /* the seven read as seven. the same instrument the states use: the drawn pose
+     at each one's settled moment, in the channels a viewer reads, and no two of
+     them may land in the same place. the curls are in the vector because two
+     hands in the same place with different fingers are two poses. */
+  const gposes = grep.poses.map((p, i) => {
+    const m = gp.marks.filter(mm => mm.hands)[i];
+    const h = mascotFrame(gp, m.hands.settled + 0.05).hands.list[m.hands.acting[0]];
+    return {
+      pose: p.pose,
+      v: [h.pose.x / 8, h.pose.y / 8, h.pose.rot / 40, h.o,
+        ...h.fingers.map(f => f.len / 6), h.thumb.len / 6, h.thumb.a / 60],
+    };
+  });
+  let gclosest = 1e9, gpair = null;
+  for (let i = 0; i < gposes.length; i++) {
+    for (let j = i + 1; j < gposes.length; j++) {
+      const d = Math.hypot(...gposes[i].v.map((v, k2) => v - gposes[j].v[k2]));
+      if (d < gclosest) { gclosest = d; gpair = gposes[i].pose + '/' + gposes[j].pose; }
+    }
+  }
+  ok('no two poses settle into the same hand', gclosest > 0.55,
+    'closest pair ' + gpair + ' at ' + gclosest.toFixed(2));
+
+  /* ---------- the mirror ----------
+     the table is written once, for the screen right hand, and the other one is
+     the reflection. it is asserted on the drawn glove rather than on the table,
+     because the mirror is applied in three places — the seed, the builder and
+     the exit — and any one of them could reflect something it should not. the
+     splay and the thumb angle must come through **unmirrored**: they live
+     inside the glove's own frame and the glove is what gets flipped. */
+  const sym = planMascot({
+    hands: true, bias: 0, seconds: 4.4,
+    marks: [{ t: 0.3, state: 'neutral', hands: 'shrug' }],
+  });
+  const symF = mascotFrame(sym, sym.marks[0].hands.settled + 0.05).hands.list;
+  ok('the left hand is the right hand reflected',
+    Math.abs(symF[0].pose.x - (GRID - symF[1].pose.x)) < 1e-9
+    && Math.abs(symF[0].pose.rot + symF[1].pose.rot) < 1e-9
+    && symF[0].sx === -symF[1].sx && symF[0].sy === symF[1].sy
+    && JSON.stringify(symF[0].fingers) === JSON.stringify(symF[1].fingers)
+    && JSON.stringify(symF[0].thumb) === JSON.stringify(symF[1].thumb),
+    'left at ' + symF[0].pose.x + '/' + symF[0].pose.rot
+    + ', right at ' + symF[1].pose.x + '/' + symF[1].pose.rot);
+
+  /* ---------- a hand does not deform ----------
+     the card squashes and the turn squeezes it, both on x alone. the gloves
+     carry the inverse of the card's two scales, so what is left on them is the
+     head's own uniform scale — which is what keeps the separation edge the same
+     weight on every side of a hand. it is checked as an identity on the frame
+     rather than on a rendered pixel: the two products must be equal, on every
+     frame of a plan that both hops and turns. */
+  const defo = planMascot({
+    hands: true, bias: 0, seconds: 7.4,
+    marks: [{ t: 0.3, state: 'delighted', hands: 'wave' },
+      { t: 3.6, state: 'unimpressed', hands: 'shrug', turn: 1, turnFor: 0.7 }],
+  });
+  let worstFit = 0, sqSeen = 0, sqzSeen = 0;
+  for (let f = 0; f < Math.round(60 * 7.4); f++) {
+    const fr = mascotFrame(defo, f / 60);
+    const ax = fr.hands.fit.cx * fr.card.sx, ay = fr.hands.fit.cy * fr.card.sy;
+    worstFit = Math.max(worstFit, Math.abs(ax - ay));
+    sqSeen = Math.max(sqSeen, Math.abs(fr.pose.sq));
+    sqzSeen = Math.max(sqzSeen, fr.turn.squeeze);
+  }
+  /* the tolerance is the frame's own rounding rather than a fudge, and it is
+     worth saying what it is worth. every number in a frame is rounded to a
+     thousandth, and this identity is a product of two of them, so the residual
+     is about a thousandth — which is what the page actually writes, so it is
+     also the real anisotropy on the screen. on a three device px stroke that is
+     four thousandths of a pixel. anything genuinely wrong here is a per cent,
+     not a thousandth: getting the inverse backwards puts it at fifteen. */
+  ok('a glove stays uniform through squash and turn', worstFit < 2e-3,
+    'worst axis difference ' + worstFit.toExponential(1) + ' across a squash of '
+    + (sqSeen * 100).toFixed(1) + '% and a squeeze of ' + (sqzSeen * 100).toFixed(1) + '%');
+
+  /* ---------- one hand or two ----------
+     `side` is which hands are on screen, and it persists across marks the way
+     the turn does, so the last thing checked is that it is still holding two
+     marks later. */
+  const oneAt = (pl, t2) => mascotFrame(pl, t2).hands.list.map(h => h.o);
+  const sideL = planMascot({ hands: true, seconds: 4.4, marks: [{ t: 0.3, state: 'neutral', hands: 'wave', side: 'left' }] });
+  const sideR = planMascot({ hands: true, seconds: 4.4, marks: [{ t: 0.3, state: 'neutral', hands: 'wave', side: 'right' }] });
+  const sideB = planMascot({ hands: true, seconds: 4.4, marks: [{ t: 0.3, state: 'neutral', hands: 'wave' }] });
+  ok('a side puts one hand or two on the screen',
+    JSON.stringify(oneAt(sideL, 1.6)) === '[1,0]'
+    && JSON.stringify(oneAt(sideR, 1.6)) === '[0,1]'
+    && JSON.stringify(oneAt(sideB, 1.6)) === '[1,1]');
+  ok('a one handed pose is taken by one hand and the other rests',
+    sideB.marks[0].hands.acting.length === 1
+    && HAND_POSES.shrug.both && !HAND_POSES.wave.both,
+    'wave acts with the ' + (sideB.marks[0].hands.acting[0] ? 'right' : 'left') + ' hand');
+  /* and which one it is follows the corner he stands in, the way the resting
+     turn does: he gestures into the frame rather than out of it. */
+  ok('the acting hand gestures into the frame',
+    planMascot({ hands: true, seconds: 4.4, pos: 'bottom-left', marks: [{ t: 0.3, state: 'neutral', hands: 'point' }] })
+      .marks[0].hands.acting[0] === 1
+    && planMascot({ hands: true, seconds: 4.4, pos: 'bottom-right', marks: [{ t: 0.3, state: 'neutral', hands: 'point' }] })
+      .marks[0].hands.acting[0] === 0);
+  const persist = planMascot({
+    hands: true, seconds: 9.4,
+    marks: [{ t: 0.3, state: 'neutral', hands: 'wave', side: 'right' },
+      { t: 4.2, state: 'neutral', hands: 'point' }],
+  });
+  ok('a side outlives the pose that named it',
+    JSON.stringify(oneAt(persist, 3.9)) === '[0,1]'
+    && JSON.stringify(oneAt(persist, 6.0)) === '[1,1]',
+    'still one hand at 3.9s, both again once a mark says both');
+
+  /* ---------- the placement holds room for them ----------
+     the gloves hang outside the silhouette, so the head stands further in when
+     they are on. the amount is measured off the plan's own frames, and this is
+     the check that what the placement held is what the frames actually make —
+     a clip that re-planned its marks and not its placement is exactly what it
+     catches. */
+  ok('the head stands in by the reach the hands actually make',
+    grep.hands.overrun <= 0,
+    'reached ' + [grep.hands.reach.l, grep.hands.reach.r, grep.hands.reach.t, grep.hands.reach.b]
+      .map(v => v.toFixed(1)).join('/') + ' against ' + [gp.handsReach.l, gp.handsReach.r,
+      gp.handsReach.t, gp.handsReach.b].map(v => v.toFixed(1)).join('/') + ' held');
+  const moved = planMascot({
+    hands: true, seconds: 4.4, pos: 'bottom-left',
+    marks: [{ t: 0.3, state: 'neutral', hands: 'rest' }],
+  });
+  /* bottom left, so the left edge and the bottom edge are the two the placement
+     is measured off and they are the two that move. it is checked as an
+     equality against the reach rather than as "it moved", because a placement
+     that moved by some other amount would be a placement that held room for a
+     hand that is not the one being drawn. */
+  ok('the gloves move the head in by exactly their own reach',
+    Math.abs((moved.box.left - wasBox.left) - moved.handsReach.l * moved.unit) < 0.02
+    && Math.abs((wasBox.top - moved.box.top) - moved.handsReach.b * moved.unit) < 0.02,
+    'left ' + wasBox.left + ' to ' + moved.box.left + ' and top ' + wasBox.top + ' to '
+    + moved.box.top + ', which is ' + moved.handsReach.l.toFixed(1) + ' and '
+    + moved.handsReach.b.toFixed(1) + ' units of reach at ' + moved.unit + ' css px each');
+
+  /* the hands are deliberately **not** in the feature mask. everything on the
+     face is clipped to the plate and measured against it; a glove is ink that
+     is supposed to be outside the head, and scoring it there would fail every
+     pose in the table. */
+  ok('a glove is not scored against the head silhouette',
+    grep.outside.units <= 0,
+    'worst feature ink still ' + (-grep.outside.units).toFixed(2) + ' units inside, with hands on');
+
+  /* the edge, in the unit it has to survive h.264 in, at both head sizes a clip
+     uses — the corner's 128 and the centred 148. it is a stroke in grid units,
+     so unlike the bubble's border it cannot be floored to a whole css pixel by
+     chrome; what is checked is that it lands thick enough to read and thinner
+     than the reference's own finger lines, which measure about 4.25 device px
+     against a head this size. */
+  for (const sz of [128, 148]) {
+    const e = HANDS.edge * (sz / GRID) * STAGE.dsf;
+    ok('the separation edge is readable and thinner than the reference at size ' + sz,
+      e >= 2.8 && e < 4.25, e.toFixed(2) + ' device px');
+  }
+
+  /* both themes, with hands on, and the same promise: a theme is colour. */
+  const gLight = planMascot({ hands: true, bias: 0, marks: hMarks, seconds: gp.seconds, theme: 'light' });
+  const gDark = planMascot({ hands: true, bias: 0, marks: hMarks, seconds: gp.seconds, theme: 'dark' });
+  ok('a theme changes nothing but colour, with hands on',
+    JSON.stringify({ ...mascotFrame(gLight, 2.0), glow: 0 })
+    === JSON.stringify({ ...mascotFrame(gDark, 2.0), glow: 0 }));
+
+  ok('the markup and the css carry the gloves when they are on',
+    mascotMarkup(gp).includes('m-gl-ink1-f3') && mascotMarkup(gp).includes('m-gl-edge0-t')
+    && mascotMarkup(gp).includes('clip-path="url(#m-head)"')
+    && mascotCss(gp).includes('.m-hands-edge .m-gl')
+    && mascotCss(gp).includes('stroke-width:' + HANDS.edge)
+    && mascotPagePlan(gp).hands.edge === HANDS.edge);
+  /* the two hands are two different parts and a plan may have either, both or
+     neither — which is one line to check and the reason it is worth checking is
+     that they nearly share a name. */
+  const bothParts = planMascot({
+    hand: true, hands: true, seconds: 4.4,
+    marks: [{ t: 0.3, state: 'neutral', yap: true, hands: 'wave' }],
+  });
+  const bf = mascotFrame(bothParts, 1.4);
+  ok('the mouth hand and the glove pair are independent parts',
+    bf.hand !== null && bf.hands !== null
+    && mascotFrame(hp, 1.0).hands === null && mascotFrame(gp, 1.0).hand === null);
 
   console.log('');
   if (fail.length) { console.error('FAILED: ' + fail.join(', ')); process.exit(1); }

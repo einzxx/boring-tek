@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **New 2026-09-06: the mascot gets floating hands, and they are opt in.** Two
+  cartoon gloves with no arms, drawn in code in `demo/lib/mascot.mjs` off the
+  proportions of `demo/assets/hands-ref.png` — somebody else's drawing, in a
+  local folder that is not in the repo, so the ratios taken from it are written
+  down in the README and nothing is traced or embedded. Seven named poses — rest, wave, thumbs up,
+  facepalm, shrug, point, panic. A mark triggers one like a state, with a `side`
+  of left, right or both, and the two layers compose: a mark may carry a face and
+  a pose at once. **Off unless a plan says `hands: true`, and 12,138 frames across
+  33 plans hash byte identical to the module as it was.**
+  - **The separation edge is two layers rather than a conditional.** The ink layer
+    is unclipped and fill only; the edge layer is the same shapes clipped to the
+    plate's own outline and stroke only, in the page colour. So the outline exists
+    exactly where a hand is over the face and nowhere else — and inside the hand
+    the same stroke is the finger lines for free. It is clipped rather than left
+    to blend into the page because the dark theme's glow sits behind the head and
+    a `#06070a` stroke over it would read as a dark ring.
+  - **The gloves cancel the card's own deformation.** The card squashes and the
+    turn squeezes it, both on x alone, and a stroke under a non uniform scale is
+    thicker on one axis than the other. Each glove carries the inverse of the
+    card's two scales about its own origin, so the net transform on it is uniform:
+    it scales, tilts and travels with the head and does not deform. The anchor is
+    deliberately not counter scaled, which is what keeps the pair attached.
+  - **They move the head in, and the amount is measured rather than guessed.**
+    They hang outside the silhouette, so the placement holds room for their
+    reach — 28.6 units left, 32.3 right, 9.1 over the crown, 11.4 under the chin
+    on the test cut — walked off the plan's own frames the way `crownReach` is, and a
+    render fails if the drawn ink ever passes what was held. `headRect` grows to
+    hold them, so every clip's existing safe area guard is the hands' guard too.
+  - **`mascot-test.mjs` is two chapters now**, `--chapter=states` and
+    `--chapter=hands`, four files instead of two. The hands are their own clip
+    because turning them on moves the head: a states clip carrying them would have
+    stopped being the control the states question needs.
+  - **The first cut read as a starfish and the fix was measurement.** Thin fanned
+    fingers on a small palm, because the proportions were eyeballed off the sheet.
+    `demo/out/poses/measure-ref.mjs` now decodes that png, thresholds it, labels
+    its blobs and prints per row run profiles, so the palm's width and a finger's
+    width and gap are read rather than judged — palm 0.38 of the head, a finger a
+    quarter of the palm's width, a gap a quarter of a finger. And
+    `demo/out/poses/compare.mjs` renders every pose beside its own panel with both
+    heads at 244px, which is what four of the seven were then corrected against.
+  - **One line of css was the difference between a stack of shapes and a hand.**
+    The digits are drawn behind the mitt and the edge layer paints the ink layer's
+    own fill rather than `none`, so a finger tucked under the palm is covered
+    instead of drawing its whole outline. Without it `facepalm` was five loops on
+    the face. See the Decisions entry.
+
 - **Fix round 2026-09-06: `demo/post19.mjs`, the names get a voice and the label
   starts empty. 11.15s, 110 guards green at 12fps and at 60 with the shutter open
   at six subframes.** The panel's name spot is empty until the question is fully
@@ -2597,7 +2643,42 @@ read. **The three style test clips were re-rendered** against the changed engine
   one and `plan.yap` comes back as a list of cycles with their own times, which
   is what lets a clip put a syllable of sound on the frame the mouth opens on.
   **With it off nothing about this module changes** and that is asserted rather
-  than claimed — see the decision.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
+  than claimed — see the decision.
+
+  **And, since 2026-09-06, two floating hands — also opt in, off unless a plan
+  says `hands: true`, and a different part from the one above.** Two cartoon
+  gloves with no arms, drawn in code from `demo/assets/hands-ref.png`: a chunky
+  rounded palm, four fingers that do not touch and a thumb, all rounded rects on
+  the head's own 64 grid, filled with the plate's own token so they are white on
+  the dark page and ink on the light one. **Seven poses** — `rest`, `wave`,
+  `thumbs-up`, `facepalm`, `shrug`, `point`, `panic` — each an entrance, a hold
+  with its own beat and an exit back to the resting pair, triggered from a mark
+  the way a state is and composing with one rather than replacing it. `side` is
+  `left`, `right` or `both`, which hands are on screen, and it persists across
+  marks the way the turn does. The **separation edge** is the part that makes
+  them read: the glove is drawn twice, once unclipped and fill only and once
+  clipped to the plate's own outline and stroke only in the page colour, so the
+  outline exists exactly where a hand is over the face and nowhere else — and
+  inside the hand the same stroke is the finger lines for free. Each glove
+  carries the inverse of the card's two scales, so it goes with the head through
+  squash, tilt and turn **and does not deform**, which is what keeps that stroke
+  the same weight on every edge. They hang outside the silhouette, so the
+  placement holds room for their measured reach and `headRect` grows to cover
+  them. Measured at 60fps: `rest` 0f / 7f / +9.9% / 117ms, `wave` 5f / 11f /
+  +13.3% / 183ms, `thumbs-up` 6f / 12f / +14.0% / 183ms, `facepalm` 3f / 13f /
+  +11.5% / 217ms, `shrug` 4f / 10f / +12.7% / 117ms, `point` 6f / 11f / +14.1% /
+  167ms, `panic` 10f / 32f / +4.3% / 83ms — that last row is its two gear
+  entrance rather than a fault. **The proportions are measured off the sheet, not
+  judged**: palm 0.38 of the head, palm width to finger length 1.83 against the
+  sheet's 1.86, gap to finger width a quarter either way. The rendered mitt is
+  **92 device px against a 240px head** at the corner size 128 and **106.4
+  against 277.5** at the centred 148 — **0.383 of the head both times, against
+  the reference's 0.381** — with a separation edge of **3.00 and 3.47 device px**.
+  The guard is on the mitt rather than on the whole hand, because a hand's own
+  box swings by a third between a fist and an open hand and says as much about
+  the pose as about the drawing. **With them off nothing about this
+  module changes**, including where the head stands, and that is asserted over
+  12,138 frames rather than claimed.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
   frames from the mark to the arrival, then how far past the mark it goes, then
   the settle: `neutral` 0f / 7f / +10.7% / 150ms, `curious` 5f / 12f / +13.1% /
   167ms, `surprised` 6f / 11f / +14.2% / 233ms, `thinking` 4f / 12f / +12.5% /
@@ -2662,14 +2743,23 @@ read. **The three style test clips were re-rendered** against the changed engine
   `demo/out/rig-dark.mp4`: a push, a drift, a snap, a shake, the grow both ways and the
   cross. 22 guards. He fills 1080x1920 at a zone scale of **16.53** from the bottom right
   corner, measured on the rendered plate at **3999 x 4103 device px**.
-- **`demo/mascot-test.mjs`** — one clip per theme, at two fixed paths that are
-  overwritten every run: `demo/out/mascot-light.mp4` and `demo/out/mascot-dark.mp4`.
-  Nothing else is written, so a stale clip cannot survive a render. Rendered light and dark,
-  no voice. **states** is twenty seconds of all nine with three bubbles, and it answers
-  one question: do they read as different things at a glance with the sound off at phone
-  size. **turn** is twenty two seconds that sweep the channel end to end and back, play
-  the two turn states back to back, then hold three of the ordinary states at 0.6 to
-  prove the turn composes with them rather than replacing them.
+- **`demo/mascot-test.mjs`** — **two chapters since 2026-09-06**, each its own clip
+  per theme, at four fixed paths that are overwritten every run:
+  `demo/out/mascot-<theme>.mp4` and `demo/out/mascot-hands-<theme>.mp4`. Nothing else
+  is written, so a stale clip cannot survive a render. Rendered light and dark,
+  no voice. `--chapter=states|hands` renders one of them.
+  **states** is forty two seconds: all nine states with three bubbles, then a sweep of
+  the turn end to end and back, then three of the ordinary states held at 0.6 to prove
+  the turn composes with them rather than replacing them. It answers whether they read
+  as different things at a glance with the sound off at phone size.
+  **hands** is twenty one seconds of the seven glove poses, each with a different face
+  under it and the `side` option exercised in the middle of the run. It is a separate
+  clip rather than a section because turning the gloves on moves the head in, and a
+  states clip carrying them would have stopped being the control the first question
+  needs. Its own guards: every pose winds up, overshoots and settles; all seven poses
+  and all three sides appear; no hand moves more than twelve css px in a frame; the
+  drawn reach never passes what the placement held; and the rendered glove is between a
+  third and a half of the head with its edge between 2.8 and 4.25 device px.
 - **`demo/mascot-export.mjs`** — the same seven states as standalone 1080x1920 overlay
   clips for canva, three and a half seconds each, **three flavours from one capture**:
   vp9 webm with real alpha, mp4 on solid black, mp4 on solid white, plus a bubble
@@ -2772,6 +2862,176 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-06 — the mascot gets floating hands, and the edge is what makes them hands
+
+Two cartoon gloves with no arms, drawn in code in `demo/lib/mascot.mjs` off the
+proportions of `demo/assets/hands-ref.png` — somebody else's drawing, in a local
+folder that is not in the repo, so the ratios taken from it are written down in
+the README and nothing is traced or embedded. **Opt in and off by default**, for
+the reason the yap hand is: twelve scripts were written against this module
+before them — nine posts, the rig test, the state test and the export — and none
+of them should move. Same proof as that change — the module out of git
+history against the module as it is, 33 plans, **12,138 frames at sixty compared
+as json**, plus the css, the markup, the page plan, the cues, `headRect`,
+`stillMoment`, the motion report and both printed summaries. Byte identical.
+
+**They are not the hand that was already there, and the near-collision of the
+names is worth being explicit about.** `HAND` is one pair of slabs standing in
+for a mouth, low on the face, and it is a piece of the head. `HANDS` is a pair
+of gloves beside him. A plan may carry `hand`, `hands`, both or neither, and the
+self test asserts exactly that, because the two are one letter apart.
+
+**The separation edge is the whole design and it is two layers rather than a
+conditional.** A white glove on a white face is one shape, so the glove carries
+an outline in the page colour — and it is painted only where the hand is over
+the head. The ink layer is unclipped and fill only; the edge layer is the same
+shapes, clipped to the plate's own outline, stroke only. Three things fall out
+of that and all three are the point:
+
+- **Over the background there is no edge at all**, which is what the brief asked
+  for and is right anyway: the glove is already a white shape on a dark page.
+- **Inside the hand, the same stroke is the finger lines**, free. The fingers
+  overlap the palm and the stroke follows every shape's own outline, so over the
+  face the row reads as five parts of one hand; over the background the gaps
+  between the fingers do that job and the palm and fingers merge into one
+  silhouette, which is exactly what the reference does.
+- **The thickness is even everywhere by construction**, because it is one number
+  for the whole glove. The reference's is not, and a stroke that thickens round a
+  knuckle is the difference between a drawing and a rig.
+
+**Clipping rather than relying on the colour is a real decision.** A page
+coloured stroke over the page is invisible for free, so the first cut had no
+clip at all. It would have shipped a dark ring round every hand in the dark
+theme: the glow is two blurred copies of the plate sitting behind the head, so
+the background near a resting hand is not the page colour, and `#06070a` over it
+is ink.
+
+**The gloves cancel the card's deformation rather than riding it**, and that is
+the other half of an even edge. The card's transform is `sc(1+sq)(1-squeeze)`
+across and `sc/(1+sq)` down; a glove riding it would stretch on one axis and,
+worse, carry a stroke thicker on one axis than the other. So each glove carries
+the exact inverse of those two about its own origin, leaving the net transform
+uniform. **The anchor is deliberately not counter scaled** — it is a point in the
+card's own space, so the squash moves it and the turn's squeeze pulls it in as
+the silhouette narrows, which is what keeps the pair attached to a head that is
+deforming.
+
+**One table, written once, for the screen right hand.** The left one is the
+mirror: `x` becomes `64 - x`, `rot` changes sign, and the glove itself is
+flipped with a `scale(-1 1)` folded into the transform. The splay and the thumb
+angle are **not** mirrored, because they live inside the glove's own frame and
+mirroring them as well would flip it twice. There is not a sign anywhere in the
+pose table and the self test asserts the reflection on the drawn glove rather
+than on the numbers, because the mirror is applied in three places — the seed,
+the builder and the exit — and any one of them could reflect something it should
+not.
+
+**`side` is which hands are on screen, and it persists.** Left, right or both,
+which is what "one hand or two" means. It carries across marks the way the turn
+does, because it is a fact about the composition rather than a gesture. A two
+handed pose is taken by every hand on screen; a one handed one is taken by the
+acting hand and the other rests, which is what the reference draws — and **which
+hand acts is derived from `pos`**, the fact `TURN.bias` is already derived from.
+
+**They move the head in, and that number is measured off the plan's own frames.**
+They hang outside the silhouette on every pose in the reference, so a resting
+hand would be the first thing across a platform's chrome. The reach could have
+been derived off the pose table and padded, and that would have been a second
+copy of numbers the hold beats already move — a wave rocks fifteen degrees, a
+point jabs two and a half units, the idle adds another half. So it is walked, the
+way `crownReach` is, and the preflight then measures what the frames actually
+make and **fails** if it ever passes what the placement held. `headRect` grows to
+hold them too, so every clip's existing safe area guard became the hands' guard
+with no new code in any clip.
+
+#### The first cut read as a starfish, and the fix was measurement
+
+Thin fanned fingers on a small palm. Every proportion had been taken off the
+sheet by eye and every one of them was wrong in the same direction: **the palm
+17 grid units against 23, the fingers 3.3 wide against 5.4, and the splay seven
+and a half degrees a step.** What the drawing actually is, is the opposite — a
+big rounded mitt with short thick fingers held together, the fingers less than
+half the hand's length.
+
+**So the sheet is decoded rather than looked at.** `demo/out/poses/measure-ref.mjs`
+runs it through the ffmpeg the repo already carries, thresholds it, labels the
+connected components and prints each blob's box and its **per row run profile**,
+which is what actually answers the questions: a finger's width is how long a run
+is, the gap is the distance between two runs, and the palm starts where the runs
+merge into one. Measured off the wave, which is the only pose in the sheet with
+the hand open and flat to camera, against a 244px head:
+
+    the whole hand   110 x 106      0.45 x 0.43 of the head
+    the palm          93 wide       0.38
+    one finger        23 x 50       a quarter of the palm's width
+    the gap            6            a quarter of a finger
+    the thumb         22 wide       within a pixel of a finger
+
+**Two ratios carry the whole look** and both are now the sheet's: the palm's
+width against a finger's length, 1.83 against 1.86, and the gap against a
+finger's width, a quarter either way.
+
+**And every pose is placed against its own panel rather than from memory.**
+`demo/out/poses/compare.mjs` crops the reference panel a pose was written from,
+mirrors it where the sheet's acting hand is on the other side, scales both so
+the heads are 244px, and stacks them. Four of the seven were corrected against
+that: `thumbs-up` is the fist turned on its side with a partial curl, because at
+a full curl the fingers sit inside the mitt and there is no knuckle row left;
+`facepalm` is a cupped hand rather than a spread one, which is a different
+gesture wearing the same name; `shrug` reads on two lobes rather than four
+fingers, so the outer pair curls much further than the inner; and `panic` got
+two gears.
+
+#### One line of css was the difference between a stack of shapes and a hand
+
+The digits are drawn **behind** the mitt — fingers, thumb, then palm — and the
+**edge layer paints the ink layer's own fill rather than `none`.** Painting the
+face colour over the face is invisible, and it is what lets a shape drawn later
+cover the outline of one drawn earlier.
+
+Without it every digit tucked under the palm still drew its complete outline on
+the edge layer, because a stroke-only shape has nothing to hide behind.
+`facepalm` came back as five loops sitting on the face and `panic` as a row of
+them on the crown. It is how the reference is constructed and it is one
+declaration.
+
+#### Three numbers, and where they come from
+
+**`panic`'s entrance has two gears, and that is arithmetic.** It is the only
+pose that takes a hand the whole height of the head: rest to the crown is 42
+grid units, 85 css px, and on the pop curve the fastest frame carries about a
+fifth of a move. As **one** tween that needed a full second to stay under the
+ceiling, and a second is not a panic. So it is a lift on the calm curve for two
+thirds of the travel and then a short grab on the pop one — 11.2 css px at its
+fastest — and it reads better as well, because a big move with a change of gear
+in it is a hand deciding where to go and then getting there.
+
+**The size guard is on the mitt rather than on the whole hand.** A hand's own
+box is an axis aligned rect around a rotated shape with a splayed thumb in it,
+so it swings by a third between a fist and an open hand and says as much about
+the pose as about the drawing. The mitt is the same size in every pose and it is
+the number the sheet was measured on: **0.381 of the head there, 0.383 here**,
+92 device px at the corner size and 106.4 at the centred one.
+
+**The speed ceiling is twelve css px a frame, and it is the glove's own size.**
+The mitt is 92 device px across, so twelve css px is 24 of them, about a quarter
+of it in a frame. The yap hand's ceiling is eight for the opposite reason: that
+one measures a twelve pixel fingertip, for which eight css px is more than its
+own width and smears.
+
+
+
+
+#### And one bug the self test now cannot let back in
+
+`shrug` was written for one build with `at.rot` 76 and a `mark.to` of 78. The
+mark is the value the preflight looks for, so every number in that pose's row of
+the report was measured against a target the pose was never going to reach — and
+it was caught by looking at the table rather than by a guard, which is exactly
+the wrong way round. The check is one line, every pose's `mark.to` must equal its
+own `at` on that channel, and it is the kind of fault that is invisible in a
+green report.
 
 ### 2026-09-06 — a straight walk at a loudness target has a cliff in it, so the loop bisects
 

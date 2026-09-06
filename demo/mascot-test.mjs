@@ -1,31 +1,35 @@
 /* the boring tek — the mascot state test.
 
-   twenty seconds, all seven states in order, three of them carrying a bubble,
-   over a plain background with no voice. rendered twice, light and dark, so the
-   two themes can be put side by side rather than described.
+   every state and every hands pose, over a plain background with no voice,
+   rendered in both themes so the two can be put side by side rather than
+   described.
 
-     node mascot-test.mjs                    both themes, 1080x1920, 60fps
-     node mascot-test.mjs light              just one of them
+     node mascot-test.mjs                    every chapter, both themes, 1080x1920, 60fps
+     node mascot-test.mjs light              just one theme
+     node mascot-test.mjs --chapter=states   just the states and the turn
+     node mascot-test.mjs --chapter=hands    just the floating hands
      DEMO_FPS=12 node mascot-test.mjs        the fast preview pass
      node mascot-test.mjs --blur             60fps with the shutter open
      node mascot-test.mjs --blur=6           a wider shutter
      node mascot-test.mjs --encode-only      re-encode from kept frames
 
-   **there are exactly two outputs and they are always the same two paths**,
-   overwritten every run:
+   **there are exactly four outputs and they are always the same four paths**,
+   overwritten every run — two per chapter:
 
-     demo/out/mascot-light.mp4
-     demo/out/mascot-dark.mp4
+     demo/out/mascot-light.mp4        demo/out/mascot-hands-light.mp4
+     demo/out/mascot-dark.mp4         demo/out/mascot-hands-dark.mp4
 
    nothing else is written. the resolution used to be in the name and for one
    afternoon the chapter was too, and every time the cut changed that minted a
-   fresh pair while the old pair sat on disk looking current — which is exactly
+   fresh set while the old one sat on disk looking current — which is exactly
    how a review ends up watching a clip from an hour ago. the name says what it
    is; the file's own timestamp says when it was made. a stale clip cannot
-   survive a render now, because the render lands on top of it.
+   survive a render now, because the render lands on top of it. the chapter is
+   in the name here for the opposite reason to the one it was dropped for: it
+   names a **different cut**, not a different pass at the same one.
 
-   this is not a post and it is not wired into one. it exists to answer two
-   questions, in one clip, in this order.
+   this is not a post and it is not wired into one. it exists to answer three
+   questions, in two clips, in this order.
 
    **the states** — do the nine read as nine different things at a glance, with
    the sound off, at phone size.
@@ -37,6 +41,12 @@
    with them rather than replacing them. `turn-away` and `snap-back` are not
    repeated in that half: they are already in the states run above, because they
    are states.
+
+   **the hands** — do the seven poses read as seven gestures at a glance, at
+   phone size, and does each one compose with an eye state rather than fight it.
+   that is its own clip and the reason is in the hands cut below: turning the
+   gloves on moves the head in, so a states clip carrying them would no longer
+   be the control the first question needs.
 
    the rig is captions-test.mjs's, which is post5.mjs's: a local server, headless
    chrome under cdp virtual time, the rAF shim, `Page.captureScreenshot` with
@@ -70,6 +80,7 @@ import {
   planMascot, mascotFrame, mascotMotion, mascotCss, mascotMarkup, mascotRuntime,
   mascotPagePlan, mascotCues, describeMascot, describeMotion, headRect, stillMoment,
   STATE_NAMES, THEMES, STAGE, SAFE, HEAD_PX, BUBBLE, TURN,
+  HAND_POSE_NAMES, HAND_SIDES,
 } from './lib/mascot.mjs';
 import { renderSfx, writeWav, limit } from './lib/sfx.mjs';
 
@@ -138,6 +149,53 @@ function cut() {
     marks.push({ t: +t.toFixed(3), state, turn: HELD, bubble: bubble || undefined });
     t += room;
   }
+  return { marks, seconds: +t.toFixed(3) };
+}
+
+/* ---------- the hands cut ----------
+   the second chapter, and it is its own clip rather than a section of the one
+   above. two reasons, and the first is the whole point of the part being opt
+   in: turning the gloves on moves the head in, because they hang outside the
+   silhouette and the placement holds room for them. a states clip with hands on
+   would be a states clip composed differently, and then the file that answers
+   "do the nine read as nine" would have stopped being a control. the second is
+   that they are separately useful — a review of the hands wants the hands.
+
+   seven poses in the order they were designed in, each with a face under it,
+   and **the face is deliberately not `neutral` every time**: the question this
+   chapter has to answer beyond "does the pose read" is whether a pose composes
+   with an eye state or fights it. a facepalm over an unimpressed face and a
+   thumb over a delighted one are the two that would show it.
+
+   the sides are exercised in the middle of the run rather than at the end: one
+   hand, then the other, then both again, so the persistence is on screen — the
+   `side` outlives the pose that named it and the next mark that says nothing
+   about it keeps one hand. */
+const HANDS_CUT = [
+  ['rest', 'neutral', undefined, 2.30],
+  ['wave', 'curious', undefined, 2.60],
+  ['thumbs-up', 'delighted', 'left', 2.40],
+  ['facepalm', 'unimpressed', 'left', 2.80],
+  ['shrug', 'thinking', 'both', 2.60],
+  ['point', 'agreeing', 'right', 2.50],
+  ['panic', 'surprised', 'both', 2.90],
+  /* and back to rest, both hands, so the clip ends where it started and two
+     copies of it butt together the way the export's clips do. */
+  ['rest', 'neutral', 'both', 2.30],
+];
+
+function handsCut() {
+  const marks = [];
+  let t = 0.55;
+  for (const [hands, state, side, room] of HANDS_CUT) {
+    marks.push({ t: +t.toFixed(3), state, hands, side });
+    t += room;
+  }
+  /* one bubble, on the shrug, because a thought beside a head with its hands
+     out is the composition case this chapter can find and the states one
+     cannot. it is put on the mark rather than given its own, so the hands and
+     the words are on screen together. */
+  marks[4].bubble = 'no idea';
   return { marks, seconds: +t.toFixed(3) };
 }
 
@@ -251,10 +309,10 @@ function serve(html) {
 }
 
 /* ---------- render ---------- */
-async function render(theme, plan) {
+async function render(tag, theme, plan) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
-  const frames = path.join(FRAMES, theme);
-  const subs = path.join(SUBS, theme);
+  const frames = path.join(FRAMES, tag);
+  const subs = path.join(SUBS, tag);
   for (const d of [frames, subs]) { fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); }
   fs.mkdirSync(OUT, { recursive: true });
 
@@ -303,6 +361,17 @@ async function render(theme, plan) {
   }
   const built = await page.evaluate(() => window.__built);
   const caps = await page.evaluate(() => window.__mas.caps());
+  /* the glove's rendered size, and it has to be measured **after** a frame is
+     on the element: the markup draws every finger stacked on its own base and
+     `apply` is what fans them out, so `build` would report the palm and call it
+     a hand. the frame chosen is the first hands mark at its own settled moment,
+     which is the pose at rest and so the honest resting size. */
+  if (plan.hands) {
+    const hm = plan.marks.find(m => m.hands);
+    await page.evaluate(fr => window.__mas.apply(fr),
+      mascotFrame(plan, hm ? hm.hands.settled + 0.25 : 0.5));
+    Object.assign(built.hands, await page.evaluate(() => window.__mas.gloveRect()));
+  }
   console.log('  built: head ' + built.headPx + 'px, caps ' + caps.capPx + 'px, '
     + built.eyes + ' eyes, ' + built.brows + ' brows, ' + built.glows + ' glow layers');
 
@@ -366,7 +435,12 @@ async function render(theme, plan) {
      renders exactly as it did. */
   fs.mkdirSync(VERIFY, { recursive: true });
   for (const m of plan.marks) {
-    const t = stillMoment(plan, m.bubble ? m.bubble.full + 0.06 : m.settled + 0.08);
+    /* the moment is the later of the two things the mark is holding: a pose
+       settles after the face does, and a still of a hands mark taken on the
+       face's own settled frame would photograph a hand still on its way. */
+    const at = m.hands ? Math.max(m.hands.settled + 0.30, m.settled + 0.08)
+      : (m.bubble ? m.bubble.full + 0.06 : m.settled + 0.08);
+    const t = stillMoment(plan, at);
     await page.evaluate(fr => window.__mas.apply(fr), mascotFrame(plan, t));
     const shot = await cdp.send('Page.captureScreenshot', {
       format: 'png', captureBeyondViewport: false,
@@ -375,7 +449,8 @@ async function render(theme, plan) {
     /* the index is in the name because a state can appear twice in one cut now:
        `surprised` runs once straight on and once held at a turn, and two files
        called the same thing would be one file. */
-    fs.writeFileSync(path.join(VERIFY, theme + '-' + String(m.i).padStart(2, '0') + '-' + m.state
+    fs.writeFileSync(path.join(VERIFY, tag + '-' + String(m.i).padStart(2, '0') + '-' + m.state
+      + (m.hands ? '+' + m.hands.pose + '.' + m.hands.side : '')
       + (m.turn != null ? '@' + m.turn : '') + '.png'), Buffer.from(shot.data, 'base64'));
   }
 
@@ -398,9 +473,9 @@ async function render(theme, plan) {
 
   if (SUB > 1) blend(subs, frames, N);
 
-  const state = { theme, built, caps, head: headWorst, bubble: safeWorst,
+  const state = { tag, theme, built, caps, head: headWorst, bubble: safeWorst,
     samples, bandHits, bandWorst, bubbleNear };
-  fs.writeFileSync(path.join(OUT, 'mascot-' + theme + '.json'), JSON.stringify(state, null, 2));
+  fs.writeFileSync(path.join(OUT, 'mascot-' + tag + '.json'), JSON.stringify(state, null, 2));
   return state;
 }
 
@@ -452,68 +527,99 @@ function probe(file) {
   };
 }
 
-/* ---------- go ---------- */
+/* ---------- go ----------
+   two chapters, and each is its own pair of files. `--chapter=states` is the
+   clip this script has always rendered and it is untouched; `--chapter=hands`
+   is the gloves; nothing named is both. they are not one clip because turning
+   the gloves on moves the head in — see the hands cut above — and a control
+   that changed when the thing being tested was added would have stopped being
+   one. */
 console.log('the boring tek — mascot state test');
-const { marks, seconds } = cut();
-const themes = WANT.length ? WANT : THEMES;
-const plans = Object.fromEntries(themes.map(th =>
-  [th, planMascot({ marks, seconds, theme: th, band: BAND })]));
-const plan0 = plans[themes[0]];
-
-console.log(describeMascot(plan0));
-/* the render's own rate, for the log, and sixty for the guards. the entry,
-   overshoot and settle numbers are properties of the animation rather than of
-   the pass it is being sampled at: at the twelve frame preview an anticipation
-   that lasts four sixtieths falls inside one frame, and judging it there would
-   say the wind up is missing when what is missing is the sampling. */
-const rep = mascotMotion(plan0, FPS, seconds);
-console.log(describeMotion(rep));
-const rep60 = FPS === 60 ? rep : mascotMotion(plan0, 60, seconds);
-if (FPS !== 60) {
-  console.log('  and at sixty, which is what the motion guards read:');
-  console.log(describeMotion(rep60));
+const CHAPTERS = ['states', 'hands'];
+if (CHAPTER_ARG && !CHAPTERS.includes(CHAPTER_ARG)) {
+  console.error('no chapter called "' + CHAPTER_ARG + '" — the two are ' + CHAPTERS.join(', '));
+  process.exit(1);
 }
+const want = CHAPTER_ARG ? [CHAPTER_ARG] : CHAPTERS;
+const themes = WANT.length ? WANT : THEMES;
 
-/* the sound. two kinds of cue, and it is rendered once because the states are
-   the same in both themes — a theme is colour and nothing else. */
-const cues = mascotCues(plan0);
-const { buf: sfx } = renderSfx(cues, seconds);
-const peak = limit(sfx, -1.0);
-const wav = path.join(OUT, 'mascot-sfx.wav');
-writeWav(wav, sfx);
-console.log('  sound: ' + cues.length + ' cues, peak ' + peak.peak + ' dBFS, '
-  + cues.map(c => c.kind + '@' + c.t.toFixed(2)).join(' '));
+const CUTS = {
+  states: { ...cut(), opts: {} },
+  hands: { ...handsCut(), opts: { hands: true } },
+};
 
+const mb = f => (fs.statSync(f).size / 1e6).toFixed(2) + ' MB';
 const results = [];
-for (const theme of themes) {
-  console.log('\n' + theme);
-  const state = ONLY_ENCODE
-    ? JSON.parse(fs.readFileSync(path.join(OUT, 'mascot-' + theme + '.json'), 'utf8'))
-    : await render(theme, plans[theme]);
-  const file = encode(theme, wav);
-  results.push({ theme, state, file, probe: probe(file) });
+const reports = {};
+
+for (const chapter of want) {
+  const { marks, seconds, opts } = CUTS[chapter];
+  console.log('\n════ ' + chapter + ' ════');
+  const plans = Object.fromEntries(themes.map(th =>
+    [th, planMascot({ marks, seconds, theme: th, band: BAND, ...opts })]));
+  const plan0 = plans[themes[0]];
+  console.log(describeMascot(plan0));
+  /* the render's own rate, for the log, and sixty for the guards. the entry,
+     overshoot and settle numbers are properties of the animation rather than of
+     the pass it is being sampled at: at the twelve frame preview an
+     anticipation that lasts four sixtieths falls inside one frame, and judging
+     it there would say the wind up is missing when what is missing is the
+     sampling. */
+  const rep = mascotMotion(plan0, FPS, seconds);
+  console.log(describeMotion(rep));
+  const rep60 = FPS === 60 ? rep : mascotMotion(plan0, 60, seconds);
+  if (FPS !== 60) {
+    console.log('  and at sixty, which is what the motion guards read:');
+    console.log(describeMotion(rep60));
+  }
+  reports[chapter] = { rep60, marks, seconds, plan0 };
+
+  /* the sound. two kinds of cue, and it is rendered once per chapter because
+     the picture is the same in both themes — a theme is colour and nothing
+     else. */
+  const cues = mascotCues(plan0);
+  const { buf: sfx } = renderSfx(cues, seconds);
+  const peak = limit(sfx, -1.0);
+  const wav = path.join(OUT, 'mascot-' + chapter + '-sfx.wav');
+  writeWav(wav, sfx);
+  console.log('  sound: ' + cues.length + ' cues, peak ' + peak.peak + ' dBFS, '
+    + cues.map(c => c.kind + '@' + c.t.toFixed(2)).join(' '));
+
+  for (const theme of themes) {
+    const tag = chapter === 'states' ? theme : 'hands-' + theme;
+    console.log('\n' + tag);
+    const state = ONLY_ENCODE
+      ? JSON.parse(fs.readFileSync(path.join(OUT, 'mascot-' + tag + '.json'), 'utf8'))
+      : await render(tag, theme, plans[theme]);
+    const file = encode(tag, wav);
+    results.push({ chapter, tag, theme, state, file, probe: probe(file), seconds });
+  }
 }
 
 console.log('\nrendered');
-const mb = f => (fs.statSync(f).size / 1e6).toFixed(2) + ' MB';
 for (const r of results) {
-  console.log('  ' + r.theme.padEnd(6) + r.probe.w + 'x' + r.probe.h + ' @' + r.probe.fps + 'fps  '
+  console.log('  ' + r.tag.padEnd(12) + r.probe.w + 'x' + r.probe.h + ' @' + r.probe.fps + 'fps  '
     + r.probe.seconds.toFixed(2) + 's  ' + (r.probe.audio ? 'with sfx' : 'SILENT')
     + '  ' + mb(r.file) + '  ' + path.relative(ROOT, r.file));
 }
 console.log('  the shutter is ' + (BLUR ? 'open, ' + SUB + ' subframes to a frame' : 'closed'));
-console.log('  a still per mark, both themes, in ' + path.relative(ROOT, VERIFY));
+console.log('  a still per mark, every theme, in ' + path.relative(ROOT, VERIFY));
 
 if (!KEEP && !ONLY_ENCODE) {
   fs.rmSync(FRAMES, { recursive: true, force: true });
   fs.rmSync(SUBS, { recursive: true, force: true });
 }
 
-/* ---------- the guards ---------- */
+/* ---------- the guards ----------
+   per chapter, because the two ask different questions of the same rig: the
+   states clip has a turn sweep in it and the hands clip does not, and a guard
+   that ran on both would either be loose enough to pass the wrong one or would
+   fail the right one. what they share is the file, the safe area and the
+   engine's own per state report, and those are checked on both. */
 const fail = [];
 const floor = Math.min(SAFE.left, SAFE.top, SAFE.right, SAFE.bottom);
-for (const { theme, state, probe: p } of results) {
-  const t = theme + ': ';
+for (const { tag, chapter, state, probe: p, seconds } of results) {
+  const t = tag + ': ';
   if (p.w !== VW * DSF || p.h !== VH * DSF) fail.push(t + 'not ' + VW * DSF + 'x' + VH * DSF);
   if (Math.abs(p.fps - FPS) > 0.5) fail.push(t + 'not ' + FPS + 'fps');
   if (Math.abs(p.seconds - seconds) > 0.25) fail.push(t + p.seconds + 's, wanted ' + seconds);
@@ -539,9 +645,15 @@ for (const { theme, state, probe: p } of results) {
   /* the safe area, against the drawn ink rather than against the box anything
      was told to draw in, and the head and the bubble are checked separately
      because they are measured differently and for good reason. the glow is in
-     neither: a thirty pixel blur crossing a safe line is not ink crossing it. */
+     neither: a thirty pixel blur crossing a safe line is not ink crossing it.
+
+     `headRect` grows to hold the gloves when a plan has them, so on the hands
+     chapter this one line is the hands' own safe area check as well — which is
+     what it should be, because a resting hand is the piece of ink nearest the
+     border and there is no reading of "the mascot clears the chrome" that
+     leaves it out. */
   if (state.head.near < floor - 0.5) {
-    fail.push(t + 'the head comes within ' + Math.round(state.head.near)
+    fail.push(t + 'the ink comes within ' + Math.round(state.head.near)
       + 'px of a border at ' + state.head.t + 's, floor is ' + floor);
   }
   if (state.bubbleNear != null && state.bubbleNear < floor - 0.5) {
@@ -553,72 +665,173 @@ for (const { theme, state, probe: p } of results) {
     fail.push(t + 'the bubble entered the caption band ' + state.bandHits + ' times, first at '
       + state.bandWorst.t + 's');
   }
-}
-/* the engine's own report, checked rather than printed. these are the numbers
-   the brief asks for per state and they are guards, not notes. */
-for (const st of rep60.states) {
-  if (st.entryFrames == null) fail.push(st.state + ' never reached its own mark');
-  else if (st.entryFrames < 3) fail.push(st.state + ' arrives in ' + st.entryFrames + ' frames, which is a cut');
-  /* the ones that deliberately do not wind up, and they are named rather than
-     excused by a loose threshold: `neutral` is a breath, `unimpressed` is a
-     sink, and a mark that merely holds the turn somewhere is a hold rather than
-     a gesture. */
-  const held = marks.find(m => m.state === st.state && m.t === st.at);
-  const noAnti = ['neutral', 'unimpressed'].includes(st.state) || (held && held.turn != null);
-  if (!noAnti && st.antiFrames < 2) {
-    fail.push(st.state + ' has no anticipation, only ' + st.antiFrames + ' frames back');
+  /* the gloves as they actually painted, and the two numbers the brief asks a
+     render to report: how big a hand is at this head size, and how thick the
+     separation edge is. both in device px at 1080 wide, which is the only unit
+     "does it read on a phone" can be argued in. */
+  if (chapter === 'hands') {
+    const H = state.built.hands;
+    if (!H) fail.push(t + 'the hands chapter rendered no gloves');
+    else {
+      if (H.gloves !== 4) fail.push(t + H.gloves + ' glove groups, wanted four: two hands, two layers');
+      /* the band is a share of the head rather than a number, and it is on the
+         **palm** rather than on the whole hand: the mitt is the same size in
+         every pose, where the hand's own box swings by a third between a fist
+         and an open hand and would say as much about the pose as about the
+         drawing. the reference's palm is 93px of a 244px head, which is 0.381,
+         and the drawn one is 0.383. under a third the gesture stops reading at
+         phone size and the honest fix is a bigger hand rather than more detail
+         in it; over 0.45 the pair stops reading as hands and starts reading as
+         mittens. */
+      const share = H.palmPx / state.built.headPx;
+      if (share < 0.33 || share > 0.45) {
+        fail.push(t + 'the mitt rendered ' + H.palmPx + 'px wide against a ' + state.built.headPx
+          + 'px head, which is ' + share.toFixed(3) + ' of it — the band is 0.33 to 0.45'
+          + ' and the reference is 0.381');
+      }
+      if (H.edgePx < 2.8 || H.edgePx >= 4.25) {
+        fail.push(t + 'the separation edge rendered at ' + H.edgePx + 'px — under 2.8 the encoder '
+          + 'eats it, and 4.25 is the weight of the reference’s own finger lines, which it is '
+          + 'meant to be under');
+      }
+      console.log('  ' + t + 'a glove is ' + H.wPx + 'x' + H.hPx + 'px and its mitt '
+        + H.palmPx + 'px, against a ' + state.built.headPx + 'px head — mitt '
+        + share.toFixed(3) + ' of it, reference 0.381 — edge ' + H.edgePx + 'px ('
+        + H.edgeUnits + ' grid units)');
+    }
   }
-  if (st.state !== 'unimpressed' && !(st.overshoot > 1)) {
-    fail.push(st.state + ' arrives with no overshoot, which is a hard stop');
-  }
 }
-/* nothing may paint outside the head. the features are clipped in the markup so
-   it cannot happen on screen; this is the check that the clip never had to do
-   it, because a clip quietly trimming a pose is still a pose that does not fit.
-   it is measured on the geometry, in grid units, positive when a feature corner
-   is past the silhouette. */
-if (rep60.outside.units > 0) {
-  fail.push('feature ink lands ' + rep60.outside.units.toFixed(2)
-    + ' units outside the head silhouette at ' + rep60.outside.at.toFixed(2)
-    + 's — the clip is hiding it, but the pose does not fit');
-}
-if (rep60.blinks.repeatsInARow) fail.push(rep60.blinks.repeatsInARow + ' blinks repeat the one before them');
-if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face is not moving at all');
-if (rep60.maxSquash > 0.08 + 1e-6) fail.push('the squash reached ' + (rep60.maxSquash * 100).toFixed(1) + '%');
-if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe * 100).toFixed(2) + '%');
-/* the turn's own claims, and they are the reason the second half exists. */
-const T = rep60.turn;
-if (T.lo > -0.99 || T.hi < 0.99) {
-  fail.push('the sweep only reached ' + T.lo.toFixed(2) + '..' + T.hi.toFixed(2)
-    + ', so the ends were never on screen');
-}
-/* a flat turn has no depth to hide a jump behind, so the ceiling is set on what
-   the step moves the far eye by rather than on the channel's own number, which
-   is a unit nobody looks at.
 
-   five units is deliberately loose and the reason is `snap-back`: it whips 0.99
-   of the range in 0.44s and peaks at 2.9 units in a frame, which is the fastest
-   turn in the file **on purpose**. the numbers either side of it decay smoothly
-   — 1.50, 2.84, 2.87, 2.48, 2.00, 1.51 — so it is a fast move rather than a
-   step. a real discontinuity is not near this line: teleporting from 0.85 to
-   zero in one frame is 11.9 units. the tight ceiling still exists where it
-   belongs, on a pure sweep with no whip in it, in the engine's own self test at
-   1.2 units. sustained turns may not step; a snap is allowed to snap. */
-const eyeStep = rep60.worst.turn.d * (TURN.shift + TURN.wrap);
-if (eyeStep > 5) {
-  fail.push('the turn teleports: one frame moves the far eye ' + eyeStep.toFixed(2)
-    + ' units at ' + rep60.worst.turn.t.toFixed(2) + 's');
-}
-if (T.squeeze < 0.05) fail.push('the card only squeezed ' + (T.squeeze * 100).toFixed(1) + '%');
-if (T.offsetPx < 30) fail.push('the eyes only travelled ' + T.offsetPx.toFixed(0) + 'px');
-if (T.gap > T.gapWas - 3) fail.push('the gap between the eyes barely closed, ' + T.gap.toFixed(1));
-/* an eye sitting on its clamp is an eye that stopped moving, and a flat spot is
-   the one thing that would give the cheat away. a handful of frames in the held
-   section is the clamp doing its job; a lot of them means a state is asking for
-   more than the face has room for. */
-if (T.clampedFrames > rep60.frames * 0.06) {
-  fail.push('an eye was on the composition clamp for ' + T.clampedFrames
-    + ' of ' + rep60.frames + ' frames');
+for (const chapter of want) {
+  const { rep60, marks } = reports[chapter];
+  const c = chapter + ': ';
+  /* the engine's own report, checked rather than printed. these are the numbers
+     the brief asks for per state and they are guards, not notes. */
+  for (const st of rep60.states) {
+    if (st.entryFrames == null) fail.push(c + st.state + ' never reached its own mark');
+    else if (st.entryFrames < 3) fail.push(c + st.state + ' arrives in ' + st.entryFrames + ' frames, which is a cut');
+    /* the ones that deliberately do not wind up, and they are named rather than
+       excused by a loose threshold: `neutral` is a breath, `unimpressed` is a
+       sink, and a mark that merely holds the turn somewhere is a hold rather
+       than a gesture. */
+    const held = marks.find(m => m.state === st.state && m.t === st.at);
+    const noAnti = ['neutral', 'unimpressed'].includes(st.state) || (held && held.turn != null);
+    if (!noAnti && st.antiFrames < 2) {
+      fail.push(c + st.state + ' has no anticipation, only ' + st.antiFrames + ' frames back');
+    }
+    if (st.state !== 'unimpressed' && !(st.overshoot > 1)) {
+      fail.push(c + st.state + ' arrives with no overshoot, which is a hard stop');
+    }
+  }
+  /* nothing may paint outside the head. the features are clipped in the markup
+     so it cannot happen on screen; this is the check that the clip never had to
+     do it, because a clip quietly trimming a pose is still a pose that does not
+     fit. it is measured on the geometry, in grid units, positive when a feature
+     corner is past the silhouette. the gloves are deliberately not in it: they
+     are ink that is supposed to be outside the head. */
+  if (rep60.outside.units > 0) {
+    fail.push(c + 'feature ink lands ' + rep60.outside.units.toFixed(2)
+      + ' units outside the head silhouette at ' + rep60.outside.at.toFixed(2)
+      + 's — the clip is hiding it, but the pose does not fit');
+  }
+  if (rep60.blinks.repeatsInARow) fail.push(c + rep60.blinks.repeatsInARow + ' blinks repeat the one before them');
+  if (rep60.frozenFrames) fail.push(c + rep60.frozenFrames + ' frames where the face is not moving at all');
+  if (rep60.maxSquash > 0.08 + 1e-6) fail.push(c + 'the squash reached ' + (rep60.maxSquash * 100).toFixed(1) + '%');
+  if (rep60.maxBreathe >= 0.02) fail.push(c + 'breathing reached ' + (rep60.maxBreathe * 100).toFixed(2) + '%');
+
+  if (chapter === 'states') {
+    /* the turn's own claims, and they are the reason that chapter's second half
+       exists. */
+    const T = rep60.turn;
+    if (T.lo > -0.99 || T.hi < 0.99) {
+      fail.push(c + 'the sweep only reached ' + T.lo.toFixed(2) + '..' + T.hi.toFixed(2)
+        + ', so the ends were never on screen');
+    }
+    /* a flat turn has no depth to hide a jump behind, so the ceiling is set on
+       what the step moves the far eye by rather than on the channel's own
+       number, which is a unit nobody looks at.
+
+       five units is deliberately loose and the reason is `snap-back`: it whips
+       0.99 of the range in 0.44s and peaks at 2.9 units in a frame, which is
+       the fastest turn in the file **on purpose**. the numbers either side of
+       it decay smoothly — 1.50, 2.84, 2.87, 2.48, 2.00, 1.51 — so it is a fast
+       move rather than a step. a real discontinuity is not near this line:
+       teleporting from 0.85 to zero in one frame is 11.9 units. the tight
+       ceiling still exists where it belongs, on a pure sweep with no whip in
+       it, in the engine's own self test at 1.2 units. sustained turns may not
+       step; a snap is allowed to snap. */
+    const eyeStep = rep60.worst.turn.d * (TURN.shift + TURN.wrap);
+    if (eyeStep > 5) {
+      fail.push(c + 'the turn teleports: one frame moves the far eye ' + eyeStep.toFixed(2)
+        + ' units at ' + rep60.worst.turn.t.toFixed(2) + 's');
+    }
+    if (T.squeeze < 0.05) fail.push(c + 'the card only squeezed ' + (T.squeeze * 100).toFixed(1) + '%');
+    if (T.offsetPx < 30) fail.push(c + 'the eyes only travelled ' + T.offsetPx.toFixed(0) + 'px');
+    if (T.gap > T.gapWas - 3) fail.push(c + 'the gap between the eyes barely closed, ' + T.gap.toFixed(1));
+    /* an eye sitting on its clamp is an eye that stopped moving, and a flat spot
+       is the one thing that would give the cheat away. a handful of frames in
+       the held section is the clamp doing its job; a lot of them means a state
+       is asking for more than the face has room for. */
+    if (T.clampedFrames > rep60.frames * 0.06) {
+      fail.push(c + 'an eye was on the composition clamp for ' + T.clampedFrames
+        + ' of ' + rep60.frames + ' frames');
+    }
+  }
+
+  if (chapter === 'hands') {
+    /* ---------- the gloves ----------
+       the same three questions the states are asked — does it wind up, does it
+       go past its own mark, does it settle — plus the two this part brought
+       with it: does a hand ever move faster than a viewer can follow, and did
+       the placement hold room for the reach the frames actually make. */
+    const seenPose = new Set(), seenSide = new Set();
+    for (const p of rep60.poses) {
+      seenPose.add(p.pose); seenSide.add(p.side);
+      if (p.entryFrames == null) fail.push(c + p.pose + ' never reached its own mark');
+      else if (p.entryFrames < 3) fail.push(c + p.pose + ' arrives in ' + p.entryFrames + ' frames, which is a cut');
+      /* `rest` is the declared exception on the wind up and it is the same one
+         `neutral` is: the only thing it does is arrive at rest, and pulling
+         away from rest first would be a gesture rather than a release. */
+      if (p.pose !== 'rest' && p.antiFrames < 2) {
+        fail.push(c + p.pose + ' has no anticipation, only ' + p.antiFrames + ' frames back');
+      }
+      if (!(p.overshoot > 1)) fail.push(c + p.pose + ' arrives with no overshoot, which is a hard stop');
+    }
+    if (seenPose.size !== HAND_POSE_NAMES.length) {
+      fail.push(c + 'the cut only exercises ' + [...seenPose].join(', ')
+        + ' — the seven are ' + HAND_POSE_NAMES.join(', '));
+    }
+    /* one hand, the other one, and two. a cut that never named a side would
+       leave half of what this part is untested. */
+    for (const sd of HAND_SIDES) {
+      if (!seenSide.has(sd)) fail.push(c + 'no pose in the cut is on side "' + sd + '"');
+    }
+    const H = rep60.hands;
+    /* twelve css px, and the number is the glove's own size rather than a
+       feeling: it is 66 device px across, so twelve css px is twenty four of
+       them, under a third of its own width in a frame. the yap hand's ceiling
+       is eight because that one is measuring a twelve pixel fingertip, for
+       which eight css px is more than its own width and smears. */
+    if (H.stepCss > 12) {
+      fail.push(c + 'a hand moves ' + H.stepCss.toFixed(2) + ' css px in one frame at '
+        + H.stepAt.toFixed(2) + 's, which is a jump rather than a move');
+    }
+    /* the placement held room for the gloves off this same plan's frames. if
+       the drawn ink ever goes past what was held, the head is standing in the
+       wrong place and the safe area check above is measuring a promise rather
+       than the picture. */
+    if (H.overrun > 0.001) {
+      fail.push(c + 'the hands reach ' + H.overrun.toFixed(2)
+        + ' grid units past what the placement held room for');
+    }
+    if (!H.onFrames[0] || !H.onFrames[1]) {
+      fail.push(c + 'one of the two hands was never on screen: ' + H.onFrames.join('/')
+        + ' of ' + rep60.frames + ' frames');
+    }
+    console.log('  ' + c + 'the gloves reach '
+      + [H.reach.l, H.reach.r, H.reach.t, H.reach.b].map(v => v.toFixed(1)).join('/')
+      + ' units past the plate, fastest frame moves one ' + H.stepCss.toFixed(2) + ' css px');
+  }
 }
 
 if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
