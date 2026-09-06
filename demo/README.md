@@ -6481,7 +6481,7 @@ there is nothing to be out of sync with.
 | lids | a card-coloured slab above each eye that comes down over it. A blink is the lid arriving, never the eye shrinking. |
 | brows | short strokes above the eyes, opacity 0 by default. `surprised` and `unimpressed` are the only two states that use them. |
 | turn | the flat three quarter turn, −1 to +1. Zero is straight on, +1 a full turn to the mascot's right. |
-| hands | two floating gloves beside him, opt in and off by default. Not the hand below, which is a mouth. |
+| hands | two floating gloves beside him, opt in and off by default. Not the hand below, which is a mouth. **The drawing is rejected and open** — see The floating hands. |
 
 **`radius` is the one number the site does not have.** At `0.5` the plate's `rx`
 is half its side and a rounded rect *is* a circle, which is the mascot as
@@ -6882,7 +6882,23 @@ travels between two frames in css px**, which is the unit the speed argument is
 had in. A blink's lid is the rig's own fastest move at about 3.5 css px a frame
 at sixty; the thumb is held under 8.
 
-#### The floating hands — opt in, off by default
+#### The floating hands — opt in, off by default, and the drawing is rejected
+
+> **Status: the shapes are wrong and have to be redrawn.** Committed as
+> `43af6e7` and rejected on review: the drawn gloves do not match
+> `demo/assets/hands-ref.png`, `thumbs-up` reads as a stump and `panic` reads as
+> two fists. The cause is not the numbers — those were measured off the sheet
+> and they land — it is the construction. **Geometric rounded rects cannot
+> reproduce that drawing**, and the six shapes below have to be replaced by
+> **traced vector paths off the reference** rather than composed from
+> primitives. See The shapes have to be traced at the end of this section for
+> what changes and what does not.
+>
+> Nothing is on a clip and nothing needs reverting: the part is off unless a
+> plan asks for it, and every clip written before it is proven unchanged.
+> Everything in this section that is not the drawing — the api, the `side`
+> option, the separation edge, the counter scale, the measured reach, the two
+> chapter test — stands.
 
 **Two cartoon gloves with no arms, drawn in code.** Not the hand above: that one
 is a pair of slabs standing in for a mouth and it is a piece of the head. These
@@ -6924,8 +6940,13 @@ as a starfish.** The palm was 17 against 23, the fingers 3.3 wide against 5.4,
 and the splay seven and a half degrees a step — so four thin spikes fanned off a
 small lump. What the sheet actually draws is the opposite: a big rounded mitt
 with short thick fingers held together, the fingers less than half the hand's
-length. Nothing about the api, the edge or the opt in changed to fix it; it was
-the six numbers above.
+length.
+
+**And measuring them fixed the ratios and not the hand.** Every number in the
+table above landed — the mitt is 0.383 of the head against the sheet's 0.381 —
+and the review still rejected the drawing. That is the finding worth keeping:
+measuring a reference tells you **how big** to make the parts, and it cannot
+tell you that the thing is not made of parts.
 
 **Six shapes, and the second hand is the first one mirrored.** A chunky rounded
 palm, four fingers in a row off the top of it, a thumb off its side, all of them
@@ -7196,6 +7217,56 @@ clearances are carried as clearances rather than as edges, because rewriting
 `w - cx - hw` into `w - (cx + hw)` is the same number in algebra and not always
 the same double.
 
+##### The shapes have to be traced
+
+**This is the open work.** The gloves are built from six rounded rects — a palm,
+four fingers and a thumb — placed off measured ratios, and a review of the
+rendered clip rejected them: they do not match the sheet, `thumbs-up` reads as a
+stump and `panic` reads as two fists.
+
+The numbers are not the problem and tuning them further will not close it. A
+glove in that drawing is **one closed outline**: a tapered wrist, knuckles that
+swell, a thumb that joins the palm rather than sitting on it, fingers that bend
+at a joint. Five rounded rects stacked in exactly the right proportions are five
+rounded rects, and at a fist — which is what `thumbs-up`, `point` and `panic`
+all are — the primitives have nowhere to hide.
+
+**So the six shapes become traced vector paths off the reference**, one path per
+hand part with real outlines, or one path per pose where a pose is a shape
+rather than an arrangement.
+
+**The seam is small, because nothing downstream knows what a glove is made of.**
+Two functions are the whole interface:
+
+- **`gloveAt(channels)`** resolves the channels into a drawable glove. Today it
+  returns four finger base points, angles and lengths plus the same for the
+  thumb; with paths it returns whatever the page needs to place a path.
+- **`gloveCorners(glove)`** returns every point of the ink in the glove's own
+  frame, with half a stroke added. Today those are the shapes' rotated corners;
+  with paths they are the path's own sampled points.
+
+The placement's reach walk, `handBoxCard`, `headRect`, the capture region and
+every guard read only those two, so none of them changes. So do the two layers
+and the clip: the ink layer and the edge layer draw the same shapes and the edge
+is clipped to the plate, whatever the shapes are.
+
+**Two things a traced path breaks and both are known.**
+
+- **The curl.** A traced finger cannot be shortened by changing a rect's height,
+  which is how `c0..c3` work now. It becomes either a path variant per curl
+  amount, interpolated, or a real two-segment bend. Every pose in the table
+  drives those four channels, so this is the piece that decides how much of the
+  pose table survives.
+- **The corner sweep.** `gloveCorners` returns four corners a shape today. A
+  path has to be flattened to points, and the reach is measured off it, so the
+  sampling has to be fine enough that a curve's bulge is not missed.
+
+**What does not change:** the marks api, `side`, the opt in and the proof that
+goes with it, the separation edge, the digits-behind-the-mitt order, the edge
+layer's fill, the counter scale that keeps a glove undeformed through squash,
+tilt and turn, the measured reach moving the head in, and the two chapter test.
+
+
 #### The thought bubble
 
 **`index.html`'s own, with one dot dropped and the whole cluster pulled in.** The
@@ -7390,6 +7461,10 @@ gestures.
 `mascot-<theme>.mp4` and `mascot-hands-<theme>.mp4`. The chapter is in the name
 here for the opposite reason it was once dropped for: it names a *different cut*
 rather than a different pass at the same one.
+
+**The hands chapter is green and the drawing it renders is still rejected** —
+every guard in it passes and the gloves do not match the sheet, which is the
+gap the video review exists to close and did. See The floating hands above.
 
 **The hands are their own clip and that is the point of the part being opt in.**
 Turning the gloves on moves the head in, because they hang outside the

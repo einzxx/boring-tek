@@ -6,51 +6,54 @@ names in here either.
 
 ## Status
 
-- **New 2026-09-06: the mascot gets floating hands, and they are opt in.** Two
-  cartoon gloves with no arms, drawn in code in `demo/lib/mascot.mjs` off the
-  proportions of `demo/assets/hands-ref.png` — somebody else's drawing, in a
-  local folder that is not in the repo, so the ratios taken from it are written
-  down in the README and nothing is traced or embedded. Seven named poses — rest, wave, thumbs up,
-  facepalm, shrug, point, panic. A mark triggers one like a state, with a `side`
-  of left, right or both, and the two layers compose: a mark may carry a face and
-  a pose at once. **Off unless a plan says `hands: true`, and 12,138 frames across
-  33 plans hash byte identical to the module as it was.**
-  - **The separation edge is two layers rather than a conditional.** The ink layer
-    is unclipped and fill only; the edge layer is the same shapes clipped to the
-    plate's own outline and stroke only, in the page colour. So the outline exists
-    exactly where a hand is over the face and nowhere else — and inside the hand
-    the same stroke is the finger lines for free. It is clipped rather than left
-    to blend into the page because the dark theme's glow sits behind the head and
-    a `#06070a` stroke over it would read as a dark ring.
-  - **The gloves cancel the card's own deformation.** The card squashes and the
-    turn squeezes it, both on x alone, and a stroke under a non uniform scale is
-    thicker on one axis than the other. Each glove carries the inverse of the
-    card's two scales about its own origin, so the net transform on it is uniform:
-    it scales, tilts and travels with the head and does not deform. The anchor is
-    deliberately not counter scaled, which is what keeps the pair attached.
-  - **They move the head in, and the amount is measured rather than guessed.**
-    They hang outside the silhouette, so the placement holds room for their
-    reach — 28.6 units left, 32.3 right, 9.1 over the crown, 11.4 under the chin
-    on the test cut — walked off the plan's own frames the way `crownReach` is, and a
-    render fails if the drawn ink ever passes what was held. `headRect` grows to
-    hold them, so every clip's existing safe area guard is the hands' guard too.
-  - **`mascot-test.mjs` is two chapters now**, `--chapter=states` and
-    `--chapter=hands`, four files instead of two. The hands are their own clip
-    because turning them on moves the head: a states clip carrying them would have
-    stopped being the control the states question needs.
-  - **The first cut read as a starfish and the fix was measurement.** Thin fanned
-    fingers on a small palm, because the proportions were eyeballed off the sheet.
-    `demo/out/poses/measure-ref.mjs` now decodes that png, thresholds it, labels
-    its blobs and prints per row run profiles, so the palm's width and a finger's
-    width and gap are read rather than judged — palm 0.38 of the head, a finger a
-    quarter of the palm's width, a gap a quarter of a finger. And
-    `demo/out/poses/compare.mjs` renders every pose beside its own panel with both
-    heads at 244px, which is what four of the seven were then corrected against.
-  - **One line of css was the difference between a stack of shapes and a hand.**
-    The digits are drawn behind the mitt and the edge layer paints the ink layer's
-    own fill rather than `none`, so a finger tucked under the palm is covered
-    instead of drawing its whole outline. Without it `facepalm` was five loops on
-    the face. See the Decisions entry.
+- **Open 2026-09-06: the mascot has floating hands, they are committed as
+  `43af6e7`, and they were rejected on review. The glove shapes have to be
+  redrawn as traced vector paths.** The machinery around them is right and
+  stands; the drawing is not and does not. Nothing is on a clip and nothing
+  needs to be reverted, because the part is opt in and every clip written
+  before it is proven unchanged.
+  - **What is wrong, in the reviewer's words:** the drawn gloves still do not
+    match `demo/assets/hands-ref.png`. `thumbs-up` reads as a stump. `panic`
+    reads as two fists. And the root of it: **geometric rounded rects cannot
+    reproduce that sheet.**
+  - **Measurement fixed the ratios and could not fix the construction, and that
+    is the lesson.** Two rounds went into the numbers — the sheet decoded with
+    `demo/out/poses/measure-ref.mjs`, every pose placed against its own panel
+    with `demo/out/poses/compare.mjs`, both heads at 244px — and they did land:
+    the mitt is 0.383 of the head against the sheet's 0.381, the palm's width to
+    a finger's length is 1.83 against 1.86, the gap is a quarter of a finger
+    either way. **The proportions being right did not make the hand right.** A
+    glove in that drawing is one closed outline with a tapered wrist, knuckles
+    that swell and fingers that bend; five rounded rects stacked in the right
+    proportions are five rounded rects. Getting the numbers off the reference was
+    necessary and it was not sufficient, and no further tuning of those numbers
+    will close the gap.
+  - **What has to change:** the six shapes in `HANDS` are replaced by **traced
+    vector paths off the reference**, one path per pose or one path per hand
+    part with real outlines, rather than composed from primitives. Everything
+    around them is written against a resolved glove already — `gloveAt` hands
+    out points, angles and lengths and `gloveCorners` hands out an outline — so
+    the seam is a small one.
+  - **What stands and does not need doing again:** the part is opt in and off
+    unless a plan says `hands: true`, and **12,138 frames across 33 plans hash
+    byte identical** to the module as it was, with every added key asserted off.
+    The marks api and the `side` option. The **separation edge** as two layers —
+    unclipped fill, plus the same shapes clipped to the plate's outline and
+    stroked in the page colour — so the outline exists exactly where a hand is
+    over the face and nowhere else. The **digits behind the mitt** and the edge
+    layer painting the ink layer's own fill, which is what stops a folded hand
+    being a knot of loops. The **inverse card scale** on each glove, so it
+    scales, tilts and travels with the head and does not deform. The
+    **measured reach** moving the head in, and `headRect` growing to cover the
+    pair so every clip's existing safe area guard is the hands' guard too. And
+    `mascot-test.mjs` split into `--chapter=states` and `--chapter=hands`.
+  - **A traced path breaks two of those and both are known.** The counter scale
+    keeps a stroke even under any outline, so that survives. What does not is
+    the curl arithmetic — a traced finger cannot be shortened by changing a
+    rect's height — so the poses will need path variants or a real bend, and
+    `gloveCorners` will need the path's own points rather than four corners a
+    shape. The reach walk, the placement and every guard read those two
+    functions and nothing else, so they are the only seam.
 
 - **Fix round 2026-09-06: `demo/post19.mjs`, the names get a voice and the label
   starts empty. 11.15s, 110 guards green at 12fps and at 60 with the shutter open
@@ -2646,7 +2649,11 @@ read. **The three style test clips were re-rendered** against the changed engine
   than claimed — see the decision.
 
   **And, since 2026-09-06, two floating hands — also opt in, off unless a plan
-  says `hands: true`, and a different part from the one above.** Two cartoon
+  says `hands: true`, a different part from the one above, and REJECTED ON
+  REVIEW: the glove shapes are drawn from rounded rects and have to be replaced
+  by traced vector paths off the reference. Committed as `43af6e7`; nothing is
+  on a clip and nothing needs reverting, because the part is off by default and
+  every clip before it is proven unchanged. See the decision.** Two cartoon
   gloves with no arms, drawn in code from `demo/assets/hands-ref.png`: a chunky
   rounded palm, four fingers that do not touch and a thumb, all rounded rects on
   the head's own 64 grid, filled with the plate's own token so they are white on
@@ -2676,7 +2683,10 @@ read. **The three style test clips were re-rendered** against the changed engine
   the reference's 0.381** — with a separation edge of **3.00 and 3.47 device px**.
   The guard is on the mitt rather than on the whole hand, because a hand's own
   box swings by a third between a fist and an open hand and says as much about
-  the pose as about the drawing. **With them off nothing about this
+  the pose as about the drawing. **Every one of those numbers is right and the
+  hand is still wrong** — `thumbs-up` reads as a stump and `panic` as two fists —
+  which is the whole finding: measuring a reference says how big to make the
+  parts and cannot say that the thing is not made of parts. **With them off nothing about this
   module changes**, including where the head stands, and that is asserted over
   12,138 frames rather than claimed.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
   frames from the mark to the arrival, then how far past the mark it goes, then
@@ -2863,12 +2873,20 @@ huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
 
-### 2026-09-06 — the mascot gets floating hands, and the edge is what makes them hands
+### 2026-09-06 — the mascot gets floating hands, and they are rejected: primitives cannot draw that glove
+
+**Committed as `43af6e7` and rejected on review. Read the last section of this
+entry first: the machinery stands and the drawing has to be redone as traced
+vector paths.** Everything below it is what was built and what it cost, kept
+because the parts that stand are most of it and because the fault is worth
+having written down.
 
 Two cartoon gloves with no arms, drawn in code in `demo/lib/mascot.mjs` off the
-proportions of `demo/assets/hands-ref.png` — somebody else's drawing, in a local
-folder that is not in the repo, so the ratios taken from it are written down in
-the README and nothing is traced or embedded. **Opt in and off by default**, for
+measured proportions of `demo/assets/hands-ref.png` — somebody else's drawing,
+in a local folder that is not in the repo, so the ratios taken from it are
+written down in the README and nothing is traced or embedded, **which is
+precisely the decision that turned out to be wrong.** **Opt in and off by
+default**, for
 the reason the yap hand is: twelve scripts were written against this module
 before them — nine posts, the rig test, the state test and the export — and none
 of them should move. Same proof as that change — the module out of git
@@ -2945,22 +2963,26 @@ make and **fails** if it ever passes what the placement held. `headRect` grows t
 hold them too, so every clip's existing safe area guard became the hands' guard
 with no new code in any clip.
 
-#### The first cut read as a starfish, and the fix was measurement
+#### Rejected on review, and the reason is the construction rather than the numbers
 
-Thin fanned fingers on a small palm. Every proportion had been taken off the
-sheet by eye and every one of them was wrong in the same direction: **the palm
-17 grid units against 23, the fingers 3.3 wide against 5.4, and the splay seven
-and a half degrees a step.** What the drawing actually is, is the opposite — a
-big rounded mitt with short thick fingers held together, the fingers less than
-half the hand's length.
+**This is recorded as it ended, not as it was going.** The hands are committed
+as `43af6e7` and they were **rejected**: the drawn gloves still do not match
+`demo/assets/hands-ref.png`, `thumbs-up` reads as a stump and `panic` reads as
+two fists. The root of it, in one line: **geometric rounded rects cannot
+reproduce that sheet.**
 
-**So the sheet is decoded rather than looked at.** `demo/out/poses/measure-ref.mjs`
-runs it through the ffmpeg the repo already carries, thresholds it, labels the
-connected components and prints each blob's box and its **per row run profile**,
-which is what actually answers the questions: a finger's width is how long a run
-is, the gap is the distance between two runs, and the palm starts where the runs
-merge into one. Measured off the wave, which is the only pose in the sheet with
-the hand open and flat to camera, against a 244px head:
+The first cut read as a starfish — thin fanned fingers on a small palm, because
+every proportion had been taken off the drawing by eye and every one was wrong
+in the same direction: the palm 17 grid units against 23, the fingers 3.3 wide
+against 5.4, the splay seven and a half degrees a step.
+
+**So the sheet was decoded rather than looked at.**
+`demo/out/poses/measure-ref.mjs` runs it through the ffmpeg the repo already
+carries, thresholds it, labels the connected components and prints each blob's
+box and its **per row run profile** — a finger's width is how long a run is, the
+gap is the distance between two runs, the palm starts where the runs merge into
+one. Measured off the wave, the only pose in the sheet with the hand open and
+flat to camera, against a 244px head:
 
     the whole hand   110 x 106      0.45 x 0.43 of the head
     the palm          93 wide       0.38
@@ -2968,20 +2990,48 @@ the hand open and flat to camera, against a 244px head:
     the gap            6            a quarter of a finger
     the thumb         22 wide       within a pixel of a finger
 
-**Two ratios carry the whole look** and both are now the sheet's: the palm's
-width against a finger's length, 1.83 against 1.86, and the gap against a
-finger's width, a quarter either way.
+And every pose was then placed against its own panel rather than from memory:
+`demo/out/poses/compare.mjs` crops the panel a pose was written from, mirrors it
+where the sheet's acting hand is on the other side, scales both so the heads are
+244px, and stacks them.
 
-**And every pose is placed against its own panel rather than from memory.**
-`demo/out/poses/compare.mjs` crops the reference panel a pose was written from,
-mirrors it where the sheet's acting hand is on the other side, scales both so
-the heads are 244px, and stacks them. Four of the seven were corrected against
-that: `thumbs-up` is the fist turned on its side with a partial curl, because at
-a full curl the fingers sit inside the mitt and there is no knuckle row left;
-`facepalm` is a cupped hand rather than a spread one, which is a different
-gesture wearing the same name; `shrug` reads on two lobes rather than four
-fingers, so the outer pair curls much further than the inner; and `panic` got
-two gears.
+**All of that landed, and it was not enough.** The mitt is 0.383 of the head
+against the sheet's 0.381. The palm's width to a finger's length is 1.83 against
+1.86. The gap is a quarter of a finger either way. The seven poses were each
+corrected against their own panel — `thumbs-up` turned on its side, `facepalm`
+made a cupped hand rather than a spread one, `shrug` reduced to two lobes,
+`panic` given two gears. **The proportions being right did not make the hand
+right.**
+
+**The lesson is the one worth keeping, and it is not about hands.** A glove in
+that drawing is one closed outline: a tapered wrist, knuckles that swell, a
+thumb that joins the palm rather than sitting on it, fingers that bend. Five
+rounded rects stacked in exactly the right proportions are five rounded rects.
+Measuring a reference tells you **how big** to make the parts; it cannot tell
+you that the thing is not made of parts. The first round was wrong about the
+numbers; the second was right about the numbers and wrong about the primitive,
+and only a render put side by side with the reference could say so — which is
+the same thing `demo/`'s guards have never been able to see and the video review
+skill exists for.
+
+**What has to change**, and it is a small seam: the six shapes in `HANDS` are
+replaced by **traced vector paths off the reference** rather than composed from
+primitives. Everything around them is written against a *resolved* glove
+already — `gloveAt` hands out points, angles and lengths and `gloveCorners`
+hands out an outline, and the reach walk, the placement, `headRect` and every
+guard read only those two. Two things a path breaks and both are known: a traced
+finger cannot be shortened by changing a rect's height, so the curl becomes path
+variants or a real bend; and `gloveCorners` needs the path's own points rather
+than four corners a shape.
+
+**What stands and does not need doing again:** the part is opt in and off unless
+a plan says `hands: true`, and **12,138 frames across 33 plans hash byte
+identical** to the module as it was. The marks api and the `side` option. The
+separation edge as two layers. The digits behind the mitt with the edge layer
+painting the ink layer's own fill. The inverse card scale that keeps a glove
+undeformed through squash, tilt and turn. The measured reach moving the head in,
+and `headRect` growing to cover the pair. And `mascot-test.mjs` split into two
+chapters.
 
 #### One line of css was the difference between a stack of shapes and a hand
 
