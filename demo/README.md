@@ -6132,7 +6132,7 @@ disagree about blinking.
 
 ### `lib/sfx.mjs` — synthesised sound
 
-Twenty one sounds, written in JavaScript sample by sample. **There is not one
+Twenty two sounds, written in JavaScript sample by sample. **There is not one
 audio file in the repo**, for the same reason the pictograms are drawn in code and the
 mascot is an inline SVG: a sample pack is a dependency with a licence, a
 download and a folder of binaries in a public repo, and it sounds like everybody
@@ -6189,9 +6189,10 @@ octave where the first spans a fifth. Same voice, more of an opinion in it.
 name**, so a clip that draws a coin gets a coin landing without telling this file
 anything, and a clip that draws two gets two.
 
-**Seven of the nineteen are the character rather than the furniture**, and post12
-and post13 are what asked for them: `hi`, `fart`, `giggle` and `glitch` for the
-first, `mumble`, `sigh` and `annoyed` for the second. They are the only sounds in
+**Eight of the twenty two are the character rather than the furniture**, and
+post12, post13 and the mascot module are what asked for them: `hi`, `fart`,
+`giggle` and `glitch` for the first, `mumble`, `sigh` and `annoyed` for the
+second, and `titter` for the laugh pose. They are the only sounds in
 the file allowed to be funny, and the rule that keeps them inside the house is
 that none of them is bright — the giggle is the highest thing here and it is
 still low passed under four kilohertz, which is where everything else has its
@@ -6244,6 +6245,29 @@ something sounds like, with a vibrato that dies out and a tenth of breath noise
 under it. `annoyed` is two **flat** notes a tone apart — flat is the point, since
 every other voice in this file glides, and a thing that refuses to glide reads as
 a thing that cannot be bothered.
+
+**`titter` is `giggle` held down, and it is the first sound in this file a piece
+of `lib/mascot.mjs` asks for rather than a post file.** It is the same one note
+of a three note laugh, fired three times with `step` 0, 1 and 2 so the pitch
+climbs a whole tone each time, and the module places the three on the first three
+bounces of its own laugh pose.
+
+Soft is four changes and **none of them is the level**. It starts lower and
+climbs less far, 620 to 740 against the giggle's 780 to 980, so the ladder sits
+at the bottom of a small robot's range rather than at the top of it. The third
+harmonic comes down from 0.26 to 0.14 and the low pass from 3.8k to 2.2k, which
+between them are most of what takes the edge off a sine — the harmonic is what
+makes the greeting read as a device rather than as a tone. And the attack is
+stretched from two and a half milliseconds to eight, because a fast attack is a
+bleep and a slow one is a breath; that is the only number in it a listener would
+call soft rather than quiet. It is 68 milliseconds against 62, because a soft
+sound needs a tail or it is a click.
+
+The level is the fifth change and it is in `GAINS`: -29, four decibels under the
+giggle. post12's laugh **is** the line, with no voice over it and nothing else in
+the frame carrying a beat. This one plays while a head is bouncing and a hand is
+moving, so the picture is already saying it, and at the giggle's level the sound
+would be saying it a second time and louder.
 
 Output is 24 bit PCM — the plainest thing every tool in the chain reads without
 an opinion, with enough headroom that the quietest sound in the set is still 60
@@ -6931,11 +6955,18 @@ whole of it. `point` is the one with two subpaths and it carries its file's own
 `fill-rule="evenodd"`, which is what draws the folded finger as a line inside
 the fist rather than as a shape beside it.
 
-**Three poses carry a path a side and four are mirrored.** `rest`, `shrug` and
+**Three poses carry a path a side and five are mirrored.** `rest`, `shrug` and
 `panic` are two handed and the sheet draws both hands, so both are imported and
-each hand gets its own; `wave`, `thumbs-up`, `facepalm` and `point` are one
-handed and the second hand is the first one flipped, which is `mir` on the frame
-and a sign on the page's own scale.
+each hand gets its own; `wave`, `thumbs-up`, `facepalm`, `point` and `laugh` are
+one handed and the second hand is the first one flipped, which is `mir` on the
+frame and a sign on the page's own scale.
+
+Five one handed poses off **four** drawings: `laugh` is the facepalm's own file
+turned onto the mouth, and it is the only pose in the table that borrows one. So
+the markup carries a group per **drawing** rather than per pose — seven a glove,
+not eight. Writing it per pose would put two elements in a glove with the same
+id, of which a browser shows the first and holds the second forever, which is a
+bug with no symptom until somebody counts the children.
 
 The sheet's own pairs are drawn twice rather than reflected, and they agree with
 each other's mirror to within **0.8 grid units** — a pixel and a half at the
@@ -7045,15 +7076,17 @@ and the turn's squeeze pulls it in as the silhouette narrows. On top of that the
 pair slides its own share of the near eye's travel, because a hand held beside a
 face goes with the head and goes less far than the features on it.
 
-##### The seven poses, placed off the sheet rather than judged
+##### The eight poses, placed off the sheet rather than judged
 
 The table is in card space on the same 64 grid the face is drawn on, and it is
 written for the **screen right** hand. The screen left one is the mirror: `x`
 becomes `64 - x` and `rot` becomes `-rot`. That is why every pose is written
 once and there is not a sign anywhere in the table.
 
-**`at` is where the acting hand's wrist ends up, and every one of the seven is
-read off its own panel in the sheet rather than chosen.**
+**`at` is where the acting hand's wrist ends up, and every one of the first
+seven is read off its own panel in the sheet rather than chosen.** The eighth,
+`laugh`, is the one placement in the table with no panel behind it, and where it
+came from instead is in The laugh below.
 `demo/out/poses/ref-grid.mjs` draws the card's own 64 unit grid over each
 reference crop and the pose's own ink box on top of it, so a placement is a
 number a hand is moved onto rather than a picture somebody remembers. The crops
@@ -7077,7 +7110,8 @@ of the move, `settle` how long until it stays inside a 2% band.
 | `rest` | 0f | 7f | +9.9% | 117ms | `y` → 47.5 | yes |
 | `wave` | 5f | 11f | +13.3% | 183ms | `y` → 44 | no |
 | `thumbs-up` | 5f | 11f | +12.8% | 167ms | `y` → 66.5 | no |
-| `facepalm` | 5f | 18f | +11.2% | 317ms | `x` → 28.5 | no |
+| `facepalm` | 5f | 18f | +11.2% | 317ms | `x` → 45.0 | no |
+| `laugh` | 5f | 18f | +11.2% | 333ms | `x` → 40.9 | no |
 | `shrug` | 5f | 10f | +12.8% | 133ms | `rot` → -14 | yes |
 | `point` | 4f | 9f | +13.7% | 150ms | `y` → 58.5 | no |
 | `panic` | 11f | 32f | +4.2% | 83ms | `y` → 22.5 | yes |
@@ -7113,6 +7147,136 @@ a pop in a film — a hand that changes shape without travelling has not moved. 
 the wave sits **3.5 grid units, seven css px, above where the sheet draws it**,
 which is a lift small enough to still land inside the panel and large enough to
 read as a hand being raised. It is scored on that lift.
+
+##### The laugh — a hand over the mouth, and the one pose that moves the head
+
+Every other pose in the table is a hand and nothing else. It arrives beside a
+face that is doing whatever its own state says, the two layers never touch, and
+that separation is most of why a pose composes with any state rather than with a
+chosen few. A laugh is not that. A hand held over a mouth with a face sitting
+perfectly still under it is a hand held over a mouth; what makes it a laugh is
+the head going with it.
+
+**It is the facepalm's drawing again, and it is the only pose that borrows one.**
+That is an argument rather than an apology. A laugh needs a *flat* hand over the
+mouth, and of the ten traced files the facepalm is the flat one — an open hand
+seen palm on with the fingers together. `wave` is the other open hand and its
+fingers are splayed, which over a mouth is a hand somebody is waving at their own
+face. There was no eighth panel in the sheet to trace, and a pose is a shape
+**and** a placement: the same hand forty five degrees round and twenty five units
+lower is a different gesture.
+
+**Minus forty five degrees is what turns it flat.** The file is drawn with the
+wrist bottom right and the fingers running up and to the left, which is what a
+facepalm is; turning the whole thing back by forty five puts that run horizontal,
+so the fingers lie across the face and the wrist sits out by the jaw where a
+wrist goes. One number, and it is the whole difference between the two poses.
+
+Where it lands is **the yap hand's own spot**, which is the one place in the
+module that has already had the argument about where a mouth would be: 29.9
+across, two units left of the face's centre and under both eyes rather than
+beside one, and 48.5 down. The ink covers x 16.8 to 43.0 and y 42.0 to 67.7, so
+the mouth is in the middle of it, the squeezed eyes clear the top by nearly two
+units, and the heel hangs five units under the chin — which is a hand held in
+front of a face rather than painted on one, and is less far down than the resting
+pair already reaches. Nothing about the placement grows the reach.
+
+###### The head is on its own channel, and that is the whole design
+
+The state under a pose is already tweening `y` and `sq` over the same window.
+Two `fromTo`s on one property is a fight whose winner is the build order, which
+is not an answer — it is the same reason the shape is a lookup rather than a
+channel and the same reason a mark may not set the turn on a state that turns on
+its own. So the laugh writes `hbody`, a channel set of its own, and the frame
+**adds** it to the drawn head the way the idle layer is added: a state writes
+exactly what it always wrote and the bounce lands on top of it.
+
+`body` on the pose is what writes it, and it is built once per mark rather than
+once per acting hand, because a bounce is the head and there is one of those.
+Its exit is written even when the last beat already sat at nought: a pose whose
+hold was cut short by the next mark is exactly the case that is for.
+
+Three numbers come out of it, and each is measured against something already in
+the file.
+
+- **The bounce is 4.6 css px** — the unit the head's own channel is in, which is
+  worth saying outright because the eye and the hand a few lines away are in grid
+  units. A little over half of `agreeing`'s nod and a third of `delighted`'s hop:
+  a nod is a statement and a hop is a whole body, and four of either inside a
+  second is a head being shaken by somebody else.
+- **The squash is 0.030 against the 0.080 ceiling**, half of `agreeing`'s own
+  contact, and it is on each bounce. It is the give in the shape rather than an
+  impact: there is no floor under a head that is giggling, so it has no counter
+  stretch in front of it and no hold at the peak, which is what the state
+  builder's own `squash` is and why this is not that.
+- **The eyes squeeze to 0.30 by 1.20**, `delighted`'s trick tighter — that state
+  takes a 4.4 unit pill to 0.40 by 1.28 and calls it a smile, and a laugh has its
+  eyes *shut*. 1.32 units tall is two and a half device px of ink at the corner
+  size, which reads as a line rather than as a slab.
+
+**The eyes are interpolated toward the arc rather than multiplied by it**, and
+that is the one line in the fold that matters. `surprised` opens an eye to two
+and a half times its height and `delighted` has already squashed one to 0.40; a
+multiplier would leave those two six times apart while both were supposed to be
+closed. Interpolated, a laugh over either is the same shut eye — what a state
+wanted its eyes to be does not survive them being closed. It goes on the state's
+own two scales rather than on the drawn product, so the turn's foreshortening
+still lands on top: an eye on the far side of a turned head is narrower whether
+it is open or shut.
+
+**And it takes the brows with it**, `covers`, which makes it the second pose to
+say so rather than the first. The hand is nowhere near the brow line here: what
+takes them off is the eyes, which are shut and drawn as two thin arcs, and a brow
+over a shut arc is a third line on a face that is meant to have two. Same gate,
+`HANDS.coverFor`, and it is quick for the same reason.
+
+###### Four bounces, and the numbers the first cut got wrong
+
+Four rather than three, which reads as a stutter, and rather than five, which is
+a fit. Each is smaller than the one before — the shape `agreeing`'s two nods and
+`wave`'s five rocks both have, and the difference between a gesture and a loop.
+
+**The split between down and back is what the yap already paid for.** The pop
+curve reaches 1.1 by 36% of its own duration, so a move written on it that is
+shorter than about a tenth of a second puts itself into one frame. The first cut
+wrote the drop over 0.085s and did exactly that: the head stepped **3.6 css px**
+between two frames, past `agreeing`'s own worst of 3.05 and past `delighted`'s
+3.49, which is a head teleporting rather than bouncing. At 0.11 down and 0.13
+back the worst frame is 2.76, under both, and it is still four and a half bounces
+a second. The guard is written against those two states rather than against a
+number invented for it.
+
+**The eyes shut half a beat before the hand lands**, at 0.86 against an entrance
+of 1.01. A face that closed its eyes when the hand arrived would be reacting to
+its own hand; a person laughs and then covers it. So the eyes go first and the
+hand catches up, and the arrival lands on a face that is already laughing.
+
+**The hand does not bounce**, and that is a line that was written and taken out.
+The gloves are drawn inside the card, so the head's own bounce already carries
+this hand: writing it on the hand as well is writing it twice, and the second
+copy is a hand sliding down a face on every beat. What is left for the hand to do
+is what a hand held over a mouth does while the rest of somebody is laughing,
+which is press in a little and turn with it — and that beat is on `y` and `rot`
+and never on `x`, because `x` is the channel this pose is scored on and a hold
+beat on it would be measured as an arrival that never settled.
+
+`side` works exactly as it does for the other one handed poses, and the default
+is the screen **right** hand: `pos` is `bottom-left` unless a clip says
+otherwise, and which hand acts is derived from it — he stands in a corner and
+gestures into the frame. Saying `side: 'right'` on the mark is the same choice
+made visible, the way an explicit `bias` is.
+
+###### The sound is three cues, on the bounces
+
+`SFX` has a third entry now — `laugh: 'titter'` — and the laugh pose is the first
+thing in this module to ask for a sound that is not a state's. Three cues rather
+than one buffer, each with its own `step` so the pitch climbs a whole tone, and
+each on **a bounce's own frame** rather than on a grid the pose table invented.
+That is the same argument every sound in `demo/` is placed on and the reason
+`lib/sfx.mjs` shapes a giggle as one note a caller fires three times.
+
+The fourth bounce is deliberately silent: a laugh runs out of breath before it
+runs out of shoulders.
 
 ##### The shape is swapped, not tweened
 
@@ -7211,8 +7375,11 @@ every one of those would have to be re-derived by hand in a second place. It is
 the same instrument `crownReach` is, and it runs after the plan object exists
 for the same reason.
 
-On the test cut the pair reaches 30.9 units left, 32.4 right, 4.6 over the crown
-and **26.8 under the chin**, and the head stands exactly that much further in.
+On the test cut the pair reaches 29.5 units left, 32.9 right, 4.6 over the crown
+and **26.4 under the chin**, and the head stands exactly that much further in.
+Those four move when the cut moves, which is the point of measuring them off its
+own frames: adding the laugh changed three of them and nothing had to be
+re-derived by hand.
 The preflight then measures what the frames actually make and the render
 **fails** if it ever passes what was held — a clip that re-planned its marks and
 not its placement is exactly what that catches.
@@ -7491,7 +7658,7 @@ dark render or excuse a real overrun.
 Two chapters, each its own pair of clips, over a plain background with no voice,
 rendered in both themes. It exists to answer three questions at a glance, with
 the sound off, at phone size: do the states read as different things, does the
-turn read as a head turning, and do the seven hands poses read as seven
+turn read as a head turning, and do the eight hands poses read as eight
 gestures.
 
     node mascot-test.mjs                    every chapter, both themes, 1080x1920, 60fps
@@ -7520,18 +7687,29 @@ silhouette and the placement holds room for them. A states clip carrying them
 would be a states clip composed differently, and then the file that answers "do
 the nine read as nine" would have stopped being a control.
 
-The hands cut runs the seven poses in the order they were designed in, each with
+The hands cut runs the eight poses in the order they were designed in, each with
 a face under it, and **the face is deliberately not `neutral` every time**: the
 question that chapter has to answer beyond "does the pose read" is whether a
 pose composes with an eye state or fights it, and a facepalm over an unimpressed
 face and a thumb over a delighted one are the two that would show it. The sides
 are exercised in the middle of the run rather than at the end, so the
-persistence is on screen — one hand, then the other, then both again. Its own
-guards: every pose winds up, overshoots and settles; all seven appear and all
-three sides are named; no hand moves more than twelve css px in a frame; the
+persistence is on screen — one hand, then the other, then both again.
+
+**The laugh goes over `surprised`, and it is the one pairing in the cut with a
+third question behind it.** It is the pose that moves the head as well as a
+hand, and the eyes it shuts are the eyes that state opens widest: `surprised`
+takes an eye to two and a half times its height, the laugh shuts both to a tenth
+of that, and if the two layers ever fought each other that is the frame it would
+show on. `surprised` appears twice in the cut now, under `panic` and here, and
+nothing else in the table would say the same thing.
+
+Its own guards: every pose winds up, overshoots and settles; all eight appear and
+all three sides are named; no hand moves more than twelve css px in a frame; the
 drawn reach never passes what the placement held; each glove carries all seven
-drawings; and the rendered hand is between 0.33 and 0.50 of the head on its long
-side with its edge between 2.8 and 4.25 device px.
+**drawings** — seven and not eight, because `laugh` and `facepalm` are the same
+traced file and the markup carries a drawing once; and the rendered hand is
+between 0.33 and 0.50 of the head on its long side with its edge between 2.8 and
+4.25 device px.
 
 The rig is `captions-test.mjs`'s, which is `post5.mjs`'s. Three things differ.
 

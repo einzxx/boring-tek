@@ -1078,10 +1078,83 @@ export const HANDS_REST = { x: 68.0, y: 47.5, rot: 4, sc: 1, o: 1 };
    because it is a fact about the composition rather than a gesture. */
 export const HAND_SIDES = ['left', 'right', 'both'];
 
+/* ---------- the laugh, which is the one pose that moves the head ----------
+   every other pose in the table is a hand and nothing else: it arrives beside a
+   face that is doing whatever its own state says, and the two layers never
+   touch. a laugh is not that. a hand held over a mouth with a face sitting
+   perfectly still under it is a hand held over a mouth; what makes it a laugh
+   is the head going with it.
+
+   so this is the one place a pose writes something that is not a glove, and it
+   is written on **its own channel** rather than on the head's. the state under
+   it is already tweening `y` and `sq` over the same window, and two `fromTo`s
+   on one property is a fight whose winner is the build order — which is not an
+   answer. `hbody` is added to the drawn head the way the idle layer is, so a
+   state keeps writing exactly what it wrote and the bounce lands on top.
+
+   the numbers, and each is measured against something already in here.
+
+   `drop` is 4.6 **css px**, which is the unit the head's own channel is in and
+   is worth saying outright because the eye and the hand a few lines away are in
+   grid units. it is a little over half of `agreeing`'s nod and a third of
+   `delighted`'s hop, which is the right size for the thing it is: a nod is a
+   statement and a hop is a whole body, and four of either inside a second is a
+   head being shaken by somebody else rather than a head giggling.
+
+   `period` is 0.22 and `down` is half of it, and **the split is what the yap
+   already paid for**: the pop curve reaches 1.1 by 36% of its own duration, so
+   a move written on it that is shorter than about a tenth of a second puts
+   itself into one frame. at 0.085 the first bounce did exactly that — the head
+   stepped 3.6 css px between two frames, past `agreeing`'s own worst of 3.1 and
+   past `delighted`'s 3.5. at 0.11 down and 0.13 back the worst frame is under
+   both of them, and it is still four and a half bounces a second.
+
+   `sq` is 0.030 against the 0.080 ceiling, and it is deliberately half of
+   `agreeing`'s own contact. the squash is what makes a bounce land rather than
+   stop, and a laugh lands on nothing — there is no floor under a floating head.
+   it is the give in the shape and not an impact.
+
+   `arc` is what the eyes are squeezed to, in grid units, and it is
+   `delighted`'s trick tighter: that state takes a 4.4 unit pill to 0.40 by 1.28
+   and calls it a smile, and a laugh has its eyes **shut**, so this goes to 0.30
+   by 1.20 — 1.32 units tall, which at the corner size is two and a half device
+   px of ink and reads as a line rather than as a slab. it is **interpolated
+   toward rather than multiplied by**, so a laugh over `surprised` and a laugh
+   over `delighted` are the same shut eye: what a state wanted its eyes to be
+   does not survive them being closed. the drop of 1.0 unit is delighted's
+   again, because an eye that closes upward is a stare and an eye that closes
+   downward is a laugh. */
+export const LAUGH = {
+  drop: 4.6,
+  /* when the first bounce starts, measured from the mark. the pose takes 1.01s
+     to get a hand across the face, so this is three frames after it lands: the
+     eyes are already shut by then — they go at 0.86, before the hand — and the
+     bounce is what the hand arrives into rather than what it sets off. it is
+     one number here rather than three literals in three places, because the
+     sound is placed on the same beats and a sound half a bounce late is the
+     one fault this part cannot recover from. */
+  from: 1.04,
+  period: 0.22, down: 0.11, up: 0.13,
+  /* four, each smaller than the last as a share of the first. three reads as a
+     stutter and five is a fit; four winding down is the shape `agreeing`'s two
+     nods and `wave`'s five rocks both have, and it is the difference between a
+     gesture and a loop. */
+  beats: [1, 0.88, 0.71, 0.50],
+  sq: 0.030,
+  arc: { sy: 0.30, sx: 1.20, y: 1.0 },
+};
+
 /* ---------- the poses ----------
-   seven, each a different silhouette at a glance with the sound off, and each
-   an entrance, a hold with its own beat, and an exit back to rest. the shape is
+   eight, each a different picture at a glance with the sound off, and each an
+   entrance, a hold with its own beat, and an exit back to rest. the shape is
    the state table's shape and the numbers are in the same units.
+
+   **a picture rather than a drawing, because two of them are the same drawing.**
+   `laugh` is the facepalm's own traced path turned onto the mouth, and it is a
+   different pose for the reason a pose is a shape *and* a placement: the same
+   hand forty five degrees round and twenty five units lower is a different
+   gesture, and there was no second file to trace one from. the check below is
+   written on the pair rather than on the drawings for that reason.
 
    `shape` is which traced path it is. a string is one drawing and the second
    hand is it flipped; a pair is `[screen left, screen right]` and each hand
@@ -1104,7 +1177,11 @@ export const HAND_SIDES = ['left', 'right', 'both'];
    resolved out of the plan rather than off the timeline — see `handShapeAt`.
    two white shapes crossfading over a face would be a double edge for the
    length of the fade, and a path index eased from one to five would draw three
-   poses nobody asked for on the way. */
+   poses nobody asked for on the way.
+
+   `body` is optional and exactly one pose has it. it is what the pose does to
+   the **head** rather than to the hand, written on `hbody` so it composes with
+   the state under it instead of fighting it — see LAUGH above. */
 export const HAND_POSES = {
   rest: {
     label: 'two hands low beside the head, hanging',
@@ -1223,6 +1300,119 @@ export const HAND_POSES = {
          the fingers down the face rather than off it, so its sign is the
          mirror's along with everything else in the row. */
       B.set(k, { y: A.y + 2.6, rot: A.rot + 4 }, { for: 0.90, at: 0.52, ease: 'glide' });
+    },
+  },
+
+  /* ---------- the laugh ----------
+     the facepalm's drawing again, and it is the only pose in the table that
+     borrows one. that is worth an argument rather than an apology: a laugh
+     needs a **flat** hand over the mouth, and of the ten traced files the
+     facepalm is the flat one — an open hand seen palm on with the fingers
+     together. `wave` is the other open hand and its fingers are splayed, which
+     over a mouth is a hand somebody is waving at their own face.
+
+     **minus forty five degrees is what turns it flat.** the file is drawn with
+     the wrist bottom right and the fingers running up and to the left, which is
+     what a facepalm is; turning the whole thing back by forty five puts that
+     run horizontal, so the fingers lie across the face and the wrist sits out
+     by the jaw where a wrist goes. it is one number and it is the whole
+     difference between the two poses.
+
+     where it lands is the yap hand's own spot, which is the one place in this
+     module that has already had the argument about where a mouth would be:
+     29.9 across, which is two units left of the face's centre and under both
+     eyes rather than beside one, and 48.5 down. the ink covers x 16.8 to 43.0
+     and y 42.0 to 67.7, so the mouth is in the middle of it, the squeezed eyes
+     clear the top by nearly two units, and the heel hangs five units under the
+     chin — which is a hand held in front of a face rather than painted on one,
+     and is less far down than the resting pair already reaches.
+
+     it takes the brows with it, `covers`, and that is the second pose to say so
+     rather than the first. the hand is nowhere near the brow line here: what
+     takes them off is the eyes, which are shut and drawn as two thin arcs, and
+     a brow over a shut arc is a third line on a face that is meant to have
+     two. the gate is the same one and for the same reason it is quick. */
+  laugh: {
+    label: 'one flat hand over the mouth, head bouncing, eyes shut',
+    shape: 'facepalm',
+    entry: 1.01, hold: 1.40, exit: 0.32, both: false,
+    at: { x: 40.9, y: 56.7, rot: -45, sc: 1.06 },
+    mark: { chan: 'x', to: 40.9 },
+    covers: true,
+    /* ---------- and it is the one pose that makes a sound ----------
+       three cues rather than one buffer, and they are the **first three
+       bounces' own frames** rather than three points on a grid this table
+       invented — the same argument every sound in demo/ is placed on, and the
+       reason `lib/sfx.mjs` shapes a giggle as one note that a caller fires
+       three times. the fourth bounce is deliberately silent: a laugh runs out
+       of breath before it runs out of shoulders.
+
+       `kind` is a key into SFX rather than a voice name, so the table below
+       stays the one place a sound in this module is named. */
+    sfx: {
+      kind: 'laugh',
+      at: [0, 1, 2].map(i => +(LAUGH.from + i * LAUGH.period).toFixed(4)),
+    },
+    build(B, k) {
+      const A = HAND_POSES.laugh.at;
+      /* across and down onto the mouth, and the duration is the travel exactly
+         as the facepalm's is: the resting pair hangs out past the silhouette
+         and this crosses twenty eight and a half grid units to get to the
+         middle of the face, which is fifty seven css px. under nine tenths of a
+         second on the pop curve the fastest frame of that is a hand arriving as
+         a smear. */
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc },
+        { for: 0.96, ease: 'pop', anti: 0.12, antiFor: 3 / 60 });
+      /* the hold is one small press and a turn, and it is deliberately **not**
+         the bounce. the gloves are drawn inside the card, so the head's own
+         bounce already carries this hand: writing it here as well would be
+         writing it twice, and the second copy is a hand sliding down a face on
+         every beat. what is left for the hand to do is what a hand held over a
+         mouth does while the rest of somebody is laughing, which is press in a
+         little and turn with it.
+
+         it is on `y` and `rot` and never on `x`, because `x` is the channel
+         this pose is scored on and a hold beat on it would be measured as an
+         arrival that never settled. */
+      B.set(k, { y: A.y - 0.7, rot: A.rot + 2.5 },
+        { for: 0.32, at: LAUGH.from, ease: 'glide' });
+      B.set(k, { y: A.y, rot: A.rot },
+        { for: 0.60, at: LAUGH.from + LAUGH.period * 2.3, ease: 'glide' });
+    },
+    /* ---------- and the head under it ----------
+       four bounces, each smaller and each landing on its own squash, then it
+       settles — the wave's rocks and `agreeing`'s two nods have the same shape
+       and for the same reason: a gesture that repeats at one size is a loop,
+       and a loop is a machine. four rather than three because three reads as a
+       stutter and rather than five because five is a fit.
+
+       the eyes shut half a beat **before** the hand lands, which is the one
+       piece of timing in here that is not obvious. a face that closed its eyes
+       when the hand arrived would be reacting to its own hand; a person laughs
+       and then covers it, so the eyes go first and the hand catches up. it is
+       0.86 against an entrance of 1.01, and the pop curve is 99.9% of the way
+       through its own move by the frame the hand lands on, so the arrival lands
+       on a face that is already laughing rather than on one closing its eyes. */
+    body(L) {
+      L.set({ sqz: 1 }, { at: 0.86, for: 0.22, ease: 'pop' });
+      let at = LAUGH.from;
+      for (const f of LAUGH.beats) {
+        L.set({ y: +(LAUGH.drop * f).toFixed(3) }, { for: LAUGH.down, at, ease: 'pop' });
+        /* the squash arrives with the bottom of the bounce and lets go on the
+           way back up. it is written as two tweens rather than through the
+           state builder's own `squash`, which is a landing: that one has a
+           counter stretch in front of it and a hold at the peak because it is a
+           thing hitting a floor, and there is no floor under a head that is
+           giggling. this is the give in the shape and nothing else. */
+        L.set({ sq: +(LAUGH.sq * f).toFixed(4) },
+          { for: LAUGH.down * 0.6, at: at + LAUGH.down * 0.55, ease: 'pop' });
+        L.set({ y: 0 }, { for: LAUGH.up, at: at + LAUGH.down, ease: 'glide' });
+        L.set({ sq: 0 }, { for: LAUGH.up * 0.7, at: at + LAUGH.down * 1.3, ease: 'glide' });
+        at += LAUGH.period;
+      }
+      /* and the eyes open again a beat after the last bounce, on the calm
+         curve, so the laugh stops before the hand starts leaving. */
+      L.set({ sqz: 0 }, { at: at + 0.10, for: 0.30, ease: 'glide' });
     },
   },
 
@@ -1487,11 +1677,13 @@ export const BUBBLE = {
   },
 };
 
-/* the sounds, and there are only two. a bubble arriving is a `pop`, which is
-   the caption card's own sound and is the right one because it is the same
-   event: something light being set down. `ding` is reserved for an agreement
-   beat and appears nowhere else, so it keeps meaning yes. */
-export const SFX = { bubble: 'pop', agree: 'ding' };
+/* the sounds, and there are three. a bubble arriving is a `pop`, which is the
+   caption card's own sound and is the right one because it is the same event:
+   something light being set down. `ding` is reserved for an agreement beat and
+   appears nowhere else, so it keeps meaning yes. `titter` is the laugh, and it
+   is the first sound in here a **pose** asks for rather than a state — three of
+   them a laugh, one on each of the first three bounces. */
+export const SFX = { bubble: 'pop', agree: 'ding', laugh: 'titter' };
 
 /* ---------- the state table ----------
    each state is an entrance, a hold with its own idle, and an exit, written
@@ -1943,7 +2135,7 @@ export function planMascot(opts = {}) {
           + '", and this plan has no hands on it — pass `hands: true`');
       }
       if (!HAND_POSES[m.hands]) {
-        throw new Error('no hands pose called "' + m.hands + '" — the seven are '
+        throw new Error('no hands pose called "' + m.hands + '" — the eight are '
           + HAND_POSE_NAMES.join(', '));
       }
     }
@@ -2566,6 +2758,22 @@ function channels(plan) {
        nothing writes it unless a plan has hands **and** poses one that covers,
        so on every other clip it sits at nought and multiplies by one. */
     hcover: { v: 0 },
+    /* ---------- what a pose does to the head ----------
+       the second channel a pose writes and the only one that is not a glove.
+       `y` is a bounce in grid units, `sq` a squash on top of whatever the state
+       is doing, and `sqz` is nought to one for how far the eyes are squeezed
+       into arcs.
+
+       it is its own channel rather than the head's for the reason `hcover` is
+       its own rather than a lookup: the state under a pose is already tweening
+       `y` and `sq` over the same window, and two `fromTo`s on one property is a
+       fight whose winner is the order they were built in. this is added to the
+       drawn head the way the idle layer is, so a state writes exactly what it
+       always wrote and the pose lands on top of it.
+
+       exactly one pose writes it, so on every other clip it sits at nought and
+       adds nothing — see LAUGH. */
+    hbody: { y: 0, sq: 0, sqz: 0 },
     pad: { v: 0 },
   };
 }
@@ -2799,6 +3007,40 @@ function handsBuilder(tl, ch, H, t0) {
   return { set, show, pose };
 }
 
+/* ---------- the builder a pose's `body` is written against ----------
+   the same discipline again, one channel set smaller: every call is a `fromTo`
+   with `immediateRender:false`, the `from` comes from a pose tracked at build
+   time because the channel object still holds its seed, and the pose ends
+   knowing where it left every number so its exit can state that literally.
+
+   there is no mirror in here and there must not be. a bounce is the head, and
+   the head does not have a left one and a right one — writing this through
+   `handsBuilder` would have reflected `y` for nothing and would have written
+   the whole thing twice, once per hand. */
+function bodyBuilder(tl, ch, H, t0) {
+  const pose = { y: 0, sq: 0, sqz: 0 };
+  const ez = name => H[name] || H.glide;
+  const set = (to, opt = {}) => {
+    const from = {};
+    for (const key in to) from[key] = pose[key];
+    tl.fromTo(ch.hbody, from, {
+      ...to, duration: opt.for || 0.20, ease: ez(opt.ease || 'glide'),
+      immediateRender: false,
+    }, t0 + (opt.at || 0));
+    Object.assign(pose, to);
+  };
+  return { set, pose };
+}
+
+/* and its exit, which puts the head back where the state left it. it is written
+   even when the pose's own last beat already sat at nought — a pose whose hold
+   was cut short by the next mark is exactly the case this is for, and a tween
+   from nought to nought costs one child and writes the number it already had. */
+function exitBodyToRest(tl, ch, H, LB, at, forS) {
+  tl.fromTo(ch.hbody, { ...LB.pose },
+    { y: 0, sq: 0, sqz: 0, duration: forS, ease: H.glide, immediateRender: false }, at);
+}
+
 /* the hands' exit. it puts the shape and the placement back to the resting pair
    and it deliberately **leaves `o` alone**: which hands are on screen is the
    `side` option and it is a fact about the composition, the way the turn is a
@@ -2952,6 +3194,14 @@ function engineFor(plan) {
         tl.fromTo(ch.hcover, { v: 1 },
           { v: 0, duration: HP.exit, ease: H.glide, immediateRender: false }, m.hands.leaving);
       }
+      /* and what the pose does to the head, if it does anything. it is built
+         once per mark rather than once per acting hand: a bounce is the head
+         and there is one of those. */
+      if (HP.body) {
+        const LB = bodyBuilder(tl, ch, H, m.t);
+        HP.body(LB);
+        exitBodyToRest(tl, ch, H, LB, m.hands.leaving, m.hands.exit);
+      }
       exitHandsToRest(tl, ch, H, HB, m.hands.leaving, m.hands.exit);
     }
   }
@@ -3030,7 +3280,7 @@ function engineFor(plan) {
 export function mascotFrame(plan, t) {
   const eng = engineFor(plan);
   eng.tl.time(t, false);
-  const { a, b, eye, lid, brow, idle, bub, yap, hcover } = eng.ch;
+  const { a, b, eye, lid, brow, idle, bub, yap, hcover, hbody } = eng.ch;
   /* one number for the whole brow pair, and it is one rather than two because a
      hand over half a face still takes both: a single brow left showing under a
      facepalm is a face with one eyebrow, which is worse than none. it is one at
@@ -3042,16 +3292,30 @@ export function mascotFrame(plan, t) {
   /* the two turn values. the card takes the lagged one and the eyes take the
      lead one, which is the whole of "the eyes lead the head on a turn". */
   const tb = clamp(b.turn, -1, 1), ta = clamp(a.turn, -1, 1);
+  /* ---------- what a pose is doing to the head ----------
+     nought on every clip that never poses a laugh, which is every clip written
+     before this one, so what follows adds exactly zero and multiplies by
+     exactly one — that is asserted rather than hoped for, by diffing this
+     module against its own previous version frame by frame.
+
+     the bounce goes on **both** layers without a lag between them, which is the
+     idle layer's rule rather than the state layer's. the lag is there so the
+     eyes lead the head into a move, and a lead is worked out from the
+     difference between the two: a bounce written on one and not the other would
+     put the eyes a fifth of it behind on every beat, which at four beats a
+     second is a face coming apart. it is the same number on both, so it cancels
+     out of the lead and the head bounces as one thing. */
   const card = {
-    x: b.x + idle.x, y: b.y + idle.y,
+    x: b.x + idle.x, y: b.y + idle.y + hbody.y,
     /* the tilt goes with the card rather than with the gaze, because it is the
        head leaning and the head is the thing that is late. */
     rot: b.rot + idle.rot + TURN.tilt * tb,
-    sc: b.sc * breathe, sq: b.sq, lift: b.lift,
+    sc: b.sc * breathe, sq: b.sq + hbody.sq, lift: b.lift,
   };
   const head = {
-    x: a.x + idle.x, y: a.y + idle.y, rot: a.rot + idle.rot + TURN.tilt * ta,
-    sc: a.sc * breathe, sq: a.sq, lift: a.lift,
+    x: a.x + idle.x, y: a.y + idle.y + hbody.y,
+    rot: a.rot + idle.rot + TURN.tilt * ta,
+    sc: a.sc * breathe, sq: a.sq + hbody.sq, lift: a.lift,
   };
 
   /* the eyes lead. this is the whole of the overlapping action: the difference
@@ -3097,12 +3361,29 @@ export function mascotFrame(plan, t) {
     return Math.max(0, halfPlate - TURN.margin - halfW);
   };
 
+  /* ---------- the eyes a laugh squeezes shut ----------
+     it is written as an interpolation toward the arc rather than as a
+     multiplier on what the state wanted, and that is the whole of how the two
+     layers compose. a laugh over `surprised` and a laugh over `delighted` have
+     to be the same shut eye: a state that widened its eyes two and a half times
+     and one that already squashed them to a smile would otherwise end up with
+     an eye six times the height of the other, and what a face wanted its eyes
+     to be does not survive them being closed.
+
+     it goes on the state's own two scales rather than on the drawn product, so
+     the turn's foreshortening still lands on top of it: an eye on the far side
+     of a turned head is narrower whether it is open or shut.
+
+     `sqz` is nought on every clip without a laugh in it, so this adds nothing
+     to two numbers and nothing to a third. */
+  const arc = hbody.sqz;
   let clamped = 0, outside = -Infinity;
   const eyes = eye.map((e, k) => {
     const poseLidV = lid[k].v, blink = idle.bl[k].v;
     const ts = turnScale(k);
-    const sx = e.sx * ts.sx, sy = e.sy * ts.sy;
-    const ey = e.y + idle.ey + lead.y;
+    const sx = (e.sx + arc * (LAUGH.arc.sx - e.sx)) * ts.sx;
+    const sy = (e.sy + arc * (LAUGH.arc.sy - e.sy)) * ts.sy;
+    const ey = e.y + idle.ey + lead.y + arc * LAUGH.arc.y;
     const want = e.x + idle.ex + lead.x + turnShift(k);
     /* the eye's own centre, relative to the card's, once it has moved. */
     const from = EYE_CX[k] - CX + want;
@@ -3288,9 +3569,19 @@ export function mascotFrame(plan, t) {
     /* the state's own motion, with no idle in it. everything that judges a
        state — the preflight's entry, overshoot and settle — reads this, because
        a two per cent breath under a two point eight per cent entrance would
-       otherwise be most of what got measured. */
+       otherwise be most of what got measured.
+
+       **`sq` is the one exception and it carries the pose's squash too.** the
+       eight per cent ceiling is a ceiling on the deformation a viewer sees, and
+       a laugh's own give sits on top of whatever the state is doing to the same
+       shape; measured on the state alone the guard would be reading half the
+       number. the bounce is deliberately *not* in here for the mirror image of
+       that reason: `y` is what a state's arrival is scored against, and four
+       bounces a second inside a state's own hold would be measured as a state
+       that never settled. */
     pose: {
-      x: n(a.x), y: n(a.y), rot: n(a.rot), sc: n(a.sc), sq: n(a.sq), lift: n(a.lift),
+      x: n(a.x), y: n(a.y), rot: n(a.rot), sc: n(a.sc),
+      sq: n(a.sq + hbody.sq), lift: n(a.lift),
       turn: n(a.turn),
     },
     /* the breathing on its own, so the ceiling can be checked against the thing
@@ -3387,6 +3678,17 @@ export function mascotCues(plan) {
     }
     const S = STATES[m.state];
     if (S.ding != null) cues.push({ t: +(m.t + S.ding).toFixed(4), kind: SFX.agree });
+    /* and whatever the pose on this mark says, which is one pose and three
+       cues. each carries its own `step`, which is the note: `lib/sfx.mjs`
+       renders one bleep and the step is how far up the ladder it sits, so a
+       laugh is three placed events rather than one buffer that cannot be put
+       on anything. */
+    const HP = m.hands ? HAND_POSES[m.hands.pose] : null;
+    if (HP && HP.sfx) {
+      HP.sfx.at.forEach((at, i) => cues.push({
+        t: +(m.t + at).toFixed(4), kind: SFX[HP.sfx.kind], opts: { step: i },
+      }));
+    }
   }
   return cues.sort((a, b) => a.t - b.t);
 }
@@ -3916,9 +4218,9 @@ export function mascotMarkup(plan) {
       + bar('m-finger', H2.fingers) + bar('m-thumb', H2.thumb) + `</g>`;
   };
   /* ---------- the gloves, and only if the plan asked for a pair ----------
-     one glove is **every pose's traced path, drawn once and hidden**, and the
-     page shows the one the frame names. seven paths a hand rather than one path
-     swapped per frame, because writing a `d` attribute every frame is asking
+     one glove is **every drawing the table names, drawn once and hidden**, and
+     the page shows the one the frame names. seven paths a hand rather than one
+     path swapped per frame, because writing a `d` attribute every frame is asking
      chrome to re-parse and re-tessellate a two hundred point outline six times
      a captured frame, and because a `d` written per frame is a `d` that can be
      written wrong on one.
@@ -3951,9 +4253,15 @@ export function mascotMarkup(plan) {
   const glove = (layer, k) => {
     const id = 'm-gl-' + layer + k;
     let s = `<g class="m-glove" id="${id}">`;
-    for (const pose of HAND_POSE_NAMES) {
-      const sh = handShape(pose, k), S = HAND_SHAPES[sh.shape];
-      s += `<g class="m-gl-pose" id="${id}-${sh.shape}" style="display:none">`
+    /* one group per **drawing** rather than per pose, because two poses share
+       one: `laugh` is the facepalm's path turned onto the mouth. writing it per
+       pose would put two elements in here with the same id, of which a page
+       shows the first and holds the second forever — a bug with no symptom
+       until somebody counts the children. the frame names a drawing, not a
+       pose, so this is also the shorter answer to the same question. */
+    for (const shape of [...new Set(HAND_POSE_NAMES.map(pose => handShape(pose, k).shape))]) {
+      const S = HAND_SHAPES[shape];
+      s += `<g class="m-gl-pose" id="${id}-${shape}" style="display:none">`
         + `<path class="m-gl" transform="scale(${gScale}) translate(${n(-S.wrist[0])} ${n(-S.wrist[1])})"`
         + ` d="${S.d}"` + (S.even ? ' fill-rule="evenodd"' : '') + `/></g>`;
     }
@@ -5377,28 +5685,47 @@ function selfTest() {
     'fastest frame moves a hand ' + grep.hands.stepCss.toFixed(2) + ' css px at '
     + grep.hands.stepAt.toFixed(2) + 's');
 
-  /* the seven read as seven, and with traced paths that is **two** questions
-     rather than one, because the drawing now carries most of the difference.
+  /* the eight read as eight, and with traced paths that is **two** questions
+     rather than one, because the drawing carries most of the difference.
 
-     the first is that they are seven different drawings, which is by
-     construction and is checked as one: seven distinct `d` strings, out of ten
-     files, none of them the same outline as another. that is what a primitive
-     glove could not promise — five rects at two sets of curls are two
-     arrangements of the same shape, and the review said so.
+     the first is that the ten files are ten different outlines, which is by
+     construction and is checked as one: ten distinct `d` strings, none of them
+     the same as another. that is what a primitive glove could not promise —
+     five rects at two sets of curls are two arrangements of the same shape, and
+     the review said so.
 
-     the second is that they do not all land in the same **place**, because a
-     pose is where a hand went as well as what it is. that is the old check with
-     the curls taken out of the vector, and its floor comes down with them: a
-     placement alone is three numbers, not eleven. */
+     the second is that no two poses are the same **picture**, and it is written
+     that way rather than "eight different drawings" because two of them share a
+     drawing: `laugh` is the facepalm's path turned onto the mouth. a pose is a
+     shape *and* a placement, so two poses on one drawing have to land somewhere
+     genuinely different, and the floor for that pair is deliberately three
+     times the floor for the rest — a different pose off the same file is a
+     claim that needs more evidence than a different file already is.
+
+     the placement vector is the old check with the curls taken out of it, and
+     its floor came down with them: a placement alone is three numbers, not
+     eleven. */
   const gposes = grep.poses.map((p, i) => {
     const m = gp.marks.filter(mm => mm.hands)[i];
     const h = mascotFrame(gp, m.hands.settled + 0.05).hands.list[m.hands.acting[0]];
     return { pose: p.pose, shape: h.shape, v: [h.pose.x / 8, h.pose.y / 8, h.pose.rot / 40, h.o] };
   });
-  ok('the seven poses are seven different drawings',
-    new Set(gposes.map(g => HAND_SHAPES[g.shape].d)).size === gposes.length
-    && new Set(HAND_SHAPE_NAMES.map(nm => HAND_SHAPES[nm].d)).size === HAND_SHAPE_NAMES.length,
+  ok('the ten drawings are ten different outlines',
+    new Set(HAND_SHAPE_NAMES.map(nm => HAND_SHAPES[nm].d)).size === HAND_SHAPE_NAMES.length,
     gposes.map(g => g.shape).join(', '));
+  let gshared = null, gsharedD = 1e9;
+  for (let i = 0; i < gposes.length; i++) {
+    for (let j = i + 1; j < gposes.length; j++) {
+      if (gposes[i].shape !== gposes[j].shape) continue;
+      const d = Math.hypot(...gposes[i].v.map((v, k2) => v - gposes[j].v[k2]));
+      if (d < gsharedD) { gsharedD = d; gshared = gposes[i].pose + '/' + gposes[j].pose; }
+    }
+  }
+  ok('two poses off one drawing are two different pictures',
+    gshared === null || gsharedD > 0.84,
+    gshared === null ? 'no two poses share a drawing'
+      : gshared + ' share one and settle ' + gsharedD.toFixed(2)
+        + ' apart, against a floor of 0.84');
   let gclosest = 1e9, gpair = null;
   for (let i = 0; i < gposes.length; i++) {
     for (let j = i + 1; j < gposes.length; j++) {
@@ -5778,13 +6105,111 @@ function selfTest() {
     'worst one frame step ' + fpStep.toFixed(4) + ' of opacity, against '
     + fpEntry.toFixed(4) + ' for the entrance the same brows already make');
   /* the poses that do not cover leave them alone, which is the other half of
-     "only the facepalm declares it". */
+     "two of the eight declare it". the two say it for different reasons and
+     both are worth having written down: the facepalm puts a hand on the brow
+     line, and the laugh shuts the eyes into arcs that a brow above would make
+     a third line on. */
   ok('every other pose leaves the brows where the state put them',
-    HAND_POSE_NAMES.filter(nm => HAND_POSES[nm].covers).join(',') === 'facepalm');
+    HAND_POSE_NAMES.filter(nm => HAND_POSES[nm].covers).join(',') === 'facepalm,laugh');
+
+  /* ---------- the laugh, which is the one pose that moves the head ----------
+     every check in here is written as a **difference against the same plan with
+     the pose taken off**, because that is the only way to say "the pose did
+     this" about a layer that composes with a state rather than replacing it.
+     the state under it is doing its own thing on the same channels, and a
+     number read off one plan cannot tell the two apart. */
+  const lgOf = (st, pose) => planMascot({
+    hands: true, bias: 0, seconds: 6.0,
+    marks: [{ t: 0.4, state: st, ...(pose ? { hands: pose, side: 'right' } : {}) }],
+  });
+  const lgOn = lgOf('neutral', 'laugh'), lgOff = lgOf('neutral', null);
+  let lgPeak = 0, lgPeakT = 0, lgStep = 0, lgStepT = 0, lgPrev = null, lgEnd = 0;
+  for (let f = 0; f < Math.round(6.0 * 60); f++) {
+    const t = f / 60;
+    const d = mascotFrame(lgOn, t).card.y - mascotFrame(lgOff, t).card.y;
+    if (Math.abs(d) > Math.abs(lgPeak)) { lgPeak = d; lgPeakT = t; }
+    if (lgPrev !== null && Math.abs(d - lgPrev) > lgStep) {
+      lgStep = Math.abs(d - lgPrev); lgStepT = t;
+    }
+    lgPrev = d;
+    if (t > lgOn.marks[0].hands.out) lgEnd = Math.max(lgEnd, Math.abs(d));
+  }
+  /* it bounces, and the bounce is the drop plus the pop curve's own overshoot
+     rather than the drop. positive is down, which is the same sign `agreeing`'s
+     nod arrives on. */
+  ok('a laugh bounces the head and puts it back',
+    lgPeak > LAUGH.drop && lgPeak < LAUGH.drop * 1.25 && lgEnd < 1e-6,
+    'peak ' + lgPeak.toFixed(2) + ' css px at ' + lgPeakT.toFixed(2)
+    + 's, and nothing left on the head after the pose is out');
+  /* and it does not step. the ceiling is the head's own fastest state rather
+     than a number invented here: `delighted` moves the card 3.49 css px in a
+     frame and `agreeing` 3.05, so a bounce that stayed under the slower of the
+     two is a move this rig already makes. the first cut wrote the drop over
+     0.085s on the pop curve and came out at 3.6, which is past both. */
+  let lgCeil = 0;
+  for (const st of ['agreeing', 'delighted']) {
+    lgCeil = Math.max(lgCeil, mascotMotion(lgOf(st, null), 60, 6.0).worst.cardM.d);
+  }
+  ok('a bounce never steps past the head own fastest state',
+    lgStep < lgCeil,
+    'worst frame moves the head ' + lgStep.toFixed(2) + ' css px at '
+    + lgStepT.toFixed(2) + 's, against ' + lgCeil.toFixed(2) + ' for a hop');
+  /* the eyes are shut whatever the state wanted them to be, which is the whole
+     argument for interpolating toward the arc rather than multiplying by it:
+     `surprised` opens an eye two and a half times its height and `delighted`
+     already squashes one to 0.40, and under a laugh both are the same line. */
+  const lgSy = st => {
+    const P = lgOf(st, 'laugh');
+    return mascotFrame(P, P.marks[0].t + 1.30).eyes[0].sy;
+  };
+  ok('a laugh shuts the eyes to the same arc under any state',
+    ['neutral', 'surprised', 'delighted'].every(st => Math.abs(lgSy(st) - LAUGH.arc.sy) < 1e-3),
+    ['neutral', 'surprised', 'delighted'].map(st => st + ' ' + lgSy(st).toFixed(3)).join(', ')
+    + ', against ' + mascotFrame(lgOf('surprised', null), 1.7).eyes[0].sy.toFixed(2)
+    + ' for surprised with no hand on it');
+  /* and they open again. an eye left shut is a face that stopped rather than a
+     laugh that ended, and the exit is what puts it back. */
+  ok('the eyes open again when the laugh is over',
+    Math.abs(mascotFrame(lgOn, lgOn.marks[0].hands.out + 0.10).eyes[0].sy - 1) < 1e-6);
+  /* the squash is on top of the state's own and the ceiling is measured on the
+     sum, which is what `fr.pose.sq` carries. `delighted` is the state that
+     squashes hardest, so it is the one this is asked of. */
+  const lgSq = mascotMotion(lgOf('delighted', 'laugh'), 60, 6.0);
+  ok('a laugh squash and a state squash still clear the ceiling',
+    lgSq.maxSquash <= SQ_MAX + 1e-6,
+    (lgSq.maxSquash * 100).toFixed(1) + '% against a ceiling of ' + (SQ_MAX * 100).toFixed(0) + '%');
+  /* three cues, rising, and each on a bounce's own frame rather than on a grid.
+     the fourth bounce is silent on purpose — a laugh runs out of breath before
+     it runs out of shoulders. */
+  const lgCues = mascotCues(lgOn);
+  ok('a laugh makes three rising bleeps on its own bounces',
+    lgCues.length === 3
+    && lgCues.every((c, i) => c.kind === SFX.laugh && c.opts.step === i)
+    && lgCues.every((c, i) =>
+      Math.abs(c.t - (lgOn.marks[0].t + LAUGH.from + i * LAUGH.period)) < 1e-6),
+    lgCues.map(c => c.t.toFixed(2) + 's step ' + c.opts.step).join(', '));
+  /* and it is the only pose that touches the head at all. every other one is a
+     glove and nothing else, which is the promise the whole part is written on:
+     turning the hands on may move where the head stands, and it may not move
+     what the head is doing. */
+  ok('every other pose leaves the head to the state',
+    HAND_POSE_NAMES.filter(nm => HAND_POSES[nm].body).join(',') === 'laugh'
+    && HAND_POSE_NAMES.filter(nm => nm !== 'laugh').every(nm => {
+      const P = lgOf('neutral', nm), Q = lgOf('neutral', null);
+      for (let f = 0; f < Math.round(6.0 * 60); f += 3) {
+        const a = mascotFrame(P, f / 60), b = mascotFrame(Q, f / 60);
+        if (Math.abs(a.card.y - b.card.y) > 1e-9) return false;
+        if (Math.abs(a.pose.sq - b.pose.sq) > 1e-9) return false;
+        if (Math.abs(a.eyes[0].sy - b.eyes[0].sy) > 1e-9) return false;
+      }
+      return true;
+    }), 'the other seven move a glove and nothing else');
   /* every pose carries its own drawing into both gloves and both layers, which
-     is twenty eight groups and ten distinct outlines. it is checked because the
-     page picks a path by name and a name it cannot find is a hand that does not
-     appear — silently, on one pose, on one side. */
+     is twenty eight groups off ten traced files — twenty eight rather than
+     thirty two because `laugh` and `facepalm` are one drawing and the markup
+     carries a drawing once. it is checked because the page picks a path by name
+     and a name it cannot find is a hand that does not appear — silently, on one
+     pose, on one side. */
   ok('every pose has a drawing in both hands and both layers', (() => {
     const mk = mascotMarkup(gp);
     for (const layer of ['ink', 'edge']) {
@@ -5795,7 +6220,8 @@ function selfTest() {
       }
     }
     return true;
-  })(), HAND_POSE_NAMES.length * 4 + ' groups off ' + HAND_SHAPE_NAMES.length + ' traced files');
+  })(), (mascotMarkup(gp).match(/class="m-gl-pose"/g) || []).length
+    + ' groups off ' + HAND_SHAPE_NAMES.length + ' traced files');
   /* the two hands are two different parts and a plan may have either, both or
      neither — which is one line to check and the reason it is worth checking is
      that they nearly share a name. */

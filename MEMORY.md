@@ -6,6 +6,85 @@ names in here either.
 
 ## Status
 
+- **Closed 2026-09-06: the mascot has a laugh pose, and it is the first one that
+  moves the head.** `laugh` in `demo/lib/mascot.mjs`: one flat hand over the
+  mouth, the head bouncing four times under it, the eyes squeezed shut into two
+  thin arcs and the brows gone. 12,138 frames across 33 plans still hash byte
+  identical with the hands off, the module's own checks pass with seven new ones,
+  and the hands chapter renders green at 12fps and at 60, both themes.
+  - **It is the facepalm's traced file again, and it is the only pose that
+    borrows a drawing.** There was no eighth panel in the sheet to trace and a
+    laugh needs a *flat* hand: of the ten files the facepalm is the flat one, an
+    open hand palm on with the fingers together, and `wave` is the other open
+    hand with its fingers splayed, which over a mouth is somebody waving at their
+    own face. **Minus forty five degrees is what turns it flat** — the file runs
+    wrist bottom right, fingers up and to the left, and forty five back puts that
+    run horizontal. One number is the whole difference between the two poses.
+    A pose is a shape *and* a placement, which is what makes them two poses.
+  - **It lands on the yap hand's own spot**, 29.9 across and 48.5 down, because
+    that is the one place in the module that has already had the argument about
+    where a mouth would be. The ink covers x 16.8 to 43.0 and y 42.0 to 67.7:
+    mouth in the middle, squeezed eyes clear by nearly two units, heel five units
+    under the chin, and less far down than the resting pair already reaches, so
+    the reach does not grow.
+  - **The head is on its own channel, `hbody`, and that is the design.** The
+    state under a pose is already tweening `y` and `sq` over the same window, and
+    two `fromTo`s on one property is a fight whose winner is the build order.
+    So the pose declares `body`, it writes `hbody`, and the frame **adds** it to
+    the drawn head the way the idle layer is added — a state writes exactly what
+    it always wrote. `body` is built once per mark rather than once per acting
+    hand, because a bounce is the head and there is one of those.
+  - **The eyes are interpolated toward the arc rather than multiplied by it**,
+    and that is the line in the fold that matters. `surprised` opens an eye to
+    two and a half times its height and `delighted` has already squashed one to
+    0.40; multiplied, those two would stay six times apart while both were
+    supposed to be closed. Interpolated, a laugh over either is the same shut
+    eye. It goes on the state's own two scales rather than on the drawn product,
+    so the turn's foreshortening still lands on top.
+  - **The first cut's bounce teleported, and the yap had already paid for the
+    fix.** The pop curve reaches 1.1 by 36% of its own duration, so a move on it
+    shorter than about a tenth of a second puts itself into one frame: the drop
+    written over 0.085s stepped the head **3.6 css px** between two frames, past
+    `agreeing`'s worst of 3.05 and past `delighted`'s 3.49. At 0.11 down and 0.13
+    back it is 2.76, under both, and still four and a half bounces a second. The
+    guard is written against those two states rather than against a number
+    invented for it.
+  - **`fr.pose.sq` carries the pose's squash now and `fr.pose.y` deliberately
+    does not.** The eight per cent ceiling is a ceiling on the deformation a
+    viewer sees and the laugh's give sits on top of the state's, so measured on
+    the state alone the guard was reading half the number. The bounce stays out
+    for the mirror image of that reason: `y` is what a state's arrival is scored
+    against, and four bounces a second inside a state's hold would be measured as
+    a state that never settled.
+  - **The hand does not bounce, and that line was written and taken out.** The
+    gloves are drawn inside the card, so the head's own bounce already carries
+    the hand; writing it on the hand as well is a hand sliding down a face on
+    every beat. What is left for it is a small press and turn, on `y` and `rot`
+    and never on `x`, because `x` is the channel the pose is scored on.
+  - **The markup carries a group per drawing rather than per pose** — seven a
+    glove, not eight. Per pose it would put two elements in a glove with the same
+    id, of which a browser shows the first and holds the second forever: a bug
+    with no symptom until somebody counts the children.
+  - **`covers` is on it, so the brows go, and it is the second pose to say so.**
+    The hand is nowhere near the brow line here; what takes them off is the eyes,
+    which are shut arcs, and a brow over a shut arc is a third line on a face
+    meant to have two. Same `HANDS.coverFor` gate.
+  - **The sound is `titter` in `demo/lib/sfx.mjs`**, `giggle` held down: 620 to
+    740 instead of 780 to 980, the third harmonic 0.26 to 0.14, the low pass 3.8k
+    to 2.2k, the attack two and a half milliseconds to eight, at -29 against the
+    giggle's -25. Three cues on the **first three bounces' own frames**, each
+    with its own `step` so the pitch climbs; the fourth bounce is silent because
+    a laugh runs out of breath before it runs out of shoulders. `SFX` has a third
+    entry, `laugh: 'titter'`, and this is the first sound in the module a **pose**
+    asks for rather than a state.
+  - **The cut pairs it with `surprised`, on the right hand.** That state opens an
+    eye widest and the laugh shuts it, which is the frame the two layers would
+    fight on if they were going to. The right hand is also what a mark that says
+    nothing gets: `pos` is `bottom-left`, and which hand acts is derived from it.
+  - `demo/out/poses/pose-strip.mjs` worked out its own xstack layout after the
+    eighth pose silently cropped the hard coded seven input one. It lives under
+    the gitignored `demo/out/`, so this note is the record.
+
 - **Fix round 2026-09-06: the facepalm, four ways.** All in
   `demo/lib/mascot.mjs`. 12,138 frames across 33 plans still byte identical with
   the hands off, the module's checks pass, and the hands chapter renders green at

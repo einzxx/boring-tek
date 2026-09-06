@@ -42,7 +42,7 @@
    repeated in that half: they are already in the states run above, because they
    are states.
 
-   **the hands** — do the seven poses read as seven gestures at a glance, at
+   **the hands** — do the eight poses read as eight gestures at a glance, at
    phone size, and does each one compose with an eye state rather than fight it.
    that is its own clip and the reason is in the hands cut below: turning the
    gloves on moves the head in, so a states clip carrying them would no longer
@@ -161,11 +161,19 @@ function cut() {
    "do the nine read as nine" would have stopped being a control. the second is
    that they are separately useful — a review of the hands wants the hands.
 
-   seven poses in the order they were designed in, each with a face under it,
+   eight poses in the order they were designed in, each with a face under it,
    and **the face is deliberately not `neutral` every time**: the question this
    chapter has to answer beyond "does the pose read" is whether a pose composes
    with an eye state or fights it. a facepalm over an unimpressed face and a
    thumb over a delighted one are the two that would show it.
+
+   **the laugh is the one pose that has a third question**, because it is the
+   one that moves the head as well as a hand. it goes over `surprised` for
+   exactly that reason: that state opens an eye to two and a half times its
+   height, the laugh shuts both to a tenth of that, and if the two layers ever
+   fought each other that is the frame it would be visible on. `surprised` is
+   used twice in this cut now, once under `panic` and once here, which is worth
+   it — nothing else in the table would tell the same thing.
 
    the sides are exercised in the middle of the run rather than at the end: one
    hand, then the other, then both again, so the persistence is on screen — the
@@ -185,6 +193,16 @@ const HANDS_CUT = [
   ['shrug', 'thinking', 'both', 2.60],
   ['point', 'agreeing', 'left', 2.50],
   ['panic', 'surprised', 'both', 2.90],
+  /* the laugh asks for the right hand outright, which is also what it gets when
+     a mark says nothing: `pos` is `bottom-left` here and by default, and the
+     acting hand is derived from it — he stands in a corner and gestures into
+     the frame, so a head on the left acts with its screen right hand. saying it
+     on the mark is the same choice made visible, the way an explicit `bias` is.
+
+     three seconds rather than two and a half because this is the longest pose
+     in the table: a second to get a hand across the face, four bounces at four
+     and a half a second, and a beat to settle before the exit. */
+  ['laugh', 'surprised', 'right', 3.00],
   /* and back to rest, both hands, so the clip ends where it started and two
      copies of it butt together the way the export's clips do. */
   ['rest', 'neutral', 'both', 2.30],
@@ -696,7 +714,11 @@ for (const { tag, chapter, state, probe: p, seconds } of results) {
     if (!H) fail.push(t + 'the hands chapter rendered no gloves');
     else {
       if (H.gloves !== 4) fail.push(t + H.gloves + ' glove groups, wanted four: two hands, two layers');
-      if (H.poses !== 7) fail.push(t + H.poses + ' drawings in a glove, wanted seven: one a pose');
+      /* seven and not eight, because `laugh` and `facepalm` are the same
+         traced file turned onto a different part of the face and the markup
+         carries a drawing once. the page picks a path by drawing rather than by
+         pose, so this counts what is really in there. */
+      if (H.poses !== 7) fail.push(t + H.poses + ' drawings in a glove, wanted seven: one a drawing');
       /* the band is a share of the head rather than a number, and it is on the
          **larger side of the drawn hand**, which is the one measure that means
          the same thing on a fist and on an open hand. the drawn version guarded
@@ -830,7 +852,7 @@ for (const chapter of want) {
     }
     if (seenPose.size !== HAND_POSE_NAMES.length) {
       fail.push(c + 'the cut only exercises ' + [...seenPose].join(', ')
-        + ' — the seven are ' + HAND_POSE_NAMES.join(', '));
+        + ' — the eight are ' + HAND_POSE_NAMES.join(', '));
     }
     /* one hand, the other one, and two. a cut that never named a side would
        leave half of what this part is untested. */

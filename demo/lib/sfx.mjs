@@ -545,6 +545,40 @@ export const VOICES = {
     return ends(normalise(lp(b, 3800)));
   },
 
+  /* the mascot's own giggle, and it is `giggle` held down rather than a second
+     synthesis of the same thing. one note again, fired three times with `step`
+     0, 1 and 2, and the module places the three on the first three bounces of
+     the laugh pose — see HAND_POSES.laugh in lib/mascot.mjs.
+
+     **soft is four changes and none of them is the level.** it starts lower and
+     climbs less far, 620 to 740 against 780 to 980, so the ladder is a whole
+     tone at the bottom of a small robot's range rather than at the top of it.
+     the third harmonic comes down from 0.26 to 0.14, which is most of what
+     takes the edge off a sine: the harmonic is what makes the greeting read as
+     a device rather than as a tone. the low pass comes down from 3.8k to 2.2k,
+     which is the rest of it. and the attack is stretched from two and a half
+     milliseconds to eight, because a fast attack is a bleep and a slow one is a
+     breath — this is the only number in here a listener would call soft rather
+     than quiet.
+
+     it is 68 milliseconds against the giggle's 62, and it is longer on purpose:
+     a soft sound needs a tail or it is a click. the level is in GAINS below and
+     it is four decibels under the giggle's, which is where a thing that happens
+     under a picture rather than as the picture belongs. */
+  titter({ step = 0, len = 0.068, f0 = 620, f1 = 740, tau = 0.034, third = 0.14,
+    ratio = 1.122, attack = 0.008, lpHz = 2200 } = {}) {
+    const b = n(len);
+    const k = Math.pow(ratio, step);
+    let ph = 0;
+    for (let i = 0; i < b.length; i++) {
+      const q = Math.min(1, (i / b.length) / 0.5);
+      ph += 2 * Math.PI * (f0 * k + (f1 - f0) * k * (q * q * (3 - 2 * q))) / SR;
+      b[i] = (Math.sin(ph) + Math.sin(ph * 3) * third)
+        * decay(i, tau) * Math.min(1, i / (attack * SR));
+    }
+    return ends(normalise(lp(b, lpHz)));
+  },
+
   /* the sixteenth: the frame breaking, once, hard. post11 has a glitch of its
      own written inside post11.mjs and this is deliberately not that one. that
      one is a dropped packet, four or five gates coming apart over a sixth of a
@@ -922,6 +956,18 @@ export const GAINS = {
      glitch is the loudest in the set after the coin, because it is a cut and a
      cut is meant to make you flinch. */
   hi: -26, fart: -27, giggle: -25, glitch: -23,
+
+  /* ---------- and the mascot's own, which is under a picture rather than in
+     front of one ----------
+     the `titter` is the module's laugh and it is four decibels under the
+     giggle, which is the whole difference between the two: post12's laugh is
+     the line, and this one plays while a head is bouncing and a hand is moving
+     — the picture is already saying it, and a sound at the giggle's level would
+     be saying it a second time and louder. at -29 three of them inside four
+     tenths of a second are a character breathing rather than three events. it
+     sits with the mumble, which is the other sound in this file written to be
+     under something. */
+  titter: -29,
 
   /* ---------- and post13's three, which are a bed and two punctuation marks --
      the mumble is not an effect, it is the floor of that clip: thirteen
