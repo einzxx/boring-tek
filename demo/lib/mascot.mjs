@@ -698,7 +698,7 @@ export const YAP = {
    the wrist with the palm just clear of the silhouette. every pose exits back
    to that. */
 
-/* ---------- the ten traced paths ----------
+/* ---------- the twelve traced paths ----------
    imported out of `demo/assets/hands/*.svg` with their coordinates untouched,
    wrapped at eighty columns and otherwise as the files hold them. **do not
    redraw these.** they are a trace of somebody else's sheet, the reason they
@@ -708,7 +708,17 @@ export const YAP = {
    each is a 400 by 400 frame, filled, with no stroke and no transform on it.
    `point` is the one with two subpaths and it carries its file's own
    `fill-rule`, which is what draws the folded finger as a line inside the fist
-   rather than as a shape beside it. */
+   rather than as a shape beside it.
+
+   **ten of them came off the sheet and two were drawn for this rig**, and the
+   two are here because the traced review rejected the poses that borrowed a
+   drawing. `laugh` was the facepalm turned forty five degrees onto the mouth
+   and read as a facepalm lying down; `point` aims its finger at camera,
+   foreshortened, and at a 240px head the tip closes into the fist. neither is
+   a number a placement could fix — a viewer reads the pose a hand was drawn
+   for — so each got its own trace. `even` is carried wherever the file
+   declares it rather than only where it changes the picture: it is the file's
+   own attribute and this table is the file, untouched. */
 export const HAND_SHAPES = {
   'rest-left': {
     /* the wrist is the top of the hanging wrist. */
@@ -807,6 +817,48 @@ export const HAND_SHAPES = {
       + 'C 132.9 76.4 101.56 106.96 85.6 132 C 80.86 139.44 77.9 145.5 73.86 152.65 '
       + 'C 42.64 207.7 53.45 281.19 114.88 324.21 Z',
   },
+  'laugh': {
+    /* the wrist is the heel, bottom left, the same corner the facepalm's is:
+       this is that hand redrawn with the fingers held together rather than
+       splayed, which is the whole of what a hand over a mouth needs. */
+    wrist: [121, 315],
+    even: true,
+    d: 'M 148.64 58.34 C 145.12 58.31 141.69 59.52 138.38 62.21 '
+      + 'C 122.45 75.2 91.08 105.71 75.17 130.77 '
+      + 'C 70.4 138.26 67.41 144.26 63.41 151.46 '
+      + 'C 32.18 206.41 42.99 279.9 104.4 322.96 '
+      + 'C 156.04 359.07 214.76 337.97 275.1 301.22 '
+      + 'C 295.74 289.21 316.71 275.75 340.46 259.11 '
+      + 'C 351.11 251.66 356.44 241.83 352.01 230.27 '
+      + 'C 348.32 220.65 342.01 211.64 335.05 204.31 '
+      + 'C 328.74 197.74 322.68 197.1 318.5 196.36 '
+      + 'C 317.1 196.11 315.97 195.8 315.32 195.32 '
+      + 'C 292.34 210.49 271.83 223.9 252.94 236.99 '
+      + 'C 252.67 237.18 252.3 237.11 252.11 236.84 '
+      + 'C 251.92 236.57 251.99 236.2 252.26 236.01 '
+      + 'C 271.18 222.89 291.72 209.47 314.72 194.28 '
+      + 'C 314.73 193.63 315.25 192.8 316.45 191.69 '
+      + 'C 325.36 183.5 328.92 176.37 323.9 165.72 '
+      + 'C 318.25 153.81 308.91 140.82 300.14 133.53 '
+      + 'C 292.19 126.89 283.35 126.98 274.58 131.9 '
+      + 'C 272.68 132.9 270.58 132.7 269.46 131.82 '
+      + 'C 249.92 146.15 231.27 159.31 215.46 171.38 '
+      + 'C 215.34 171.47 215.18 171.52 215.02 171.49 '
+      + 'C 214.86 171.47 214.72 171.39 214.62 171.26 '
+      + 'C 214.42 171 214.47 170.62 214.74 170.42 '
+      + 'C 230.57 158.34 249.22 145.18 268.75 130.85 '
+      + 'C 268.51 130.14 268.72 129.25 269.62 128.29 '
+      + 'C 277.95 119.28 277.49 113.38 270.31 104 '
+      + 'C 263.91 92.25 253.36 81.2 243.52 74.29 '
+      + 'C 236.11 69.11 228.14 71.15 218.41 78.69 '
+      + 'C 194.54 96.75 177.82 108.95 158.07 126.07 '
+      + 'C 148.14 134.73 140.14 141.43 133.4 146.28 '
+      + 'C 130.69 148.17 129.02 146.65 131.41 143.27 '
+      + 'C 144.27 124.5 163.78 109.13 174.58 94.73 '
+      + 'C 179.56 88.07 180.64 83.16 176.54 77.49 '
+      + 'C 170.96 69.68 163.23 63.01 155.05 59.7 '
+      + 'C 152.89 58.83 150.75 58.36 148.64 58.34 Z',
+  },
   'shrug-left': {
     /* the wrist is the inner end, toward the body. */
     wrist: [328.4, 250.7],
@@ -853,6 +905,62 @@ export const HAND_SHAPES = {
       + 'C 209.9 252.8 225.8 226.7 250.1 213.5 C 246.5 206 243.2 200.9 239.3 193.7 '
       + 'C 233 196.1 221 197.3 212 196.1 C 179 193.4 158 171.2 158 138.5 '
       + 'C 158 119.6 167.6 99.5 185 87.5 Z',
+  },
+  'point-side': {
+    /* the wrist is the base of the fist, which is what a fist's wrist is and
+       is what `point` already says. the second subpath is the crease the sheet
+       draws across the folded fingers. */
+    wrist: [153.1, 328.3],
+    even: true,
+    d: 'M 98.69 54.73 C 97.04 54.74 95.46 54.9 94 55.2 '
+      + 'C 86.2 56.8 77.4 62.5 74.8 69.8 C 72.2 77.1 77.3 85.3 80.1 94.4 '
+      + 'C 84.8 109.7 86.3 124.9 83.84 139.34 '
+      + 'C 82.39 155.34 75.84 165.34 66.84 179.34 '
+      + 'C 47.84 208.34 35.84 235.34 40.84 265.34 '
+      + 'C 48.84 313.34 98.84 337.87 142.84 344.34 '
+      + 'C 176.84 349.34 207.84 334.34 230.84 318.34 '
+      + 'C 243.84 308.34 253.84 298.34 255.84 286.34 '
+      + 'C 256.84 279.34 255.84 270.34 252.84 265.34 '
+      + 'C 252.15 264.2 251.02 263.4 250.12 262.72 '
+      + 'C 245.13 265.66 239.15 268.08 231.04 268.6 '
+      + 'C 213.12 269.79 175.57 270.78 151.48 268.92 '
+      + 'C 147.14 286.09 147.89 305.85 154.54 319.74 '
+      + 'C 154.68 320.04 154.56 320.4 154.26 320.54 '
+      + 'C 153.96 320.68 153.6 320.56 153.46 320.26 '
+      + 'C 146.65 306.05 145.93 286.17 150.28 268.79 '
+      + 'C 146.05 268.33 143.03 266.78 141.08 264.34 '
+      + 'C 139.02 261.76 138.11 258.31 137.8 254.35 '
+      + 'C 137.3 248.94 136.9 243.48 137 238.78 '
+      + 'C 137.1 234.07 137.67 230.12 139.3 227.67 '
+      + 'C 143.04 222.11 148.65 215.79 158.58 211.94 '
+      + 'C 176.85 204.91 197.93 200.7 226.82 199.76 '
+      + 'C 227.15 199.75 227.43 200.01 227.44 200.34 '
+      + 'C 227.45 200.67 227.19 200.95 226.86 200.96 '
+      + 'C 198.07 201.9 177.15 206.09 159.02 213.06 '
+      + 'C 149.35 216.81 143.96 222.89 140.3 228.33 '
+      + 'C 138.93 230.38 138.3 234.18 138.2 238.8 '
+      + 'C 138.1 243.42 138.5 248.85 139 254.24 '
+      + 'C 139.29 258.09 140.18 261.29 142.02 263.59 '
+      + 'C 143.86 265.89 146.66 267.36 151.05 267.7 '
+      + 'C 174.98 269.6 212.99 268.6 230.96 267.4 '
+      + 'C 238.68 266.91 244.36 264.68 249.15 261.9 '
+      + 'C 248.99 261.71 248.86 261.52 248.84 261.34 '
+      + 'C 248.74 260.34 259.84 256.34 261.84 245.34 '
+      + 'C 263.84 235.34 263.84 221.34 260.84 213.34 '
+      + 'C 257.84 203.34 251.84 198.34 241.84 196.34 '
+      + 'C 236.84 195.34 236.84 193.34 241.84 192.34 '
+      + 'C 273.84 187.34 305.84 187.34 334.84 186.34 '
+      + 'C 350.84 185.79 358.84 182.34 359.84 170.34 '
+      + 'C 360.44 163.34 360.44 151.34 359.84 144.34 '
+      + 'C 358.84 132.34 352.84 129.34 337.84 129.34 '
+      + 'C 279.84 128.34 209.84 131.34 150.84 138.34 '
+      + 'C 145.84 138.94 142.84 137.34 142.84 132.34 '
+      + 'C 142.84 104 134.2 83.86 118.4 63.1 '
+      + 'C 114.01 57.33 105.8 54.67 98.69 54.73 Z M 148.84 151.74 '
+      + 'C 164.34 154.74 176.54 163.74 184.34 174.74 '
+      + 'C 184.79 175.39 183.79 176.09 183.34 175.44 '
+      + 'C 175.74 164.74 163.74 155.84 148.64 152.94 '
+      + 'C 147.84 152.79 148.04 151.59 148.84 151.74 Z',
   },
   'panic-left': {
     /* the wrist is the heel, below the grip. */
@@ -936,7 +1044,63 @@ export const HANDS = {
      brow under `surprised` already steps **0.429** of its own opacity in one
      frame, and the worst this gate writes is 0.034. */
   coverFor: 0.18,
+  /* ---------- how fast a glove is allowed to move ----------
+     **this is the number the pose table's own durations were derived from, and
+     writing it down here is what lets a clip supply its own.** every `entry`
+     and `exit` in the table below is a duration somebody arrived at by taking a
+     pose's travel and slowing it until it stopped smearing; `panic` says so
+     outright and so does `point`. that made the durations the constants and the
+     speed a comment, which is backwards — a clip that wants a quicker laugh is
+     not asking to break a rule, it is asking for the shortest duration the rule
+     allows, and there was no way to say so.
+
+     so the speed is the constant now. twelve css px between two frames at
+     sixty, measured on the hand's own anchor, and it is the same ceiling the
+     module's own checks have held every pose to since the gloves landed. the
+     difference is that `planMascot` now measures it, on the plan's own frames,
+     and a supplied duration that is faster than the pose can physically move is
+     refused with the number and the duration that would work.
+
+     twelve rather than the yap's eight because of the size of the thing moving:
+     the yap measures a fingertip twelve device px across, so eight css px is
+     more than its own width in a frame and it smears. a glove is sixty six
+     device px across and twelve css px is twenty four of them, under a third of
+     it — a shape that big is tracked at that speed.
+
+     `stepFps` is sixty rather than the clip's own rate on purpose. the ceiling
+     is about what a viewer sees between two frames of a *finished* cut, and our
+     cuts are sixty; measuring a twelve fps preview against its own rate would
+     pass everything, since a twelve fps frame is five times the travel. */
+  stepCeil: 12,
+  stepFps: 60,
 };
+
+/* ---------- a pose's own clock ----------
+   a pose declares its choreography in seconds from its mark: `entry` for the
+   arrival and then a hold's worth of beats at absolute offsets. those offsets
+   were written against the table's own `entry`, so a mark that supplies a
+   different one has to carry them with it — a laugh whose hand lands in six
+   tenths instead of a second still has to start bouncing three frames after it
+   lands, and a bounce left at 1.04 would go off while the hand was still in the
+   air.
+
+   so every time a pose declares goes through this. **the entrance is scaled and
+   everything after it is shifted**, which is the only mapping that is right for
+   both halves: the arrival is one move and a shorter window means a faster one,
+   while a hold beat is a beat and squeezing it because the entrance got quicker
+   would be answering a question nobody asked. the hold is not scaled at all,
+   which is also what keeps this identity for every clip written before it —
+   `planMascot` already stretches a hold to fill the room and the beats have
+   always played at the front of it.
+
+   it returns the identity function when the mark supplied nothing, so a pose at
+   its table duration goes through no arithmetic at all and cannot drift by a
+   rounding error. */
+function poseClock(HP, entry) {
+  if (!(entry > 0) || Math.abs(entry - HP.entry) < 1e-9) return u => u;
+  const k = entry / HP.entry, d = entry - HP.entry;
+  return u => (u <= HP.entry ? u * k : u + d);
+}
 
 /* the file's own frame, which every wrist and every `d` above is written in. */
 const SHAPE_BOX = 400;
@@ -1149,12 +1313,15 @@ export const LAUGH = {
    entrance, a hold with its own beat, and an exit back to rest. the shape is
    the state table's shape and the numbers are in the same units.
 
-   **a picture rather than a drawing, because two of them are the same drawing.**
-   `laugh` is the facepalm's own traced path turned onto the mouth, and it is a
-   different pose for the reason a pose is a shape *and* a placement: the same
-   hand forty five degrees round and twenty five units lower is a different
-   gesture, and there was no second file to trace one from. the check below is
-   written on the pair rather than on the drawings for that reason.
+   **nine now, and every one of them carries its own drawing.** for one build
+   two of them did not: `laugh` was the facepalm's path turned forty five
+   degrees onto the mouth, on the argument that a pose is a shape *and* a
+   placement and there was no second file to trace one from. the argument is
+   sound and the picture was still wrong — a facepalm is drawn to be seen palm
+   on with the wrist coming off the side of the head, and lying it down over a
+   mouth reads as a facepalm lying down. a viewer reads the pose a drawing was
+   made for, which is the same finding the six rounded rects got. so the two
+   borrowed poses were drawn: see the trace table above.
 
    `shape` is which traced path it is. a string is one drawing and the second
    hand is it flipped; a pair is `[screen left, screen right]` and each hand
@@ -1304,28 +1471,37 @@ export const HAND_POSES = {
   },
 
   /* ---------- the laugh ----------
-     the facepalm's drawing again, and it is the only pose in the table that
-     borrows one. that is worth an argument rather than an apology: a laugh
-     needs a **flat** hand over the mouth, and of the ten traced files the
-     facepalm is the flat one — an open hand seen palm on with the fingers
-     together. `wave` is the other open hand and its fingers are splayed, which
-     over a mouth is a hand somebody is waving at their own face.
+     **its own drawing now, and the row is what changed least.** for one build
+     this was the facepalm turned forty five degrees onto the mouth, and the
+     review rejected the picture rather than the placement: the facepalm is an
+     open hand with the fingers *splayed*, drawn to be read palm on with the
+     wrist coming off the side of the head, and a splayed hand laid over a mouth
+     is a facepalm lying down. `demo/assets/hands/laugh.svg` is that hand
+     redrawn with the four fingers held **together**, which is what a hand over
+     a mouth actually is, and it is the only thing about the pose that is new.
 
-     **minus forty five degrees is what turns it flat.** the file is drawn with
-     the wrist bottom right and the fingers running up and to the left, which is
-     what a facepalm is; turning the whole thing back by forty five puts that
-     run horizontal, so the fingers lie across the face and the wrist sits out
-     by the jaw where a wrist goes. it is one number and it is the whole
-     difference between the two poses.
+     the drawing kept the facepalm's own axis on purpose, so the row kept its
+     rotation: the wrist is the heel at the bottom left and the fingers run up
+     and to the right, and turning the mirrored hand back by forty five puts
+     that run horizontal — the fingers lie across the face and the wrist sits
+     out by the jaw where a wrist goes. the measured proof that the two
+     drawings are the same hand is in `out/poses/measure-traced.json`: 308 by
+     284 against 304 by 283, a palm within a point of the other's, and a wrist
+     eleven units along the same edge.
 
-     where it lands is the yap hand's own spot, which is the one place in this
-     module that has already had the argument about where a mouth would be:
-     29.9 across, which is two units left of the face's centre and under both
-     eyes rather than beside one, and 48.5 down. the ink covers x 16.8 to 43.0
-     and y 42.0 to 67.7, so the mouth is in the middle of it, the squeezed eyes
-     clear the top by nearly two units, and the heel hangs five units under the
-     chin — which is a hand held in front of a face rather than painted on one,
-     and is less far down than the resting pair already reaches.
+     **the placement moved twice, and both moves are the review's.** it sits a
+     little further right and it is a little smaller: 40.9 and 1.06 are what
+     those two were said against, and 41.3 and 1.02 are what they are now. what
+     that draws, measured by `out/poses/place-laugh.mjs` against the geometry
+     rather than eyed, is ink covering x 19.9 to 43.2 and y 42.5 to 66.6 — the
+     mouth at 29.9 still inside it, the centre at 31.4 rather than 29.9, so the
+     hand has come a unit and a half right and is still half a unit left of the
+     face's own centre line, which is the emoji's off centre hold and the whole
+     reason the yap hand sits where it does. the squeezed eyes now clear the top
+     by 2.4 units rather than 1.8, and the heel hangs 4.6 under the chin rather
+     than 5.0 — both of those are the "a bit smaller" and both are the right
+     direction. it still reaches less far down than the resting pair, which
+     bottoms out at 68.9.
 
      it takes the brows with it, `covers`, and that is the second pose to say so
      rather than the first. the hand is nowhere near the brow line here: what
@@ -1334,10 +1510,10 @@ export const HAND_POSES = {
      two. the gate is the same one and for the same reason it is quick. */
   laugh: {
     label: 'one flat hand over the mouth, head bouncing, eyes shut',
-    shape: 'facepalm',
+    shape: 'laugh',
     entry: 1.01, hold: 1.40, exit: 0.32, both: false,
-    at: { x: 40.9, y: 56.7, rot: -45, sc: 1.06 },
-    mark: { chan: 'x', to: 40.9 },
+    at: { x: 41.3, y: 56.7, rot: -45, sc: 1.02 },
+    mark: { chan: 'x', to: 41.3 },
     covers: true,
     /* ---------- and it is the one pose that makes a sound ----------
        three cues rather than one buffer, and they are the **first three
@@ -1357,8 +1533,8 @@ export const HAND_POSES = {
       const A = HAND_POSES.laugh.at;
       /* across and down onto the mouth, and the duration is the travel exactly
          as the facepalm's is: the resting pair hangs out past the silhouette
-         and this crosses twenty eight and a half grid units to get to the
-         middle of the face, which is fifty seven css px. under nine tenths of a
+         and this crosses twenty eight and a quarter grid units to get to the
+         middle of the face, which is fifty six css px. under nine tenths of a
          second on the pop curve the fastest frame of that is a hand arriving as
          a smear. */
       B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc },
@@ -1468,6 +1644,75 @@ export const HAND_POSES = {
     },
   },
 
+  /* ---------- the point, at the viewer ----------
+     the pose `point` was always trying to be, and the reason it is a second row
+     rather than an edit to that one is that both are worth having. `point`
+     aims the finger **at camera**, foreshortened, and the review found the cost
+     of that at a 240px head: the tip closes into the fist and what is left is a
+     fist with a bump on it. a foreshortened finger is a drawing that needs the
+     size it was drawn at.
+
+     so this one aims the finger **across and down** instead, out of the frame
+     toward the viewer's lower right, which is how a cartoon says "you" without
+     asking a flat drawing to do perspective. the finger is in profile and its
+     whole length is on screen, so it reads at any size.
+
+     **the pair form is here to say "do not mirror this one", and that is the
+     thing about the row worth reading twice.** every other one handed pose
+     carries a bare string, which `handShape` reads as "the screen left hand
+     gets the file and the screen right one gets its mirror" — and for a wave
+     or a facepalm that is exactly right, because a mirrored open hand is still
+     an open hand. a finger gun is not: mirroring it reverses the direction the
+     finger points, which is the entire pose. so this row carries
+     `['point-side', 'point-side']`, the form that means "each hand gets its own
+     drawing", and both hands get the same one, unflipped. the file runs the
+     index along +x with the thumb up, so whichever hand acts, the finger points
+     screen right and `rot` is free to aim it.
+
+     a rendered frame is what settled this, and it settled it twice. with the
+     bare string the pose landed on the screen left hand with the finger aimed
+     **into the chin** — a mascot pointing at his own face — and mirroring it
+     onto the right hand aimed it up and to the left instead. a hand points away
+     from the body, so the hand has to be on the side the finger points to, and
+     the drawing has to keep its handedness to get there.
+
+     so it sits on the **screen right**, past the ear, and aims down and out:
+     `rot: 25` is 25 degrees below the horizontal, and the fingertip leaves the
+     frame's bottom right rather than landing anywhere on the head. that is also
+     why it needs no `side` — he stands in a corner and gestures into the frame,
+     so the acting hand is already the screen right one.
+
+     the travel is the resting hand's own: rest is 68.0 across and 47.5 down and
+     this is 70.4 and 57.6, which is 10.4 grid units and a shade under `point`'s
+     11.4 — the same jab at the same speed, and the guard scores it the same
+     way. */
+  'point-viewer': {
+    label: 'one index out, aimed down and out at the viewer',
+    shape: ['point-side', 'point-side'],
+    entry: 0.40, hold: 1.15, exit: 0.28, both: false,
+    at: { x: 70.4, y: 57.6, rot: 25, sc: 1.0 },
+    mark: { chan: 'y', to: 57.6 },
+    build(B, k) {
+      const A = HAND_POSES['point-viewer'].at;
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc },
+        { for: 0.34, ease: 'pop', anti: 0.42, antiFor: 4 / 60 });
+      /* two jabs, the second smaller and quicker, which is `point`'s shape and
+         `agreeing`'s two nods before it: two of them read as one gesture and a
+         row of them reads as a loop.
+
+         **they go along the finger rather than straight out**, which is the one
+         thing this differs from `point` in: that pose aims at camera, so a jab
+         is a push and its `y` is only there to keep the wrist under the tip.
+         this finger has a direction on screen, and a jab that did not follow it
+         would be a hand sliding sideways behind its own point. 25 degrees below
+         the horizontal is 2.4 across to 1.1 down, which is what these are. */
+      B.set(k, { x: A.x + 2.4, y: A.y + 1.1 }, { for: 0.16, at: 0.52, ease: 'pop' });
+      B.set(k, { x: A.x, y: A.y }, { for: 0.22, at: 0.70, ease: 'glide' });
+      B.set(k, { x: A.x + 1.6, y: A.y + 0.7 }, { for: 0.14, at: 0.96, ease: 'pop' });
+      B.set(k, { x: A.x, y: A.y }, { for: 0.26, at: 1.12, ease: 'glide' });
+    },
+  },
+
   panic: {
     label: 'both hands up on the head, gripping',
     shape: ['panic-left', 'panic-right'],
@@ -1505,6 +1750,41 @@ export const HAND_POSES = {
 };
 export const HAND_POSE_NAMES = Object.keys(HAND_POSES);
 
+/* ---------- what a mark may say about a pose ----------
+   `hands: 'wave'` is the whole surface every clip before this one used and it
+   is untouched. `hands: { pose: 'wave', entry: 0.6 }` is the same thing with
+   its own timings, and it is an object rather than four more fields beside
+   `side` for one reason: `entry`, `hold` and `exit` are words the **state**
+   layer would want too, and a flat `entry` on a mark that carries both a state
+   and a pose could only ever mean one of them. nesting them under the thing
+   they are about is the answer that stays right when the states want theirs.
+
+   the four options, and each is optional:
+
+   **`entry`, `hold`, `exit`** override the pose table's own. a supplied `entry`
+   carries the pose's whole choreography with it — see `poseClock` — so a laugh
+   given six tenths to get its hand up still starts bouncing three frames after
+   it lands. an omitted `hold` stretches to fill the room the way it always did;
+   a supplied one may leave the pose sitting still before the next mark, which
+   is a legitimate thing to want and is why it is allowed to be nought.
+
+   **`next: true`** hands the pose's hands straight to the following hands mark
+   with no trip home in between. it is a flag rather than a pose name because
+   the pose it runs into is the next hands mark and naming it here would be a
+   second copy of that to keep in agreement. a chained pose has no exit, which
+   is why asking for both is refused.
+
+   what makes a supplied duration legal is **not** in this list, and that is the
+   point of the part: it is the speed the pose actually moves at, measured off
+   the plan's own frames against `HANDS.stepCeil`. */
+export const HANDS_MARK_KEYS = ['pose', 'entry', 'hold', 'exit', 'next'];
+export function handsSpec(v) {
+  if (v == null) return null;
+  if (typeof v === 'string') return { pose: v };
+  if (v && typeof v === 'object' && typeof v.pose === 'string') return v;
+  return null;
+}
+
 /* ---------- which drawing a pose puts in which hand ----------
    a two handed pose carries the sheet's own pair and neither is flipped; a one
    handed one carries one drawing, and **that drawing is the screen left hand**,
@@ -1533,12 +1813,21 @@ export function handShape(pose, k) {
    that mark's own frame until its exit begins, and it holds `rest` at every
    other instant — including through the exit, so the shape a hand travels home
    in is the shape it is going home to. a hand that is not acting on a pose is
-   at rest whatever the acting one is doing, which is what the sheet draws. */
+   at rest whatever the acting one is doing, which is what the sheet draws.
+
+   **a chained pose is the exception, and it is the same rule read properly.**
+   the rule is that a hand holds the shape it is going to, and a pose with a
+   successor is not going home — nothing moves its hand between its own last
+   beat and the successor's mark. so it keeps holding, and the swap happens on
+   the successor's own frame rather than on its own `leaving`. without this a
+   chained pose whose hold was cut short by an explicit duration would swap to
+   `rest` and sit there, which is a hand changing shape while standing perfectly
+   still: the one thing a shape that is not a channel exists to prevent. */
 function handShapeAt(plan, t, k) {
   let pose = 'rest';
   for (const m of plan.marks) {
     if (!m.hands || m.t > t) continue;
-    if (t >= m.hands.leaving) { pose = 'rest'; continue; }
+    if (t >= m.hands.leaving && !m.hands.next) { pose = 'rest'; continue; }
     pose = m.hands.acting.includes(k) ? m.hands.pose : 'rest';
   }
   return handShape(pose, k);
@@ -2130,13 +2419,47 @@ export function planMascot(opts = {}) {
        a plan error rather than a silent no op. the whole point of a part being
        opt in is that asking for it is explicit. */
     if (m.hands != null) {
+      const spec = handsSpec(m.hands);
+      if (!spec) {
+        throw new Error('mark ' + m.i + '\'s hands field is neither a pose name nor'
+          + ' { pose, entry, hold, exit, next } — it is ' + JSON.stringify(m.hands));
+      }
       if (!o.hands) {
-        throw new Error('mark ' + m.i + ' asks for the hands pose "' + m.hands
+        throw new Error('mark ' + m.i + ' asks for the hands pose "' + spec.pose
           + '", and this plan has no hands on it — pass `hands: true`');
       }
-      if (!HAND_POSES[m.hands]) {
-        throw new Error('no hands pose called "' + m.hands + '" — the eight are '
+      if (!HAND_POSES[spec.pose]) {
+        throw new Error('no hands pose called "' + spec.pose + '" — the nine are '
           + HAND_POSE_NAMES.join(', '));
+      }
+      for (const key of Object.keys(spec)) {
+        if (!HANDS_MARK_KEYS.includes(key)) {
+          throw new Error('mark ' + m.i + '\'s hands carries "' + key + '", which is not one of '
+            + HANDS_MARK_KEYS.join(', '));
+        }
+      }
+      /* a duration is a duration. an entrance of nought is a hand appearing
+         where it was going, which is the one thing the whole part exists to
+         avoid; a hold of nought is legal and means "arrive and leave". */
+      for (const key of ['entry', 'exit']) {
+        if (spec[key] != null && !(Number(spec[key]) > 0)) {
+          throw new Error('mark ' + m.i + '\'s hands ' + key + ' is ' + spec[key]
+            + ' — a duration is a positive number of seconds');
+        }
+      }
+      if (spec.hold != null && !(Number(spec.hold) >= 0)) {
+        throw new Error('mark ' + m.i + '\'s hands hold is ' + spec.hold
+          + ' — it is nought or more seconds');
+      }
+      if (spec.next != null) {
+        if (spec.next !== true) {
+          throw new Error('mark ' + m.i + '\'s hands next is ' + JSON.stringify(spec.next)
+            + ' — it is `true`, and the pose it runs into is the next hands mark');
+        }
+        if (spec.exit != null) {
+          throw new Error('mark ' + m.i + ' asks for both an exit and a next'
+            + ' — a chained pose has no exit, its successor takes the hand from where it is');
+        }
       }
     }
     if (m.side != null) {
@@ -2307,17 +2630,58 @@ export function planMascot(opts = {}) {
     let on = [1, 1];
     for (let j = 0; j < idx.length; j++) {
       const k = idx[j];
-      const name = marks[k].hands, HP = HAND_POSES[name];
+      const spec = handsSpec(marks[k].hands);
+      const name = spec.pose, HP = HAND_POSES[name];
       const next = j + 1 < idx.length ? out[idx[j + 1]].t : seconds;
       const room = next - out[k].t;
-      const floor = HP.entry + HP.exit + 0.30;
-      if (room < floor) {
+      /* ---------- what this pose was given, and what it asked for ----------
+         the table's numbers unless the mark bought its own. a chained pose has
+         no exit at all: its successor's entrance is what moves the hand next,
+         and an exit written under it would be two tweens on one channel over
+         one window, which is the fight the whole builder is arranged to avoid. */
+      if (spec.next && j + 1 >= idx.length) {
+        throw new Error('the hands pose on mark ' + k + ' (' + name + ' at '
+          + out[k].t.toFixed(2) + 's) asks to run into the next pose and there is not one'
+          + ' — a chain needs a hands mark after it');
+      }
+      const entry = spec.entry != null ? +Number(spec.entry).toFixed(4) : HP.entry;
+      const exit = spec.next ? 0 : (spec.exit != null ? +Number(spec.exit).toFixed(4) : HP.exit);
+      /* an omitted hold stretches to fill the room, which is what it has always
+         done and is why a clip only ever has to place the marks. a supplied one
+         is taken literally and may leave the pose sitting still before the next
+         mark — the hand is somewhere rather than mid gesture, so that is a hold
+         and not a gap. */
+      const hold = spec.hold != null ? +Number(spec.hold).toFixed(4)
+        : room - entry - exit;
+      /* ---------- and does it fit ----------
+         two different failures with two different messages, because they have
+         two different fixes. a pose whose own durations do not fit the room
+         wants the marks moved; a pose with no room to hold wants either the
+         marks moved or a shorter entrance, and only the second of those is new.
+
+         the 0.30 floor is only applied to a hold this function worked out for
+         itself. a clip that names its own hold has said what it wants, and
+         nought is a legal answer — `point-viewer` jabbing twice and handing
+         straight over to a laugh never sits still at all. */
+      if (hold < 0) {
+        throw new Error('the hands pose on mark ' + k + ' (' + name + ' at '
+          + out[k].t.toFixed(2) + 's) is given ' + (entry + hold + exit).toFixed(2)
+          + 's of entrance, hold and exit and has ' + room.toFixed(2)
+          + 's before the next hands mark');
+      }
+      if (spec.hold == null && hold < 0.30) {
         throw new Error('the hands pose on mark ' + k + ' (' + name + ' at '
           + out[k].t.toFixed(2) + 's) has ' + room.toFixed(2)
-          + 's before the next hands mark and needs ' + floor.toFixed(2)
-          + 's for its own entrance, a hold and its exit');
+          + 's before the next hands mark and needs ' + (entry + exit + 0.30).toFixed(2)
+          + 's for its ' + entry.toFixed(2) + 's entrance, a hold and its '
+          + exit.toFixed(2) + 's exit');
       }
-      const hold = room - HP.entry - HP.exit;
+      if (entry + hold + exit > room + 1e-9) {
+        throw new Error('the hands pose on mark ' + k + ' (' + name + ' at '
+          + out[k].t.toFixed(2) + 's) asks for ' + (entry + hold + exit).toFixed(2)
+          + 's of entrance, hold and exit inside ' + room.toFixed(2)
+          + 's before the next hands mark');
+      }
       const side = marks[k].side || 'both';
       const nextOn = side === 'both' ? [1, 1] : side === 'left' ? [1, 0] : [0, 1];
       /* a two handed pose is taken by every hand on screen; a one handed one is
@@ -2337,13 +2701,42 @@ export function planMascot(opts = {}) {
       }
       out[k].hands = {
         pose: name, label: HP.label, side, on: nextOn, acting, both: !!HP.both,
-        entry: HP.entry, hold: +hold.toFixed(4), exit: HP.exit,
-        settled: +(out[k].t + HP.entry).toFixed(4),
-        leaving: +(out[k].t + HP.entry + hold).toFixed(4),
-        out: +(out[k].t + HP.entry + hold + HP.exit).toFixed(4),
+        entry, hold: +hold.toFixed(4), exit,
+        settled: +(out[k].t + entry).toFixed(4),
+        leaving: +(out[k].t + entry + hold).toFixed(4),
+        out: +(out[k].t + entry + hold + exit).toFixed(4),
         mark: mk,
+        /* ---------- the chain, resolved both ways ----------
+           `next` is the successor's pose name and `from` is the predecessor's,
+           so a mark carries the whole chain it is in without anything having to
+           walk the list again — `handShapeAt` reads one, the builder's seed
+           reads the other, and the brow gate reads both. they are names rather
+           than indices because every other thing on this record is a name.
+
+           `handover` is the window the successor's mark opens, which is where
+           everything this pose would have done on its own exit happens instead.
+           it is filled in below, once the successor's own record exists. */
+        next: spec.next ? handsSpec(marks[idx[j + 1]].hands).pose : null,
+        from: null, handover: null,
       };
       on = nextOn;
+    }
+    /* the second pass, because a chain points forward and a record can only be
+       written once its successor has one. it is a loop over the same list
+       rather than a lookahead inside the first one for the same reason
+       `placeThought` runs last: reading a thing that does not exist yet is how
+       a plan quietly gets half an answer. */
+    for (let j = 0; j + 1 < idx.length; j++) {
+      const a = out[idx[j]].hands, b = out[idx[j + 1]].hands;
+      if (!a.next) continue;
+      b.from = a.pose;
+      a.handover = { at: out[idx[j + 1]].t, for: b.entry, acting: b.acting };
+      /* and the pose stops when its successor starts rather than when its own
+         exit would have: with no exit the two are the same instant unless the
+         mark named a shorter hold, and then the hand is simply standing still
+         in the pose until the handover. `out` is what every consumer asks for
+         "is this pose still on screen", and a chained pose is. */
+      a.out = out[idx[j + 1]].t;
     }
     if (!idx.length) {
       notes.push('the hands are on and nothing poses them, so they hold the resting pair');
@@ -2486,6 +2879,29 @@ export function planMascot(opts = {}) {
      this point depends on the box. with the gloves off it does not run at all,
      so a plan that did not ask for them is placed exactly where it always was. */
   if (plan.hands) {
+    /* ---------- and they may not move faster than a hand moves ----------
+       this runs before the reach, because a pose that smears is a pose that is
+       wrong and there is no point measuring where a wrong pose reaches.
+
+       the guard says what is wrong and this says what to type instead — see
+       `suggestHandsEntry`. it is bolted on here rather than inside the guard
+       because finding out takes the options this plan was made from, and the
+       guard only has the plan. */
+    try { handsSpeedGuard(plan); }
+    catch (e) {
+      /* a trial inside the search rethrows exactly what it was given, tag and
+         all: the search reads that tag to tell "still too fast" apart from "you
+         have broken something else", and dressing the message up here would
+         throw the tag away and end the walk on its first step. */
+      if (!e.handsSpeed || SPEED_SEARCH) throw e;
+      const better = suggestHandsEntry(o, marks, e.handsSpeed);
+      const more = new Error(e.message + (better
+        ? '. give it ' + better.toFixed(2) + 's of entrance, which is the shortest'
+          + ' this clip takes, or move the mark'
+        : '. no entrance this clip has room for clears it — move the mark'));
+      more.handsSpeed = e.handsSpeed;
+      throw more;
+    }
     const reach = handsReach(plan);
     plan.handsReach = reach;
     plan.box = placeHead(o.pos, o.size, plate, o.margin, {
@@ -2580,6 +2996,114 @@ function handsReach(plan) {
   }
   for (const k in worst) worst[k] = +Math.max(0, worst[k]).toFixed(3);
   return worst;
+}
+
+/* ---------- how fast the gloves actually move ----------
+   **the guard that replaced a table of constants with a measurement.** the pose
+   table's own `entry` and `exit` are durations somebody arrived at by taking a
+   pose's travel and slowing it until it stopped smearing, and until a mark
+   could supply its own there was nothing to check: the table was both the
+   question and the answer. now a clip can ask for a quicker laugh, and the only
+   honest reply is the one the durations were derived from — how far does the
+   hand go, and how far is that between two frames.
+
+   so it is measured rather than modelled, on the plan's own frames, and it is
+   the **same measurement** `mascotMotion` reports after a render: the anchor's
+   travel in css px between two frames at sixty, counted only while both hands
+   are on screen. two implementations of one number would drift apart, and the
+   whole value of a plan time guard is that it says the same thing the render
+   is going to say, before the render.
+
+   modelling it was tried first and thrown away, and the reason is worth the
+   line: the obvious form is travel times the curve's peak slope over the
+   duration, and pop's peak slope is 5.63. that is right in the limit and wrong
+   where it matters — over a move short enough to be a problem, one frame is a
+   large share of the whole duration and the discrete step is nothing like the
+   derivative. the laugh's own bounce is the worked example: 4.6 css px over
+   0.085s measures 3.6, and the slope model says 5.1.
+
+   it is charged to the pose whose window the frame falls in, so the message can
+   name the pose and the duration rather than a time. a frame inside two windows
+   — the instant a chain hands over — is charged to both, which is right: either
+   pose's duration could be the one that is wrong. */
+function handsSpeedGuard(plan) {
+  const fps = HANDS.stepFps, N = Math.round(plan.seconds * fps);
+  const worst = plan.marks.map(() => ({ d: 0, t: 0 }));
+  let prev = null;
+  for (let i = 0; i <= N; i++) {
+    const t = i / fps;
+    const h = mascotFrame(plan, t).hands;
+    if (!h) { prev = null; continue; }
+    const now = h.list.map(gl => ({ x: gl.x * plan.unit, y: gl.y * plan.unit, o: gl.o }));
+    if (prev) {
+      for (let k = 0; k < 2; k++) {
+        if (now[k].o < 0.5 || prev[k].o < 0.5) continue;
+        const d = Math.hypot(now[k].x - prev[k].x, now[k].y - prev[k].y);
+        for (let j = 0; j < plan.marks.length; j++) {
+          const m = plan.marks[j];
+          if (!m.hands || t < m.t || t > m.hands.out) continue;
+          if (d > worst[j].d) worst[j] = { d, t };
+        }
+      }
+    }
+    prev = now;
+  }
+  for (let j = 0; j < plan.marks.length; j++) {
+    const m = plan.marks[j], w = worst[j];
+    if (!m.hands || w.d <= HANDS.stepCeil) continue;
+    const H = m.hands;
+    const e = new Error('the hands pose on mark ' + j + ' (' + H.pose + ' at '
+      + m.t.toFixed(2) + 's) moves a hand ' + w.d.toFixed(1)
+      + ' css px between two frames at ' + fps + ', against a ceiling of ' + HANDS.stepCeil
+      + ' — that is a hand teleporting rather than travelling. the worst frame is at '
+      + w.t.toFixed(2) + 's, inside its ' + H.entry.toFixed(2) + 's entrance / '
+      + H.hold.toFixed(2) + 's hold / ' + H.exit.toFixed(2) + 's exit');
+    /* what `planMascot` needs to go and find a duration that would work. it is
+       tagged rather than parsed back out of the sentence, and the search is up
+       there rather than in here because this function has the plan and the
+       search needs the options the plan was made from. */
+    e.handsSpeed = { mark: j, step: +w.d.toFixed(1), entry: H.entry };
+    throw e;
+  }
+}
+
+/* ---------- and the duration that would have worked ----------
+   **it is searched for rather than solved, and the reason is worth the lines.**
+   the obvious closed form is the pose's travel times the curve's own worst
+   frame over the duration, and it is close: modelled against the laugh's 63 css
+   px of travel it lands within a few per cent of what the frames actually
+   measure, anywhere near the answer. it is not close at the far end, where a
+   single frame is a large share of the whole entrance and the discrete step
+   stops tracking the curve at all — a twelfth of a second entrance measures
+   35.7 and the model says 40.5, and scaling out of a calibration that wrong
+   suggested 0.36s for a pose that needs 0.53.
+
+   so it does the only thing that cannot be wrong: it plans the clip again with
+   a longer entrance and asks the same guard. the first candidate is the
+   proportional guess, which is a good starting point even when it is short,
+   and then it walks up in fifteenths until the guard stops firing. four or five
+   plans in the ordinary case, and it only ever runs on the way to an exception,
+   so the cost is paid by a clip that is already broken.
+
+   `SPEED_SEARCH` stops the trials searching for themselves, which would be a
+   plan tree rather than a walk. the trials still run the guard — that is the
+   whole question being asked. */
+let SPEED_SEARCH = false;
+function suggestHandsEntry(o, marks, hit) {
+  if (SPEED_SEARCH) return null;
+  const base = handsSpec(marks[hit.mark].hands);
+  let e = Math.max(hit.entry * 1.05, hit.entry * hit.step / HANDS.stepCeil);
+  SPEED_SEARCH = true;
+  try {
+    for (let i = 0; i < 14; i++, e *= 1.15) {
+      const entry = +e.toFixed(2);
+      const trial = marks.map((m, k) => (k === hit.mark
+        ? { ...m, hands: { ...base, entry } } : m));
+      try { planMascot({ ...o, marks: trial }); return entry; }
+      catch (err) { if (!err.handsSpeed) return null; }
+    }
+  } finally { SPEED_SEARCH = false; }
+  return null;
 }
 
 /* ---------- how high the crown actually gets ----------
@@ -2962,16 +3486,28 @@ function builder(tl, ch, H, t0, cfg) {
 
    the seeds are the resting pair rather than zero, because a glove is somewhere
    rather than a gesture — the same reason `turn` rests at the bias. */
-function handsBuilder(tl, ch, H, t0) {
-  const pose = [mirrorHandPose(HANDS_REST, 0), { ...HANDS_REST }];
+function handsBuilder(tl, ch, H, t0, opts = {}) {
+  /* ---------- where the pair starts ----------
+     the resting pair, unless the mark before this one handed its hands over.
+     `seed` is that predecessor's own end state, per hand, and it is why a chain
+     needs no exit: the successor's entrance states its `from` literally, the
+     way every builder in this file does, and the value it states is where the
+     hand actually is rather than where a pose that never ran would have left
+     it. a hand the predecessor never touched is still sitting at rest in its
+     `pose` array, so a two handed pose chaining into a one handed one seeds
+     both correctly with no special case. */
+  const pose = opts.seed
+    ? [{ ...opts.seed[0] }, { ...opts.seed[1] }]
+    : [mirrorHandPose(HANDS_REST, 0), { ...HANDS_REST }];
+  /* the pose's own clock, so a mark that bought a different entrance carries
+     the whole choreography with it. identity unless it did — see `poseClock`. */
+  const c = opts.clock || (u => u);
   const put = (target, from, to, at, forS, ease) =>
     tl.fromTo(target, from, { ...to, duration: forS, ease, immediateRender: false }, at);
   const ez = name => H[name] || H.glide;
 
   const set = (k, to, opt = {}) => {
     const dst = mirrorHandPose(to, k);
-    const at = t0 + (opt.at || 0);
-    const forS = opt.for || 0.36;
     const e = ez(opt.ease || 'pop');
     const from = {};
     /* an explicit `from` is how a pose starts somewhere other than where the
@@ -2981,17 +3517,23 @@ function handsBuilder(tl, ch, H, t0) {
     const seed = opt.from ? mirrorHandPose(opt.from, k) : null;
     for (const key in dst) from[key] = seed && key in seed ? seed[key] : pose[k][key];
     const anti = opt.anti || 0;
+    /* every boundary through the clock rather than the durations, because the
+       clock is piecewise and a duration mapped on its own would be wrong for
+       any tween that straddles the join. three points in, two durations out. */
+    const u0 = opt.at || 0;
+    const u1 = u0 + (anti > 0 ? (opt.antiFor || 4 / 60) : 0);
+    const u2 = u1 + (opt.for || 0.36);
+    const a0 = t0 + c(u0), a1 = t0 + c(u1), a2 = t0 + c(u2);
     if (anti > 0) {
       /* the pull the other way first, forward from the mark rather than
          backward into the frames before it, which is the rule the head's own
          anticipation follows and for the same reason. */
       const back = {};
       for (const key in dst) back[key] = from[key] + (from[key] - dst[key]) * anti;
-      const antiFor = opt.antiFor || 4 / 60;
-      put(ch.hands[k], from, back, at, antiFor, H.glide);
-      put(ch.hands[k], back, dst, at + antiFor, forS, e);
+      put(ch.hands[k], from, back, a0, a1 - a0, H.glide);
+      put(ch.hands[k], back, dst, a1, a2 - a1, e);
     } else {
-      put(ch.hands[k], from, dst, at, forS, e);
+      put(ch.hands[k], from, dst, a0, a2 - a1, e);
     }
     Object.assign(pose[k], dst);
   };
@@ -3017,16 +3559,23 @@ function handsBuilder(tl, ch, H, t0) {
    the head does not have a left one and a right one — writing this through
    `handsBuilder` would have reflected `y` for nothing and would have written
    the whole thing twice, once per hand. */
-function bodyBuilder(tl, ch, H, t0) {
+function bodyBuilder(tl, ch, H, t0, clock) {
   const pose = { y: 0, sq: 0, sqz: 0 };
   const ez = name => H[name] || H.glide;
+  /* the same clock the hands are built on, and it has to be the same one: the
+     laugh shuts its eyes before the hand lands and starts bouncing three frames
+     after, so a mark that bought a quicker entrance moves both. two clocks here
+     would be a bounce that arrived without its hand. */
+  const c = clock || (u => u);
   const set = (to, opt = {}) => {
     const from = {};
     for (const key in to) from[key] = pose[key];
+    const u0 = opt.at || 0, u1 = u0 + (opt.for || 0.20);
+    const a0 = t0 + c(u0);
     tl.fromTo(ch.hbody, from, {
-      ...to, duration: opt.for || 0.20, ease: ez(opt.ease || 'glide'),
+      ...to, duration: t0 + c(u1) - a0, ease: ez(opt.ease || 'glide'),
       immediateRender: false,
-    }, t0 + (opt.at || 0));
+    }, a0);
     Object.assign(pose, to);
   };
   return { set, pose };
@@ -3045,9 +3594,29 @@ function exitBodyToRest(tl, ch, H, LB, at, forS) {
    and it deliberately **leaves `o` alone**: which hands are on screen is the
    `side` option and it is a fact about the composition, the way the turn is a
    fact about where he is facing. a pair that reappeared at the end of every
-   pose would make `side` a flicker instead of a choice. */
-function exitHandsToRest(tl, ch, H, HB, at, forS) {
+   pose would make `side` a flicker instead of a choice.
+
+   ---------- and `keep` is the successor ----------
+   a chained pose does not send its hands home, because the pose after it is
+   going to take them from where they are — that is the whole of what a chain
+   is, and the successor's builder is seeded off this one's `pose` for exactly
+   that reason. so `keep` is the list of hands the successor acts on, and they
+   are skipped here.
+
+   **the hands it does not act on are not skipped, and that is the case worth
+   writing down.** a shrug chaining into a laugh hands the right hand straight
+   over and leaves the left one out at the shrug's own placement, where nothing
+   would ever move it again: the successor writes only its acting hands and its
+   own exit starts from wherever this one left them. so a chained mark still
+   calls this, with the successor's own mark and entrance as the window, and the
+   hands that are not carrying on go home over it. one tween per channel per
+   window, which is the rule the whole builder is written to.
+
+   with no `keep` it is the plain exit it always was, and every clip written
+   before chaining takes exactly that path. */
+function exitHandsToRest(tl, ch, H, HB, at, forS, keep) {
   for (let k = 0; k < 2; k++) {
+    if (keep && keep.includes(k)) continue;
     const from = HB.pose[k], to = mirrorHandPose(HANDS_REST, k);
     const f = {}, t = {};
     for (const key in to) { if (key === 'o') continue; f[key] = from[key]; t[key] = to[key]; }
@@ -3168,10 +3737,29 @@ function engineFor(plan) {
        is, because it is the same kind of fact: a side named once holds until
        something names another one. */
     let onNow = [1, 1];
+    /* the pose before this one, kept only so a chained mark can seed its hands
+       off where that one actually left them. it is the builder rather than the
+       table's `at`, because a pose's last hold beat is allowed to leave a hand
+       somewhere the table never names. */
+    let prevHB = null;
     for (const m of plan.marks) {
       if (!m.hands) continue;
       const HP = HAND_POSES[m.hands.pose];
-      const HB = handsBuilder(tl, ch, H, m.t);
+      /* ---------- the window a chained pose hands over in ----------
+         everything this pose would have done on its own exit happens on the
+         **successor's** mark instead, over the successor's entrance: the hands
+         it is not passing on go home, the head's bounce unwinds, and the brow
+         gate reopens. one window, named once here, so the three cannot drift
+         apart. `null` on every mark that is not chained, which is every mark in
+         every clip written before chaining, and each of the three then reads
+         the pose's own `leaving` and `exit` exactly as it always did. */
+      const HO = m.hands.handover;
+      const outAt = HO ? HO.at : m.hands.leaving;
+      const outFor = HO ? HO.for : m.hands.exit;
+      const HB = handsBuilder(tl, ch, H, m.t, {
+        seed: m.hands.from ? prevHB.pose : null,
+        clock: poseClock(HP, m.hands.entry),
+      });
       for (let k = 0; k < 2; k++) HB.pose[k].o = onNow[k];
       /* the side is written before the pose so a hand leaving the screen is
          already on its way out while the other one is arriving. */
@@ -3187,22 +3775,37 @@ function engineFor(plan) {
          the hand's travel loses the race and leaves them grey for a second.
 
          it opens again on the pose's own exit, where there is nothing to race:
-         the hand is leaving and the state is doing whatever it was doing. */
+         the hand is leaving and the state is doing whatever it was doing.
+
+         **a chain can put two covering poses back to back, and then neither
+         half is written.** the gate is one channel: a reopen and a close over
+         the same instant is two `fromTo`s fighting, and the close would write
+         its own zero on the frame it starts, which is one frame of brows in the
+         middle of a hand that never left the face. so a pose chained out of a
+         covering one does not close the gate — it is already shut — and a pose
+         chaining into one does not reopen it. */
       if (HP.covers) {
-        tl.fromTo(ch.hcover, { v: 0 },
-          { v: 1, duration: HANDS.coverFor, ease: H.glide, immediateRender: false }, m.t);
-        tl.fromTo(ch.hcover, { v: 1 },
-          { v: 0, duration: HP.exit, ease: H.glide, immediateRender: false }, m.hands.leaving);
+        const fromCover = m.hands.from && HAND_POSES[m.hands.from].covers;
+        const intoCover = m.hands.next && HAND_POSES[m.hands.next].covers;
+        if (!fromCover) {
+          tl.fromTo(ch.hcover, { v: 0 },
+            { v: 1, duration: HANDS.coverFor, ease: H.glide, immediateRender: false }, m.t);
+        }
+        if (!intoCover) {
+          tl.fromTo(ch.hcover, { v: 1 },
+            { v: 0, duration: outFor, ease: H.glide, immediateRender: false }, outAt);
+        }
       }
       /* and what the pose does to the head, if it does anything. it is built
          once per mark rather than once per acting hand: a bounce is the head
          and there is one of those. */
       if (HP.body) {
-        const LB = bodyBuilder(tl, ch, H, m.t);
+        const LB = bodyBuilder(tl, ch, H, m.t, poseClock(HP, m.hands.entry));
         HP.body(LB);
-        exitBodyToRest(tl, ch, H, LB, m.hands.leaving, m.hands.exit);
+        exitBodyToRest(tl, ch, H, LB, outAt, outFor);
       }
-      exitHandsToRest(tl, ch, H, HB, m.hands.leaving, m.hands.exit);
+      exitHandsToRest(tl, ch, H, HB, outAt, outFor, HO ? HO.acting : null);
+      prevHB = HB;
     }
   }
 
@@ -3682,11 +4285,20 @@ export function mascotCues(plan) {
        cues. each carries its own `step`, which is the note: `lib/sfx.mjs`
        renders one bleep and the step is how far up the ladder it sits, so a
        laugh is three placed events rather than one buffer that cannot be put
-       on anything. */
+       on anything.
+
+       **through the pose's own clock, which is the whole reason a sound placed
+       on a frame stays on it.** a pose declares its cues in seconds from its
+       mark, against the table's own entrance; a mark that bought a quicker one
+       moves the bounces those cues are on, and a cue left where the table put
+       it would be a giggle arriving while the hand was still in the air. the
+       clock is identity unless the mark supplied an entrance, so every clip
+       written before this places exactly the sounds it placed. */
     const HP = m.hands ? HAND_POSES[m.hands.pose] : null;
     if (HP && HP.sfx) {
+      const c = poseClock(HP, m.hands.entry);
       HP.sfx.at.forEach((at, i) => cues.push({
-        t: +(m.t + at).toFixed(4), kind: SFX[HP.sfx.kind], opts: { step: i },
+        t: +(m.t + c(at)).toFixed(4), kind: SFX[HP.sfx.kind], opts: { step: i },
       }));
     }
   }
@@ -4253,12 +4865,14 @@ export function mascotMarkup(plan) {
   const glove = (layer, k) => {
     const id = 'm-gl-' + layer + k;
     let s = `<g class="m-glove" id="${id}">`;
-    /* one group per **drawing** rather than per pose, because two poses share
-       one: `laugh` is the facepalm's path turned onto the mouth. writing it per
-       pose would put two elements in here with the same id, of which a page
-       shows the first and holds the second forever — a bug with no symptom
-       until somebody counts the children. the frame names a drawing, not a
-       pose, so this is also the shorter answer to the same question. */
+    /* one group per **drawing** rather than per pose, because a drawing can be
+       named twice: `point-viewer` puts one file in both hands so the finger
+       keeps its direction, and for one build `laugh` was the facepalm turned
+       onto the mouth. writing it per pose would put two elements in here with
+       the same id, of which a page shows the first and holds the second
+       forever — a bug with no symptom until somebody counts the children. the
+       frame names a drawing, not a pose, so this is also the shorter answer to
+       the same question. */
     for (const shape of [...new Set(HAND_POSE_NAMES.map(pose => handShape(pose, k).shape))]) {
       const S = HAND_SHAPES[shape];
       s += `<g class="m-gl-pose" id="${id}-${shape}" style="display:none">`
@@ -4338,12 +4952,44 @@ export function mascotCss(plan) {
    site's own outline token and it is what the thought bubble is drawn in. */
 .m-zone{
   --face:#0b0d10; --eye:#ffffff; --bub:rgba(11,13,16,.55);
+  /* ---------- the glove's own ink, and it does not follow the theme ----------
+     every other colour in here flips: the plate is --face, the iris is --eye,
+     and --eye is always the page, which is what makes the face read as a hole
+     punched in it rather than as an illustration laid on it. **the gloves came
+     off that switch.** they were --face for one build, which on the dark page
+     is a near white hand on a near white head, separated from it by a hairline
+     cut and from the page by nothing but the halo; the note was that a hand
+     should read as a hand in front of a lit head rather than as another piece
+     of the head, and a hand is ink.
+
+     so the ink is one value on both pages, and it is the light theme's own
+     --face — which is why the light page is untouched to the byte: there
+     var(--face) already *is* #0b0d10. on the dark page it is the change: a
+     black glove over the glowing plate, which is the strongest contrast either
+     theme has and needs no cut at all.
+
+     what carries it over the background, where a black hand on #06070a would
+     be nothing, is the halo below — and that is why the halo stays tinted with
+     --face rather than with this. a black hand lit from behind by the head it
+     is in front of is the picture; a black hand with a black halo is a hole. */
+  --glove:#0b0d10;
+  /* the separation cut, and it exists only where a glove and the head are the
+     same colour. on the light page they are — dark ink on a dark plate — so it
+     is the page colour and it draws the hairline. on the dark page the glove is
+     ink and the plate is nearly white, so there is nothing to separate and the
+     cut is not drawn. it is a token rather than a second rule because the
+     stroke width, the joins and the clip are the same either way and only the
+     paint changes. */
+  --glove-edge:var(--eye);
   --m-shadow-o:1; --m-glow-o:0;
   position:absolute; left:${B.left}px; top:${B.top}px;
   width:${S}px; height:${S}px; z-index:4; pointer-events:none;
 }
 [data-theme=dark] .m-zone{
   --face:#f4f7f5; --eye:#06070a; --bub:rgba(213,219,216,.5);
+  /* --glove is deliberately **not** redefined here: see above. the cut is,
+     because on this page there is nothing to cut. */
+  --glove-edge:transparent;
   /* the shadow is off on black, because a soft black ellipse on #06070a is
      nothing, and the glow does the grounding instead. */
   --m-shadow-o:0; --m-glow-o:1;
@@ -4384,14 +5030,14 @@ export function mascotCss(plan) {
    is uniform and the stroke is the same weight on every edge of it. round joins
    because a glove has no sharp corners. */
 .m-hands{pointer-events:none}
-.m-hands-ink .m-gl{fill:var(--face)}
+.m-hands-ink .m-gl{fill:var(--glove)}
 /* **fill:none, and that is what a traced outline buys.** the drawn version was
    five overlapping shapes, so its edge layer had to paint the face colour under
    the stroke for a later shape to cover an earlier one's outline — without it a
    folded hand came back as a knot of loops. one closed path has no loops to
    hide, and the lines the sheet draws inside a silhouette come with the path. */
 .m-hands-edge .m-gl{
-  fill:none; stroke:var(--eye); stroke-width:${n(HANDS.edge / (HANDS.box / SHAPE_BOX))};
+  fill:none; stroke:var(--glove-edge); stroke-width:${n(HANDS.edge / (HANDS.box / SHAPE_BOX))};
   stroke-linejoin:round; stroke-linecap:round;
 }
 /* ---------- and there is no will-change on a glove, which is the fix for a
@@ -4421,6 +5067,23 @@ export function mascotCss(plan) {
    dark theme only, exactly like the face's, because a glow on white is a smudge
    and a floating hand needs the same grounding a floating head does — without
    it the pair reads as two stickers laid over a head that is lit.
+
+   **and since the glove went to ink it is the only thing holding the hand on
+   the page.** a #0b0d10 glove over the plate is the strongest contrast in
+   either theme and needs nothing; the same glove out over #06070a is a hole,
+   and this is what cuts it out of the background. so the tint stays --face
+   rather than following --glove: it is the light the head is throwing, not
+   the colour of the hand, and a hand haloed in its own ink would be invisible
+   twice over. it also means the halo does its work only where the work is —
+   over the plate, a near white halo on a near white plate paints nothing.
+
+   **this layer is deliberately not inside the head's glow, and must not be.**
+   the plate's glow is two blurred *copies of the plate*, stacked behind the
+   face inside .m-card; the gloves are a sibling of the plate inside the face
+   svg and carry this filter of their own. two separate pictures, and that is
+   what lets a black hand sit in front of a lit head — put the gloves under the
+   plate's filter and either the hand glows white with the head or the head
+   stops glowing with the hand.
 
    **it is scaled to the hand rather than copied off the head.** the plate's two
    blurs are written for a 60 unit square; a hand's box is ${n(HANDS.box)} of the
@@ -4864,10 +5527,16 @@ export function describeMascot(plan) {
     out.push('              ' + m.label);
     if (m.hands) {
       const h = m.hands;
-      out.push('              hands: ' + h.pose.padEnd(11) + h.side + ' on screen, '
+      /* the column is the longest pose name plus a space rather than a literal,
+         which is what stopped `point-viewer` running into the word after it. */
+      const col = Math.max(...HAND_POSE_NAMES.map(nm => nm.length)) + 1;
+      out.push('              hands: ' + h.pose.padEnd(col) + h.side + ' on screen, '
         + (h.acting.length > 1 ? 'both act' : 'the ' + (h.acting[0] ? 'right' : 'left') + ' hand acts')
         + ', entry ' + h.entry.toFixed(2) + ' hold ' + h.hold.toFixed(2)
-        + ' exit ' + h.exit.toFixed(2) + ', to ' + h.out.toFixed(2) + 's');
+        + ' exit ' + h.exit.toFixed(2)
+        /* a chain says so, because "exit 0.00" on its own reads as a bug. */
+        + (h.next ? ', straight into ' + h.next : '')
+        + ', to ' + h.out.toFixed(2) + 's');
     }
   }
   if (plan.thought && plan.thought.mode === 'over') {
@@ -5685,22 +6354,23 @@ function selfTest() {
     'fastest frame moves a hand ' + grep.hands.stepCss.toFixed(2) + ' css px at '
     + grep.hands.stepAt.toFixed(2) + 's');
 
-  /* the eight read as eight, and with traced paths that is **two** questions
+  /* the nine read as nine, and with traced paths that is **two** questions
      rather than one, because the drawing carries most of the difference.
 
-     the first is that the ten files are ten different outlines, which is by
-     construction and is checked as one: ten distinct `d` strings, none of them
-     the same as another. that is what a primitive glove could not promise —
-     five rects at two sets of curls are two arrangements of the same shape, and
-     the review said so.
+     the first is that the twelve files are twelve different outlines, which is
+     by construction and is checked as one: twelve distinct `d` strings, none of
+     them the same as another. that is what a primitive glove could not promise
+     — five rects at two sets of curls are two arrangements of the same shape,
+     and the review said so.
 
-     the second is that no two poses are the same **picture**, and it is written
-     that way rather than "eight different drawings" because two of them share a
-     drawing: `laugh` is the facepalm's path turned onto the mouth. a pose is a
-     shape *and* a placement, so two poses on one drawing have to land somewhere
-     genuinely different, and the floor for that pair is deliberately three
-     times the floor for the rest — a different pose off the same file is a
-     claim that needs more evidence than a different file already is.
+     the second is that no two poses are the same **picture**. that used to be
+     the load bearing half, because `laugh` was the facepalm's path turned onto
+     the mouth and two poses on one drawing have to land somewhere genuinely
+     different to be two poses. both borrowed poses have their own file now, so
+     the pair check passes vacuously — and it stays, at the same floor, because
+     it is the guard that would catch the next pose that reaches for a drawing
+     it did not get made for. a check that only fires when somebody makes the
+     old mistake is a check worth keeping.
 
      the placement vector is the old check with the curls taken out of it, and
      its floor came down with them: a placement alone is three numbers, not
@@ -5710,9 +6380,9 @@ function selfTest() {
     const h = mascotFrame(gp, m.hands.settled + 0.05).hands.list[m.hands.acting[0]];
     return { pose: p.pose, shape: h.shape, v: [h.pose.x / 8, h.pose.y / 8, h.pose.rot / 40, h.o] };
   });
-  ok('the ten drawings are ten different outlines',
+  ok('the twelve drawings are twelve different outlines',
     new Set(HAND_SHAPE_NAMES.map(nm => HAND_SHAPES[nm].d)).size === HAND_SHAPE_NAMES.length,
-    gposes.map(g => g.shape).join(', '));
+    HAND_SHAPE_NAMES.length + ' files, ' + gposes.map(g => g.shape).join(', ') + ' posed');
   let gshared = null, gsharedD = 1e9;
   for (let i = 0; i < gposes.length; i++) {
     for (let j = i + 1; j < gposes.length; j++) {
@@ -5985,8 +6655,33 @@ function selfTest() {
     && mascotMarkup(gp).includes('m-gl-ink0-wave')
     && mascotMarkup(gp).includes('clip-path="url(#m-head)"')
     && mascotCss(gp).includes('.m-hands-edge .m-gl')
-    && mascotCss(gp).includes('fill:none; stroke:var(--eye)')
+    && mascotCss(gp).includes('fill:none; stroke:var(--glove-edge)')
     && mascotPagePlan(gp).hands.edge === HANDS.edge);
+
+  /* ---------- the glove is ink on both pages, and the cut is not ----------
+     three things in one check, because they are one decision. the fill is a
+     token of its own rather than `--face`, so a glove stops following the
+     theme; that token is defined once and **not** redefined under dark, which
+     is what makes the light page byte identical and the dark one black; and the
+     separation cut is the opposite — defined as the page colour and turned off
+     under dark, because a black glove on a near white plate has nothing to be
+     cut out of.
+
+     it is asserted on the rules rather than on a rendered pixel for the same
+     reason the glow above is: there is no channel to read, a theme is an
+     attribute, and a rule that says the wrong thing says it on every frame. */
+  ok('a glove is ink on both pages and only the cut follows the theme', (() => {
+    const css = mascotCss(gp);
+    const zone = css.slice(css.indexOf('.m-zone{'), css.indexOf('.m-card{'));
+    const dark = zone.slice(zone.indexOf('[data-theme=dark] .m-zone{'));
+    return css.includes('.m-hands-ink .m-gl{fill:var(--glove)}')
+      && zone.includes('--glove:#0b0d10;')
+      && zone.includes('--glove-edge:var(--eye);')
+      /* the whole of "it does not follow the theme": the dark block redefines
+         the cut and says nothing about the ink. */
+      && !dark.includes('--glove:')
+      && dark.includes('--glove-edge:transparent;');
+  })(), 'ink #0b0d10 on both, cut var(--eye) on light and transparent on dark');
 
   /* ---------- the glove's own glow ----------
      the face's, scaled to the hand and gated on the theme the same way, and it
@@ -6205,11 +6900,14 @@ function selfTest() {
       return true;
     }), 'the other seven move a glove and nothing else');
   /* every pose carries its own drawing into both gloves and both layers, which
-     is twenty eight groups off ten traced files — twenty eight rather than
-     thirty two because `laugh` and `facepalm` are one drawing and the markup
-     carries a drawing once. it is checked because the page picks a path by name
-     and a name it cannot find is a hand that does not appear — silently, on one
-     pose, on one side. */
+     is thirty six groups off twelve traced files. the markup emits a group per
+     **drawing** rather than per pose, and it still does even though no two
+     poses share one any more: the dedupe is what makes `point-viewer` legal at
+     all, since that row names one file for both hands and a group emitted twice
+     would give two elements the same id, of which a page shows the first and
+     holds the second forever. it is checked because the page picks a path by
+     name and a name it cannot find is a hand that does not appear — silently,
+     on one pose, on one side. */
   ok('every pose has a drawing in both hands and both layers', (() => {
     const mk = mascotMarkup(gp);
     for (const layer of ['ink', 'edge']) {
@@ -6233,6 +6931,169 @@ function selfTest() {
   ok('the mouth hand and the glove pair are independent parts',
     bf.hand !== null && bf.hands !== null
     && mascotFrame(hp, 1.0).hands === null && mascotFrame(gp, 1.0).hand === null);
+
+  /* ---------- per pose timing, and the chain ----------
+     the whole part is opt in on a per mark basis, so the first thing to assert
+     is the thing that is not new: a mark that says nothing extra builds the
+     plan it always built. it is checked frame for frame rather than on the
+     record, because the record is the easy half — the clock, the seed and the
+     handover all sit in the builder, and a no-op that is only a no-op in the
+     plan would be the worst kind of pass. */
+  const sameFrames = (a, b, secs) => {
+    for (let i = 0; i <= Math.round(secs * 60); i++) {
+      if (JSON.stringify(mascotFrame(a, i / 60)) !== JSON.stringify(mascotFrame(b, i / 60))) return false;
+    }
+    return JSON.stringify(mascotCues(a)) === JSON.stringify(mascotCues(b));
+  };
+  const tMarks = h => [{ t: 0.4, state: 'neutral', hands: h, side: 'right' }];
+  const tPlan = h => planMascot({ hands: true, bias: 0, seconds: 5.0, marks: tMarks(h) });
+  ok('a pose name and the same pose as an object are the same clip',
+    sameFrames(tPlan('laugh'), tPlan({ pose: 'laugh' }), 5.0),
+    'the object form with nothing on it is the string form');
+
+  /* and the durations actually land where they say. `settled` is the number
+     every consumer asks for "when is this pose up", and a mark that bought its
+     own entrance has to move it. */
+  const fastLaugh = tPlan({ pose: 'laugh', entry: 0.70, hold: 1.20, exit: 0.30 });
+  ok('a mark can buy its own entrance, hold and exit',
+    fastLaugh.marks[0].hands.entry === 0.70
+    && fastLaugh.marks[0].hands.hold === 1.20
+    && fastLaugh.marks[0].hands.exit === 0.30
+    && Math.abs(fastLaugh.marks[0].hands.settled - 1.10) < 1e-9
+    && tPlan('laugh').marks[0].hands.entry === HAND_POSES.laugh.entry,
+    'settled at ' + fastLaugh.marks[0].hands.settled + 's against the table own '
+    + tPlan('laugh').marks[0].hands.settled + 's');
+
+  /* ---------- and the pose carries its choreography with it ----------
+     this is the one that would silently rot. the laugh's three bleeps are
+     placed on its first three bounces and the bounces start three frames after
+     the hand lands; shorten the entrance and a cue left where the table put it
+     is a giggle over a hand still in the air. the check is on the gap between
+     the hand landing and the first bleep, which is the thing that has to be
+     constant, rather than on the times, which are the things that move. */
+  const gapOf = p => {
+    const m = p.marks[0], c = mascotCues(p).filter(q => q.kind === SFX.laugh);
+    return { n: c.length, gap: +(c[0].t - m.hands.settled).toFixed(3),
+      step: +(c[1].t - c[0].t).toFixed(3) };
+  };
+  const gSlow = gapOf(tPlan('laugh')), gFast = gapOf(fastLaugh);
+  ok('a quicker laugh still bleeps three frames after its hand lands',
+    gSlow.n === 3 && gFast.n === 3
+    && Math.abs(gFast.gap - gSlow.gap) < 1e-9 && Math.abs(gFast.step - gSlow.step) < 1e-9,
+    'the table lands then bleeps ' + gSlow.gap + 's later, a 0.70s entrance '
+    + gFast.gap + 's later, both stepping ' + gSlow.step + 's');
+  /* and the head goes with it: the bounce is on the pose's own clock too, so a
+     laugh that arrives sooner starts bouncing sooner and by exactly as much. it
+     is read the way the bounce is read everywhere in here, as the difference
+     against the same face with no pose on it, because `hbody` is added to the
+     drawn head rather than replacing it. */
+  const lgBare = planMascot({
+    hands: true, bias: 0, seconds: 5.0, marks: [{ t: 0.4, state: 'neutral' }],
+  });
+  const dropAt = (p, t) => mascotFrame(p, t).card.y - mascotFrame(lgBare, t).card.y;
+  /* how long after the hand lands the first bounce starts, derived off the two
+     numbers rather than typed, so it follows either of them. */
+  const lgAfter = LAUGH.from - HAND_POSES.laugh.entry;
+  const slowDrop = dropAt(tPlan('laugh'), 0.4 + 1.01 + lgAfter + LAUGH.down);
+  const fastDrop = dropAt(fastLaugh, 0.4 + 0.70 + lgAfter + LAUGH.down);
+  ok('the bounce moves with the hand it belongs to',
+    Math.abs(slowDrop) > 3 && Math.abs(fastDrop - slowDrop) < 1e-6,
+    'the bottom of the first bounce is ' + slowDrop.toFixed(3)
+    + ' css px at the table entrance and ' + fastDrop.toFixed(3) + ' at 0.70s');
+
+  /* ---------- the speed, which is what makes a duration legal ----------
+     the ceiling is the measurement rather than the table, so the guard has to
+     refuse a duration the pose cannot physically move in, and it has to say
+     what would work. both halves are checked, because a guard that throws
+     without a number is a guard somebody works around. */
+  let tooFast = null;
+  try { tPlan({ pose: 'laugh', entry: 0.12 }); }
+  catch (e) { tooFast = e.message; }
+  ok('an entrance faster than the pose can move is refused',
+    tooFast !== null && /css px between two frames/.test(tooFast)
+    && /ceiling of 12/.test(tooFast) && /give it [0-9.]+s of entrance/.test(tooFast),
+    tooFast ? tooFast.slice(tooFast.indexOf('moves a hand')).slice(0, 96) : 'it was allowed');
+  /* and the duration it names is one that actually passes, which is the
+     difference between an error message and an error message worth reading. */
+  const suggested = +/give it ([0-9.]+)s of entrance/.exec(tooFast)[1];
+  let took = true, shorter = false;
+  try { tPlan({ pose: 'laugh', entry: suggested }); }
+  catch (e) { took = false; }
+  /* and it is the **shortest** one rather than merely a safe one: a tenth under
+     it has to fail, or the guard is quietly charging for time the pose does not
+     need, which is the failure mode of every bound that was padded to be safe. */
+  try { tPlan({ pose: 'laugh', entry: +(suggested * 0.9).toFixed(2) }); }
+  catch (e) { shorter = true; }
+  ok('the duration the guard names is the shortest one it accepts',
+    took && shorter, 'it takes ' + suggested + 's and refuses '
+    + (suggested * 0.9).toFixed(2) + 's, against the table own ' + HAND_POSES.laugh.entry + 's');
+
+  /* ---------- the chain ----------
+     a pose that runs into the next one does not go home, and "does not go home"
+     is checked where it would show: the hand's own placement on the frame the
+     successor starts. chained, it is still out at the first pose's `at`;
+     unchained, the exit has been walking it back to the resting pair for a
+     third of a second and it is most of the way there. */
+  const chainMarks = next => [
+    { t: 0.4, state: 'neutral', hands: next ? { pose: 'point-viewer', next: true } : 'point-viewer' },
+    { t: 2.6, state: 'delighted', hands: { pose: 'laugh', entry: 0.80 }, side: 'right' },
+  ];
+  const chained = planMascot({ hands: true, bias: 0, seconds: 6.4, marks: chainMarks(true) });
+  const apart = planMascot({ hands: true, bias: 0, seconds: 6.4, marks: chainMarks(false) });
+  const handAt = (p, t) => mascotFrame(p, t).hands.list[1];
+  const PV = HAND_POSES['point-viewer'].at;
+  ok('a chained pose hands its hand over instead of taking it home', (() => {
+    const c = handAt(chained, 2.6), a = handAt(apart, 2.6);
+    /* the chained hand is still where the pose put it, inside the idle drift;
+       the unchained one has been going home for its whole exit. */
+    return Math.hypot(c.x - PV.x, c.y - PV.y) < 1.0
+      && Math.hypot(a.x - PV.x, a.y - PV.y) > 4.0;
+  })(),
+    'chained it is ' + Math.hypot(handAt(chained, 2.6).x - PV.x, handAt(chained, 2.6).y - PV.y).toFixed(2)
+    + ' grid units off the pose, unchained ' + Math.hypot(handAt(apart, 2.6).x - PV.x, handAt(apart, 2.6).y - PV.y).toFixed(2));
+  ok('a chain is resolved both ways and carries its handover window',
+    chained.marks[0].hands.next === 'laugh' && chained.marks[0].hands.exit === 0
+    && chained.marks[1].hands.from === 'point-viewer'
+    && chained.marks[0].hands.handover.at === 2.6
+    && chained.marks[0].hands.handover.for === 0.80
+    && apart.marks[0].hands.next === null && apart.marks[1].hands.from === null,
+    'point-viewer hands over at 2.60s over the laugh own 0.80s entrance');
+  /* the shape stays up until the successor's frame rather than swapping to a
+     rest the hand never travels to — the thing `handShapeAt` learned. */
+  ok('a chained pose holds its drawing right up to the successor',
+    mascotFrame(chained, 2.59).hands.list[1].shape === 'point-side'
+    && mascotFrame(chained, 2.61).hands.list[1].shape === 'laugh',
+    'point-side at 2.59s, laugh at 2.61s');
+  /* and the hand the successor does not want still goes home, over the
+     successor's own entrance. `point-viewer` is one handed and so is `laugh`,
+     so the case is built with a two handed pose in front. */
+  const wide = planMascot({
+    hands: true, bias: 0, seconds: 6.4,
+    marks: [
+      { t: 0.4, state: 'thinking', hands: { pose: 'shrug', next: true } },
+      { t: 2.6, state: 'delighted', hands: { pose: 'laugh' }, side: 'right' },
+    ],
+  });
+  ok('a hand the successor does not act on still goes home', (() => {
+    const at = 2.6 + HAND_POSES.laugh.entry + 0.05;
+    const left = mascotFrame(wide, at).hands.list[0];
+    return Math.hypot(left.x - (GRID - HANDS_REST.x), left.y - HANDS_REST.y) < 1.0;
+  })(), 'the left hand is back at rest by the time the laugh has landed');
+
+  /* the three ways a chain can be asked for wrongly, and each says which. */
+  const refuses = (marks, re) => {
+    try { planMascot({ hands: true, bias: 0, seconds: 6.4, marks }); return false; }
+    catch (e) { return re.test(e.message); }
+  };
+  ok('a chain into nothing, a chain with an exit and an unknown key are all refused',
+    refuses([{ t: 0.4, state: 'neutral', hands: { pose: 'wave', next: true } }],
+      /a chain needs a hands mark after it/)
+    && refuses([{ t: 0.4, state: 'neutral', hands: { pose: 'wave', next: true, exit: 0.3 } },
+      { t: 3.0, state: 'neutral', hands: 'rest' }], /a chained pose has no exit/)
+    && refuses([{ t: 0.4, state: 'neutral', hands: { pose: 'wave', entrance: 0.3 } }],
+      /which is not one of/)
+    && refuses([{ t: 0.4, state: 'neutral', hands: { pose: 'wave', entry: 0 } }],
+      /a duration is a positive number of seconds/));
 
   console.log('');
   if (fail.length) { console.error('FAILED: ' + fail.join(', ')); process.exit(1); }

@@ -6,7 +6,108 @@ names in here either.
 
 ## Status
 
-- **Rejected on review 2026-09-06: the laugh's hand reads wrong, and the fix is a
+- **Convention set 2026-09-06: an mp4 in `demo/out/` is only ever as good as its
+  mtime, and a preview and a final are the same filename.** `DEMO_FPS=12` is the
+  preview pass and 60 is the final, both write `demo/out/mascot-<tag>.mp4`, and
+  nothing in the file says which one it is. `demo/out/` is gitignored, so there
+  is no commit to ask either. The rule that follows:
+  - **Compare the mp4's mtime against `demo/lib/mascot.mjs` and against the
+    script that made it.** Older than either and it is stale, whatever rate it
+    was rendered at. That is the only signal there is.
+  - **A green preview is never evidence for a final.** Twelve frames a second
+    hides everything the rate hides: at 12fps a four sixtieths anticipation
+    falls inside one frame and an overshoot lands between two, so the module's
+    motion guards deliberately read a 60fps report even on a preview pass — see
+    the note in `mascot-test.mjs`. What a preview does prove is the placement,
+    the safe area, the caption band, the encode and the sound, because none of
+    those are properties of the sampling rate.
+  - So: previews for "does it compose and does it fit", 60fps for "does it
+    move", and re-render at 60 before anything is judged as shipped.
+
+- **Built 2026-09-06: the two open drawings landed, and the hands went black on
+  the dark page.** `demo/assets/hands/laugh.svg` and
+  `demo/assets/hands/point-side.svg` are traced into `HAND_SHAPES`, wrists
+  measured by `demo/out/poses/measure-traced.mjs` — laugh at 121,315 and
+  point-side at 153.1,328.3, both with the file's own `even`. Twelve drawings
+  now, and **no pose borrows one any more**, which closes the finding the
+  traced review left open.
+  - **`laugh` points at its own file and the review's two placement notes went
+    in with it:** a little further right and a little smaller, 40.9/1.06 to
+    41.3/1.02. Measured by `demo/out/poses/place-laugh.mjs` against the
+    geometry rather than eyed — ink x 19.9 to 43.2, y 42.5 to 66.6, the mouth
+    still inside it, the squeezed eyes clearing by 2.4 units against 1.8, the
+    heel 4.6 under the chin against 5.0. The drawing kept the facepalm's own
+    axis on purpose so the row kept `rot: -45`; it is that hand redrawn with
+    the fingers **together** rather than splayed, which is the whole of what
+    the review was asking for.
+  - **`point-side` is a new pose rather than a swap.** `point` still aims at
+    camera and keeps its file; `point-viewer` is the side-on finger aimed down
+    and out at the viewer. The row carries `shape: ['point-side', 'point-side']`
+    — the pair form, which means "do not mirror this one" — because mirroring a
+    finger gun reverses the direction it points, and that is the pose. A
+    rendered frame settled it twice: with the bare string it landed on the
+    screen left hand aimed **into the chin**, and mirrored onto the right hand
+    it aimed up and left. A hand points away from the body, so it sits past the
+    right ear at `rot: 25` and needs no `side`.
+  - **Hands are ink on both pages now, `--glove:#0b0d10`, defined once and not
+    redefined under dark.** The light page is untouched to the byte because
+    there `var(--face)` already is that colour; the dark page is the change.
+    `--glove-edge` is the opposite — the page colour on light, `transparent` on
+    dark, because a black glove on a near white plate has nothing to be cut out
+    of. **The glow did not need splitting: it never wrapped the gloves.** The
+    plate's glow is two blurred copies of the plate stacked behind the face
+    inside `.m-card`; the gloves are a sibling of the plate inside the face svg
+    and carry their own `drop-shadow`. That halo stays tinted `--face` rather
+    than `--glove` and is now load bearing — it is the only thing holding a
+    black hand on a #06070a page.
+
+- **Built 2026-09-06: per pose timing and chains, `demo/lib/mascot.mjs`.** A
+  hands mark takes `{ pose, entry, hold, exit, next }` as well as a bare name,
+  and the bare name is untouched: the states cut and a seven pose hands cut
+  both hash **byte identical** against the previous module, frames and cues.
+  - **`poseClock` is what makes an override safe.** A pose declares its
+    choreography in seconds from its mark, so a bought entrance has to carry the
+    hold beats, the head's bounce and the three laugh bleeps with it. The
+    entrance is scaled and everything after it is shifted — the only mapping
+    right for both halves — and it is the identity function when nothing was
+    supplied, which is why the old path costs no arithmetic at all.
+  - **The guard is a measurement now, not the table.** `HANDS.stepCeil` is 12
+    css px between two frames at 60, which is what every pose's duration was
+    always derived from and was never written down. `planMascot` measures it on
+    the plan's own frames — the same measurement `mascotMotion` reports after a
+    render — and refuses a duration the pose cannot move in.
+  - **And it names a duration that works, by searching rather than solving.** A
+    closed form off the curve's own worst frame is close near the answer and
+    badly wrong at the far end: a twelfth of a second entrance on the laugh
+    measures 35.7 css px and the model says 40.5, and scaling out of that
+    suggested 0.36s for a pose that needs 0.53. So it re-plans at longer
+    entrances until the guard stops firing. The laugh's floor is **0.54s**
+    against a table entry of 1.01.
+  - **`next: true` hands a pose straight to the following hands mark.** No exit,
+    the successor's builder seeded off where the predecessor actually left each
+    hand. `handShapeAt` holds a chained pose's drawing to the successor's own
+    frame rather than swapping to a rest the hand never travels to;
+    `exitHandsToRest` takes the successor's acting set and sends home only the
+    hands it does not want, over the successor's entrance. Two covering poses
+    chained back to back write neither half of the brow gate, or the close would
+    flash a frame of brows under a hand that never left the face.
+  - **New chapter, `--chapter=chain`**, four marks: rest, `point-viewer` at a
+    0.34s entrance held for exactly its two jabs and chained, `laugh` at 0.62s
+    against the table's 1.01, rest. Rendered as a 12fps preview both themes,
+    all guards green — worst frame moves a hand 10.24 css px at 60 against the
+    ceiling of 12, reach 14.1/34.7/0.0/12.4 held exactly, head 164.6px off the
+    nearest border against a floor of 140, caption band never entered, three
+    bleeps 0.030s after the hand lands off the shortened entrance.
+  - `point-viewer` also went into the hands cut, because that chapter's job is
+    "do the nine read as nine" and the coverage guard says so. The chain
+    chapter is exempt from coverage on purpose — a run of poses is a different
+    question from a row of them.
+  - **Not done and not attempted: no clip uses any of this.** No `post*.mjs`
+    passes `hands: true` yet, so the first real clip that wants a pose sequence
+    is still the first one to exercise this outside `mascot-test.mjs`.
+
+- **Rejected on review 2026-09-06, and now fixed by the entry above: the laugh's
+  hand reads wrong, and the fix is a
   drawing rather than a number.** The pose is committed as `f9d2d8e` and it
   stays in — the rig half of it is right and every guard is green — but **the
   facepalm's file rotated forty five degrees does not read as a hand over a

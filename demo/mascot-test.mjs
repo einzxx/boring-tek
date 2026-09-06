@@ -80,7 +80,7 @@ import {
   planMascot, mascotFrame, mascotMotion, mascotCss, mascotMarkup, mascotRuntime,
   mascotPagePlan, mascotCues, describeMascot, describeMotion, headRect, stillMoment,
   STATE_NAMES, THEMES, STAGE, SAFE, HEAD_PX, BUBBLE, TURN,
-  HAND_POSE_NAMES, HAND_SIDES,
+  HAND_POSE_NAMES, HAND_SIDES, HAND_POSES, handShape, SFX,
 } from './lib/mascot.mjs';
 import { renderSfx, writeWav, limit } from './lib/sfx.mjs';
 
@@ -203,6 +203,14 @@ const HANDS_CUT = [
      in the table: a second to get a hand across the face, four bounces at four
      and a half a second, and a beat to settle before the exit. */
   ['laugh', 'surprised', 'right', 3.00],
+  /* the point at the viewer, and it goes last of the nine because it is the one
+     that has to be read against the pose above it rather than on its own:
+     `point` and `point-viewer` are the same gesture aimed two different ways,
+     and the question this chapter exists to answer about them is whether a
+     viewer can tell. it takes no `side` — the acting hand is derived from the
+     corner he stands in and this pose wants that hand, which is the only pose
+     in the table that can say so by saying nothing. */
+  ['point-viewer', 'agreeing', undefined, 2.50],
   /* and back to rest, both hands, so the clip ends where it started and two
      copies of it butt together the way the export's clips do. */
   ['rest', 'neutral', 'both', 2.30],
@@ -220,6 +228,85 @@ function handsCut() {
      cannot. it is put on the mark rather than given its own, so the hands and
      the words are on screen together. */
   marks[4].bubble = 'no idea';
+  return { marks, seconds: +t.toFixed(3) };
+}
+
+/* ---------- the chain cut ----------
+   the third chapter, and it is its own clip for the same reason the second one
+   is: it asks a question the other two cannot. the hands chapter answers "do
+   the nine read as nine", one pose at a time, each arriving from rest and going
+   back to it. that is the right shape for a catalogue and it is the wrong shape
+   for the thing this part just grew — **a run of poses inside one clip, each
+   with its own timing, handed from one to the next without a trip home.**
+
+   there are three questions in it and they are asked in this order.
+
+   **does a bought duration still read.** every `entry` in the pose table is the
+   slowest thing that pose was ever tried at, because the durations were derived
+   by slowing a travel until it stopped smearing and nobody went back the other
+   way. the point here arrives in 0.34s against the table's 0.40 and the laugh
+   in 0.62 against its own 1.01 — both under what the table asks for, both over
+   what the module's own speed guard allows, and the guard is what picked the
+   floor rather than a feeling. if a laugh at 0.62 reads as a laugh, the table's
+   1.01 was a budget rather than a requirement, and that is worth knowing before
+   a clip is written against it.
+
+   **does a chain read as one gesture.** the point hands its hand straight to
+   the laugh: no exit, no resting pair in between, the laugh's entrance starting
+   from wherever the jab left the glove. two poses with a trip home between them
+   are two gestures and a viewer counts them; the whole reason `next` exists is
+   that a person going from pointing at you to laughing about it does not put
+   their hand down first. the cut puts the unchained version nowhere near it on
+   purpose — that comparison is the hands chapter, which does every pose the
+   long way round, and holding both in one clip would be asking a reviewer to
+   remember rather than to look.
+
+   **and does the laugh still land.** it is the one pose that moves the head and
+   the one pose that makes a sound, and both are placed against its entrance —
+   the eyes shut before the hand arrives, the bounces start three frames after,
+   the three bleeps sit on the first three bounces. shortening the entrance by
+   four tenths of a second moves all of that, and `poseClock` is the thing that
+   is supposed to carry it. this is where that is looked at rather than
+   asserted: the module's own checks say the gap is the same number, and a clip
+   is what says the gap still reads.
+
+   the faces under it are `curious` then `delighted`, which is the reading of
+   the beat — he spots you, then he finds it funny. it is not `surprised` here
+   even though the hands chapter uses that one under the laugh, because that
+   pairing is a composition test and this is a timing test, and a face doing
+   something loud would be the thing you looked at. */
+const CHAIN_CUT = [
+  /* he is standing there first, both hands, so the pair the chain leaves behind
+     is one a viewer has already seen. */
+  { hands: 'rest', state: 'neutral', room: 1.80 },
+  /* the point, quicker than the table's and held for exactly its two jabs, then
+     handed over. `hold` is named rather than left to stretch because a chain
+     with a stretched hold would sit still waiting for the next mark, which is
+     the one thing a handover must not look like. 0.34 + 1.30 is the room. */
+  {
+    hands: { pose: 'point-viewer', entry: 0.34, hold: 1.30, next: true },
+    state: 'curious', room: 1.64,
+  },
+  /* and the laugh takes that hand where it is. 0.62 against the table's 1.01,
+     which the speed guard allows because the hand starts beside the head rather
+     than out at the resting pair — the travel is nearly the same but the pose
+     is arriving into a hand that is already moving, and the guard measures the
+     frames rather than the distance. */
+  {
+    hands: { pose: 'laugh', entry: 0.62, hold: 1.50, exit: 0.30 },
+    state: 'delighted', room: 2.60,
+  },
+  /* and home, both hands, so the clip ends where it started. */
+  { hands: 'rest', state: 'neutral', side: 'both', room: 2.10 },
+];
+
+function chainCut() {
+  const marks = [];
+  let t = 0.55;
+  for (const m of CHAIN_CUT) {
+    marks.push({ t: +t.toFixed(3), state: m.state, hands: m.hands, side: m.side });
+    t += m.room;
+  }
   return { marks, seconds: +t.toFixed(3) };
 }
 
@@ -251,6 +338,10 @@ function handsCut() {
 const BANDS = {
   states: { x: 48, y: 330, w: VW - 96, h: 300 },
   hands: { x: 48, y: 300, w: VW - 96, h: 300 },
+  /* the chain chapter composes the way the hands one does — same gloves, same
+     placement, same climb — so it inherits that band rather than getting a
+     third number to keep in agreement. */
+  chain: { x: 48, y: 300, w: VW - 96, h: 300 },
 };
 
 const CHROME = [
@@ -568,16 +659,19 @@ function probe(file) {
 }
 
 /* ---------- go ----------
-   two chapters, and each is its own pair of files. `--chapter=states` is the
+   three chapters, and each is its own pair of files. `--chapter=states` is the
    clip this script has always rendered and it is untouched; `--chapter=hands`
-   is the gloves; nothing named is both. they are not one clip because turning
-   the gloves on moves the head in — see the hands cut above — and a control
-   that changed when the thing being tested was added would have stopped being
-   one. */
+   is the gloves, one pose at a time; `--chapter=chain` is a run of them inside
+   one clip with their own timings. nothing named is more than one of the three.
+
+   they are not one clip, and the reason is the same one each time: turning the
+   gloves on moves the head in — see the hands cut — so a states clip with hands
+   would have stopped being a control, and a hands clip with a chain in it would
+   have stopped being a catalogue. a chapter is one question. */
 console.log('the boring tek — mascot state test');
-const CHAPTERS = ['states', 'hands'];
+const CHAPTERS = ['states', 'hands', 'chain'];
 if (CHAPTER_ARG && !CHAPTERS.includes(CHAPTER_ARG)) {
-  console.error('no chapter called "' + CHAPTER_ARG + '" — the two are ' + CHAPTERS.join(', '));
+  console.error('no chapter called "' + CHAPTER_ARG + '" — the three are ' + CHAPTERS.join(', '));
   process.exit(1);
 }
 const want = CHAPTER_ARG ? [CHAPTER_ARG] : CHAPTERS;
@@ -586,7 +680,11 @@ const themes = WANT.length ? WANT : THEMES;
 const CUTS = {
   states: { ...cut(), opts: {} },
   hands: { ...handsCut(), opts: { hands: true } },
+  chain: { ...chainCut(), opts: { hands: true } },
 };
+/* which chapters draw gloves, so the guards that are about gloves can ask once
+   rather than naming the chapters twice each. */
+const GLOVED = ['hands', 'chain'];
 
 const mb = f => (fs.statSync(f).size / 1e6).toFixed(2) + ' MB';
 const results = [];
@@ -626,7 +724,9 @@ for (const chapter of want) {
     + cues.map(c => c.kind + '@' + c.t.toFixed(2)).join(' '));
 
   for (const theme of themes) {
-    const tag = chapter === 'states' ? theme : 'hands-' + theme;
+    /* the states chapter is the bare theme name because it is the file this
+       script has always written and the one every note about it points at. */
+    const tag = chapter === 'states' ? theme : chapter + '-' + theme;
     console.log('\n' + tag);
     const state = ONLY_ENCODE
       ? JSON.parse(fs.readFileSync(path.join(OUT, 'mascot-' + tag + '.json'), 'utf8'))
@@ -700,7 +800,18 @@ for (const { tag, chapter, state, probe: p, seconds } of results) {
     fail.push(t + 'the bubble comes within ' + Math.round(state.bubbleNear)
       + 'px of a border at ' + state.bubble.t + 's, floor is ' + floor);
   }
-  if (!state.samples) fail.push(t + 'the bubble was never sampled on screen');
+  /* a bubble that never appeared is a bubble the safe area and the band checks
+     above never actually measured, so a cut that asks for one has to show it.
+     **a cut that asks for none is not the same thing**, and the chain chapter
+     is deliberately one of those: a thought hanging beside a head is the
+     loudest thing in the frame, and that chapter's whole question is a run of
+     hands. so the guard is on the plan rather than on the render — it fires
+     when a cut asked for words and did not get them, which is the fault, and
+     stays quiet when a cut asked for silence. */
+  const asksBubble = reports[chapter].marks.some(m => m.bubble || m.bubbles);
+  if (asksBubble && !state.samples) {
+    fail.push(t + 'the cut asks for a bubble and it was never sampled on screen');
+  }
   if (state.bandHits) {
     fail.push(t + 'the bubble entered the caption band ' + state.bandHits + ' times, first at '
       + state.bandWorst.t + 's');
@@ -709,16 +820,23 @@ for (const { tag, chapter, state, probe: p, seconds } of results) {
      render to report: how big a hand is at this head size, and how thick the
      separation edge is. both in device px at 1080 wide, which is the only unit
      "does it read on a phone" can be argued in. */
-  if (chapter === 'hands') {
+  if (GLOVED.includes(chapter)) {
     const H = state.built.hands;
-    if (!H) fail.push(t + 'the hands chapter rendered no gloves');
+    if (!H) fail.push(t + 'the ' + chapter + ' chapter rendered no gloves');
     else {
       if (H.gloves !== 4) fail.push(t + H.gloves + ' glove groups, wanted four: two hands, two layers');
-      /* seven and not eight, because `laugh` and `facepalm` are the same
-         traced file turned onto a different part of the face and the markup
-         carries a drawing once. the page picks a path by drawing rather than by
-         pose, so this counts what is really in there. */
-      if (H.poses !== 7) fail.push(t + H.poses + ' drawings in a glove, wanted seven: one a drawing');
+      /* one drawing per pose now, and it was seven for eight poses while `laugh`
+         was the facepalm turned onto the mouth. both borrowed poses have their
+         own trace, so it is one each — but the count is still taken off the
+         markup rather than off `HAND_POSE_NAMES.length`, because the markup
+         emits a group per **drawing** and `point-viewer` names one file for both
+         hands. the page picks a path by drawing rather than by pose, so this
+         counts what is really in there. */
+      const wantDrawings = new Set(HAND_POSE_NAMES.map(p => handShape(p, 0).shape)).size;
+      if (H.poses !== wantDrawings) {
+        fail.push(t + H.poses + ' drawings in a glove, wanted ' + wantDrawings
+          + ': one per drawing the nine poses name');
+      }
       /* the band is a share of the head rather than a number, and it is on the
          **larger side of the drawn hand**, which is the one measure that means
          the same thing on a fist and on an open hand. the drawn version guarded
@@ -831,7 +949,7 @@ for (const chapter of want) {
     }
   }
 
-  if (chapter === 'hands') {
+  if (GLOVED.includes(chapter)) {
     /* ---------- the gloves ----------
        the same three questions the states are asked — does it wind up, does it
        go past its own mark, does it settle — plus the two this part brought
@@ -850,14 +968,21 @@ for (const chapter of want) {
       }
       if (!(p.overshoot > 1)) fail.push(c + p.pose + ' arrives with no overshoot, which is a hard stop');
     }
-    if (seenPose.size !== HAND_POSE_NAMES.length) {
-      fail.push(c + 'the cut only exercises ' + [...seenPose].join(', ')
-        + ' — the eight are ' + HAND_POSE_NAMES.join(', '));
-    }
-    /* one hand, the other one, and two. a cut that never named a side would
-       leave half of what this part is untested. */
-    for (const sd of HAND_SIDES) {
-      if (!seenSide.has(sd)) fail.push(c + 'no pose in the cut is on side "' + sd + '"');
+    /* ---------- and the catalogue is the hands chapter's job alone ----------
+       coverage is asked of the clip whose whole purpose is coverage. the chain
+       chapter is four marks long by design — a run of poses is a different
+       question from a row of them, and asking it to also show every pose and
+       every side would turn it back into the catalogue it exists not to be. */
+    if (chapter === 'hands') {
+      if (seenPose.size !== HAND_POSE_NAMES.length) {
+        fail.push(c + 'the cut only exercises ' + [...seenPose].join(', ')
+          + ' — the nine are ' + HAND_POSE_NAMES.join(', '));
+      }
+      /* one hand, the other one, and two. a cut that never named a side would
+         leave half of what this part is untested. */
+      for (const sd of HAND_SIDES) {
+        if (!seenSide.has(sd)) fail.push(c + 'no pose in the cut is on side "' + sd + '"');
+      }
     }
     const H = rep60.hands;
     /* twelve css px, and the number is the glove's own size rather than a
@@ -884,6 +1009,81 @@ for (const chapter of want) {
     console.log('  ' + c + 'the gloves reach '
       + [H.reach.l, H.reach.r, H.reach.t, H.reach.b].map(v => v.toFixed(1)).join('/')
       + ' units past the plate, fastest frame moves one ' + H.stepCss.toFixed(2) + ' css px');
+  }
+
+  if (chapter === 'chain') {
+    /* ---------- the chain, checked where it would show ----------
+       the module asserts the plan and the frames; what a render can add is that
+       the clip on disk is the one that was asked for. three things, and each is
+       a different way the chapter could quietly stop testing anything.
+
+       **the durations survived the plan.** a mark that supplied a duration the
+       plan then ignored would render a perfectly good clip of the wrong thing,
+       and every guard above it would pass. */
+    const { plan0 } = reports[chapter];
+    const posed = plan0.marks.filter(m => m.hands);
+    const want = [
+      { pose: 'rest', entry: null, next: null },
+      { pose: 'point-viewer', entry: 0.34, next: 'laugh' },
+      { pose: 'laugh', entry: 0.62, next: null },
+      { pose: 'rest', entry: null, next: null },
+    ];
+    if (posed.length !== want.length) {
+      fail.push(c + 'the chain cut planned ' + posed.length + ' poses, wanted ' + want.length);
+    } else {
+      want.forEach((w, i) => {
+        const h = posed[i].hands;
+        if (h.pose !== w.pose) fail.push(c + 'pose ' + i + ' is ' + h.pose + ', wanted ' + w.pose);
+        if (w.entry != null && Math.abs(h.entry - w.entry) > 1e-9) {
+          fail.push(c + w.pose + ' planned a ' + h.entry + 's entrance, the mark asked for ' + w.entry);
+        }
+        if (h.next !== w.next) {
+          fail.push(c + w.pose + ' chains into ' + h.next + ', wanted ' + w.next);
+        }
+      });
+      /* **and the hand never went home.** this is the chain itself, and it is
+         measured rather than read off the record: at the frame the laugh starts,
+         the glove has to still be out where the point left it. the resting pair
+         is 68.0 across and the point sits at 70.4, so anything near rest is a
+         chain that quietly became two gestures. */
+      const over = posed[1].hands.handover;
+      const g = mascotFrame(plan0, over.at).hands.list[1];
+      const off = Math.hypot(g.x - 70.4, g.y - 57.6);
+      if (off > 1.5) {
+        fail.push(c + 'at the handover the hand is ' + off.toFixed(2)
+          + ' grid units off the point it was supposed to be handed from');
+      }
+      /* and the drawing swapped on the successor's own frame rather than before
+         it, which is what `handShapeAt` learned to do for a chain. */
+      const before = mascotFrame(plan0, over.at - 1 / 60).hands.list[1].shape;
+      const after = mascotFrame(plan0, over.at + 1 / 60).hands.list[1].shape;
+      if (before !== 'point-side' || after !== 'laugh') {
+        fail.push(c + 'the drawing goes ' + before + ' to ' + after
+          + ' across the handover, wanted point-side to laugh');
+      }
+      console.log('  ' + c + 'the chain hands over at ' + over.at.toFixed(2) + 's, '
+        + off.toFixed(2) + ' units off the point, ' + before + ' to ' + after);
+    }
+    /* **and the laugh still bleeps on its own bounces.** the sound is placed
+       against the pose's entrance and this clip bought a shorter one, so a cue
+       left where the table put it would be a giggle over a hand still in the
+       air. the gap between the hand landing and the first bleep is the thing
+       that has to be constant. */
+    const lg = posed.find(m => m.hands.pose === 'laugh');
+    const bleeps = mascotCues(plan0).filter(q => q.kind === SFX.laugh);
+    if (bleeps.length !== 3) {
+      fail.push(c + 'the laugh made ' + bleeps.length + ' bleeps, wanted three');
+    } else {
+      const gap = bleeps[0].t - lg.hands.settled;
+      if (gap < 0 || gap > 0.09) {
+        fail.push(c + 'the first bleep is ' + gap.toFixed(3)
+          + 's after the hand lands, which is not the three frames the pose places it at');
+      }
+      console.log('  ' + c + 'the laugh lands at ' + lg.hands.settled.toFixed(2)
+        + 's and bleeps ' + gap.toFixed(3) + 's later, off a '
+        + lg.hands.entry.toFixed(2) + 's entrance against the table own '
+        + HAND_POSES.laugh.entry.toFixed(2));
+    }
   }
 }
 
