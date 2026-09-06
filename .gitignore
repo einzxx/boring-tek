@@ -25,6 +25,25 @@ demo/frames/
 demo/out/
 demo/package-lock.json
 
+# assets a clip places but does not own: reference sheets, app icons, logos.
+# somebody else's artwork is a thing to look at on this machine, not a thing to
+# publish out of a public repo, and one `git add .` is all it would take.
+#
+# `demo/assets/*` rather than `demo/assets/` on purpose: git does not descend
+# into an excluded directory, so a trailing slash here would make the negation
+# below unreachable.
+demo/assets/*
+# except the gloves, which are **our own trace** rather than somebody else's
+# file. the same paths already ship inside `demo/lib/mascot.mjs`, so keeping the
+# svgs is keeping the source beside what was built from it.
+!demo/assets/hands/
+
+# format breakdowns of other people's clips. the notes are ours but the thing
+# they are about is not, and neither is the media they were read from. the
+# downloads are deleted after every review; the folder stays ignored so a
+# reference clip can never be committed by accident.
+demo/refs/
+
 # music beds for the clips. licensed pixabay mp3s, downloaded to this machine and
 # never pushed: the licence is ours to hold, not ours to redistribute out of a
 # public repo. the post files slice them at render time and the slices live in

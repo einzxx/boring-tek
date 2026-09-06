@@ -6,54 +6,87 @@ names in here either.
 
 ## Status
 
-- **Open 2026-09-06: the mascot has floating hands, they are committed as
-  `43af6e7`, and they were rejected on review. The glove shapes have to be
-  redrawn as traced vector paths.** The machinery around them is right and
-  stands; the drawing is not and does not. Nothing is on a clip and nothing
-  needs to be reverted, because the part is opt in and every clip written
-  before it is proven unchanged.
-  - **What is wrong, in the reviewer's words:** the drawn gloves still do not
-    match `demo/assets/hands-ref.png`. `thumbs-up` reads as a stump. `panic`
-    reads as two fists. And the root of it: **geometric rounded rects cannot
-    reproduce that sheet.**
-  - **Measurement fixed the ratios and could not fix the construction, and that
-    is the lesson.** Two rounds went into the numbers — the sheet decoded with
-    `demo/out/poses/measure-ref.mjs`, every pose placed against its own panel
-    with `demo/out/poses/compare.mjs`, both heads at 244px — and they did land:
-    the mitt is 0.383 of the head against the sheet's 0.381, the palm's width to
-    a finger's length is 1.83 against 1.86, the gap is a quarter of a finger
-    either way. **The proportions being right did not make the hand right.** A
-    glove in that drawing is one closed outline with a tapered wrist, knuckles
-    that swell and fingers that bend; five rounded rects stacked in the right
-    proportions are five rounded rects. Getting the numbers off the reference was
-    necessary and it was not sufficient, and no further tuning of those numbers
-    will close the gap.
-  - **What has to change:** the six shapes in `HANDS` are replaced by **traced
-    vector paths off the reference**, one path per pose or one path per hand
-    part with real outlines, rather than composed from primitives. Everything
-    around them is written against a resolved glove already — `gloveAt` hands
-    out points, angles and lengths and `gloveCorners` hands out an outline — so
-    the seam is a small one.
-  - **What stands and does not need doing again:** the part is opt in and off
-    unless a plan says `hands: true`, and **12,138 frames across 33 plans hash
-    byte identical** to the module as it was, with every added key asserted off.
-    The marks api and the `side` option. The **separation edge** as two layers —
-    unclipped fill, plus the same shapes clipped to the plate's outline and
-    stroked in the page colour — so the outline exists exactly where a hand is
-    over the face and nowhere else. The **digits behind the mitt** and the edge
-    layer painting the ink layer's own fill, which is what stops a folded hand
-    being a knot of loops. The **inverse card scale** on each glove, so it
-    scales, tilts and travels with the head and does not deform. The
-    **measured reach** moving the head in, and `headRect` growing to cover the
-    pair so every clip's existing safe area guard is the hands' guard too. And
-    `mascot-test.mjs` split into `--chapter=states` and `--chapter=hands`.
-  - **A traced path breaks two of those and both are known.** The counter scale
-    keeps a stroke even under any outline, so that survives. What does not is
-    the curl arithmetic — a traced finger cannot be shortened by changing a
-    rect's height — so the poses will need path variants or a real bend, and
-    `gloveCorners` will need the path's own points rather than four corners a
-    shape. The reach walk, the placement and every guard read those two
-    functions and nothing else, so they are the only seam.
+- **Closed 2026-09-06: the mascot's floating hands are traced vector paths off
+  the sheet, and the rejected drawn version is gone.** Ten svgs in
+  `demo/assets/hands/` — `rest-left`, `rest-right`, `wave`, `thumbs-up`,
+  `facepalm`, `shrug-left`, `shrug-right`, `point`, `panic-left`, `panic-right`
+  — imported into `HAND_SHAPES` in `demo/lib/mascot.mjs` with their coordinates
+  untouched. **Nothing in the module draws a hand any more.** A pose is a shape
+  rather than an arrangement: the table says which path, where its wrist goes,
+  which way it is turned and how big it is, and that is the whole of it.
+  - **The six rounded rects are deleted and so are seven channels.** The four
+    finger curls, the thumb curl, the splay and the thumb angle were the
+    arithmetic that bent a rect into a knuckle; a traced path has no rect to
+    bend. `HANDS_REST` is five numbers where it was twelve — `x`, `y`, `rot`,
+    `sc`, `o`.
+  - **The wrist is the anchor and it is each file's own**, measured by
+    `demo/out/poses/measure-traced.mjs`: it rasterises the path, projects the
+    ink onto the direction the wrist points in, takes the outermost nine per
+    cent of the run and reports that band's centroid. A wave rocks at the wrist
+    and a hand hangs from one; a pose turned about its centroid is a hand being
+    spun rather than held.
+  - **Every placement was read off the sheet rather than judged, and that moved
+    all seven.** `demo/out/poses/ref-grid.mjs` draws the card's own 64 unit grid
+    over each surviving reference crop with the pose's ink box on top of it. The
+    first pass sat the whole set about **fifteen units too high** because the
+    resting hands were placed at the head's middle and the sheet hangs them off
+    the bottom of it — a resting hand's ink runs y 46 to 69 on a head that ends
+    at 62. `thumbs-up` was seventeen units out on its own, `facepalm` fifteen,
+    `panic` fourteen across.
+  - **One scale, and it is calibrated on the open hand.** `HANDS.box` is 32.5
+    grid units for a file's own 400 unit frame, which lands `wave` at 27.06 by
+    26.08 against the sheet's 27.0 by 26.1. The size guard moved with it: the
+    band is on the **larger side of each drawing's own ink**, 0.33 to 0.50 of
+    the head, and the ten land between 0.372 and 0.456. There is no mitt in a
+    traced pose to guard instead.
+  - **The shape is swapped, not tweened.** A shape cannot be a channel, because
+    a channel is a number and gsap would ease it: two white shapes crossfading
+    over a face is a double edge for the length of the fade, and a path index
+    eased from one to five draws three poses nobody asked for. So it is resolved
+    out of the plan's marks — `handShapeAt`, a lookup — and the markup carries
+    every pose's path hidden, with the page showing the one the frame names.
+  - **`gloveCorners` is the outline's own convex hull**, flattened at sixteen
+    segments a curve and cached at load with its mirror beside it. A hull is
+    exactly as good as the whole outline, because every consumer takes an axis
+    aligned box **after** a rotation. The reach walk costs 73ms on a thirty
+    second clip. The flattener refuses anything but `M`, `C` and `Z` absolute.
+  - **And it fixed something the rects got quietly wrong**: the left hand was
+    reflected on the page and not in the corner sweep, so its reach was the
+    reach of a hand that was never drawn. A symmetric glove hides that.
+  - **The edge layer is `fill:none` now.** Five overlapping shapes needed the
+    face colour painted under the stroke so a later shape could cover an earlier
+    one's outline; one closed path has no loops to hide, and the lines the sheet
+    draws inside a silhouette arrive with the path.
+  - **Everything else stands untouched**: the opt in, the marks api, `side`, the
+    separation edge as two clipped layers, the inverse card scale, the measured
+    reach moving the head in, `headRect` growing to cover the pair, and the two
+    chapter test. **12,138 frames across 33 plans still hash byte identical**
+    with the hands off.
+  - **Video review: six of the seven read, and `point` does not.**
+    `demo/out/review-mascot-hands-dark.md`, off the 60fps cut with the shutter
+    open. `thumbs-up` is a fist with a thumb rather than a stump and `panic` is
+    two hands gripping a head rather than two fists, which are the two the last
+    review named. **`point` reads as a fist**: the traced file aims the finger
+    at camera, foreshortened, with its tip as a circle about twenty device px
+    across on a 240px head, and it closes into the mass. That is the drawing
+    rather than the placement — the ink box sits on the sheet's own panel to
+    within a unit — so the two ways out are to use `point` only where the copy
+    already says who is being pointed at, or to trace a side-on point and swap
+    the file. **Neither changes a line of the module.** Also noted: the
+    facepalm's arrival is the one beat that would be cleaner at six subframes.
+  - **`demo/assets/` is gitignored now and `demo/assets/hands/` is not.** That
+    folder holds artwork a clip places but does not own — reference sheets, app
+    icons, other people's logos — and on a public repo one `git add .` publishes
+    it. The ten gloves are the exception because they are our own trace, and the
+    same paths already ship inside `demo/lib/mascot.mjs`. The rule is
+    `demo/assets/*` with `!demo/assets/hands/` under it: git does not descend
+    into an excluded directory, so a trailing slash on the first line would make
+    the negation unreachable and the svgs would vanish with no error anywhere.
+  - **`demo/assets/hands-ref.png` is gone** — it was a local file in that folder
+    and it is not on this machine any more. The seven crops
+    `compare.mjs` cut out of it survive at `demo/out/poses/cmp-ref-<pose>.png`
+    and are what everything was compared against. The ten traced files are the
+    sheet now as far as the module is concerned.
 
 - **Fix round 2026-09-06: `demo/post19.mjs`, the names get a voice and the label
   starts empty. 11.15s, 110 guards green at 12fps and at 60 with the shutter open
@@ -2649,44 +2682,50 @@ read. **The three style test clips were re-rendered** against the changed engine
   than claimed — see the decision.
 
   **And, since 2026-09-06, two floating hands — also opt in, off unless a plan
-  says `hands: true`, a different part from the one above, and REJECTED ON
-  REVIEW: the glove shapes are drawn from rounded rects and have to be replaced
-  by traced vector paths off the reference. Committed as `43af6e7`; nothing is
-  on a clip and nothing needs reverting, because the part is off by default and
-  every clip before it is proven unchanged. See the decision.** Two cartoon
-  gloves with no arms, drawn in code from `demo/assets/hands-ref.png`: a chunky
-  rounded palm, four fingers that do not touch and a thumb, all rounded rects on
-  the head's own 64 grid, filled with the plate's own token so they are white on
-  the dark page and ink on the light one. **Seven poses** — `rest`, `wave`,
-  `thumbs-up`, `facepalm`, `shrug`, `point`, `panic` — each an entrance, a hold
-  with its own beat and an exit back to the resting pair, triggered from a mark
-  the way a state is and composing with one rather than replacing it. `side` is
-  `left`, `right` or `both`, which hands are on screen, and it persists across
-  marks the way the turn does. The **separation edge** is the part that makes
-  them read: the glove is drawn twice, once unclipped and fill only and once
-  clipped to the plate's own outline and stroke only in the page colour, so the
-  outline exists exactly where a hand is over the face and nowhere else — and
-  inside the hand the same stroke is the finger lines for free. Each glove
-  carries the inverse of the card's two scales, so it goes with the head through
-  squash, tilt and turn **and does not deform**, which is what keeps that stroke
-  the same weight on every edge. They hang outside the silhouette, so the
-  placement holds room for their measured reach and `headRect` grows to cover
-  them. Measured at 60fps: `rest` 0f / 7f / +9.9% / 117ms, `wave` 5f / 11f /
-  +13.3% / 183ms, `thumbs-up` 6f / 12f / +14.0% / 183ms, `facepalm` 3f / 13f /
-  +11.5% / 217ms, `shrug` 4f / 10f / +12.7% / 117ms, `point` 6f / 11f / +14.1% /
-  167ms, `panic` 10f / 32f / +4.3% / 83ms — that last row is its two gear
-  entrance rather than a fault. **The proportions are measured off the sheet, not
-  judged**: palm 0.38 of the head, palm width to finger length 1.83 against the
-  sheet's 1.86, gap to finger width a quarter either way. The rendered mitt is
-  **92 device px against a 240px head** at the corner size 128 and **106.4
-  against 277.5** at the centred 148 — **0.383 of the head both times, against
-  the reference's 0.381** — with a separation edge of **3.00 and 3.47 device px**.
-  The guard is on the mitt rather than on the whole hand, because a hand's own
-  box swings by a third between a fist and an open hand and says as much about
-  the pose as about the drawing. **Every one of those numbers is right and the
-  hand is still wrong** — `thumbs-up` reads as a stump and `panic` as two fists —
-  which is the whole finding: measuring a reference says how big to make the
-  parts and cannot say that the thing is not made of parts. **With them off nothing about this
+  says `hands: true`, a different part from the one above, and since the fix
+  round the same day they are **ten traced vector paths off the sheet** rather
+  than shapes drawn in code. The rounded rect version was committed as `43af6e7`
+  and rejected on review; see the decision for why, because the lesson is not
+  about hands.** Two cartoon gloves with no arms, and **nothing in the module
+  draws one**: `demo/assets/hands/*.svg` holds `rest-left`, `rest-right`,
+  `wave`, `thumbs-up`, `facepalm`, `shrug-left`, `shrug-right`, `point`,
+  `panic-left` and `panic-right`, each a 400 unit frame with one filled path in
+  it, imported into `HAND_SHAPES` with their coordinates untouched and filled
+  with the plate's own token so they are white on the dark page and ink on the
+  light one. **Seven poses** — `rest`, `wave`, `thumbs-up`, `facepalm`, `shrug`,
+  `point`, `panic` — each an entrance, a hold with its own beat and an exit back
+  to the resting pair, triggered from a mark the way a state is and composing
+  with one rather than replacing it. Three carry a path a side because the sheet
+  draws both hands; four are one handed and the second hand is the first one
+  flipped. `side` is `left`, `right` or `both`, which hands are on screen, and it
+  persists across marks the way the turn does. **A pose is a shape rather than an
+  arrangement**, so it is not a channel and is not tweened: it is looked up out
+  of the plan's own marks and swapped, with every pose's path sitting hidden in
+  the markup and the page showing the one the frame names. **A glove is anchored
+  at its own wrist**, measured per file, because a wave rocks at the wrist and a
+  hand hangs from one. The **separation edge** is the part that makes them read:
+  the glove is drawn twice, once unclipped and fill only and once clipped to the
+  plate's own outline and stroke only in the page colour, so the outline exists
+  exactly where a hand is over the face and nowhere else — and it is `fill:none`
+  now, which five overlapping rects could never be. Each glove carries the
+  inverse of the card's two scales, so it goes with the head through squash, tilt
+  and turn **and does not deform**, which is what keeps that stroke the same
+  weight on every edge. They hang outside the silhouette — 26.6 grid units under
+  the chin at rest, where the sheet hangs them — so the placement holds room for
+  their measured reach and `headRect` grows to cover the pair. Measured at 60fps:
+  `rest` 0f / 7f / +9.9% / 117ms, `wave` 5f / 11f / +13.3% / 183ms, `thumbs-up`
+  5f / 11f / +12.8% / 167ms, `facepalm` 5f / 18f / +11.2% / 317ms, `shrug` 5f /
+  10f / +12.8% / 133ms, `point` 4f / 9f / +13.7% / 150ms, `panic` 11f / 32f /
+  +4.2% / 83ms — that last row is its two gear entrance rather than a fault, and
+  `facepalm` is eighteen frames because it crosses forty two grid units.
+  **Every placement is read off the sheet rather than judged**, with
+  `demo/out/poses/ref-grid.mjs` drawing the card's own grid over each reference
+  crop, and **the size is one number**: `HANDS.box` is 32.5 grid units for a
+  file's 400 unit frame, which lands the open hand at 27.06 by 26.08 against the
+  sheet's 27.0 by 26.1. The band is on the larger side of each drawing's ink,
+  0.33 to 0.50 of the head, and the ten land between 0.372 and 0.456. The
+  separation edge measures **2.99 and 3.47 device px** at the two head sizes a
+  clip uses. **With them off nothing about this
   module changes**, including where the head stands, and that is asserted over
   12,138 frames rather than claimed.   **The seven emotion states, measured at 60fps** — anticipation in frames, then
   frames from the mark to the arrival, then how far past the mark it goes, then
@@ -2767,9 +2806,17 @@ read. **The three style test clips were re-rendered** against the changed engine
   clip rather than a section because turning the gloves on moves the head in, and a
   states clip carrying them would have stopped being the control the first question
   needs. Its own guards: every pose winds up, overshoots and settles; all seven poses
-  and all three sides appear; no hand moves more than twelve css px in a frame; the
-  drawn reach never passes what the placement held; and the rendered glove is between a
-  third and a half of the head with its edge between 2.8 and 4.25 device px.
+  and all three sides appear; each glove carries all seven drawings; no hand moves more
+  than twelve css px in a frame; the drawn reach never passes what the placement held;
+  and the rendered glove is between 0.33 and 0.50 of the head on its long side with its
+  edge between 2.8 and 4.25 device px.
+  **The caption band is one a chapter since the traced hands landed.** The resting pair
+  now hangs 26.6 grid units under the chin where the sheet hangs it, against the drawn
+  version's 10.8, so the placement stands the head fifty three css px higher and the
+  thought cluster climbs with it — six hits on a band that ends at 630. The hands band
+  ends at 600; the states band is untouched, because it is the control and moving it to
+  suit a clip that composes differently would be moving the ruler. Those thirty pixels
+  are what a pair of gloves costs a clip that also carries captions.
 - **`demo/mascot-export.mjs`** — the same seven states as standalone 1080x1920 overlay
   clips for canva, three and a half seconds each, **three flavours from one capture**:
   vp9 webm with real alpha, mp4 on solid black, mp4 on solid white, plus a bubble
@@ -2873,13 +2920,172 @@ huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
 
+### 2026-09-06 — the gloves become traced paths, and the pose table is measured off the sheet rather than judged
+
+**This closes the entry below it.** The rounded rect gloves were rejected on
+review; they are gone. Ten traced svgs in `demo/assets/hands/` — `rest-left`,
+`rest-right`, `wave`, `thumbs-up`, `facepalm`, `shrug-left`, `shrug-right`,
+`point`, `panic-left`, `panic-right` — are imported into `HAND_SHAPES` in
+`demo/lib/mascot.mjs` with their coordinates untouched. **Nothing in the module
+draws a hand any more.** A pose is a shape rather than an arrangement: the table
+says which path, where its wrist goes, which way it is turned and how big it is.
+
+**The seam was as small as it was written down to be.** `gloveCorners` and the
+one resolver above it were the whole interface, and the reach walk, the
+placement, `headRect`, the capture region and every guard read only those two.
+Six shapes came out and one `d` string went in, and none of those callers
+changed.
+
+**Seven channels died with the primitives.** The four finger curls, the thumb
+curl, the splay and the thumb angle were the arithmetic that bent a rect into a
+knuckle. `HANDS_REST` is five numbers where it was twelve. Everything the poses
+used to say with curls, the drawing now says by being a drawing.
+
+#### A shape cannot be a channel, so it is a lookup
+
+A channel is a number and gsap eases it. Two white shapes crossfading over a
+face is a double edge for the length of the fade; a path index eased from one to
+five draws three poses nobody asked for on the way. So the shape is resolved out
+of the plan's own marks — `handShapeAt(plan, t, k)` — and swapped: a hand holds
+the pose of the last hands mark it is **acting** on, from that mark's frame
+until its exit begins, and holds `rest` at every other instant, including
+through the exit, so the shape a hand travels home in is the shape it is going
+home to.
+
+Every pose's path sits in the markup already, hidden, and the page shows the one
+the frame names. Seven paths a hand rather than one path rewritten per frame:
+writing a `d` every frame asks Chrome to re-parse and re-tessellate a two
+hundred point outline six times a captured frame, and a `d` written per frame is
+a `d` that can be written wrong on one. The name is compared before it is
+written, so holding a pose for three seconds writes nothing at all.
+
+#### The wrist is the anchor and it is each file's own
+
+A wave rocks at the wrist, a hand hangs from one, and a pose turned about its
+centroid is a hand being spun rather than held. `demo/out/poses/measure-traced.mjs`
+rasterises each path, projects the ink onto the direction the wrist points in,
+takes the outermost nine per cent of that run and reports the band's centroid,
+which lands in the middle of the stem rather than on the rounded cap. The
+direction is the one judgement in the instrument and it is read off the drawing;
+everything after it is arithmetic.
+
+#### Placing them off the sheet moved all seven, and the first pass was fifteen units high
+
+The lesson of the rejected version was that a comparison, not a guard, is what
+tells you a hand is wrong. So the placements were never judged this time:
+`demo/out/poses/ref-grid.mjs` draws the card's own 64 unit grid over each
+surviving reference crop with the pose's ink box on top of it, and the crops are
+centred on the panel's head at exactly 244px in a 640px box, so the mapping back
+into card space is exact and needs no measuring.
+
+**And the first pass, placed by eye, was fifteen grid units too high across the
+board.** The resting hands had been put at the head's middle; the sheet hangs
+them off the bottom of it — a resting hand's ink runs y 46 to 69 on a head that
+ends at 62. `thumbs-up` was seventeen units out on its own, `facepalm` fifteen,
+`panic` fourteen across, `point` twelve. Every one of those was invisible in a
+still of ours alone and obvious the moment the sheet's own grid was over it.
+
+**The one deliberate departure is `wave`.** In the sheet the waving hand's wrist
+sits within three units of the resting hand's: the gesture is entirely in the
+shape, because a wave's fingers point up where a resting hand's point down. That
+is fine in a drawing and it is a pop in a film — a hand that changes shape
+without travelling has not moved. So the wave sits 3.5 grid units above where
+the sheet draws it, which is seven css px, and it is scored on that lift.
+
+#### One scale, calibrated on the open hand, and a guard that had to be rewritten
+
+`HANDS.box` is 32.5 grid units for a file's own 400 unit frame, and every pose
+is scaled by it, so the ten keep the sheet's relative sizes rather than each
+being fitted to something. That lands `wave` — the one pose in the sheet drawn
+flat to camera, and the pose every version of this part has been sized off — at
+27.06 by 26.08 against the sheet's own 27.0 by 26.1.
+
+The old guard was on the **mitt**, because five rects had a palm in them to
+measure and a hand's whole box swings by a third between a fist and an open
+hand. A traced pose is one outline and there is no mitt in it. So the band is on
+the **larger side of each drawing's own ink** — the measure that means the same
+thing on a fist and on an open hand — at 0.33 to 0.50 of the head. The ten land
+between 0.372 and 0.456.
+
+#### The hull, and the bug a symmetric glove was hiding
+
+`gloveCorners` hands back the traced outline's **convex hull**, computed once at
+load: flattened at sixteen segments a curve, translated onto the wrist, scaled,
+grown by half a stroke, hulled. A hull is exactly as good as the whole outline
+for the only question anybody asks of it, because every consumer takes an axis
+aligned box **after** a rotation and the extreme of a rotated set is always a
+hull point of it. The reach walk costs 73ms on a thirty second clip, under the
+100ms the rect version cost.
+
+**And it exposed something the rects got quietly wrong.** The left hand was
+reflected on the page and *not* in the corner sweep, so its reach was the reach
+of a hand that was never drawn. A near-symmetric glove hides that; a traced one
+does not. The mirror is now a second cached hull kept beside the first.
+
+The flattener takes `M`, `C` and `Z` absolute and **refuses anything else** by
+name. A relative `c` read as an absolute one is a hand in the wrong place whose
+first symptom would be a reach that is too small and a glove over the safe line,
+which is a long way from the cause.
+
+#### `fill:none`, and a css line that could finally be deleted
+
+The rejected version's edge layer painted the ink layer's own fill **under** the
+stroke, so a shape drawn later could cover an earlier one's outline; without it
+a folded hand came back as a knot of loops and `facepalm` was five rings sitting
+on the face. That line was the cleverest thing in the part and it existed only
+because a glove was five overlapping shapes.
+
+One closed path has no loops to hide, so the edge layer is `fill:none` and the
+outline it draws is the hand's own. The lines the sheet draws *inside* a
+silhouette — the knuckle creases, the folded finger in `point` — arrive with the
+path, in `point` as a second subpath under `fill-rule="evenodd"`, rather than as
+a side effect of the stacking order.
+
+The stroke is written in the file's own units and divided by the path group's
+scale, so what lands on the screen is `edge` grid units: 2.99 device px at size
+128 and 3.47 at 148. That is a division rather than a `vector-effect`, which
+would have refused the head's own scale as well as this one.
+
+#### What it cost a clip, and it is thirty pixels
+
+The resting pair hangs 26.6 grid units under the chin now, against the drawn
+version's 10.8, because that is where the sheet hangs it. The placement stands
+the head fifty three css px higher to hold room for it, the thought cluster
+climbs with the head, and `mascot-test.mjs`'s caption band guard failed six
+times on a band that ends at 630 with a pill whose top reached 619.
+
+**The band moved and the states band did not.** It is one band a chapter now:
+the states cut is the control and moving its ruler to suit a clip that composes
+differently would be moving the ruler. So the hands band ends at 600, and those
+thirty pixels are the honest price of a pair of gloves in a clip that also
+carries captions — written down here because it is a constraint the next clip
+inherits.
+
+#### Everything else stands, and it is still proven rather than claimed
+
+The opt in, the marks api, `side`, the separation edge as two clipped layers,
+the inverse card scale that keeps a glove undeformed through squash, tilt and
+turn, the measured reach moving the head in, `headRect` growing to cover the
+pair, and the two chapter test. `demo/out/handsdiff/` still reports **12,138
+frames across 33 plans byte identical** with the hands off, with every added key
+asserted off on every plan, every mark and every frame.
+
+#### The sheet is gone and the trace is what is left
+
+`demo/assets/hands-ref.png` lived in an untracked local folder and is not on
+this machine any more. What survives is the seven crops `compare.mjs` cut out of
+it — `demo/out/poses/cmp-ref-<pose>.png`, already centred, scaled and mirrored —
+and they are what every placement above was measured against. The ten traced
+files are the sheet now as far as the module is concerned, which is the
+practical argument for tracing that the review's argument was only half of: a
+reference you have measured is a reference you can lose.
+
 ### 2026-09-06 — the mascot gets floating hands, and they are rejected: primitives cannot draw that glove
 
-**Committed as `43af6e7` and rejected on review. Read the last section of this
-entry first: the machinery stands and the drawing has to be redone as traced
-vector paths.** Everything below it is what was built and what it cost, kept
-because the parts that stand are most of it and because the fault is worth
-having written down.
+**Superseded the same day by the entry above it: the drawing was redone as
+traced paths and the six shapes are gone.** This is kept whole because the
+machinery in it is still what is running, and because the fault is worth having
+written down — it is the only reason the traced version exists.
 
 Two cartoon gloves with no arms, drawn in code in `demo/lib/mascot.mjs` off the
 measured proportions of `demo/assets/hands-ref.png` — somebody else's drawing,
@@ -6969,9 +7175,11 @@ of them.
   2026-09-02, `demo/post14.mjs`, **second cut, 13.03s**, light, out to
   `demo/out/post14-light-1080x1920.mp4`, every check passing and both
   video-review passes clean after five fixes between them. It owes **a posting pack** — caption, tweet and
-  three tags per platform, none decided — and it owes **a call on whether
-  `demo/assets/anthropic-logo.png` gets committed**, which is a public repo
-  question rather than a build one. **It is the one clip on the shelf with a
+  three tags per platform, none decided. **The call on whether
+  `demo/assets/anthropic-logo.png` gets committed is settled and the answer is
+  no**: `demo/assets/*` went into `.gitignore` on 2026-09-06 with the traced
+  gloves as the one negation under it, so somebody else's trademark is ignored
+  rather than merely absent. **It is the one clip on the shelf with a
   clock on it**: it is about somebody else's release and it is worth less every
   day it sits. It jumped post3 as well, so **post3, "missed calls", is now eight
   clips behind and still unbuilt.**

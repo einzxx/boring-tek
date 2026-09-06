@@ -210,8 +210,24 @@ function handsCut() {
    through the pill. the band moved rather than the bubble, because climbing is
    what the site does and what the brief asked for. what this really records is
    the constraint a clip inherits: a mascot in the bottom corner owns the frame
-   up to about 670, and captions live above that. */
-const BAND = { x: 48, y: 330, w: VW - 96, h: 300 };
+   up to about 670, and captions live above that.
+
+   **and it is now one band a chapter, because a mascot with gloves owns more of
+   the frame than one without.** the traced resting pair hangs off the bottom of
+   the head where the sheet hangs it — 26.6 grid units under the chin against
+   the drawn version's 10.8 — so the placement stands the head fifty three css
+   px higher and the thought cluster climbs with it. the pill's top reached 619
+   and a band ending at 630 ran through it, six hits, exactly the same failure
+   in the same guard. so the hands chapter's band ends at 600 rather than 630.
+
+   the states band is untouched on purpose: it is the control, and moving it to
+   suit a clip that composes differently would be moving the ruler. what the
+   pair really costs a clip is those thirty extra pixels, and this is the place
+   that number is written down. */
+const BANDS = {
+  states: { x: 48, y: 330, w: VW - 96, h: 300 },
+  hands: { x: 48, y: 300, w: VW - 96, h: 300 },
+};
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -362,10 +378,10 @@ async function render(tag, theme, plan) {
   const built = await page.evaluate(() => window.__built);
   const caps = await page.evaluate(() => window.__mas.caps());
   /* the glove's rendered size, and it has to be measured **after** a frame is
-     on the element: the markup draws every finger stacked on its own base and
-     `apply` is what fans them out, so `build` would report the palm and call it
-     a hand. the frame chosen is the first hands mark at its own settled moment,
-     which is the pose at rest and so the honest resting size. */
+     on the element: every pose's drawing is in the markup and hidden, and it is
+     `apply` that shows one, so `build` would report the box of nothing. the
+     frame chosen is the first hands mark at its own settled moment, which is
+     the pose at rest and so the honest resting size. */
   if (plan.hands) {
     const hm = plan.marks.find(m => m.hands);
     await page.evaluate(fr => window.__mas.apply(fr),
@@ -556,7 +572,7 @@ for (const chapter of want) {
   const { marks, seconds, opts } = CUTS[chapter];
   console.log('\n════ ' + chapter + ' ════');
   const plans = Object.fromEntries(themes.map(th =>
-    [th, planMascot({ marks, seconds, theme: th, band: BAND, ...opts })]));
+    [th, planMascot({ marks, seconds, theme: th, band: BANDS[chapter] || BANDS.states, ...opts })]));
   const plan0 = plans[themes[0]];
   console.log(describeMascot(plan0));
   /* the render's own rate, for the log, and sixty for the guards. the entry,
@@ -674,29 +690,32 @@ for (const { tag, chapter, state, probe: p, seconds } of results) {
     if (!H) fail.push(t + 'the hands chapter rendered no gloves');
     else {
       if (H.gloves !== 4) fail.push(t + H.gloves + ' glove groups, wanted four: two hands, two layers');
+      if (H.poses !== 7) fail.push(t + H.poses + ' drawings in a glove, wanted seven: one a pose');
       /* the band is a share of the head rather than a number, and it is on the
-         **palm** rather than on the whole hand: the mitt is the same size in
-         every pose, where the hand's own box swings by a third between a fist
-         and an open hand and would say as much about the pose as about the
-         drawing. the reference's palm is 93px of a 244px head, which is 0.381,
-         and the drawn one is 0.383. under a third the gesture stops reading at
-         phone size and the honest fix is a bigger hand rather than more detail
-         in it; over 0.45 the pair stops reading as hands and starts reading as
-         mittens. */
-      const share = H.palmPx / state.built.headPx;
-      if (share < 0.33 || share > 0.45) {
-        fail.push(t + 'the mitt rendered ' + H.palmPx + 'px wide against a ' + state.built.headPx
-          + 'px head, which is ' + share.toFixed(3) + ' of it — the band is 0.33 to 0.45'
-          + ' and the reference is 0.381');
+         **larger side of the drawn hand**, which is the one measure that means
+         the same thing on a fist and on an open hand. the drawn version guarded
+         the mitt instead, because five rounded rects had a palm in them to
+         measure and their whole box swung by a third between the two; a traced
+         pose is one outline and there is no mitt in it. one scale sizes all ten
+         and the sheet already fixed them against each other, so this is one
+         question asked once. under a third of the head the gesture stops
+         reading at phone size and the honest fix is a bigger hand rather than
+         more detail in it; over a half the pair stops reading as hands and
+         starts reading as mittens. */
+      const share = Math.max(H.inkWPx, H.inkHPx) / state.built.headPx;
+      if (share < 0.33 || share > 0.50) {
+        fail.push(t + 'the ' + H.pose + ' glove rendered ' + H.inkWPx + 'x' + H.inkHPx
+          + 'px against a ' + state.built.headPx + 'px head, which is ' + share.toFixed(3)
+          + ' of it on its long side — the band is 0.33 to 0.50');
       }
       if (H.edgePx < 2.8 || H.edgePx >= 4.25) {
         fail.push(t + 'the separation edge rendered at ' + H.edgePx + 'px — under 2.8 the encoder '
           + 'eats it, and 4.25 is the weight of the reference’s own finger lines, which it is '
           + 'meant to be under');
       }
-      console.log('  ' + t + 'a glove is ' + H.wPx + 'x' + H.hPx + 'px and its mitt '
-        + H.palmPx + 'px, against a ' + state.built.headPx + 'px head — mitt '
-        + share.toFixed(3) + ' of it, reference 0.381 — edge ' + H.edgePx + 'px ('
+      console.log('  ' + t + 'the ' + H.pose + ' glove is ' + H.inkWPx + 'x' + H.inkHPx
+        + 'px of ink against a ' + state.built.headPx + 'px head — ' + share.toFixed(3)
+        + ' of it on its long side, band 0.33 to 0.50 — edge ' + H.edgePx + 'px ('
         + H.edgeUnits + ' grid units)');
     }
   }
