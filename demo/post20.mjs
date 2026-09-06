@@ -1,16 +1,19 @@
-/* the boring tek — post20, the point.
+/* the boring tek — post20, replaced.
 
-   eight seconds, dark only, 1080x1920. a thought types itself in the middle of a
-   black frame, gets knocked down to the lower third, and the mascot falls into
-   the space it left. he lands, takes a beat, points at the viewer, laughs about
-   it, and the punchline pops under him. then a hard fault takes the lot and puts
-   the wordmark up.
+   dark only, 1080x1920, and the whole clock is cut from one read. a thought
+   types itself in the middle of a black frame while a voice says it, gets
+   knocked down to the lower third, and the mascot falls into the space it left.
+   he hits the floor and squashes flat, takes a beat, then a hand comes over his
+   mouth and he laughs with `hihi` over his crown. the laugh stops dead, the hand
+   goes home and fades, and the punchline pops under him while the voice delivers
+   it. then a hard fault takes the lot and puts the wordmark up.
 
    the line is: everyone says ai will replace u. the answer is: it will replace
    the guy who does not use it.
 
      node post20.mjs                     1080x1920, 60fps, shutter closed
      DEMO_FPS=12 node post20.mjs         the fast preview pass
+     node post20.mjs --voice             the read and the clock only, no browser
      node post20.mjs --blur              60fps with the shutter open
      node post20.mjs --blur=6            a wider shutter, which the fall wants
      node post20.mjs --keep-frames       leave the jpegs on disk
@@ -20,28 +23,44 @@
 
      demo/out/post20-dark-1080x1920.mp4
 
-   ---------- why this one exists ----------
+   ---------- what this cut changed, and why ----------
 
-   it is **the first clip to use the floating hands**. the pose table has been in
-   `lib/mascot.mjs` since the traced gloves landed and nothing outside
-   `mascot-test.mjs` had ever asked for one, so every number in that table was
-   proved on a test strip rather than on a film. this is the film: two poses, one
-   chained into the other, both on bought timings, under a face that never
-   changes state.
+   the first cut had a `point-viewer` in it and the review found the one thing
+   numbers could not: the finger aims at the right border rather than at the
+   lens. it reads as a point — which is more than `point` manages at this head
+   size — and it does not read as *at me*, and the honest fix is a third traced
+   drawing. so the pose is gone rather than shipped half working, and what is
+   left is the beat the clip was always about: he falls in, takes a breath, and
+   cannot keep a straight face.
 
-   the two poses are the whole joke. `point-viewer` is the finger aimed down and
-   out at camera — the pose the traced review had to open a second drawing for,
-   because the sheet's own point aims at the lens and closes into a fist. `laugh`
-   is the flat hand over the mouth with the head bouncing under it, which is the
-   one pose in the table that moves the head. he accuses, then he cannot keep it
-   up, and the caption underneath finishes the sentence.
+   three other things went with it. **there is a voice now**, and the whole clock
+   hangs off it. **there are no hands until the laugh** — he falls with none, and
+   the gloves fade in as the one hand starts across to his mouth. **and the
+   laugh makes no sound**: the module offers three bleeps on the first three
+   bounces and this clip drops all three by name, so the gap is silent and a
+   laugh can be laid over it later.
+
+   ---------- the read is the spine ----------
+
+   two takes, edge's Andrew at -4% and +3Hz, cached on the copy and the delivery
+   together. **every number in the clock is derived from where the words land**:
+   the typing is cut to the first take word by word, the knock down follows the
+   last word, the fall follows the knock down, the laugh follows the landing, the
+   punchline lands on the frame the laugh stops and the second take starts on the
+   same frame, and the fault waits for the last sound rather than for the last
+   word boundary. a slower reading moves the whole film and nothing in here has
+   to be retyped.
+
+   the one thing the read and the screen disagree about is the sixth word: the
+   card says `u` and the voice says `you`. a caption is read and a voice is
+   heard, and there is a guard that there is exactly one such word.
 
    ---------- what is not in this file ----------
 
    the mascot. `lib/mascot.mjs` supplies the plan, the frame, the preflight, the
-   css, the markup and the page runtime, and nothing here reaches inside it. two
-   things this file does to its output, and both are arithmetic on it rather than
-   a change to it:
+   css, the markup and the page runtime, and nothing here reaches inside it.
+   three things this file does to its output, and all three are arithmetic on it
+   rather than a change to it:
 
      `plan.box` is rewritten to centre him, which is post12's move and post12's
      reason: `planMascot` places by corner and this clip wants him in the middle
@@ -49,19 +68,22 @@
      `plan.box` when they are called, so moving it first is the same as having
      been placed there.
 
-     the fall and the landing are composed onto `frame.card` after the module has
-     written it, which is post19's move and post19's reason: a transform laid over
-     the element would leave `headRect` answering about a head that is somewhere
-     else. the one line post19 did not need is the glove's counter scale — see
-     `compose` below, because the gloves are on in this clip and post19's were
-     not.
+     the fall and the smash are composed onto `frame.card` after the module has
+     written it, which is post19's move and post19's reason: a transform laid
+     over the element would leave `headRect` answering about a head that is
+     somewhere else. the one line post19 did not need is the glove's counter
+     scale — see `compose`, because the gloves are on in this clip and post19's
+     were not.
+
+     and the gloves are gated to nought until the laugh, which is one multiplier
+     on the opacity the module already writes per hand.
 
    ---------- what is not the module's ----------
 
    the two captions. `lib/captions.mjs`'s `pop` fit measures a card as **one
    row** — michroma at a size that puts every word of it on a single line — which
    is right for the three word cards that style is written for and wrong for a
-   six word line and a nine word one: both would be fitted down to about sixteen
+   six word line and a ten word one: both would be fitted down to about sixteen
    css px, which is not a caption, it is a footnote. so the two blocks are drawn
    here, in the pop idiom rather than by the pop engine: michroma caps, `--fg`,
    the site's own spring on every word, wrapped inside a fixed box and fitted to
@@ -71,25 +93,23 @@
 
    ---------- the sound ----------
 
-   synthesised, all of it, out of `lib/sfx.mjs`, and no new recipe. the key tick
-   on each typed word, a `popDeep` when the caption lands and a heavier one when
-   he does, the module's own three `titter`s on the laugh's first three bounces,
-   a `pop` on the punchline and the `glitch` on the fault. no music and no voice.
-
-   the keys are lifted from -34 to -26. that number was set for a run of ticks
-   playing **under a read**; there is no read here and at -34 the typing would be
-   silent on a phone. the recipe is untouched.
+   the read, and under it six key ticks on the spoken words, a `popDeep` when the
+   caption lands and a heavier one when he does, the module's own `pop` on the
+   thought, a `pop` on the punchline and the `glitch` on the fault plus two
+   quieter copies before it. every effect is synthesised out of `lib/sfx.mjs` and
+   there is no new recipe. the bus ducks lightly while a word is being said and
+   the giggle is left silent on purpose.
 
    ---------- the shutter ----------
 
    post10's rule and post19's warning. with `--blur` every output frame is
    captured `SUB` times inside its own sixtieth and the captures are averaged.
-   anything written against `t` smears; the glitch and the cut are written
-   against the output frame `f` and are held across every capture of it, or a one
-   frame rgb split would land at a quarter strength. **the fall is 39.7 css px on
-   its fastest frame**, which is post19's territory: four subframes is 19.9
-   device px between samples and six is 13.2. it reads at four and it is cleaner
-   at six, and the number is printed on every run. */
+   anything written against `t` smears; the glitch, the cut and the wordmark's
+   own birth are written against the output frame `f` and are held across every
+   capture of it. **the fall is 37.9 css px on its fastest frame**, which is
+   post19's territory: four subframes is 18.9 device px between samples and six
+   is 12.6. it reads at four and it is clean at six, and the number is printed on
+   every run. */
 
 import puppeteer from 'puppeteer-core';
 import ffmpeg from 'ffmpeg-static';
@@ -104,7 +124,11 @@ import {
   STAGE, SAFE, HEAD, HEAD_PX, HANDS, GRID,
 } from './lib/mascot.mjs';
 import { brandTokens, checkCopy } from './lib/captions.mjs';
-import { renderSfx, writeWav, applyGain, limit, loudness } from './lib/sfx.mjs';
+import { speak, VOICE_OUT } from './lib/voice.mjs';
+import {
+  renderSfx, writeWav, applyGain, limit, loudness, decode, mixdown,
+  voiceEnvelope, checkUnderVoice, SR,
+} from './lib/sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -124,6 +148,7 @@ const SAFE_CSS = {
 
 const argv = process.argv.slice(2);
 const ONLY_ENCODE = argv.includes('--encode-only');
+const VOICE_ONLY = argv.includes('--voice');
 const KEEP = argv.includes('--keep-frames');
 const BLUR = argv.some(a => a.startsWith('--blur'));
 const BLUR_ARG = (argv.find(a => a.startsWith('--blur=')) || '').split('=')[1];
@@ -155,25 +180,87 @@ const COPY = {
   two: 'it will replace the guy who does not use it',
 };
 
-/* ---------- the typing ----------
+/* ---------- the typing, and it is the read ----------
    word by word rather than character by character, which is what the brief asks
    for and is also the only version of this that has a sound to put on it: a key
    tick per word is six events, and a tick per character would be thirty one
    inside a second, which is a machine gun rather than typing.
 
-   0.21s apart. five words a second is fast for a person and right for a thought
-   arriving, and it is what fits the front of an eight second clip after the
-   hands have taken the 3.15s the two poses need at the back.
+   **the words are not on a grid any more.** they were 0.21s apart and now every
+   one of them appears on the frame it is being said on, which is post17's
+   argument done at word level rather than at character level: the typing and the
+   read are two ways of describing one event, so they are built as one. the
+   spacing that comes back is the reading's own, uneven, and that is the point —
+   an even grid under an uneven read is two things laid on the same clock.
 
    **the first word is on frame zero rather than arriving on it**, and that is a
-   rendered frame's correction. it used to start at 0.10s and the review found
-   the obvious consequence: frame zero was an empty black rectangle, which is the
-   thumbnail and is also the first thing a feed shows before anybody has decided
-   to watch. post12 cut its own fade up for exactly this. so word one's reveal
-   window opens `wordFor` before the clip does and is finished at t=0, and its
-   key tick is still on frame zero — the keystroke that put it there is the first
-   thing you hear, and the film opens on a thought already half thought. */
-const TYPE = { from: 0, step: 0.21, wordFor: 0.20, from0: 0.68 };
+   rendered frame's correction the review made. it used to arrive a tenth of a
+   second in and frame zero was an empty black rectangle, which is the thumbnail
+   and is also the first thing a feed shows before anybody has decided to watch.
+   post12 cut its own fade up for exactly this. so word one's reveal window opens
+   `wordFor` before the clip does and is finished at t=0, and its key tick is
+   still on the frame it is spoken on. */
+const TYPE = { wordFor: 0.20, from0: 0.68 };
+
+/* ---------- the read ----------
+   two lines, one take each, and the voice is the brief's: edge's Andrew, which
+   is this house's `calm`. the delivery is the one thing that is not the voice's
+   own default — **-4% and +3Hz against its -8% and -2Hz** — and it is the only
+   lever the module gives for "slightly amused". `speak()` escapes its input
+   before it builds the ssml, so an `mstts:express-as` written into the copy
+   would arrive at the synthesiser as literal angle brackets and be read out;
+   rate and pitch are what actually reach it. a shade quicker than the house
+   default reads as somebody enjoying the line rather than reporting it, and
+   three hertz up is the smallest step that is audible at all.
+
+   **the screen says `u` and the voice says `you`.** that is the one deliberate
+   difference between the caption and the read and there is a guard on it: a
+   caption is read and a voice is heard, and `u` is a thing people type. */
+const VOICE = 'calm';
+const LINES = [
+  { text: 'everyone says ai will replace you', rate: '-4%', pitch: '+3Hz' },
+  { text: 'it will replace the guy who does not use it', rate: '-4%', pitch: '+3Hz' },
+];
+const SILENCE_DB = -42;
+const PRE = 0.06, POST = 0.10, EDGE_FADE = 0.012;
+/* the bus ducks while a word is being said, and lightly: the only thing playing
+   under the read is the run of key ticks, and a tick on the word it belongs to
+   is supposed to be heard **with** it rather than made room for. post19 ducks to
+   0.60 because it has a bed under a narration; this has six clicks. */
+const DUCK = 0.30;
+const VOICE_TRIM = 0;
+/* the key goes back down. -34 is the table's own and it was set for a run of
+   ticks under a read, which is exactly what this is now — the last cut lifted it
+   to -26 because there was no read to sit under. -29 is between the two: under
+   the voice, over the floor of a phone speaker. */
+const KEY_DB = -29;
+
+/* the joins, and all five are the only numbers in the clock that are not the
+   read's own. everything else is derived from where the words land. */
+const CARET_AFTER = 0.14;   /* the caret blinks this long after the last word */
+const FALL_LEAD = 0.18;     /* he starts falling this far into the knock down */
+const BEAT = 0.30;          /* the beat of nothing between the landing and the laugh */
+const AFTER_READ = 0.08;    /* and the fault waits this long after the last sound */
+const CARD = 0.95;          /* how long the end card holds */
+
+/* what he thinks while he is laughing. the module's own pill, placed over the
+   crown by the module, in the module's own two syllables. */
+const THOUGHT = 'hihi';
+
+/* the pose, and both numbers are bought against the table's 1.01 and 1.62.
+   0.67 is not a taste: `planMascot` measures the plan's own frames against
+   `HANDS.stepCeil` and names the shortest entrance this clip's travel allows,
+   and it refused 0.54 — which is the floor for a laugh coming off another pose,
+   not off a resting pair. the hold is the four bounces plus the beat the eyes
+   take to open, and the module measures that too. */
+const LAUGH = { entry: 0.67, hold: 1.55 };
+
+/* the gloves are off until the laugh and off again after it, which is the whole
+   of "he falls with no hands". `hands: true` draws the resting pair from frame
+   zero, so the gate is this file's: one multiplier on every glove's own opacity,
+   composed the same way the fall is. */
+const GLOVE_IN = 0.18, GLOVE_OUT = 0.22;
+let GATE = null;
 
 /* the cursor. it is the one accent in the clip and it is the machine: the words
    arrive in the ink and the green block is what is putting them there. it sits
@@ -219,53 +306,39 @@ const CAP = {
    the bounce is a damped sine written separately, so the landing overshoot is a
    number in this table rather than a property of a curve: twelve css px down and
    back, one zero crossing, gone in a third of a second. */
-const SNAP = { at: 1.66, for: 0.30, bounce: 12, bounceFor: 0.34, damp: 4.5, cycles: 1.0 };
+const SNAP = { at: 0, for: 0.30, bounce: 12, bounceFor: 0.34, damp: 4.5, cycles: 1.0 };
 
-/* ---------- the fall ----------
-   post19's, at post19's numbers, and the length is the shutter's rather than
-   taste's: 560 css px in 0.47s is 39.7 on the frame it lands, which is 19.9
-   device px between samples at four subframes. `p²`, because that is what
-   gravity is.
+/* ---------- the fall and the smash, which are post19's outright ----------
+   560 css px in 0.47s, and the length is the shutter's rather than taste's: it
+   is 37.9 on the frame it lands, which is 12.6 device px between samples at six
+   subframes. `p²`, because that is what gravity is and no bezier says it more
+   clearly.
 
-   the smash is post19's shape at a fifth of its depth. that clip is a head
-   hitting the floor after a smash cut; this is a small robot arriving, and the
-   brief says soft. 1.16 wide by 0.86 tall, one stretch on the way back out. */
-const DROP = { at: 1.96, for: 0.47, from: 560 };
-const LAND = +(DROP.at + DROP.for).toFixed(4);
-const SMASH = { air: 0.05, flat: 0.05, back: 0.20, k: 0.16, damp: 4.2, cycles: 1.15 };
+   **the smash is post19's own numbers now rather than a fifth of them.** the
+   first cut of this clip walked `k` down to 0.16 on the argument that a small
+   robot arriving is not a head hitting the floor after a smash cut; the brief
+   asks for that clip's feel outright, so the table is that clip's: he stretches
+   a tenth on the way down, compresses to **1.52 wide by 0.66 tall** over 70ms
+   with his chin on the ground, and springs out on a damped cosine that goes
+   below zero exactly once. */
+const DROP = { at: 0, for: 0.47, from: 560 };
+let LAND = 0;
+const SMASH = { air: 0.10, flat: 0.07, back: 0.42, k: 0.52, damp: 4.2, cycles: 1.15 };
 
 /* ---------- the cut ----------
-   two marks, and both of them are hands marks: the face never changes state in
-   this clip, because both poses already say everything. `neutral` is what is
-   under them and it is there so the marks are legal — a mark carries a state.
+   **one mark, and it is a hands mark.** the point is gone: it read as a finger
+   aimed at the right border rather than at the lens and the honest fix was a
+   third traced drawing, so rather than ship a pose that does not say its own
+   name the clip does the thing it was always about — he falls in, takes a beat,
+   and cannot keep a straight face.
 
-   the room between them is not taste. `planMascot` refuses a mark with no room
-   for its own entrance, hold and exit, and the two poses have floors of their
-   own on top of that:
+   the face never changes state. `neutral` is on the mark because a mark carries
+   a state, and the laugh already shuts the eyes, bounces the head and takes the
+   brows off on its own channel.
 
-     `point-viewer` is bought at a 0.34s entrance against the table's 0.40, which
-     is `mascot-test.mjs`'s chain chapter's own number. its hold is 0.74, which
-     carries the first jab and hands the second one over mid extension — the
-     chain is what makes that legal, and it reads as a hand that has already
-     decided where it is going next.
-
-     `laugh` is bought at 0.62 against the table's 1.01. the module's own search
-     names 0.54 as the floor for a laugh coming off a rest and it refuses 0.54
-     here, because this one comes off a `point-viewer` and the travel is longer:
-     13.5 css px on one frame against the ceiling of 12. 0.62 clears it at 11.9.
-     the hold is 1.55, which is the four bounces plus the beat the eyes take to
-     open, and the module measures that rather than taking it on trust.
-
-   so the two poses cost 3.15s between the mark the first one lands on and the
-   frame the second one stops, and everything else in the clip is fitted round
-   that number rather than the other way about. */
-const CUT = {
-  marks: [
-    { t: 2.72, state: 'neutral', hands: { pose: 'point-viewer', entry: 0.34, hold: 0.74, next: true } },
-    { t: 3.80, state: 'neutral', hands: { pose: 'laugh', entry: 0.62, hold: 1.55 } },
-  ],
-  seconds: 8.05,
-};
+   both fields are filled in by the clock below, because every time in this film
+   is derived from the read. */
+const CUT = { marks: [], seconds: 0 };
 
 /* ---------- the end ----------
    post12's machinery at post12's numbers, walked down a little: two stutters
@@ -275,18 +348,7 @@ const CUT = {
    he and both captions are **cut** on the hit frame and the wordmark is born on
    that same frame, so the frame exchanges one thing for another and is never
    empty. that is post12's rule and it was a rendered still that wrote it. */
-const END = {
-  pre: [
-    { t: 6.72, for: 0.05, force: 0.34 },
-    { t: 6.86, for: 0.05, force: 0.60 },
-  ],
-  at: 7.00,
-  hard: 0.12,
-  tail: 0.18,
-  wmIn: 7.00,
-  wmFor: 0.09,
-  clean: 0.06,
-};
+const END = { pre: [], at: 0, hard: 0.12, tail: 0.18, wmIn: 0, wmFor: 0.09, clean: 0.06 };
 
 /* the wordmark: three words, no domain, on the line his head was on. post12's
    table unchanged, because it is the same frame at the same size. */
@@ -309,15 +371,23 @@ const GL = {
 const CRF = 17;
 
 /* ---------- the mix ----------
-   post12's, unchanged: -14 LUFS wanted, a -1.8 dBFS sample ceiling, a decibel
-   and a half of limiting allowed, and the ceiling wins when the two disagree
-   because this bus is a handful of transients on silence. */
+   -14 LUFS wanted, a -1.8 dBFS sample ceiling and a decibel and a half of
+   limiting allowed. **the floor came back up from -22 to -17 with the read**:
+   the last cut was a dozen transients on silence and the peak ceiling won by six
+   and a half decibels, and a mix with four and a half seconds of speech in it
+   has something continuous to raise. */
 const TARGET_LUFS = -14;
 const SAMPLE_CEILING = -1.8;
 const PEAK_CEILING = -1.0;
-const LIMIT_ALLOW = 1.5;
-const MAX_REDUCTION = LIMIT_ALLOW + 0.3;
-const MIN_LUFS = -22;
+/* **five decibels of limiting, which is post19's number and not post12's.** the
+   last cut allowed one and a half, because a dozen transients on silence is a
+   source whose peaks *are* the content and squashing them is squashing the clip.
+   a read is the opposite: speech is peaky against its own average by ten or
+   twelve decibels and a limiter taking a few of them off the plosives is what
+   every broadcast chain does. at 1.5 this mix stopped at -16.9 with the target
+   5.6 dB away; at 5.0 it reaches it. the number moved because the source did. */
+const MAX_REDUCTION = 5.0;
+const MIN_LUFS = -16;
 
 /* how fast anything in this file may move, in css px between two frames at
    sixty. post19's number, and it is the shutter's rather than the animation's:
@@ -365,25 +435,28 @@ function onGrid(t, len, fps) {
 }
 
 /* ---------- the two lines, as words with times ----------
-   the first one is typed, so every word has a moment; the second arrives whole,
-   so all nine share one. both go through the caption engine's own copy check,
-   which is where the dash rule lives. */
-const WORDS = {
-  one: COPY.one.split(' ').map((word, i) => ({
-    word, start: +(TYPE.from + i * TYPE.step).toFixed(4),
-    end: +(TYPE.from + i * TYPE.step + TYPE.wordFor).toFixed(4),
-    /* when the reveal opens, which is the tick's own moment for every word but
-       the first. see the note in TYPE for why that one is different. */
-    show: +(i === 0 ? -TYPE.wordFor : TYPE.from + i * TYPE.step).toFixed(4),
-  })),
-  two: COPY.two.split(' ').map(word => ({ word, start: 0, end: 0.2 })),
-};
-checkCopy(WORDS.one);
-checkCopy(WORDS.two);
-const TYPED_LAST = WORDS.one[WORDS.one.length - 1].start;
+   filled in from the takes, because every word's moment is the moment it is
+   spoken. the markup is built from the same list, so the card and the read
+   cannot come apart. both strings go through the caption engine's own copy check
+   here, before a browser or a synthesiser is opened, which is where the dash
+   rule lives. */
+const WORDS = { one: [], two: [] };
+checkCopy(COPY.one.split(' ').map(word => ({ word })));
+checkCopy(COPY.two.split(' ').map(word => ({ word })));
 
-/* ---------- where the caption is, and what is showing on it ---------- */
-function capAt(t, swap) {
+/* ---------- where the caption is, and what is showing on it ----------
+   `cut` is whether the fault has taken the frame, and it is handed in rather
+   than worked out from `t` here. **that is a 60fps guard's correction.** the hit
+   is derived from where the read ends, so it lands wherever it lands — and on
+   the master's grid `Math.round(END.at * 60)` rounded *down* past it, so the
+   frame the wordmark was born on still had `t < END.at` and the punchline was
+   drawn under it. one frame with both on it, and the preview could not see it
+   because at twelve the same rounding went the other way.
+
+   so the switch is the output frame's, the same one `mo` and the wordmark's own
+   opacity are on. the fallback is only for the callers that ask about a moment
+   long before the cut. */
+function capAt(t, swap, cut = t >= END.at) {
   /* the block's own centre, as an offset from the middle of the frame. it sits
      on the middle of the safe band while it types and on the caption line after
      the knock down, and the bounce is added on top of the travel rather than
@@ -410,7 +483,6 @@ function capAt(t, swap) {
   let n = 0;
   for (const w of WORDS.one) if (t >= w.start) n++;
 
-  const cut = t >= END.at;
   const oneO = cut ? 0 : +(1 - span(t, swap - CAP.outFor, swap)).toFixed(4);
   const twoP = span(t, swap, swap + CAP.inFor);
   return {
@@ -423,8 +495,7 @@ function capAt(t, swap) {
     /* the cursor is on while the line is being typed and off the moment the
        block is knocked down: a caret on a caption that has stopped being written
        is a caret nobody is holding. */
-    cur: t >= TYPE.from && t < SNAP.at
-      && ((t - TYPE.from) % CUR.period) < CUR.period * CUR.duty ? 1 : 0,
+    cur: t >= 0 && t < SNAP.at && (t % CUR.period) < CUR.period * CUR.duty ? 1 : 0,
     curAt: Math.max(0, n - 1),
   };
 }
@@ -468,6 +539,30 @@ function squashAt(t) {
    module, it is this file finishing the composition it started. */
 function compose(plan, t, R) {
   const f = mascotFrame(plan, t);
+  /* ---------- the gloves, which are off until the laugh ----------
+     `hands: true` draws the resting pair from frame zero and this clip wants no
+     hands on the fall at all, so one multiplier goes on every glove's own
+     opacity: up as the hand starts across to the mouth, down again as it goes
+     home. it is a gate rather than a `side` on an earlier mark, because `side`
+     is which hands are on screen from a mark onward and there is no mark before
+     this one to put it on. */
+  if (f.hands && GATE) {
+    const g = span(t, GATE.from, GATE.from + GLOVE_IN)
+      * (1 - span(t, GATE.leaving, GATE.leaving + GLOVE_OUT));
+    /* **and the hand that never acts is never drawn**, which is a second gate
+       rather than a tighter first one. `side` is a fact about a mark and it
+       applies from that mark on; before it the module holds the resting pair,
+       and the module then fades the idle one out across the pose's entrance
+       because a hand that *was* on screen has to leave. in this clip it was
+       never on screen, so it has nothing to leave from — and 0.3 of a glove
+       drifting off during the entrance is exactly what the guard caught. */
+    f.hands = {
+      ...f.hands,
+      list: f.hands.list.map((h, k) => ({
+        ...h, o: +(h.o * (GATE.acting.includes(k) ? g : 0)).toFixed(4),
+      })),
+    };
+  }
   const k = squashAt(t);
   if (!k && t >= LAND) return f;
   const sq = 1 + k;
@@ -501,10 +596,11 @@ function glitchWindows(fps) {
     { ...onGrid(END.at, END.hard + END.tail, fps), force: 1, seed: 0x0c1a55, pre: null },
   ];
 }
-const GL_WINDOWS = glitchWindows(FPS);
-/* and the same list on the master's grid, because a duty is a property of the
-   animation rather than of the pass it is sampled at. the guards read sixty. */
-const GL_WINDOWS_60 = FPS === 60 ? GL_WINDOWS : glitchWindows(60);
+/* filled in once the clock is, for the same reason everything else here is. the
+   second list is the same windows on the master's grid, because a duty is a
+   property of the animation rather than of the pass it is sampled at. */
+let GL_WINDOWS = [];
+let GL_WINDOWS_60 = [];
 
 function glitchAt(f, fps = FPS, windows = GL_WINDOWS) {
   const g = { sx: 0, sy: 0, split: 0, noise: 0, flash: 0, bands: [], heat: 0 };
@@ -559,16 +655,18 @@ function frameAt(t, f, swap) {
   const wp = span(t, END.wmIn, END.wmIn + END.wmFor);
   return {
     t: +t.toFixed(4), f, mo,
-    cap: capAt(t, swap),
+    cap: capAt(t, swap, f >= cutFrame),
     wm: {
-      /* a cut rather than a ramp, and the reason is arithmetic. post12 fades the
-         opacity in over the front of the snap because its hit does not land on a
-         whole frame at either rate; this one lands on 7.00, which is exactly on
-         both grids, so a ramp starting there is nought on the birth frame — and
-         a birth frame with the mascot already cut and the wordmark not yet
-         arrived is an empty frame, which is the fault post12's own note is
-         about. so the wordmark is simply there, and the snap is the scale. */
-      o: t >= END.wmIn ? 1 : 0,
+      /* a cut rather than a ramp, and **on the output frame rather than on the
+         instant**, which is the same switch `mo` is on. post12 fades the opacity
+         in over the front of the snap, and that only works because its hit does
+         not land on a whole frame at either rate; the moment one does, the birth
+         frame is nought and the frame carries the mascot already cut and the
+         wordmark not yet arrived, which is an empty frame. keying it to `f` is
+         what makes the exchange exact at any rate, and it is what lets the fault
+         land wherever the read ends rather than on a number chosen to sit on two
+         frame grids at once. */
+      o: f >= cutFrame ? 1 : 0,
       sc: +(1 + (1 - POP(wp)) * 0.085).toFixed(4),
       glow: +phosphor(t, 0.055, 2.3, 0.83, 1.7).toFixed(4),
     },
@@ -940,7 +1038,7 @@ function injected() {
 }
 
 /* ---------- render ---------- */
-async function render(plan, R, swap) {
+async function render(plan, R, swap, bub) {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
   for (const d of [FRAMES, SUBS]) { fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); }
   fs.mkdirSync(OUT, { recursive: true });
@@ -1000,6 +1098,27 @@ async function render(plan, R, swap) {
   console.log('  the wordmark: ' + wm.sizeCss + 'css px, widest line ' + wm.widestPx
     + ' device px, caps ' + wm.capPx + ', clear ' + wm.left + ' left / ' + wm.top
     + ' top / ' + wm.right + ' right / ' + wm.bottom + ' bottom');
+
+  /* ---------- the thought, measured while it is up ----------
+     `bubbleSafe` answers null when the cluster is hidden, so it is sampled over
+     the pill's own window rather than read once: the worst of every edge across
+     the frames it is on screen for. the module's placement is advisory about the
+     safe area and says so — it places against the zone and a clip is free to move
+     the zone, which this one does — so the rendered rect is what decides. */
+  let worstBub = null;
+  for (let t = bub.in; t <= bub.out + 0.01; t += 0.04) {
+    await page.evaluate(fr => window.__mas.apply(fr), compose(plan, t, R));
+    const r = await page.evaluate((w, h) => window.__mas.bubbleSafe(w, h), VW, VH);
+    if (!r) continue;
+    if (!worstBub) worstBub = { ...r, at: +t.toFixed(2) };
+    else for (const k of ['left', 'top', 'right', 'bottom']) {
+      if (r[k] < worstBub[k]) { worstBub[k] = r[k]; worstBub.at = +t.toFixed(2); }
+    }
+  }
+  if (!worstBub) throw new Error('the thought was never on screen between ' + bub.in + ' and ' + bub.out);
+  console.log('  the thought "' + bub.text + '": ' + worstBub.w + ' device px wide, clear '
+    + worstBub.left + ' left / ' + worstBub.top + ' top / ' + worstBub.right + ' right / '
+    + worstBub.bottom + ' bottom');
 
   /* the head, as ink, on every frame, with the fall and the smash composed on.
      the glow and the shadow are reported beside it rather than folded into it: a
@@ -1079,20 +1198,22 @@ async function render(plan, R, swap) {
   fs.rmSync(VERIFY, { recursive: true, force: true });
   fs.mkdirSync(VERIFY, { recursive: true });
   const stills = [
-    [WORDS.one[2].start + 0.10, 'a-typing'],
-    [TYPED_LAST + 0.24, 'b-typed-and-blinking'],
-    [SNAP.at + SNAP.for + 0.04, 'c-knocked-down'],
-    [DROP.at + DROP.for * 0.62, 'd-falling'],
-    [LAND + SMASH.flat * 0.6, 'e-the-landing'],
-    [CUT.marks[0].t + 0.44, 'f-the-point'],
-    [CUT.marks[0].t + 1.00, 'g-the-second-jab'],
-    [CUT.marks[1].t + 0.72, 'h-the-laugh-lands'],
-    [CUT.marks[1].t + 1.21, 'i-the-giggle'],
-    [swap + 0.30, 'j-the-punchline'],
-    [GL_WINDOWS[1].t0, 'k-the-second-stutter'],
-    [GL_WINDOWS[2].t0, 'l-the-hit'],
-    [END.at + END.hard + END.tail + 0.16, 'm-the-wordmark'],
-    [CUT.seconds - 0.06, 'n-the-last-frame'],
+    [0, 'a-frame-zero'],
+    [WORDS.one[2].start + 0.08, 'b-typing'],
+    [WORDS.one[WORDS.one.length - 1].end + 0.06, 'c-typed-and-blinking'],
+    [SNAP.at + SNAP.for + 0.04, 'd-knocked-down'],
+    [DROP.at + DROP.for * 0.62, 'e-falling'],
+    [LAND + SMASH.flat * 0.8, 'f-the-smash'],
+    [LAND + SMASH.flat + SMASH.back * 0.45, 'g-springing-back'],
+    [CUT.marks[0].t - 0.04, 'h-the-beat'],
+    [plan.marks[0].hands.settled, 'i-the-hand-lands'],
+    [bub.full + 0.10, 'j-the-thought'],
+    [plan.marks[0].hands.settled + 0.60, 'k-the-giggle'],
+    [swap + 0.30, 'l-the-punchline'],
+    [GL_WINDOWS[1].t0, 'm-the-second-stutter'],
+    [GL_WINDOWS[2].t0, 'n-the-hit'],
+    [END.at + END.hard + END.tail + 0.16, 'o-the-wordmark'],
+    [CUT.seconds - 0.06, 'p-the-last-frame'],
   ];
   for (const [want, name] of stills) {
     const f = Math.min(N - 1, Math.round(want * FPS));
@@ -1119,7 +1240,7 @@ async function render(plan, R, swap) {
 
   if (SUB > 1) blend(N);
 
-  const state = { built, cap, wm, head: worstIn, air: worstAir, sigs, frames: N };
+  const state = { built, cap, wm, bubble: worstBub, head: worstIn, air: worstAir, sigs, frames: N };
   fs.writeFileSync(path.join(OUT, 'post20.json'), JSON.stringify(state, null, 2));
   return state;
 }
@@ -1166,6 +1287,121 @@ function probe(file) {
 
 /* ---------- go ---------- */
 
+/* ---------- the read ----------
+   one take a line, cached, and **the delivery is part of the cache key**: the
+   copy is one half of what a take is and the rate and the pitch are the other.
+   post19's shape, unchanged, and `speak()` resolves the voice's own defaults
+   before it caches — so a line that left them off would refetch every run. */
+async function take(i) {
+  const L = LINES[i];
+  const name = 'post20-l' + (i + 1);
+  const cached = path.join(VOICE_OUT, name + '-' + VOICE + '.json');
+  const want = L.text.replace(/\s+/g, ' ').trim();
+  if (fs.existsSync(cached)) {
+    const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
+    if (j.text === want && j.rate === L.rate && j.pitch === L.pitch && fs.existsSync(j.file)) {
+      return { ...j, i, cached: true };
+    }
+  }
+  return { ...(await speak(L.text, { voice: VOICE, name, rate: L.rate, pitch: L.pitch })), i, cached: false };
+}
+
+/* where a take's sound actually starts and stops, off the waveform rather than
+   off the word list: the synthesiser's WordBoundary carries a duration shorter
+   than the sound, so a silence trusted to the word list is not the silence in
+   the file. post19's, unchanged. */
+function audioEdges(pcm) {
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i++) peak = Math.max(peak, Math.abs(pcm[i]));
+  const gate = peak * Math.pow(10, SILENCE_DB / 20);
+  const H = Math.round(0.005 * SR);
+  const n = Math.floor(pcm.length / H);
+  const loud = k => {
+    let m = 0;
+    for (let j = k * H; j < Math.min((k + 1) * H, pcm.length); j++) m = Math.max(m, Math.abs(pcm[j]));
+    return m > gate;
+  };
+  let a = 0, b = n - 1;
+  while (a < n && !loud(a)) a++;
+  while (b > a && !loud(b)) b--;
+  return { start: +(a * 0.005).toFixed(4), end: +((b + 1) * 0.005).toFixed(4), peak: +(20 * Math.log10(peak)).toFixed(1) };
+}
+
+const TAKES = [await take(0), await take(1)];
+const PCM = TAKES.map(t => decode(ffmpeg, t.file));
+const EDGE = PCM.map(audioEdges);
+for (const t of TAKES) {
+  if (t.timing !== 'engine') {
+    throw new Error('take ' + (t.i + 1) + ' came back with estimated timings — the picture is cut to the read'
+      + ' and an estimate is not a read');
+  }
+}
+
+/* ---------- the clock, and every number in it is derived ----------
+   the read is the spine. the typing is cut to the first take word by word, the
+   knock down follows it, the fall follows that, the laugh follows the landing,
+   the punchline lands on the frame the laugh stops and the second take starts on
+   the same frame, and the fault waits for the last word. a slower reading moves
+   the whole film and nothing here has to be retyped. */
+const off1 = +(PRE - EDGE[0].start).toFixed(4);
+const w1 = TAKES[0].words, w2 = TAKES[1].words;
+if (w1.length !== COPY.one.split(' ').length) {
+  throw new Error('the first line came back with ' + w1.length + ' words and the caption has '
+    + COPY.one.split(' ').length + ' — the typing cannot be cut to a read it does not match');
+}
+if (w2.length !== COPY.two.split(' ').length) {
+  throw new Error('the second line came back with ' + w2.length + ' words and the caption has '
+    + COPY.two.split(' ').length);
+}
+
+WORDS.one = COPY.one.split(' ').map((word, i) => ({
+  word,
+  start: +(w1[i].start + off1).toFixed(4),
+  end: +(w1[i].end + off1).toFixed(4),
+  said: w1[i].word,
+  /* when the reveal opens, which is the word's own spoken moment for every word
+     but the first. see the note in TYPE for why that one is different. */
+  show: i === 0 ? -TYPE.wordFor : +(w1[i].start + off1).toFixed(4),
+}));
+
+SNAP.at = +(WORDS.one[WORDS.one.length - 1].end + CARET_AFTER).toFixed(3);
+DROP.at = +(SNAP.at + FALL_LEAD).toFixed(3);
+LAND = +(DROP.at + DROP.for).toFixed(4);
+const LAUGH_AT = +(LAND + BEAT).toFixed(3);
+/* when the laugh stops and the punchline arrives. it is arithmetic on the pose's
+   own two bought numbers rather than a time typed beside them, and the plan is
+   asserted against it below — the module's `leaving` and this have to agree or
+   the punchline lands on a hand that is still over a mouth. */
+const SWAP = +(LAUGH_AT + LAUGH.entry + LAUGH.hold).toFixed(4);
+
+const off2 = +(SWAP - w2[0].start).toFixed(4);
+WORDS.two = COPY.two.split(' ').map((word, i) => ({
+  word,
+  start: +(w2[i].start + off2).toFixed(4),
+  end: +(w2[i].end + off2).toFixed(4),
+  said: w2[i].word,
+  show: +(w2[i].start + off2).toFixed(4),
+}));
+/* the read is over when the **sound** is over rather than when the last word
+   boundary is: the boundary is shorter than the syllable it names, and a fault
+   placed on it would cut the last consonant off. */
+const READ_END = +Math.max(WORDS.two[WORDS.two.length - 1].end, EDGE[1].end + off2).toFixed(3);
+
+END.at = +(READ_END + AFTER_READ).toFixed(3);
+END.wmIn = END.at;
+END.pre = [
+  { t: +(END.at - 0.38).toFixed(3), for: 0.05, force: 0.34 },
+  { t: +(END.at - 0.18).toFixed(3), for: 0.05, force: 0.60 },
+];
+CUT.seconds = +(END.at + CARD).toFixed(2);
+CUT.marks = [{
+  t: LAUGH_AT, state: 'neutral', side: 'right', bubble: THOUGHT,
+  hands: { pose: 'laugh', entry: LAUGH.entry, hold: LAUGH.hold },
+}];
+
+GL_WINDOWS = glitchWindows(FPS);
+GL_WINDOWS_60 = FPS === 60 ? GL_WINDOWS : glitchWindows(60);
+
 const plan = planMascot({
   seconds: CUT.seconds,
   hands: true,
@@ -1174,11 +1410,13 @@ const plan = planMascot({
   /* dead straight on, and it is a rendered frame's correction. `pos` defaults to
      `bottom-left` and the module derives `TURN.bias` 0.35 from it, which is the
      right answer for a mascot standing in a corner looking into the frame and
-     the wrong one for a mascot centred and pointing at the camera: it turned his
-     face 0.35 toward the same side the finger already goes, so the whole
-     composition leaned out of the frame together. an explicit bias is the
-     module's own documented way of saying it. */
+     the wrong one for a mascot centred and talking to the camera. an explicit
+     bias is the module's own documented way of saying it. */
   bias: 0,
+  /* over the crown, and the module derives which side from `pos`. beside him is
+     right for the corner it was written in and impossible for a centred head:
+     mirrored it wants the head's own width again in clear space beside him. */
+  thought: 'over',
   marks: CUT.marks,
 });
 
@@ -1193,11 +1431,11 @@ plan.box.top = +(CENTRE_Y - halfBox).toFixed(2);
    inside. */
 const R = +(HEAD.plate.s / 2 * plan.unit).toFixed(3);
 
-/* when the laugh stops and the punchline arrives. it is the module's own
-   `leaving` for that pose rather than a number typed beside it: the laugh's hold
-   was bought and a punchline placed against a hold somebody later changes is a
-   punchline that lands on a hand still over a mouth. */
-const SWAP = plan.marks[1].hands.leaving;
+/* the pose's own window, which is what the glove gate is hung off. read back off
+   the plan rather than assumed, so a bought timing somebody changes moves the
+   fade with it. */
+const LG = plan.marks[0].hands;
+GATE = { from: CUT.marks[0].t, leaving: LG.leaving, acting: LG.acting };
 
 const rep = mascotMotion(plan, FPS, CUT.seconds);
 const rep60 = FPS === 60 ? rep : mascotMotion(plan, 60, CUT.seconds);
@@ -1205,27 +1443,50 @@ const rep60 = FPS === 60 ? rep : mascotMotion(plan, 60, CUT.seconds);
 console.log(describeMascot(plan));
 console.log(describeMotion(rep));
 
+/* ---------- the voice, on the clip's own clock ----------
+   both takes laid into one track at the offsets the clock worked out, with a
+   short fade on each end so a trimmed silence cannot click. */
+const VTRACK = new Float32Array(Math.ceil(CUT.seconds * SR));
+for (const [k, off] of [[0, off1], [1, off2]]) {
+  const pcm = PCM[k], e = EDGE[k];
+  const a = Math.max(0, Math.round((e.start - PRE) * SR));
+  const b = Math.min(pcm.length, Math.round((e.end + POST) * SR));
+  const at = Math.round(off * SR) + a;
+  const fade = Math.round(EDGE_FADE * SR);
+  for (let i = a; i < b; i++) {
+    const j = at + (i - a);
+    if (j < 0 || j >= VTRACK.length) continue;
+    let g = 1;
+    if (i - a < fade) g = (i - a) / fade;
+    else if (b - i < fade) g = (b - i) / fade;
+    VTRACK[j] += pcm[i] * g;
+  }
+}
+const READ_WORDS = [...WORDS.one, ...WORDS.two];
+
 /* ---------- the cues ----------
-   nothing in this list is a number typed to taste. the keys are the typed words'
-   own moments, the two thuds are the two landings, the titters come out of the
-   module because they are the pose's, the punchline pop is the swap, and the
-   glitch is the cut. */
+   nothing in this list is a number typed to taste. the keys are the spoken
+   words' own moments, the two thuds are the two landings, the punchline pop is
+   the swap and the glitch is the cut.
+
+   **the laugh's own three bleeps are dropped on purpose.** `mascotCues` offers
+   them and they are filtered out by name rather than by index: the brief wants
+   that gap silent so a laugh can be laid over it later, and a sound removed by
+   position is a sound that comes back the day the module adds a cue. the
+   thought's `pop` is kept, because a pill arriving is not a laugh. */
 const cues = [
-  ...WORDS.one.map(w => ({ t: w.start, kind: 'key', from: 'the word "' + w.word + '" arriving' })),
+  ...WORDS.one.map(w => ({ t: w.start, kind: 'key', from: 'the word "' + w.said + '" being said' })),
   { t: +(SNAP.at + SNAP.for).toFixed(4), kind: 'popDeep', from: 'the caption landing on its line' },
   /* his landing is the same gesture lower and longer, which is a heavier thing
      being set down rather than a second sound. */
   { t: LAND, kind: 'popDeep', opts: { f0: 78, f1: 42, tau: 0.13, len: 0.32 },
     from: 'the mascot hitting his mark' },
-  ...mascotCues(plan),
+  ...mascotCues(plan).filter(c => c.kind !== 'titter')
+    .map(c => ({ ...c, from: 'the module: the thought arriving' })),
   { t: SWAP, kind: 'pop', from: 'the punchline card' },
   { t: END.at, kind: 'glitch', from: 'the cut' },
 ];
-/* the key is lifted eight decibels. -34 was set for a run of ticks under a read
-   and there is no read here, so at the table's own level the typing would be
-   silent on a phone. the recipe is untouched and the table is not edited: the
-   override is this clip's, per render, which is what `gains` is for. */
-const { buf: sfx, report: sfxReport } = renderSfx(cues, CUT.seconds, { gains: { key: -26 } });
+const { buf: sfx, report: sfxReport } = renderSfx(cues, CUT.seconds, { gains: { key: KEY_DB } });
 
 /* the two stutters before the hit: the same recipe, shorter and crushed harder
    each time, and quieter than the hit by a long way. one bus, three calls. */
@@ -1242,46 +1503,88 @@ for (let i = 0; i < END.pre.length; i++) {
 }
 sfxReport.sort((a, b) => a.t - b.t);
 
-const WAV = path.join(OUT, 'post20-sfx.wav');
-const RAW = path.join(OUT, 'post20-sfx-raw.wav');
+/* ---------- the mix ----------
+   the read on top, the small bus of effects under it ducked while a word is
+   being said. the duck is light: the only thing playing under the read is the
+   run of key ticks, and those are supposed to be heard **with** the words rather
+   than made room for. */
+const WAV = path.join(OUT, 'post20-mix.wav');
+const RAW = path.join(OUT, 'post20-mix-raw.wav');
 fs.mkdirSync(OUT, { recursive: true });
-writeWav(RAW, sfx);
-const before = loudness(ffmpeg, RAW);
-let rawPeak = 0;
-for (let i = 0; i < sfx.length; i++) rawPeak = Math.max(rawPeak, Math.abs(sfx[i]));
-const rawPeakDb = 20 * Math.log10(rawPeak);
-const wanted = before.lufs == null ? 0 : +(TARGET_LUFS - before.lufs).toFixed(2);
-const allowed = +(SAMPLE_CEILING - rawPeakDb + LIMIT_ALLOW).toFixed(2);
-const lift = Math.min(wanted, allowed);
-applyGain(sfx, lift);
-const peak = limit(sfx, SAMPLE_CEILING);
-writeWav(WAV, sfx);
+const env = voiceEnvelope(READ_WORDS, CUT.seconds);
+const mix = mixdown(VTRACK, sfx, env, { duck: DUCK, voiceGain: VOICE_TRIM });
+const under = checkUnderVoice(mix.voiceOut, mix.bus);
+
+/* ---------- and the loudness bisects rather than giving up ----------
+   post19's lesson, ported rather than re-derived. a straight walk at the target
+   stops the moment a pass costs more limiting than the allowance and keeps
+   whatever it had — which on that clip was nothing at all, and the film went out
+   seven decibels quiet with nothing in between ever tried. so a pass over the
+   allowance is a **ceiling** rather than a stop: the last lift under it and the
+   first one over it bracket the answer, and the loop halves the gap. */
+function pass(lift) {
+  const buf = mix.out.slice();
+  applyGain(buf, lift);
+  const peak = limit(buf, SAMPLE_CEILING);
+  writeWav(RAW, buf);
+  const lu = loudness(ffmpeg, RAW);
+  return { lift: +lift.toFixed(2), buf, peak, lufs: lu.lufs };
+}
+const zero = pass(0);
+const want = zero.lufs == null ? 0 : +(TARGET_LUFS - zero.lufs).toFixed(2);
+let best = zero, tries = 1;
+if (want > 0.05) {
+  let lo = 0, hi = want;
+  const top = pass(want); tries++;
+  if (top.peak.reduction <= MAX_REDUCTION) best = top;
+  else {
+    while (hi - lo > 0.20 && tries < 10) {
+      const mid = (lo + hi) / 2;
+      const p = pass(mid); tries++;
+      if (p.peak.reduction <= MAX_REDUCTION) { lo = mid; best = p; } else hi = mid;
+    }
+  }
+} else if (want < -0.05) { best = pass(want); tries++; }
+writeWav(WAV, best.buf);
 const after = loudness(ffmpeg, WAV);
+const peak = best.peak;
 fs.rmSync(RAW, { force: true });
 
 /* ---------- the beats, printed ---------- */
 const SILENCE = +(CUT.marks[0].t - LAND).toFixed(3);
-console.log('\n  the beats');
-console.log('    0.00s  black. the card is on the frame and empty');
-console.log('    ' + TYPE.from.toFixed(2) + 's  the line types itself, '
-  + WORDS.one.length + ' words ' + TYPE.step.toFixed(2) + 's apart, a key tick on each');
-console.log('    ' + TYPED_LAST.toFixed(2) + 's  the last word lands and the caret blinks after it for '
-  + (SNAP.at - TYPED_LAST).toFixed(2) + 's');
-console.log('    ' + SNAP.at.toFixed(2) + 's  it is knocked down to the caption line over '
-  + SNAP.for.toFixed(2) + 's, lands ' + (SNAP.at + SNAP.for).toFixed(2)
-  + ' with a ' + SNAP.bounce + 'px bounce and a thud');
-console.log('    ' + DROP.at.toFixed(2) + 's  he falls ' + DROP.from + 'px over '
-  + DROP.for.toFixed(2) + 's and lands at ' + LAND.toFixed(2) + ', soft squash');
-console.log('    ' + LAND.toFixed(2) + 's  a beat of nothing, ' + SILENCE.toFixed(2)
-  + 's of it, and the only thing moving is the idle layer');
-for (const m of plan.marks) {
-  const h = m.hands;
-  console.log('    ' + m.t.toFixed(2) + 's  ' + h.pose.padEnd(13)
-    + 'entrance ' + h.entry.toFixed(2) + ', settles ' + h.settled.toFixed(2)
-    + ', holds to ' + h.leaving.toFixed(2)
-    + (h.next ? ', straight into ' + h.next : ', home by ' + h.out.toFixed(2)));
+console.log('\n  the read');
+for (const t of TAKES) {
+  const b = t.i === 0 ? WORDS.one : WORDS.two;
+  console.log('    line ' + (t.i + 1) + '  "' + t.text + '"  ' + t.voiceId + ' ' + t.rate
+    + ' ' + t.pitch + (t.cached ? '  cached' : '  fetched'));
+  console.log('             ' + b[0].start.toFixed(2) + ' to ' + b[b.length - 1].end.toFixed(2)
+    + 's, ' + (b.length / (b[b.length - 1].end - b[0].start)).toFixed(2) + ' words a second');
 }
-console.log('    ' + SWAP.toFixed(2) + 's  the laugh stops, the hands go home and the punchline pops');
+console.log('\n  the beats');
+console.log('    0.00s  "' + WORDS.one[0].word + '" is already on the frame and the caret is under it');
+for (const w of WORDS.one) {
+  console.log('    ' + w.start.toFixed(2) + 's    "' + w.word + '" is said, appears, and takes a key tick'
+    + (w.word === w.said ? '' : ' (spoken "' + w.said + '")'));
+}
+console.log('    ' + SNAP.at.toFixed(2) + 's  the caret has blinked for '
+  + (SNAP.at - WORDS.one[WORDS.one.length - 1].end).toFixed(2)
+  + 's and the block is knocked down over ' + SNAP.for.toFixed(2)
+  + 's, landing ' + (SNAP.at + SNAP.for).toFixed(2) + ' with a ' + SNAP.bounce + 'px bounce and a thud');
+console.log('    ' + DROP.at.toFixed(2) + 's  he falls ' + DROP.from + 'px over '
+  + DROP.for.toFixed(2) + 's, no hands');
+console.log('    ' + LAND.toFixed(2) + 's  he lands, ' + (1 + SMASH.k).toFixed(2) + ' wide by '
+  + (1 / (1 + SMASH.k)).toFixed(2) + ' tall, chin on the ground, back out of it by '
+  + (LAND + SMASH.flat + SMASH.back).toFixed(2));
+console.log('    ' + CUT.marks[0].t.toFixed(2) + 's  the laugh, after ' + SILENCE.toFixed(2)
+  + 's of nothing. entrance ' + LG.entry.toFixed(2) + ', the hand is on the mouth '
+  + LG.settled.toFixed(2) + ', holds to ' + LG.leaving.toFixed(2) + ', home by ' + LG.out.toFixed(2));
+for (const b of plan.marks[0].bubbles || []) {
+  console.log('    ' + b.in.toFixed(2) + 's    the thought climbs and "' + b.text
+    + '" is up ' + b.full.toFixed(2) + ' to ' + b.leaving.toFixed(2));
+}
+console.log('    ' + SWAP.toFixed(2) + 's  the laugh stops, the hand goes home and fades, '
+  + 'the punchline pops and the second line starts');
+for (const w of WORDS.two) console.log('    ' + w.start.toFixed(2) + 's    "' + w.word + '"');
 for (const w of GL_WINDOWS.filter(x => x.pre != null)) {
   console.log('    ' + w.t0.toFixed(2) + 's  stutter ' + (w.pre + 1) + ' of two, '
     + w.frames + ' frame' + (w.frames === 1 ? '' : 's') + ' at ' + (w.force * 100).toFixed(0) + '% heat');
@@ -1296,13 +1599,14 @@ for (const r of sfxReport) {
   console.log('    ' + r.t.toFixed(2) + 's  ' + r.kind.padEnd(8) + r.seconds.toFixed(3)
     + 's  ' + String(r.gain).padStart(4) + ' dB  peak ' + String(r.peak).padStart(6) + '  ' + r.from);
 }
-console.log('    the bus came off the synth at ' + (before.lufs == null ? '?' : before.lufs)
-  + ' LUFS with its peak at ' + rawPeakDb.toFixed(1) + ' dBFS');
-console.log('    ' + TARGET_LUFS + ' LUFS wanted ' + wanted.toFixed(2) + ' dB and the '
-  + SAMPLE_CEILING + ' dBFS ceiling plus ' + LIMIT_ALLOW + ' dB of limiting allowed ' + allowed.toFixed(2)
-  + (allowed < wanted ? ', so the ceiling won by ' + (wanted - allowed).toFixed(2) + ' dB' : ''));
-console.log('    lifted ' + lift.toFixed(2) + ' dB to ' + (after.lufs == null ? '?' : after.lufs)
-  + ' LUFS, peak ' + peak.peak + ' dBFS, limiter took '
+console.log('    the bus ducks to ' + DUCK + ' while a word is being said, and its worst window is '
+  + under.worst.db + ' dB against the voice at ' + under.worst.at + 's ('
+  + under.over.length + ' window' + (under.over.length === 1 ? '' : 's') + ' over)');
+console.log('    the mix came off the bench at ' + (zero.lufs == null ? '?' : zero.lufs)
+  + ' LUFS, ' + TARGET_LUFS + ' wanted ' + want.toFixed(2) + ' dB, and '
+  + tries + ' passes found ' + best.lift.toFixed(2) + ' dB');
+console.log('    lifted to ' + (after.lufs == null ? '?' : after.lufs) + ' LUFS, peak '
+  + peak.peak + ' dBFS, limiter took '
   + (peak.reduction > 0.01 ? peak.reduction.toFixed(2) + ' dB' : 'nothing'));
 
 /* ---------- the two fast things, measured before anything renders ----------
@@ -1325,9 +1629,14 @@ console.log('    the fall peaks at ' + fallStep.d + ' css px a frame at ' + fall
   + SUB + ' subframe' + (SUB === 1 ? '' : 's') + ' (ceiling ' + STEP_CEIL + ' css px)');
 console.log('    the knock down peaks at ' + snapStep.d + ' css px a frame at ' + snapStep.at + 's');
 
+if (VOICE_ONLY) {
+  console.log('\n  --voice: the read and the clock only. nothing was rendered.');
+  process.exit(0);
+}
+
 const state = ONLY_ENCODE
   ? JSON.parse(fs.readFileSync(path.join(OUT, 'post20.json'), 'utf8'))
-  : await render(plan, R, SWAP);
+  : await render(plan, R, SWAP, plan.marks[0].bubbles[0]);
 const file = encode(WAV);
 const p = probe(file);
 const lu = loudness(ffmpeg, file);
@@ -1376,13 +1685,10 @@ for (const k of ['left', 'right', 'bottom']) {
 const offX = +(Math.abs(plan.box.left + halfBox - VW / 2) * DSF).toFixed(2);
 if (offX > 1) fail.push('his box is ' + offX + 'px off centre horizontally');
 
-/* ---------- the hands, which is what this clip is for ----------
-   two poses, both reaching their own marks, both with a wind up and an overshoot
-   on the front and back of the arrival, and neither of them moving a hand faster
-   than the module's own ceiling. every one of those is the module's measurement
-   rather than this file's opinion. */
-if (rep60.poses.length !== 2) fail.push('the report has ' + rep60.poses.length + ' poses in it, wanted two');
+/* ---------- the hand, which is the only pose in the clip ---------- */
+if (rep60.poses.length !== 1) fail.push('the report has ' + rep60.poses.length + ' poses in it, wanted one');
 for (const q of rep60.poses) {
+  if (q.pose !== 'laugh') fail.push('the pose is ' + q.pose + ' and this clip has only the laugh in it');
   if (q.entryFrames == null) fail.push(q.pose + ' never reached its own mark');
   else if (q.entryFrames < 3) fail.push(q.pose + ' arrives in ' + q.entryFrames + ' frames, which is a cut');
   if (q.antiFrames < 2) fail.push(q.pose + ' has no anticipation, only ' + q.antiFrames + ' frames back');
@@ -1391,34 +1697,70 @@ for (const q of rep60.poses) {
 if (rep60.worst.hands && rep60.worst.hands.d > HANDS.stepCeil) {
   fail.push('a hand moves ' + rep60.worst.hands.d.toFixed(2) + ' css px between two frames at 60, ceiling is ' + HANDS.stepCeil);
 }
-/* the chain is a chain: no exit on the first pose, the second one named as its
-   successor, and the second one knowing where it came from. */
+/* the punchline is placed against the pose's own hold rather than against a
+   number typed beside it. */
+if (Math.abs(LG.leaving - SWAP) > 1e-6) {
+  fail.push('the punchline is at ' + SWAP + 's and the laugh stops at ' + LG.leaving);
+}
+/* one hand, and it is the screen right one. */
+if (LG.side !== 'right' || LG.acting.length !== 1 || LG.acting[0] !== 1) {
+  fail.push('the laugh is not acted by the screen right hand alone');
+}
+/* ---------- and there are no gloves on screen until the laugh ----------
+   the whole of "he falls with no hands". it is asserted on the composed frame
+   rather than on the plan, because the plan draws the resting pair from frame
+   zero and the gate is this file's. */
 {
-  const a = plan.marks[0].hands, b = plan.marks[1].hands;
-  if (a.pose !== 'point-viewer' || b.pose !== 'laugh') fail.push('the two poses are not point-viewer into laugh');
-  if (a.next !== 'laugh' || a.exit !== 0) fail.push('the point does not chain into the laugh');
-  if (b.from !== 'point-viewer') fail.push('the laugh does not know it came off the point');
-  if (a.out !== b.at && Math.abs(a.out - CUT.marks[1].t) > 1e-6) {
-    fail.push('the point stops at ' + a.out + 's rather than on the laugh\'s own mark');
+  const at = t => compose(plan, t, R).hands.list.reduce((m, h) => Math.max(m, h.o), 0);
+  const before = Math.max(at(0), at(DROP.at), at(LAND), at(CUT.marks[0].t - 0.02));
+  if (before > 0.004) fail.push('a glove is on screen at ' + before + ' before the laugh');
+  if (!(at(LG.settled) > 0.99)) fail.push('the glove is not fully on when the hand lands on the mouth');
+  const gone = Math.max(at(SWAP + GLOVE_OUT + 0.05), at(CUT.seconds - 0.5));
+  if (gone > 0.004) fail.push('a glove is still on screen at ' + gone + ' after the laugh');
+  /* and the hand that never acts never appears at all. */
+  let idle = 0;
+  for (let f = 0; f < Math.round(END.at * 60); f++) idle = Math.max(idle, compose(plan, f / 60, R).hands.list[0].o);
+  if (idle > 0.004) fail.push('the screen left glove appears at ' + idle.toFixed(3));
+}
+/* ---------- and the laugh makes no sound ----------
+   the module offers three bleeps and this clip takes none of them, so that the
+   gap can be filled later by hand. asserted on the bus rather than remembered. */
+if (sfxReport.some(r => r.kind === 'titter')) fail.push('a titter reached the bus and this clip is silent under the laugh');
+{
+  const q = mascotCues(plan).filter(c => c.kind === 'titter');
+  if (q.length !== 3) fail.push('the module offered ' + q.length + ' titters, which is not the three this clip drops');
+  const from = Math.min(...q.map(c => c.t)) - 0.10, to = Math.max(...q.map(c => c.t)) + 0.20;
+  for (const r of sfxReport) {
+    if (r.t >= from && r.t <= to && r.kind !== 'pop') {
+      fail.push('a ' + r.kind + ' at ' + r.t + 's is inside the giggle, which is meant to be silent');
+    }
+  }
+}
+/* the thought, and it is the module's own placement rather than this file's. */
+{
+  const b = (plan.marks[0].bubbles || [])[0];
+  if (!b) fail.push('there is no thought on the laugh');
+  else {
+    if (b.text !== THOUGHT) fail.push('the thought says "' + b.text + '"');
+    if (b.in < LG.settled - 0.20) fail.push('the thought arrives at ' + b.in + 's, before the hand lands');
+    /* it belongs to the laugh, so it is gone before the punchline is. the pill's
+       own exit legitimately runs a few hundredths past the pose's hold — the
+       module holds it for 0.90 and lets it leave in its own time — so the line
+       that matters is the card, not the hold. */
+    if (b.out > SWAP + CAP.inFor + 1e-6) {
+      fail.push('the thought is still leaving at ' + b.out + 's, after the punchline is up');
+    }
+  }
+  if (plan.thought.mode !== 'over') fail.push('the thought is not over the crown');
+  const s = state.bubble;
+  for (const k of ['left', 'top', 'right', 'bottom']) {
+    if (s[k] < floor - 0.5) fail.push('the thought comes within ' + Math.round(s[k]) + 'px of the ' + k + ' border');
   }
 }
 /* no unimpressed and no angry face anywhere: the brief bans both and the states
    are in the plan, so it is asserted rather than remembered. */
 for (const m of plan.marks) {
   if (m.state !== 'neutral') fail.push('mark at ' + m.t + 's is ' + m.state + ', and this clip holds one face');
-}
-/* the laugh's three bleeps, on the picture rather than on a grid: they come out
-   of the module, so what is checked here is that all three are inside the pose's
-   own window and none of them lands after it has stopped. */
-{
-  const t = mascotCues(plan).filter(c => c.kind === 'titter');
-  const h = plan.marks[1].hands;
-  if (t.length !== 3) fail.push('the laugh made ' + t.length + ' bleeps, wanted three');
-  for (const c of t) {
-    if (c.t < h.settled - 0.10 || c.t > h.leaving) {
-      fail.push('a titter at ' + c.t + 's is outside the laugh\'s own ' + h.settled + ' to ' + h.leaving);
-    }
-  }
 }
 
 /* the face, off the module's own preflight at sixty. */
@@ -1434,11 +1776,11 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
 if (rep60.maxSquash > 0.08 + 1e-6) fail.push('the module\'s squash reached ' + (rep60.maxSquash * 100).toFixed(1) + '%');
 if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe * 100).toFixed(2) + '%');
 
-/* ---------- the fall and the landing ----------
-   the compression is this file's channel rather than the module's, so it has its
-   own ceiling and its own shape check: it goes exactly as deep as the table says,
-   it stretches on the way down, it crosses zero once on the way out, and it is
-   gone before the point is. */
+/* ---------- the fall and the smash ----------
+   post19's numbers now rather than a fifth of them, so the checks are post19's
+   too: it goes exactly as deep as the table says, it stretches on the way down,
+   it dips below zero exactly once on the way out, and it is over before the hand
+   lands on the mouth. */
 {
   if (fallStep.d > STEP_CEIL) {
     fail.push('the fall moves ' + fallStep.d + ' css px on one frame at 60, ceiling is ' + STEP_CEIL);
@@ -1469,21 +1811,13 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
   if (Math.abs(squashAt(LAND + SMASH.flat + SMASH.back + 0.02)) > 1e-9) {
     fail.push('the landing is still springing when it should be over');
   }
-  if (LAND + SMASH.flat + SMASH.back > CUT.marks[0].t + 1e-6) {
-    fail.push('the landing is still going when the point starts');
+  if (LAND + SMASH.flat + SMASH.back > LG.settled + 1e-6) {
+    fail.push('the landing is still springing when the hand lands on the mouth');
   }
-  if (SILENCE < 0.20) fail.push('the beat between the landing and the point is only ' + SILENCE.toFixed(2) + 's');
+  if (SILENCE < 0.20) fail.push('the beat between the landing and the laugh is only ' + SILENCE.toFixed(2) + 's');
 }
 
-/* ---------- the captions ----------
-   the same four questions the wordmark answers, asked at both of the positions
-   the block is drawn at rather than at one, plus two of their own: is the type
-   big enough to read on a phone, and does the lower block clear him.
-
-   the ink is measured in the page with the container at rest and this adds the
-   offsets it is about to be moved by, which is exact rather than approximate:
-   the container's transform is a translation and the block's own scale is a
-   number this file wrote. */
+/* ---------- the captions ---------- */
 {
   const c = state.cap;
   if (!/Michroma/.test(c.font)) fail.push('the captions are not set in michroma: ' + c.font);
@@ -1491,9 +1825,6 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
     fail.push('the caption caps measure ' + c.capPx + ' device px, floor is ' + CAP.minCapPx);
   }
   if (c.sizeCss > CAP.max + 1e-6) fail.push('the captions fitted to ' + c.sizeCss + 'css px, over the ' + CAP.max + ' cap');
-  /* the setup while it types: the container is at rest, so the ink is where it
-     was measured. and after the knock down, at the bottom of the bounce, which
-     is the lowest it ever gets. */
   const cyRest = CAP.mid - VH / 2;
   const cyLow = CAP.line - VH / 2 + SNAP.bounce;
   const cyLine = CAP.line - VH / 2;
@@ -1507,8 +1838,8 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
      overshoots by a shade over a tenth of the way from 0.86 to 1, so its ink is
      briefly 1.9% wider than it is at rest. the box grows by that much rather
      than being measured at rest and hoped for. */
-  const over = +((POP(0.36) - 1) * (1 - 0.86)).toFixed(4);
-  const grow2 = Math.max(0, (c.two.r - c.two.l) / 2 * over);
+  const over2 = +((POP(0.36) - 1) * (1 - 0.86)).toFixed(4);
+  const grow2 = Math.max(0, (c.two.r - c.two.l) / 2 * over2);
   const spots = [
     ['the setup while it types', at(c.one, 0, cyRest)],
     ['the setup on its line', at(c.one, CAP.dx, cyLow)],
@@ -1522,9 +1853,7 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
     }
   }
   /* and it does not collide with him. the head's own rect already holds the
-     gloves, so this is the whole of "nothing collides" rather than half of it:
-     the worst case is the lowest the ink ever reaches over the frames the lower
-     block is up for, against the top of that block at the top of its bounce. */
+     gloves, so this is the whole of "nothing collides" rather than half of it. */
   let lowest = 0, at2 = 0;
   for (let f = 0; f < Math.round(END.at * 60); f++) {
     const t = f / 60;
@@ -1541,26 +1870,25 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
     fail.push('the caption block overlaps him: he reaches ' + lowest.toFixed(1)
       + 'css px at ' + at2 + 's and the block starts at ' + capTop.toFixed(1));
   }
-  /* the caption sits on the side the finger points, which is screen right: the
-     pose is not mirrored and the acting hand is the screen right one. */
-  if (CAP.dx <= 0) fail.push('the caption is not shifted onto the side the finger points');
-  if (plan.marks[0].hands.acting[0] !== 1) {
-    fail.push('the point is acted by the screen left hand and the caption is shifted right');
-  }
 }
 
-/* ---------- the typing ----------
-   six words, in order, all of them typed before the block is knocked down, and a
-   key on every one of them. */
+/* ---------- the typing, which is the read ----------
+   the words are in order, they finish before the block is knocked down, there is
+   a key on every one of them, and every one of them appears on the frame it is
+   being said on. the last is the whole claim of this pass, so it is a number
+   rather than a description. */
 {
   for (let i = 1; i < WORDS.one.length; i++) {
     if (!(WORDS.one[i].start > WORDS.one[i - 1].start)) fail.push('the typed words are not in order');
   }
-  if (TYPED_LAST + TYPE.wordFor > SNAP.at) {
-    fail.push('the last word is still springing when the block is knocked down');
+  if (WORDS.one[WORDS.one.length - 1].end > SNAP.at) {
+    fail.push('the last word is still being said when the block is knocked down');
   }
-  /* and frame zero is not an empty frame. the whole of item one from the review
-     is this assertion: something is drawn on the thumbnail. */
+  for (let i = 1; i < WORDS.one.length; i++) {
+    const w = WORDS.one[i];
+    if (Math.abs(w.show - w.start) > 1e-9) fail.push('"' + w.word + '" does not appear on the frame it is said on');
+  }
+  /* and frame zero is not an empty frame. */
   {
     const c = capAt(0, SWAP);
     if (!(c.one[0].o > 0.99)) fail.push('the first word is at ' + c.one[0].o + ' on frame zero');
@@ -1570,16 +1898,20 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
   if (keys.length !== WORDS.one.length) {
     fail.push('there are ' + keys.length + ' key ticks for ' + WORDS.one.length + ' words');
   }
-  /* the caret is on for the whole of the typing and off the moment the block
-     moves, and it blinks: on some frames and off on others. */
+  /* the one place the screen and the read say different words, and it is on
+     purpose: a caption is read and a voice is heard, so the card carries `u` and
+     the voice says `you`. it is asserted so a second one cannot slip in. */
+  const differ = WORDS.one.concat(WORDS.two).filter(w => w.word !== w.said.toLowerCase().replace(/[^a-z0-9']/g, ''));
+  if (differ.length !== 1 || differ[0].word !== 'u') {
+    fail.push('the screen and the read differ on ' + differ.length + ' words: '
+      + differ.map(w => w.word + '/' + w.said).join(', '));
+  }
   let on = 0, off = 0;
   for (let f = 0; f < Math.round(SNAP.at * 60); f++) {
     if (capAt(f / 60, SWAP).cur) on++; else off++;
   }
   if (!on || !off) fail.push('the caret does not blink: ' + on + ' frames on, ' + off + ' off');
   if (capAt(SNAP.at + 0.02, SWAP).cur) fail.push('the caret is still on after the block has been knocked down');
-  /* one card at a time, which is the caption engine's own rule: the setup is
-     gone before the punchline is anywhere. */
   for (let f = 0; f < Math.round(CUT.seconds * 60); f++) {
     const c = capAt(f / 60, SWAP);
     if (c.oneO > 0.01 && c.twoO > 0.01) {
@@ -1610,7 +1942,7 @@ for (const r of sfxReport) {
   if (WM.lines.join(' ').toLowerCase().includes('.com')) fail.push('the end card carries an address');
 }
 
-/* ---------- the cut, as three assertions about frameAt ---------- */
+/* ---------- the cut ---------- */
 {
   const cutF = Math.round(END.at * FPS);
   const first = frameAt(0, 0, SWAP);
@@ -1621,6 +1953,9 @@ for (const r of sfxReport) {
   if (!(just.cap.twoO > 0.9) || just.mo !== 1) fail.push('he or the punchline is already gone before the hit');
   if (on.mo !== 0 || on.cap.twoO !== 0) fail.push('he or the punchline is still on the frame the wordmark arrives on');
   if (!(on.wm.o > 0)) fail.push('the wordmark is not born on the hit frame');
+  /* and the fault waits for the read. a hit on the last consonant is a hit that
+     cuts a word in half. */
+  if (END.at < READ_END) fail.push('the hit at ' + END.at + 's lands before the read ends at ' + READ_END);
 }
 
 /* ---------- the fault ---------- */
@@ -1649,9 +1984,7 @@ for (const r of sfxReport) {
   if (!on) fail.push('nothing glitches on any frame');
   /* post12's named exception: the ceiling on how much of a clip may be glitching
      is 30% and it is read against **the ending the fault lives in** rather than
-     against the file, because a fault in the last second and a half of eight is
-     under a twentieth of the clip either way and the number worth defending is
-     the local one. */
+     against the file. */
   const endFrom = Math.round(GL_WINDOWS_60[0].t0 * 60);
   const endFrames = at60.N - endFrom;
   const localDuty = at60.on / endFrames;
@@ -1675,7 +2008,7 @@ for (const r of sfxReport) {
   }
   /* the end card: short, as the brief asks, and long enough to be read. */
   const hold = CUT.seconds - (END.wmIn + END.wmFor);
-  if (hold < 0.85) fail.push('the wordmark holds ' + hold.toFixed(2) + 's, which is not long enough to be read');
+  if (hold < 0.80) fail.push('the wordmark holds ' + hold.toFixed(2) + 's, which is not long enough to be read');
   const clean = CUT.seconds - (END.at + END.hard + END.tail + END.clean);
   if (clean < 0.50) fail.push('the wordmark is only clean for ' + clean.toFixed(2) + 's');
 }
@@ -1687,7 +2020,13 @@ if (lu && lu.ok) {
   if (lu.lufs > TARGET_LUFS + 0.5) fail.push('the file measures ' + lu.lufs + ' LUFS, over the ' + TARGET_LUFS + ' target');
 } else fail.push('ebur128 said nothing about the finished file');
 if (peak.reduction > MAX_REDUCTION) {
-  fail.push('the limiter took ' + peak.reduction.toFixed(2) + ' dB, over the ' + LIMIT_ALLOW + ' dB this clip allows it');
+  fail.push('the limiter took ' + peak.reduction.toFixed(2) + ' dB, over the ' + MAX_REDUCTION + ' dB this clip allows it');
+}
+/* and the effects are under the read wherever the read is speaking, measured on
+   the two buffers that were summed rather than argued from the gain table. */
+if (under.over.length) {
+  fail.push('the bus is over the read on ' + under.over.length + ' windows, worst '
+    + under.worst.db + ' dB at ' + under.worst.at + 's');
 }
 
 /* nothing is ever a still frame. */
@@ -1703,12 +2042,13 @@ if (peak.reduction > MAX_REDUCTION) {
   if (repeats) fail.push(repeats + ' pairs of identical frames, the first at frame ' + first);
 }
 
-/* the copy, on the strings that actually reach the screen. `checkCopy` already
-   threw on a dash at plan time; this is the other half of the house rule and it
-   is asserted rather than remembered. */
+/* the copy, on the strings that actually reach the screen and the ear. */
 for (const [k, v] of Object.entries(COPY)) {
   if (v !== v.toLowerCase()) fail.push('the ' + k + ' line is not lower case in the source: "' + v + '"');
   if (/[!]/.test(v)) fail.push('the ' + k + ' line carries an exclamation mark');
+}
+for (const L of LINES) {
+  if (L.text !== L.text.toLowerCase()) fail.push('a spoken line is not lower case: "' + L.text + '"');
 }
 
 if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }

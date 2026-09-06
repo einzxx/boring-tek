@@ -125,17 +125,20 @@ All headless Chrome, all tooling. The renderers first:
   the template for the panel, the two faults and the held thought; post18 for the
   captions, the gaze and the guards. Out to
   `demo/out/post19-dark-1080x1920.mp4`. See The nineteenth clip.
-- **`post20.mjs`** renders an 8.05 second clip, vertical, dark only, **and it is
-  the first clip that uses the floating hands.** A thought types itself in the
-  middle of a black frame — `everyone says ai will replace u`, word by word with
-  a key tick on each and a green caret following the last one — then gets knocked
-  down to the lower third, and the mascot falls into the space it left. He lands,
-  takes a beat, points at the viewer, chains straight into the laugh with a hand
-  over his mouth, and the punchline pops under him: `it will replace the guy who
-  does not use it`. Then post12's fault takes the lot and puts the wordmark up.
-  Two poses on bought timings, chained with `next`, under one face that never
-  changes state. post12 is the template for the frame, the fault and the end
-  card; post19 for the fall and the smash. Out to
+- **`post20.mjs`** renders an 8.67 second clip, vertical, dark only, **and its
+  whole clock is cut from one read.** A thought types itself in the middle of a
+  black frame while a voice says it — `everyone says ai will replace u`, word by
+  word with a key tick on each and a green caret following the last one — then
+  gets knocked down to the lower third, and the mascot falls into the space it
+  left with no hands at all. He hits the floor and squashes flat, takes a beat,
+  and a hand comes over his mouth: he laughs, silently, with `hihi` over his
+  crown. The laugh stops dead, the hand goes home and fades, and the punchline
+  pops under him while the voice delivers it: `it will replace the guy who does
+  not use it`. Then post12's fault takes the lot and puts the wordmark up. **It
+  is the first clip to use the floating hands**, and the pose table's own
+  `point-viewer` was in the first cut and taken out by the review — see The
+  twentieth clip. post12 is the template for the frame, the fault and the end
+  card; post19 for the fall, the smash and the read's own machinery. Out to
   `demo/out/post20-dark-1080x1920.mp4`. See The twentieth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
@@ -5716,244 +5719,264 @@ between them buys a few tenths and takes the beat out of the list.
 - **The clip has no posting pack.** Caption, tweet and three tags per platform
   are all undecided.
 
-## The twentieth clip — the point, and the first one with hands in it
+## The twentieth clip — the read, the fall and the one pose left in it
 
 ```
 cd demo
 node post20.mjs                 # 1080x1920, 60fps, shutter closed
 DEMO_FPS=12 node post20.mjs     # the fast preview pass
+node post20.mjs --voice         # the read and the clock only, no browser
 node post20.mjs --blur=6        # 60fps with the shutter open, six subframes
 node post20.mjs --keep-frames   # leave the jpegs on disk
 node post20.mjs --encode-only   # re-encode from kept frames
 ```
 
-**8.05 seconds, dark only, one output path, overwritten every run:**
-`demo/out/post20-dark-1080x1920.mp4`. Fourteen beat stills land in
+**8.67 seconds, dark only, one output path, overwritten every run:**
+`demo/out/post20-dark-1080x1920.mp4`. Sixteen beat stills land in
 `demo/out/verify-post20/`.
 
-The line is `everyone says ai will replace u`. The answer is `it will replace
-the guy who does not use it`. Nothing is spoken; both are on the screen.
+A thought types itself in the middle of a black frame while a voice says it, gets
+knocked down to the lower third, and the mascot falls into the space it left. He
+hits the floor and squashes flat, takes a beat, then a hand comes over his mouth
+and he laughs with `hihi` over his crown. The laugh stops dead, the hand goes home
+and fades, and the punchline pops under him while the voice delivers it. Then a
+hard fault takes the lot and puts the wordmark up.
 
-**It is the first clip to use the floating hands.** The pose table has been in
-`lib/mascot.mjs` since the traced gloves landed and nothing outside
-`mascot-test.mjs` had ever asked for one, so every number in it was proved on a
-test strip rather than on a film. This is the film: `point-viewer` at a bought
-0.34s entrance, chained with `next` straight into `laugh` at a bought 0.62s,
-both under a `neutral` face that never changes for the whole clip.
+The line is `everyone says ai will replace u`. The answer is `it will replace the
+guy who does not use it`.
 
-### The two poses are the joke, and the face does nothing
+### The first cut had a point in it, and the frames took it out
 
-`point-viewer` is the finger aimed down and out at camera — the pose the traced
-review had to open a second drawing for, because the sheet's own `point` aims at
-the lens, foreshortened, and closes into a fist at a 240px head. `laugh` is the
-flat hand over the mouth with the head bouncing under it, which is the one pose
-in the table that moves the head. He accuses, then he cannot keep it up, and the
-caption underneath finishes the sentence.
+`point-viewer` was the whole reason the clip existed: the first film to use the
+pose table, and the pose the traced review had opened a second drawing for. The
+review of the rendered cut found the one thing no number could. **On the frame
+the finger aims at the right border rather than at the lens.** It reads
+unmistakably as a point — which is more than `point` manages at a 240px head, and
+was the finding that opened the drawing in the first place — and it does not read
+as *at me*. The honest fix is a third traced file, drawn for a finger coming
+toward camera without foreshortening into the fist.
 
-**No state mark changes the face.** Both marks carry `neutral`, because they have
-to carry something — a mark is a state and a hands pose is a thing on top of one
-— and because the two poses already say everything. The laugh shuts the eyes and
-bounces the head on its own channel; the point does not touch the face at all.
-That is the separation the pose layer was built for, used for the first time.
+So the pose is gone rather than shipped half working, and what is left is the
+beat the clip was always about: he falls in, takes a breath, and cannot keep a
+straight face. **`laugh` is the only pose in this film**, which makes it a
+narrower test of the pose layer than the first cut was and a more honest one.
 
-### The clock, and what the poses cost
+### The read is the spine, and every number in the clock hangs off it
 
-The brief asked for seven seconds with the point at 3.6 to 4.2 and the laugh at
-4.2 to 5.6. Neither fits, and the module says so rather than this file guessing:
+Two takes, one a line, edge's Andrew — this house's `calm` — at **-4% and +3Hz**
+against the voice's own -8% and -2Hz. That pair is the whole of "slightly
+amused" and it is the only lever there is: `speak()` escapes its input before it
+builds the ssml, so an `mstts:express-as` written into the copy arrives at the
+synthesiser as literal angle brackets and gets read out. A shade quicker than the
+house default reads as somebody enjoying the line rather than reporting it, and
+three hertz up is the smallest step that is audible at all.
 
-- **`laugh` needs 2.09s minimum from its mark.** The floor is 0.54s of entrance
-  and 1.55s of hold, and the hold is not taste — `planMascot` measures the
-  pose's own `body` against a recording builder and refuses a hold the four
-  bounces and the beat the eyes take to open cannot fit in. Off a `point-viewer`
-  rather than off a rest it refuses 0.54 as well: that travel is longer, and 0.62
-  is the first entrance that clears the hand's own step ceiling.
-- **`point-viewer` needs 1.06s**, which is not the pose's floor at all: it is
-  `neutral`'s. Every mark carries a state and `neutral` wants 0.46 of entrance,
-  0.30 of hold and 0.30 of exit before another mark may start.
-- So **hands on to laugh over is 3.15s against the brief's 2.0**, and the extra
-  1.15s came out of the front rather than off the end. The typing went from the
-  brief's 2.5s to 1.05s and the caret beat to 0.61s, and every beat after the
-  landing is where the rig puts it.
+Both takes are cached on the copy **and the delivery**, because a take is the
+words and the way they are said.
 
-The film is 7.00s and the end card is the 1.05s after it, which is how the
-brief's own beat list reads: it runs to 7.0 with the caption holding to the end,
-and names the wordmark separately.
+Everything downstream is derived:
+
+| derived from | |
+|---|---|
+| the typing | every word appears on the frame it is being said on |
+| the knock down | 0.14s after the last word of take one ends |
+| the fall | 0.18s into the knock down |
+| the laugh | 0.30s after the landing |
+| the punchline and take two | the frame the laugh's hold ends on |
+| the fault | 0.08s after the last **sound** of take two |
+| the end | 0.95s after the fault |
+
+Five joins and an end card. Everything else is where the words landed, so a
+slower reading moves the whole film and nothing in the file has to be retyped.
+
+**The fault waits for the sound rather than for the last word boundary**, and
+that is not the same instant: the synthesiser's `WordBoundary` is shorter than
+the syllable it names, so a cut placed on it takes the last consonant with it.
+`audioEdges` is post19's, unchanged, and it is what the number comes off.
+
+### The typing is the read done at word level
+
+post17 lays a word's **characters** across that word's spoken span, because it is
+typing into a chat panel. This is a caption, so the unit is the word: it appears
+when it starts being said, and it takes a key tick on that frame. Six events
+rather than thirty one, which is the difference between typing and a machine gun.
+
+What the spacing buys is what post17 says it buys. The words come back at 0.01,
+0.50, 0.95, 1.33, 1.50 and 1.97 — `will` and `replace` are 0.17s apart and
+`replace` and `you` are 0.47s apart, because that is how the line is read. An
+even grid under an uneven read is two things laid on the same clock.
+
+**The screen says `u` and the voice says `you`**, and it is the one word in the
+film where they differ. A caption is read and a voice is heard, and `u` is a
+thing people type. There is a guard that there is exactly one such word, so a
+second one cannot slip in unnoticed.
+
+### He falls with no hands, and that is two gates rather than one
+
+`hands: true` draws the resting pair from frame zero, so the gloves are gated to
+nought by this file: one multiplier on the opacity the module already writes per
+hand, composed exactly the way the fall is.
+
+**The second gate is the one a rendered frame asked for.** `side: 'right'` is on
+the laugh's mark and it is a fact about a mark, so it applies from that mark on;
+before it the module holds the resting pair, and the module then fades the idle
+hand out **across the pose's entrance**, because a hand that was on screen has to
+leave. In this clip it was never on screen, so it had nothing to leave from — and
+0.3 of a left glove drifting off during the entrance is exactly what the guard
+caught. So the hand that never acts is multiplied by nought outright, and the
+acting one gets the fade.
+
+The fade in is 0.18s from the mark, as the hand starts across; the fade out is
+0.22s from the end of the hold. **The fade out is the one thing the review left
+open**: the pose's own exit runs 0.32s, so for a fifth of a second there is a
+glove at partial opacity between the mouth and the resting line. On the frame it
+reads as the hand dropping away, and the punchline springing in on the same frame
+is where the eye actually goes. The alternative trades a travelling glove for one
+that vanishes on the spot.
+
+### The smash is post19's at post19's depth
+
+The first cut walked `k` down to 0.16 on the argument that a small robot arriving
+is not a head hitting the floor after a smash cut. The brief asked for that clip's
+feel outright, so the table is that clip's: he stretches a tenth on the way down,
+compresses to **1.52 wide by 0.66 tall** over 70ms with his chin on the ground,
+and springs out on a damped cosine that goes below zero exactly once.
+
+1.52 by 0.66 is funny and 1.16 by 0.86 was polite. The fall itself is unchanged
+and its length is still the shutter's rather than taste's: 560 css px over 0.47s
+is 37.7 css px on the frame it lands, which is 12.6 device px between samples at
+six subframes.
+
+The ground compensation is the same line it was — a card scaled about its own
+centre lifts its bottom edge by the height it lost, so the same frame writes
+`R * (1 - 1/sq)` back against it — and it matters more at this depth than at the
+old one.
+
+### The laugh makes no sound, and the gap is silent on purpose
+
+`mascotCues` offers three `titter`s on the first three bounces and **this clip
+takes none of them**, so a laugh can be laid over the gap by hand later. They are
+dropped **by name rather than by index**: a sound removed by position is a sound
+that comes back the day the module adds a cue.
+
+What is left in that second and a half is one thing, the thought's own `pop` at
+3.99s, and it is kept because a pill arriving is not a laugh. There is a guard
+that nothing else lands inside the giggle's window.
+
+### The thought is the module's, over the crown
+
+`hihi`, `thought: 'over'`, and the module derives the side from `pos` — a head on
+the left thinks to its right, so the pill lands over the middle of the frame. The
+module's placement is **advisory** about the safe area, because it places against
+the zone and a clip is free to move the zone, which this one does. So the pill is
+measured in the page over its own window rather than argued about: `bubbleSafe`
+answers null while the cluster is hidden, so it is sampled every 0.04s from the
+first dot to the last frame of the exit and the worst of each edge is what the
+guard reads. It clears 532 left, 596 top, 300 right.
+
+It is up from 4.33 to 5.23 — the module's own 0.90s hold, which is the longest a
+single `bubble` can be held from outside the module — and its exit runs a few
+hundredths past the pose's hold. That is fine and the guard says so in the right
+place: what matters is that it is gone before the punchline card is up, not that
+it is gone before the hold ends.
+
+### `bias: 0`, because a centred mascot is not a corner mascot
+
+`pos` defaults to `bottom-left` and the module derives `TURN.bias` 0.35 from it,
+which is right for a head standing in a corner looking into the frame and wrong
+for one centred and talking to the camera. An explicit bias is the module's own
+documented way of saying it, and it is one line in the plan. **Any clip that
+centres him should say it.**
+
+### The wordmark's opacity is keyed to the frame, not to the instant
+
+post12 fades it in over the front of the snap, and that only works because its
+hit does not land on a whole frame at either rate. The moment one does, the birth
+frame is nought and the frame carries the mascot already cut and the wordmark not
+yet arrived, which is an empty frame — the exact fault post12's own note is
+about.
+
+Keying it to `f`, the same switch `mo` is on, makes the exchange exact at any
+rate. It is also what lets the fault land wherever the read ends rather than on a
+number chosen to sit on two frame grids at once, which is what the first cut's
+7.00 was.
+
+**And the captions are on that switch too, which the 60fps pass found after the
+preview was green.** Their cut was still written as `t >= END.at`; with the hit
+landing on no particular grid, `Math.round(END.at * 60)` rounded down past it, so
+the frame the wordmark was born on still had `t < END.at` and the punchline was
+drawn under it. One frame with both on it. At twelve the rounding went the other
+way and the preview was clean, which is the whole reason a 60fps pass exists.
+Every channel in an exchange goes on the frame, not just the two you remembered.
+
+### The mix, and a limiter allowance that moved because the source did
+
+The read on top, a small bus of effects under it ducked to **0.30** while a word
+is being said. That is light on purpose: the only thing playing under the read is
+the run of key ticks, and a tick on the word it belongs to is supposed to be heard
+*with* it rather than made room for. post19 ducks to 0.60 because it has a bed
+under a narration; this has six clicks.
+
+The key went back **down**, from the first cut's -26 to -29. -34 is the table's
+own and it was set for ticks under a read, which is exactly what this is now; the
+first cut lifted it because there was no read to sit under.
+
+**Five decibels of limiting, which is post19's number and not post12's.** The
+first cut allowed one and a half, because a dozen transients on silence is a
+source whose peaks *are* the content. A read is the opposite: speech is peaky
+against its own average by ten or twelve decibels and a limiter taking a few off
+the plosives is what every broadcast chain does. At 1.5 this mix stopped at -16.9
+with the target 5.6 dB away; at 5.0 it reaches **-15.0 LUFS with the limiter
+taking 4.48**. The number moved because the source did.
+
+The loudness loop bisects, which is post19's lesson ported rather than
+re-derived: a pass over the allowance is a ceiling rather than a stop, and the
+last lift under it and the first over it bracket the answer.
+
+### The beats
 
 | at | what |
 |---|---|
-| 0.00s | `everyone` and the caret are already on the frame, and the first key tick is on it |
-| 0.21 to 1.05s | the other five words, 0.21s apart, a tick on each |
-| 1.05 to 1.66s | the caret blinks after the last word |
-| 1.66s | the block is knocked down to the caption line over 0.30s |
-| 1.96s | it lands with a 12px bounce and a thud, and he starts falling on the same frame |
-| 2.43s | he lands, 1.16 wide by 0.86 tall, and springs out of it by 2.68 |
-| 2.72s | `point-viewer`, entrance 0.34, two jabs, chained |
-| 3.80s | `laugh`, entrance 0.62, hold 1.55, four bounces, three titters at 4.45 / 4.73 / 5.01 |
-| 5.97s | the laugh stops, the hands go home by 6.29, and the punchline pops |
-| 6.72 / 6.86s | two stutters |
-| 7.00s | the hit. he and both captions are cut and the wordmark is born on that frame |
-| 8.05s | end, after 0.96s of the end card |
+| 0.00s | `everyone` is already on the frame with the caret under it, and its key tick is on frame zero |
+| 0.50 / 0.95 / 1.33 / 1.50 / 1.97s | the other five words, each on the frame it is said on |
+| 2.32s | the caret has blinked for 0.14s and the block is knocked down over 0.30s |
+| 2.62s | it lands with a 12px bounce and a thud |
+| 2.50s | he starts falling, 560px, no hands |
+| 2.97s | he lands: 1.52 wide by 0.66 tall, chin on the ground, back out of it by 3.46 |
+| 3.27s | the laugh. entrance 0.67, the hand is on the mouth at 3.94, holds to 5.49 |
+| 3.85 to 5.53s | `hihi` climbs, is up 4.33 to 5.23, and leaves |
+| 5.49s | the laugh stops, the hand goes home and fades, the punchline pops and take two starts |
+| 7.36 / 7.56s | two stutters |
+| 7.74s | the hit. he and both captions are cut and the wordmark is born on that frame |
+| 8.69s | end, after 0.86s of the end card |
 
-**The beat between the landing and the point is 0.29s** and it is a guard rather
-than a gap: the smash's own spring is still running through most of it, so what
-is on screen is a head settling rather than a still frame.
+### The guards this cut added
 
-### The captions are drawn here, and the reason is the pop fit
+On top of the first cut's: **no glove on screen before the laugh**, asserted on
+the composed frame at four instants rather than on the plan; **the screen left
+glove never appears at all**, walked over every frame at sixty; **no titter on
+the bus**, and nothing but the thought's pop inside the giggle's window; **the
+module still offers exactly three titters**, so the day it offers four this fails
+rather than quietly letting one through; **the thought is the module's placement,
+arrives after the hand lands and is gone before the punchline card is up**, with
+its rendered rect clearing all four borders; **every word after the first appears
+on the frame it is said on**; **exactly one word differs between the screen and
+the read, and it is `u`**; **the fault lands after the read's last sound**; and
+**the bus is under the voice on every window**.
 
-`lib/captions.mjs`'s `pop` style measures a card as **one row** — Michroma at a
-size that puts every word on a single line — which is right for the three word
-cards it is written for and wrong for a six word line and a nine word one. Both
-would be fitted to about sixteen css px, which is a footnote.
-
-So the two blocks are drawn in `post20.mjs`, in the pop idiom rather than by the
-pop engine: Michroma caps, `--fg`, the site's own spring on every word, wrapped
-inside a fixed 340 css px box and fitted **to the wrapped block** in the page —
-the largest size that keeps the taller block inside the box's height with no
-single word wider than it. It comes out at 34 css px, 52 device px of cap
-against a 30px floor, three lines for the setup and five for the punchline.
-
-What is borrowed from that module is `brandTokens`, so the colours still come out
-of `index.html` rather than out of this file, and `checkCopy`, so the dash rule
-is the same dash rule.
-
-### The typing is word by word, and the caret is measured rather than placed
-
-A tick per character would be thirty one events inside a second, which is a
-machine gun. A tick per word is six, and word by word is also what the brief
-asks for.
-
-**Every word holds its place from frame zero** and arrives by opacity and a
-spring, which is the caption engine's own rule and here it buys a second thing:
-the caret can be placed off a box that never moves. `fit()` measures each word's
-right edge once, after the type is sized, and the frame names an index — so the
-caret is a lookup rather than a measurement per frame, and it lands after the
-word that has just arrived rather than at the end of a line nobody has written.
-
-**The caret is the only accent in the clip.** The words arrive in the ink and the
-green block is what is putting them there. It is gone at 1.66s, which is the
-frame the block is knocked down on: a caret on a caption that has stopped being
-written is a caret nobody is holding.
-
-### Two things the rendered frames changed
-
-**The first word is on frame zero rather than arriving on it.** It used to start
-at 0.10s and the review found the consequence in one line: frame zero was an
-empty black rectangle. That is the thumbnail, and it is also the first thing a
-feed shows before anybody has decided to watch. post12 cut its own fade up for
-exactly this. So word one's reveal window opens `wordFor` **before** the clip
-does and is finished at t=0, and its tick is still on frame zero — the keystroke
-that put it there is the first thing you hear, and the film opens on a thought
-already half thought. There is a guard on it.
-
-**`bias: 0`, because a centred mascot is not a corner mascot.** `pos` defaults to
-`bottom-left` and the module derives `TURN.bias` 0.35 from it, which is the right
-answer for a head standing in a corner looking into the frame and the wrong one
-for a head centred and accusing the camera: it turned his face a third of a turn
-toward the same side the finger already goes, so the composition leaned out of
-the frame together. An explicit bias is the module's own documented way of saying
-it, and dead straight on is what a point at the viewer wants under it.
-
-### What the review still says about `point-viewer`
-
-**On the frame the finger aims at the right border rather than at the lens.** It
-reads unmistakably as a point, which is the thing the last traced review could
-not get out of `point` at this head size, and it does not read as *at me*. That
-is the drawing rather than the placement, and the module's own note on it says a
-point works where the copy already names who is being pointed at. This copy ends
-in `U`, and the face under it is now straight on. Written down rather than fixed:
-the honest fix is a third drawing, and it is the same kind of open the other two
-were.
-
-### The fall is post19's, at a fifth of its depth
-
-`fallAt` and `squashAt` are post19's two functions and the length is post19's
-argument: 560 css px over 0.47s is **37.9 css px on the frame it lands**, under a
-ceiling of 42, and at six subframes that is 12.6 device px between samples. `p²`,
-because that is what gravity is.
-
-The smash is that clip's shape at a fifth of its depth — 1.16 wide by 0.86 tall
-against its 1.52 by 0.66 — because that one is a head hitting the floor after a
-smash cut and this is a small robot arriving. The ground compensation is the same
-line: a card scaled about its own centre lifts its bottom edge by the height it
-lost, so the same frame writes `R * (1 - 1/sq)` back against it.
-
-**The knock down is on its own curve and 0.30s is what the shutter asked for.**
-268 css px on `--ease` peaks at about five times its average, which is ninety css
-px on one frame — a caption that teleports at sixty and is missing from the
-preview entirely. An ease in out peaks at about 1.6 times, and 0.24s still
-measured 47.7. At 0.30 it is 37.5, under the fall's own peak.
-
-### One line post19 did not need
-
-The fall and the smash are composed onto `frame.card` after the module has
-written it, which is post19's move and post19's reason: a transform laid over the
-element would leave `headRect` answering about a head that is somewhere else.
-
-`frame.hands.fit` is the piece that is new. It is the inverse of the card's own
-two scales and it is what keeps a glove's outline an even weight under a squash;
-the module computes it from the card it wrote, so a card this file then scales
-leaves that inverse describing a head that no longer exists. Dividing it by the
-same factor is not a correction to the module, it is this file finishing the
-composition it started. post19 had no gloves on and never met it.
-
-### The sound is nine kinds and no new recipe
-
-Six `key` ticks on the typed words, a `popDeep` when the caption lands and the
-same gesture lower and longer when he does, the module's own three `titter`s off
-`mascotCues`, a `pop` on the punchline and `glitch` on the fault plus two
-quieter copies before it. Synthesised, all of it, and there is still not one
-audio file in this repo.
-
-**The key is lifted from -34 to -26 and the table is not edited.** That number
-was set for a run of ticks playing under a read; there is no read here and at the
-table's own level the typing would be silent on a phone. The override is per
-render, which is what `gains` is for.
-
-**The mix lands at -20.7 LUFS with a true peak of -1.7 dBFS**, which is nearly
-seven decibels under the target because the peak ceiling won. That is post12's
-argument and it is honest for a bus of a dozen transients on silence, and it is
-also quiet: the levers are the glitch's own level, which would stop the cut being
-the loudest thing in the file, and the limiter allowance, which is a considered
-number. Neither was pulled. The floor in this file is -22 rather than post12's
--20 and that is the one number here that is looser than its template.
-
-### The guards this clip added
-
-Everything post12 checks, plus the ones the hands and the drawn captions needed:
-
-- **the two poses reach their own marks**, with a wind up and an overshoot on
-  each, and no frame moves a hand past `HANDS.stepCeil` — the module's
-  measurement, not this file's opinion.
-- **the chain is a chain**: no exit on the point, the laugh named as its
-  successor, the laugh knowing where it came from, and the point stopping on the
-  laugh's own mark.
-- **three titters, all inside the laugh's own window.**
-- **no state but `neutral`**, so the brief's ban on `unimpressed` is asserted on
-  the plan rather than remembered.
-- **the compression goes exactly as deep as the table says, stretches on the way
-  down, dips below zero exactly once on the way out, and is over before the point
-  starts.** A run below zero rather than two zero crossings, because the shape
-  wanted is the run.
-- **the fall and the knock down are both under 42 css px a frame at sixty**,
-  measured by walking each function rather than solved off a curve.
-- **both captions clear all four borders at both of the positions they are drawn
-  at**, including the punchline's spring overshoot, which grows its ink 1.9%.
-- **the caption block never overlaps him**, measured as the lowest his ink and
-  his gloves ever reach against the top of the lower block. It is 112 device px.
-- **frame zero is not empty**, and the caret blinks.
-- **one card at a time**, walked over every frame at sixty.
-- **six words in order, six key ticks, and the last word settled before the block
-  moves.**
+Gone with the point: the chain checks, the two pose count and the titter window
+check, which is now its inverse.
 
 ### Outstanding
 
-- **`point-viewer` does not say "at you".** See above. A third traced drawing is
-  the honest fix and it is a drawing rather than a number.
-- **-20.7 LUFS.** Quiet, and the two levers are both decisions rather than
-  tuning.
-- **The punchline is five lines.** Nine words in Michroma caps inside a 340 css
-  px box is a paragraph rather than a beat. It is the copy the brief asked for
-  and it is legible; six words would be three lines.
+- **The clip is 8.67s against a brief asking for around eight.** The read is
+  4.3s of it and the laugh a further 2.2s. Nothing in the clock is padding.
+- **The end card holds 0.86s** against its own floor of 0.80, which makes it the
+  tightest number in the file. A take that comes back half a second longer needs
+  the card lengthened rather than the film trimmed.
+- **The glove fades while it is still travelling home.** See the note above.
+- **`point-viewer` still does not say "at you"**, and the fix is still a third
+  traced drawing. Nothing in this clip depends on it any more.
 
 ## The og card
 

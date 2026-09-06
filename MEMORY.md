@@ -6,7 +6,48 @@ names in here either.
 
 ## Status
 
-- **Built 2026-09-06: `demo/post20.mjs`, the point, and it is the first clip that
+- **Fix round 2026-09-07: post20 gets a voice, loses the point, and falls with no
+  hands.** `demo/post20.mjs` only — lib untouched. 8.67s now against the first cut's
+  8.05, and **the whole clock is cut from one read** rather than typed. Full write
+  up under The twentieth clip in `demo/README.md`; this is what a later session
+  cannot re-derive.
+  - **The point is out, and a rendered frame is what took it.** `point-viewer`
+    reads unmistakably as a point at a 240px head — which `point` does not, and
+    which is why the second drawing was opened — and it aims at the right border
+    rather than at the lens. The honest fix is a third traced file. Rather than
+    ship a pose that does not say its own name the clip lost the beat, so
+    **`laugh` is the only pose in it**.
+  - **The read is the spine.** Two takes, Andrew at -4% and +3Hz, cached on the
+    copy *and* the delivery. Every word appears on the frame it is being said on;
+    the knock down, the fall, the laugh, the punchline and the fault are all
+    derived from where the words land. Five joins totalling 0.86s and a 0.95s end
+    card are the only numbers in the clock that are not the read's own.
+  - **The fault waits for the last *sound*, not the last word boundary.** The
+    synthesiser's `WordBoundary` is shorter than the syllable it names, so a cut
+    placed on it takes the last consonant with it. `audioEdges` is post19's.
+  - **No hands on the fall is two gates.** One on the acting hand, faded in over
+    the entrance and out over the exit. And one on the hand that never acts,
+    multiplied by nought outright — because `side` applies from its own mark on,
+    and before it the module holds the resting pair and then fades the idle hand
+    out *across the entrance*, since a hand that was on screen has to leave. In
+    this clip it was never on screen, and 0.3 of a left glove drifting off is what
+    the guard caught.
+  - **The smash is post19's at post19's depth**, 1.52 wide by 0.66 tall rather
+    than the first cut's 1.16 by 0.86. The polite version was the wrong call.
+  - **The laugh is silent.** `mascotCues` offers three titters and this clip drops
+    all three **by name**, so Einz can lay his own laugh over the gap. The only
+    sound in that second and a half is the thought's own pop.
+  - **`hihi` over the crown**, `thought: 'over'`, the module's placement measured
+    in the page over the pill's own window rather than argued about —
+    `bubbleSafe` answers null while it is hidden, so it is sampled every 0.04s
+    and the worst of each edge is the guard.
+  - **-15.0 LUFS**, up from the first cut's -20.7, and the limiter allowance moved
+    from 1.5 to post19's 5.0 because the source changed from transients to speech.
+  - Validated at 12fps and at 60 with the shutter open at six subframes. Review at
+    `demo/out/review-post20.md`, and it supersedes the first cut's.
+
+- **Built 2026-09-06 and largely replaced the next day, see the entry above:
+  `demo/post20.mjs`, the point, and it is the first clip that
   uses the floating hands.** 8.05s, 1080x1920, dark only, out to
   `demo/out/post20-dark-1080x1920.mp4`. A thought types itself in the middle of a
   black frame — `everyone says ai will replace u`, word by word with a key tick on
@@ -2576,12 +2617,13 @@ Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
-- **`demo/post20.mjs` is the twentieth clip and the first one with hands in it.**
-  8.05s, 1080x1920, 60fps, dark only, out to `demo/out/post20-dark-1080x1920.mp4`.
-  It needs no assets at all: the two gloves are traced paths inside
-  `lib/mascot.mjs` and both captions are type. Two hands marks, `point-viewer`
-  chained into `laugh`, under a face that never changes state. Full write up under
-  The twentieth clip in `demo/README.md`.
+- **`demo/post20.mjs` is the twentieth clip, the first one with hands in it and
+  the first whose whole clock is cut from a read.** 8.67s, 1080x1920, 60fps, dark
+  only, out to `demo/out/post20-dark-1080x1920.mp4`. It needs no assets at all:
+  the gloves are traced paths inside `lib/mascot.mjs`, both captions are type and
+  the two voice takes are fetched and cached under `demo/out/voice/`. One hands
+  mark, `laugh`, under a face that never changes state. Full write up under The
+  twentieth clip in `demo/README.md`.
 
 - **`demo/post19.mjs` is the nineteenth clip and the second dark one built on
   post17's panel.** 8.65s, 1080x1920, 60fps, out to
@@ -3327,6 +3369,93 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-07 — `side` applies from its mark on, so a hand that was never on screen still fades off one
+
+post20 wanted no gloves at all until the laugh. `side: 'right'` on the laugh's
+mark looks like the answer and is not: **`side` is a fact about a mark and it
+applies from that mark onward**, so before it the module holds the resting pair,
+and the module then fades the idle hand out *across the pose's own entrance* —
+correctly, because a hand that was on screen has to leave.
+
+In a clip where it was never on screen it has nothing to leave from, and what
+renders is a left glove at 0.3 opacity drifting off during the entrance. Every
+guard was green on it and a `Math.max` over the composed frames is what caught it.
+
+**So the gate is two gates.** The acting hand gets a fade in over the front of the
+entrance and a fade out over the exit; the hand that never acts is multiplied by
+nought outright, off `plan.marks[k].hands.acting`. Both are one multiplier on the
+`o` the module already writes per hand, composed the same way a fall is, and the
+module is untouched.
+
+The general shape: **`hands: true` draws the resting pair from frame zero and
+there is no plan-level way to say "not yet".** A clip that wants hands to arrive
+has to gate them itself, and the gate has to cover the non-acting hand as well as
+the timing.
+
+### 2026-09-07 — a fault placed on the last word boundary cuts the last consonant off
+
+post20's hit is derived from the end of the read. The obvious number is the last
+word's `end` out of the synthesiser's word list, and it is the wrong one: the
+`WordBoundary` events carry a duration shorter than the sound they name, so the
+audio is still going after the last boundary has closed.
+
+`audioEdges` — post19's, a 5ms envelope against a -42 dB gate off the take's own
+peak — gives the instant the sound actually stops, and the fault is placed
+`max(last word end, audio end) + 0.08`. On this read the difference is about a
+tenth of a second, which is exactly the tail of `it`.
+
+**The same instrument is what places the take, too**: the first take is laid down
+so its *sound* starts at `PRE`, not so its first word boundary does.
+
+### 2026-09-07 — the limiter allowance is a property of the source, not of the house
+
+post12 allows 1.5 dB of limiting and post19 allows 5.0, and post20 has now been
+both. The rule that reconciles them:
+
+- **A bus of transients on silence** — clicks, thuds, a glitch — is a source whose
+  peaks *are* the content. Squashing them is squashing the clip, so the allowance
+  is small and the peak ceiling is expected to win. post20's first cut sat at
+  -20.7 LUFS and that was the honest answer.
+- **A read** is the opposite. Speech is peaky against its own average by ten or
+  twelve decibels, and a limiter taking a few off the plosives is what every
+  broadcast chain does. At 1.5 dB post20's second cut stopped at -16.9 with the
+  target 5.6 dB away; at 5.0 it reaches -15.0 with the limiter taking 4.48.
+
+So the number moves with what is in the file, and it is worth writing down beside
+it rather than copied from whichever clip was open last.
+
+### 2026-09-07 — an opacity that exchanges one thing for another belongs on the frame, not on the instant
+
+post12's wordmark fades in over the front of its own snap, and post20's first cut
+copied that and had to special case it, because post20's hit landed on 7.00 —
+exactly on both the 12fps and the 60fps grids. A ramp that starts there is nought
+on the birth frame, and the birth frame then carries the mascot already cut and
+the wordmark not yet arrived: an empty frame, which is the fault post12's own note
+is about.
+
+**The fix is not a number, it is which clock the channel is on.** `mo` is already
+keyed to the output frame `f` because a cut has to be held across every subframe
+of a shutter; the wordmark's opacity is the other half of the same exchange and
+belongs on the same switch. Keyed to `f` it is exact at any rate, and the hit is
+then free to land wherever the read ends rather than on a number chosen to sit on
+two frame grids at once.
+
+**The scale stays on `t`**, because a snap is supposed to smear under the shutter.
+One channel per clock, and the clock is chosen by what the channel means.
+
+**And the rule has a third half, which the 60fps pass found after the preview was
+green.** The captions' own cut was still written as `t >= END.at`. With the hit
+derived from where the read ends it lands on no particular grid, and on the
+master's grid `Math.round(END.at * 60)` rounded *down* past it — so the frame the
+wordmark was born on still had `t < END.at`, and the punchline was drawn under
+it. One frame with both on it. At twelve the same rounding went the other way and
+the preview could not see it, which is the convention at the top of this file
+doing exactly what it is for.
+
+So: **every channel in an exchange goes on the frame, not just the two you
+remembered.** `mo`, the wordmark's opacity and both captions' opacity are one
+switch and it is `f >= cutFrame`.
 
 ### 2026-09-06 — the first clip with hands in it, and three things the pose layer only tells you when a film asks
 
