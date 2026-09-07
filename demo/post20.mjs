@@ -276,17 +276,22 @@ const CUR = { period: 0.44, duty: 0.55, w: 0.44, h: 0.76, gap: 0.16 };
    is derived from the bottom safe line rather than chosen: a four line block at
    forty css px is 179 tall, the platform's bottom line is at 850, and 726 puts
    the resting bottom 35 css px inside it with the landing bounce still clear.
-   `dx` is the shift onto the side the finger points — he points down and out to
-   screen right, and a punchline sitting on the other side of the frame from the
-   gesture would be two things rather than one. it is 25 css px, which is as far
-   right as a 340 wide box goes before its edge is on the safe line. */
+
+   **there is no lateral shift any more.** the table carried a `dx` of 25 css px
+   onto the side the finger points, and the finger went with the pose: this cut
+   has no point in it, so the reason went with it and what was left was a
+   punchline sitting a hair right of a frame nobody was gesturing across. the
+   block is centred instead, and it is centred on its **drawn ink** rather than
+   on its box — a span's box is the sum of advance widths and michroma's side
+   bearings are not equal at both ends, so a row of boxes can be dead centre with
+   the letters a couple of px off it. `fit()` measures the glyph outlines and
+   nudges each block by what it finds. */
 const CAP = {
   box: { w: 340, h: 210 },
   max: 40,                 /* the caption engine's own cap, and for its reason */
   minCapPx: 30,            /* device px of cap height. a floor, not a target */
   mid: CENTRE_Y,
   line: 726,
-  dx: 25,
   gap: 0.42,               /* em between words, the engine's own `wordGap` */
   lh: 1.12,
   outFor: 0.10,            /* how fast the setup leaves */
@@ -460,14 +465,15 @@ function capAt(t, swap, cut = t >= END.at) {
   /* the block's own centre, as an offset from the middle of the frame. it sits
      on the middle of the safe band while it types and on the caption line after
      the knock down, and the bounce is added on top of the travel rather than
-     being part of its curve. */
+     being part of its curve. it only ever moves down: the horizontal is settled
+     once, in `fit()`, off the measured ink, so there is no lateral channel here
+     to disagree with it. */
   const p = span(t, SNAP.at, SNAP.at + SNAP.for);
   const q = span(t, SNAP.at + SNAP.for, SNAP.at + SNAP.for + SNAP.bounceFor);
   const bounce = q > 0 && q < 1
     ? SNAP.bounce * Math.exp(-SNAP.damp * q) * Math.sin(2 * Math.PI * SNAP.cycles * q) * (1 - q)
     : 0;
   const cy = lerp(CAP.mid, CAP.line, MOVE(p)) - VH / 2 + bounce;
-  const cx = CAP.dx * MOVE(p);
 
   /* the setup: every word invisible until its own moment, then a spring about
      its own centre. it holds its place from frame zero, so nothing already on
@@ -486,7 +492,7 @@ function capAt(t, swap, cut = t >= END.at) {
   const oneO = cut ? 0 : +(1 - span(t, swap - CAP.outFor, swap)).toFixed(4);
   const twoP = span(t, swap, swap + CAP.inFor);
   return {
-    cx: +cx.toFixed(3), cy: +cy.toFixed(3),
+    cy: +cy.toFixed(3),
     one, oneO,
     /* the punchline springs in whole, which is what a pop card does and is the
        opposite of the line above it. it is the answer arriving, not being typed. */
@@ -733,11 +739,11 @@ ${mascotCss(plan)}
          drop-shadow(calc(var(--split,0) * 1px) 0 var(--gc))}
 
 /* ---- the captions ----
-   one container carrying the position of both blocks, so the knock down is one
-   transform rather than two that can disagree. each block centres itself inside
-   the frame and the container is what moves it. */
+   one container carrying the knock down for both blocks, so it is one transform
+   rather than two that can disagree. it moves them down and only down: sideways
+   each block carries its own centring, written once off its measured ink. */
 .cap{position:absolute;inset:0;z-index:4;pointer-events:none;
-  transform:translate3d(calc(var(--cx,0) * 1px),calc(var(--cy,0) * 1px),0);
+  transform:translate3d(0,calc(var(--cy,0) * 1px),0);
   will-change:transform}
 .cbox{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   opacity:var(--o,0);will-change:opacity}
@@ -745,7 +751,10 @@ ${mascotCss(plan)}
   justify-content:center;gap:.14em ${CAP.gap}em;
   font-family:var(--display);font-weight:400;text-transform:uppercase;
   letter-spacing:0;line-height:${CAP.lh};
-  transform:scale(var(--s,1));transform-origin:center center;will-change:transform}
+  /* --bx is the block's own ink centring, written once by fit(). it sits
+     outside the scale, so the pop still grows about the block's own centre. */
+  transform:translate3d(calc(var(--bx,0) * 1px),0,0) scale(var(--s,1));
+  transform-origin:center center;will-change:transform}
 /* michroma ships one weight and it is never faked here: no 700, no text stroke,
    no shadow. it reads heavy on its own, which is why it is the headline face. */
 .cw{display:inline-block;color:var(--fg);transform-origin:center bottom;
@@ -855,6 +864,38 @@ function scenePage() {
   const tearIns = tears.map(t => t.querySelector('.tear-in'));
   let caret = [];
 
+  /* ---- what a block actually draws ----
+     the union of the drawn words rather than the flex row that holds them,
+     because a full width row reports the box back and proves nothing about what
+     is in it — and **sideways it is the glyph outlines rather than the word
+     boxes**. a span's box is the sum of advance widths, and michroma's left and
+     right side bearings are not equal, so a row of boxes can be dead centre with
+     the letters sitting a couple of px off it. canvas is what knows the
+     difference: `actualBoundingBox` is the outline, measured from the text
+     origin, which for an inline-block with no padding is its own box's left
+     edge.
+
+     up and down it stays the boxes on purpose. the line box carries the leading
+     and every vertical guard in this file — the safe borders, the gap to him —
+     is written against it, so switching those to outlines would loosen numbers
+     nobody asked to loosen. */
+  const inkOf = list => {
+    const cs = getComputedStyle(list[0]);
+    const cv = document.createElement('canvas').getContext('2d');
+    cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+    cv.textAlign = 'left';
+    cv.textBaseline = 'alphabetic';
+    let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity;
+    for (const el of list) {
+      const q = el.getBoundingClientRect();
+      const m = cv.measureText(el.textContent);
+      l = Math.min(l, q.left - m.actualBoundingBoxLeft);
+      r = Math.max(r, q.left + m.actualBoundingBoxRight);
+      t = Math.min(t, q.top); b = Math.max(b, q.bottom);
+    }
+    return { l: +l.toFixed(2), r: +r.toFixed(2), t: +t.toFixed(2), b: +b.toFixed(2) };
+  };
+
   window.__p20 = {
     /* one size for both blocks, and it is the largest that fits the box: the
        tallest block inside the box's height, and no single word wider than the
@@ -877,6 +918,18 @@ function scenePage() {
         if (ok) break;
       }
       for (const b of blks) b.style.fontSize = size.toFixed(2) + 'px';
+
+      /* and then each block is put on the middle of the frame, by its ink. this
+         is the whole of the horizontal placement: there is no lateral channel
+         per frame and nothing else moves the blocks sideways, so one write here
+         is the answer for the life of the clip. it happens **before** the caret
+         is measured, because the caret is measured off a word's rendered box and
+         that box has just moved. */
+      const bx = blks.map((b, i) => {
+        const k = inkOf(cells[i]);
+        return +(P.VW / 2 - (k.l + k.r) / 2).toFixed(3);
+      });
+      for (let i = 0; i < blks.length; i++) blks[i].style.setProperty('--bx', bx[i].toFixed(3));
 
       /* the caret's spot after every word, measured once. the words hold their
          places for the whole of the typing, so the list is fixed and the caret
@@ -903,34 +956,26 @@ function scenePage() {
       }
       const ws = 100 * P.WM.w / widest;
       for (const el of wms) el.style.fontSize = ws.toFixed(2) + 'px';
-      return { cap: size, wm: ws };
+      return { cap: size, wm: ws, bx };
     },
 
-    /* what the two blocks actually measure, once, after the fit: the union of
-       the drawn words rather than the flex row that holds them, because a full
-       width row reports the box back and proves nothing about what is in it.
-       the numbers are relative to the frame with the container at rest, so node
-       adds the position it is about to be moved to. */
+    /* what the two blocks actually measure, once, after the fit, and it is the
+       same `inkOf` the centring was done with — so this is the answer to "did
+       it work" rather than a second opinion about it. the numbers are relative
+       to the frame with the container at rest, so node adds the position it is
+       about to be moved to; the horizontal is already final. */
     measure() {
       const d = P.DSF;
       const cs = getComputedStyle(cells[0][0]);
       const cv = document.createElement('canvas').getContext('2d');
       cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
       const m = cv.measureText('H');
-      const inkOf = list => {
-        let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity;
-        for (const el of list) {
-          const q = el.getBoundingClientRect();
-          l = Math.min(l, q.left); r = Math.max(r, q.right);
-          t = Math.min(t, q.top); b = Math.max(b, q.bottom);
-        }
-        return { l: +l.toFixed(2), r: +r.toFixed(2), t: +t.toFixed(2), b: +b.toFixed(2) };
-      };
       return {
         sizeCss: +parseFloat(cs.fontSize).toFixed(2),
         capPx: +((m.actualBoundingBoxAscent || 0) * d).toFixed(1),
         font: cv.font,
         one: inkOf(cells[0]), two: inkOf(cells[1]),
+        bx: blks.map(b => +(parseFloat(b.style.getPropertyValue('--bx')) || 0).toFixed(3)),
         lines: blks.map(b => +(b.getBoundingClientRect().height).toFixed(1)),
       };
     },
@@ -972,7 +1017,6 @@ function scenePage() {
       else stage.removeAttribute('data-gl');
 
       const c = o.cap;
-      cap.style.setProperty('--cx', c.cx.toFixed(3));
       cap.style.setProperty('--cy', c.cy.toFixed(3));
       boxes[0].style.setProperty('--o', c.oneO.toFixed(4));
       boxes[1].style.setProperty('--o', c.twoO.toFixed(4));
@@ -1160,7 +1204,7 @@ async function render(plan, R, swap, bub) {
         let s = o.mo * 7 + o.wm.o * 11 + o.wm.sc * 13 + o.wm.glow * 17
           + o.g.sx * 19 + o.g.sy * 23 + o.g.split * 29 + o.g.noise * 31 + o.g.flash * 37
           + o.g.bands.length * 41
-          + o.cap.cx * 149 + o.cap.cy * 151 + o.cap.oneO * 157 + o.cap.twoO * 163
+          + o.cap.cy * 151 + o.cap.oneO * 157 + o.cap.twoO * 163
           + o.cap.twoS * 167 + o.cap.cur * 173 + o.cap.curAt * 179
           + mf.card.x * 43 + mf.card.y * 47 + mf.card.rot * 53
           + mf.card.sx * 59 + mf.card.sy * 61 + mf.glow * 67;
@@ -1828,9 +1872,11 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
   const cyRest = CAP.mid - VH / 2;
   const cyLow = CAP.line - VH / 2 + SNAP.bounce;
   const cyLine = CAP.line - VH / 2;
-  const at = (ink, dx, dy, grow = 0) => ({
-    left: +((ink.l + dx - grow) * DSF).toFixed(1),
-    right: +((VW - ink.r - dx - grow) * DSF).toFixed(1),
+  /* the ink is already where it will be drawn sideways, so only the knock down
+     is added on. */
+  const at = (ink, dy, grow = 0) => ({
+    left: +((ink.l - grow) * DSF).toFixed(1),
+    right: +((VW - ink.r - grow) * DSF).toFixed(1),
     top: +((ink.t + dy - grow) * DSF).toFixed(1),
     bottom: +((VH - ink.b - dy - grow) * DSF).toFixed(1),
   });
@@ -1841,15 +1887,27 @@ if (rep60.maxBreathe >= 0.02) fail.push('breathing reached ' + (rep60.maxBreathe
   const over2 = +((POP(0.36) - 1) * (1 - 0.86)).toFixed(4);
   const grow2 = Math.max(0, (c.two.r - c.two.l) / 2 * over2);
   const spots = [
-    ['the setup while it types', at(c.one, 0, cyRest)],
-    ['the setup on its line', at(c.one, CAP.dx, cyLow)],
-    ['the punchline', at(c.two, CAP.dx, cyLine, grow2)],
+    ['the setup while it types', at(c.one, cyRest)],
+    ['the setup on its line', at(c.one, cyLow)],
+    ['the punchline', at(c.two, cyLine, grow2)],
   ];
   for (const [what, box] of spots) {
     for (const k of ['left', 'top', 'right', 'bottom']) {
       if (box[k] < floor - 0.5) {
         fail.push(what + ' comes within ' + Math.round(box[k]) + 'px of the ' + k + ' border');
       }
+    }
+  }
+  /* and both blocks are on the middle of the frame, judged on the drawn ink
+     rather than on the boxes that hold it. a css px of slack, because the fit
+     lands on a half px step and a glyph outline is a float. */
+  for (const [what, ink] of [['the setup', c.one], ['the punchline', c.two]]) {
+    const off = (ink.l + ink.r) / 2 - VW / 2;
+    console.log('  ' + what + ' is ' + (off * DSF).toFixed(1) + ' device px off the frame centre'
+      + ', ink ' + (ink.l * DSF).toFixed(0) + ' to ' + (ink.r * DSF).toFixed(0)
+      + ', nudged ' + (c.bx[what === 'the setup' ? 0 : 1] * DSF).toFixed(1) + ' to get there');
+    if (Math.abs(off) > 1) {
+      fail.push(what + ' is ' + off.toFixed(2) + ' css px off the frame centre by measured ink');
     }
   }
   /* and it does not collide with him. the head's own rect already holds the
