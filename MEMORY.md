@@ -6,6 +6,19 @@ names in here either.
 
 ## Status
 
+- **Fix 2026-09-07: post20's punchline is centred, by measured ink.**
+  `demo/post20.mjs` only. The caption table carried a `dx` of 25 css px onto the side
+  the finger points, and the finger went with the pose when this cut dropped the
+  point — so it was 50 device px of lean with no reason left behind it. Gone, and
+  `fit()` now nudges each block onto the frame centre off its **drawn ink** rather
+  than its box: a span's box is the sum of advance widths and michroma's side
+  bearings are not equal at both ends. The per frame lateral channel went with it.
+  Vertically the measurement stays the boxes, because every vertical guard here is
+  written against the line box; position, size and timing are unchanged. A guard
+  holds both blocks within a css px of centre and the run prints how far off each is.
+  Green at 12fps and at 60 with the shutter open at six subframes. Final render
+  8.68s, pushed as `8502e85`.
+
 - **Fix round 2026-09-07: post20 gets a voice, loses the point, and falls with no
   hands.** `demo/post20.mjs` only — lib untouched. 8.67s now against the first cut's
   8.05, and **the whole clock is cut from one read** rather than typed. Full write
