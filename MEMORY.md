@@ -6,6 +6,43 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's fifth cut is green at 12fps. No voice, no fringing, red
+  laser eyes.** Einz's six fixes, one round. What a later session cannot re-derive:
+  - **A clip can lose its voice and keep its clock by freezing the word table.**
+    The read drove the typing character by character; removing the TTS would have
+    thrown the timing away, so the word list is written into `WORD_CLOCK` as a
+    literal and everything downstream is bit-identical. `demo/out/voice/` is no
+    longer touched at render time. **Any clip that needs its picture timing to
+    outlive its read should do this rather than re-fetch.**
+  - **`css.indexOf('--mono:')` is not a safe slice point.** index.html's own
+    `:root` declares `--mono` and it is emitted first, so a guard slicing there
+    scans the site's whole token block — which made a no-green guard fail on a
+    clip that never paints the accent. There is a sentinel comment in the page
+    now and the slice starts at it.
+  - **A span-deletion helper must search its end marker after the start marker.**
+    `s.index(b)` from position zero found a marker *earlier* in the file and the
+    slice silently removed 1300 lines. Restored from HEAD and rebuilt. If a patch
+    script is used on a file this size, the helper takes an offset.
+  - **A glow core must be smaller than the ink it sits on.** The eye is a flat
+    pill 30 css px wide and 10 tall; a 40px hot disc covered it completely and the
+    frame showed a round red light where a slab should be. 22 lets the pill read
+    with a hot centre inside it. **Measure the feature before sizing the glow.**
+  - **Soft light without a filter is a radial gradient that reaches zero alpha
+    inside its own box.** All three laser layers — core, streak, beams — are built
+    that way: no clip-path (which gives hard sides), no css filter (a full frame
+    raster every frame), no border, no shadow. The beams are elongated radial
+    gradients anchored at the eye, so a beam has no sides, it only stops being
+    bright. There is a guard that none of those four properties appears in the
+    laser block.
+  - **The split reaching anything but the wordmark reads as a bug.** `.stage
+    [data-gl="1"]` rules on the mascot and the box put red and blue edges on him
+    during the two pre-fault stutters. A guard now scans the page for every
+    `[data-gl="1"]` rule and fails unless the only one is `.wm`.
+  - **The vignette is post20's .030/.010** and is guarded on the page — it was
+    .028 here, which is a difference nobody would find by eye.
+  - **`point` still does not read**, unchanged by instruction. Open.
+    **Not pushed.**
+
 - **2026-09-08: post22's fourth cut is green at 12fps and 6.08s, and the hand is
   the open question.** Einz's seven fixes, one round. What a later session cannot
   re-derive:
