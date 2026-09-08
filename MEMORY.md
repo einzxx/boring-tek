@@ -6,6 +6,24 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's 60fps final is rendered and green.** `--blur=6`, the
+  file's own number off post20, 2544 captures averaged into 424 frames, 7.07s,
+  1.94 MB, -21.9 LUFS, true peak -1.7. Every guard that passed on the preview
+  passed at sixty. What is new:
+  - **The shutter ran and the frames prove it**: at 2.50s, the fall's fastest
+    moment, the head is a vertical smear; at 2.75s on his mark he is sharp. That
+    is the video-review checklist's own test for whether `--blur` did anything.
+  - **Open, and it is the only fault in the final: the smear shows six discrete
+    copies rather than one streak.** At 38 css px a frame across six samples the
+    copies land 6.3 css px apart, and on the eye slabs — small and hard edged —
+    that reads as a stack. `STEP_CEIL` is about the ceiling past which tmix
+    blends separated copies; this is under it and still visible because the
+    feature is small. **`--blur=10` or `12` would close it at roughly twice the
+    render.** Not run: 6 is the number the file names and the call is Einz's.
+  - A 60fps pass at six subframes is about 25 minutes of capture on this machine
+    plus blending and encode. Run it in the background.
+    **Not pushed.**
+
 - **2026-09-08: post22's sixth cut is green at 12fps and 7.07s. The pill is held
   past the module's own exit.** Einz reported the bubble missing and asked for a
   second on the hold. What a later session cannot re-derive:
