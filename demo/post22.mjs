@@ -8,14 +8,16 @@
           in, letter by letter, cut to the read. **no key ticks** — the voice is
           the sound of the typing.
      ~3.5 the caret blinks off and the box slides down to its line and settles.
-     ~2.6 he falls in from above and lands, green eyed, on a glitch hit, with
-          three rgb stutters after it.
-     ~3.2 the point comes out, aimed down and out at the viewer, and holds.
-      -   he holds. the green breathes. the question is still on screen under him
-          and **nothing is said**, because the answer is a line to be added later.
-     6.32 a thought pops off his crown: AI LL BE BACK.
-     8.00 the fault, and the wordmark. the pill and the hand are both still on
-          the frame it takes.
+     ~2.6 he falls in from above and lands on a glitch hit, three rgb stutters
+          after it. **he is the ordinary mascot**: dark eyes, the module's idle,
+          the module's own white glow, and no hand.
+     ~2.9 a short settle.
+     ~3.6 one frame does three things at once: a glitch hit, the pill popping off
+          his crown with AI'll be back in it, the point appearing on the screen
+          left of his face aimed at camera, and his eyes going neon green with a
+          glint flickering round them.
+     ~5.1 the fault, 1.54s after that, and the wordmark. the pill, the hand and
+          the green are all still on the frame it takes.
 
      node post22.mjs                     1080x1920, 60fps, shutter closed
      DEMO_FPS=12 node post22.mjs         the fast preview pass
@@ -45,12 +47,10 @@
    after that and he starts falling a beat after that. a slower reading moves the
    whole first half and nothing here has to be retyped.
 
-   **the end of the clock is not derived.** the bubble and the fault are pinned —
-   6.32 and 8.00, and the mascot's second mark at 5.74 that places the bubble —
-   because they were signed off on the last cut and this round was not allowed to
-   move them. so the read has a ceiling rather than a free run, and there is a
-   guard on it: if the take comes back long enough to push the landing past the
-   room the hold beat needs, the run fails and prints by how much.
+   **the whole clock is derived now.** the last two cuts pinned the bubble and
+   the fault at 6.32 and 8.00 because they had been signed off; this one unpins
+   them, cuts the wait after the fall to a 0.30s settle, and lets the fault
+   follow the pill's own life. the film comes out around 6.1s against 8.95.
 
    the mascot is `lib/mascot.mjs` and nothing here reaches inside it. two marks,
    both `neutral`, and the module's own thought bubble.
@@ -109,7 +109,7 @@ import { execFileSync } from 'node:child_process';
 import {
   planMascot, mascotFrame, mascotMotion, mascotCues, mascotCss, mascotMarkup,
   mascotRuntime, mascotPagePlan, describeMascot, describeMotion, headRect,
-  STAGE, SAFE, HEAD, HEAD_PX, GRID, BUBBLE,
+  STAGE, SAFE, HEAD, HEAD_PX, GRID, BUBBLE, STATES, HAND_POSES, handShape,
 } from './lib/mascot.mjs';
 import { brandTokens } from './lib/captions.mjs';
 import {
@@ -216,7 +216,36 @@ const EYE_DARK = [6, 7, 10];
    the question mark is on both. it is the brief's, and it is punctuation the
    brand allows: the rule is about dashes. */
 const COPY = 'what did ai say to the terminator?';
-const SAID = 'what did A.I. say to the terminator?';
+/* ---------- and why it is read in two takes ----------
+   the line is a question and it did not sound like one. that is measurable: the
+   fundamental over the final word was tracked by autocorrelation and the whole
+   line at the voice's own delivery climbs 93 to 107 Hz across `terminator`, a
+   rise of 13 — technically up, and not enough to hear as a question.
+
+   **the ssml route is closed.** `speak()` escapes its input before it builds the
+   ssml, so a question form written into the copy arrives at the synthesiser as
+   literal angle brackets and is read out. that is the lib's own note and it is
+   still true.
+
+   so it is the other thing the brief allows: the last word on its own take, at
+   its own pitch. spoken alone `terminator?` rises much harder, because the
+   engine is ending a sentence rather than passing through one, and lifting its
+   pitch lifts the whole contour with it. five tails were fetched and measured
+   against where the body actually ends, which is 100.1 Hz on `the`:
+
+     tail  -2Hz   97.7 -> 125.0   rise +27.3   join step -2.3
+     tail  +5Hz  100.9 -> 133.9   rise +33.0   join step +0.9
+     tail +10Hz  105.8 -> 135.0   rise +29.2   join step +5.7
+     tail +15Hz  115.2 -> 139.9   rise +24.7   join step +15.1
+     tail +20Hz  112.8 -> 141.6   rise +28.8   join step +12.7
+
+   **+5Hz wins on both counts at once**: the biggest rise in the set and a join
+   step of under a hertz, so the tail starts exactly where the body left off and
+   climbs a third from there. anything higher rises no further and starts to
+   sound like two clips stitched together. there is a guard on both numbers. */
+const BODY = 'what did A.I. say to the';
+const TAIL = 'terminator?';
+const SAID = BODY + ' ' + TAIL;
 /* ---------- the pill ----------
    the joke is "i'll be back" with the ai in it, and the brand rule forbids the
    apostrophe anywhere a visitor can read. so the elision is written out and
@@ -224,7 +253,7 @@ const SAID = 'what did A.I. say to the terminator?';
    initialism, and the rest is the house's lower case. the last cut set the whole
    thing in caps and that was the apostrophe rule being used to justify a shout
    it never asked for. */
-const BUB_TEXT = 'AI ll be back';
+const BUB_TEXT = 'AI’ll be back';
 
 /* ---------- the read ----------
    edge's Andrew, this house's `calm`, at **the voice's own rate and pitch**.
@@ -237,7 +266,17 @@ const BUB_TEXT = 'AI ll be back';
    see the copy block above for the six deliveries that were fetched and why none
    of them was the answer. */
 const VOICE = 'calm';
-const RATE = VOICES[VOICE].rate, PITCH = VOICES[VOICE].pitch;
+const RATE = VOICES[VOICE].rate;
+/* the body at the voice's own pitch and the tail five hertz over it. see the
+   copy block for the five that were measured and why this is the one. */
+const PITCH = VOICES[VOICE].pitch, TAIL_PITCH = '+5Hz';
+/* how the two takes are butted together. a question's last word follows straight
+   on, so this is the same order as the engine's own gaps inside a take rather
+   than a pause between two of them. */
+const JOIN = 0.035;
+/* the rise the tail has to have, in hertz across its own word, and the biggest
+   step the join may make. both are measured off the rendered audio. */
+const MIN_RISE = 18, MAX_JOIN_STEP = 6;
 /* the longest silence allowed between two words of the read. every gap in this
    take is 0.014s and the one the last cut shipped was 0.136s, so 0.06 is well
    clear of the first and well under the second: it is the line reading as one
@@ -258,18 +297,36 @@ const CARET_AFTER = 0.14;   /* the caret blinks this long after the last word */
 const FALL_LEAD = 0.18;     /* he starts falling this far into the knock down */
 const STUT_AT = [0.34, 0.62, 0.90];  /* the three stutters, off the landing */
 
-/* ---------- the end, and it is pinned ----------
-   post20's machinery at post20's numbers, through post21. the fault, the end
-   card and the mascot's second mark are held from the last cut because the
-   bubble hangs off them and the bubble was signed off. */
-const MARK2 = 5.74;
-const END = { at: 8.00, pre: [], hard: 0.12, tail: 0.18, wmIn: 8.00, wmFor: 0.09, clean: 0.06 };
-END.pre = [
-  { t: +(END.at - 0.38).toFixed(3), for: 0.05, force: 0.34 },
-  { t: +(END.at - 0.18).toFixed(3), for: 0.05, force: 0.60 },
-];
+/* ---------- the end, and none of it is pinned any more ----------
+   the last two cuts held the bubble at 6.32 and the fault at 8.00 because they
+   had been signed off. this round unpins them outright: the wait after the fall
+   is cut, the pill and the hand arrive together on a short settle, and the fault
+   follows the pill's own life. so **every number below is derived** and the
+   whole film comes out about two and three quarter seconds shorter.
+
+   `SETTLE` is the only one typed, and it is the beat between his landing and the
+   mark that carries both the thought and the hand. the smash springs back over
+   `SMASH.flat + SMASH.back`, which is 0.49s, so 0.30 puts the mark just inside
+   the tail of it — he is still settling as he decides to answer, which is what a
+   short settle is.
+
+   the rest is the module's own arithmetic, read off its own tables rather than
+   copied: a `neutral` mark opens its bubble `entry + 0.12` after its own time,
+   the pill pops two dot steps into that, and the thought lives `in + hold + out`.
+   the fault lands on the pill's last frame, which is where post20, post21 and
+   every cut of this file have put it. */
+const SETTLE = 0.30;
+const BUB_IN_OFF = +(STATES.neutral.entry + 0.12).toFixed(4);
+const BUB_LIFE = +(BUBBLE.in + BUBBLE.hold + BUBBLE.out).toFixed(4);
+const POP_OFF = +(BUB_IN_OFF + BUBBLE.step * 2).toFixed(4);
+/* what the brief calls the hold: the pill pops, and this much later the glitch
+   takes it. it is a consequence of the module's own numbers rather than a choice
+   — 1.68 of thought minus the 0.14 the dots take to hand over to the pill. */
+const BUB_HOLD = +(BUB_LIFE - BUBBLE.step * 2).toFixed(4);
+let MARK2 = 0, POP = 0;
+const END = { at: 0, pre: [], hard: 0.12, tail: 0.18, wmIn: 0, wmFor: 0.09, clean: 0.06 };
 const CARD = 0.95;
-const SECONDS = +(END.at + CARD).toFixed(2);
+let SECONDS = 0;
 const WM = { lines: ['THE', 'BORING', 'TEK'], w: 330, lh: 1.16, minCapPx: 56 };
 const GL = {
   shakeX: 15, shakeY: 8, split: 9.5, bandDx: 88, bands: 3,
@@ -298,18 +355,38 @@ const DROP = { at: 0, for: 0.47, from: 560 };
 let LAND = 0;
 const SMASH = { air: 0.10, flat: 0.07, back: 0.42, k: 0.52, damp: 4.2, cycles: 1.15 };
 
-/* ---------- the breathing ----------
-   one period, slower than a person's because it is a thing pretending to be
-   calm. **it is on the iris's own brightness and on nothing else.** there is no
-   glow layer in this cut at all: the eyes are two flat slabs of the site's
-   accent, the shape the module draws, with no blur behind them and nothing
-   bleeding past their edge. what makes them alive is that the green moves
-   between 0.76 and 1.00 of full — the same colour dimmed and brought back, never
-   a different hue and never a different size.
+/* ---------- the eyes ----------
+   **for most of this film there is nothing here at all.** he falls in as the
+   ordinary mascot: the module's own dark iris, the module's own idle, and the
+   module's own white glow round his head, exactly as every other clip on the
+   dark theme draws him. this file writes nothing about his face until the pill
+   pops.
 
-   1.00 is the site's accent exactly, and there is a guard that it is: the pulse
-   is a dimming of the token rather than a colour of its own. */
-const PULSE = { period: 2.60, lo: 0.76, hi: 1.00 };
+   on that one frame the iris goes to the site's own accent at full — the
+   saturated token, not a dimmed or lightened version of it — and it stays there
+   to the fault. there is no brightness pulse any more: the last cut breathed the
+   green between 0.76 and 1.00 and what carries the life now is the sparkle,
+   below, which is the thing that was actually asked for.
+
+   ---------- and the glint ----------
+   small four pointed stars in the same accent, flickering around the eyes while
+   they are green. each one lives two or three frames on a period of its own, so
+   they never fire as a chorus, and each is placed on a seeded angle and radius
+   off the eye it belongs to — which is `eyeSpots`, so a star leaves the eye that
+   is actually drawn rather than the one the plan describes. that is post21's
+   spark rig with a star in place of a line and the accent in place of the red. */
+const SPARK = {
+  /* **the periods are 7, 8 and 9 and none of them may be a multiple of five.**
+     the slots are written against the sixty frame grid and a twelve fps frame
+     steps five of it, so a period of five lands on the same phase every output
+     frame: the first cut of this had `period: 5` and the preview showed a star
+     that was simply on for nineteen frames and another that never appeared at
+     all. it is an aliasing bug rather than a taste, it only exists on the pass
+     the clip is judged on, and the guard walks the sixty grid so it cannot come
+     back by being invisible at sixty. */
+  n: 8, period: 7, life: [2, 3],
+  r0: 15, r1: 40, size: [5.5, 12],
+};
 
 /* ---------- the chat box ----------
    a rounded rectangle with a hairline outline, the line of type across the top,
@@ -385,6 +462,12 @@ const MOVE = bezier(.4, 0, .2, 1);             /* and the one the knock down use
 const span = (t, a, b) => (b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a))));
 const lerp = (a, b, p) => a + (b - a) * p;
 const n4 = v => +v.toFixed(4);
+
+/* the sixty frame grid, which everything held rather than eased is written
+   against: two consecutive twelfths are five sixty frames apart, so a glint
+   changes on every frame of a preview and is held across every capture of a
+   frame under the shutter. */
+const g60 = t => Math.round(t * 60);
 
 function prng(seed) {
   let x = seed | 0 || 0x1a2b3c;
@@ -476,8 +559,7 @@ function squashAt(t) {
 function compose(plan, t, R) {
   const f = mascotFrame(plan, t);
   if (f.hands && GATE) {
-    const g = span(t, GATE.from, GATE.from + GLOVE_IN)
-      * (1 - span(t, GATE.leaving, GATE.leaving + GLOVE_OUT));
+    const g = t >= GATE.at - 1e-9 ? 1 : 0;
     f.hands = {
       ...f.hands,
       list: f.hands.list.map((h, k) => ({
@@ -512,21 +594,69 @@ function compose(plan, t, R) {
 }
 
 /* ---------- the gloves, gated ----------
-   post20's gate, and it is here for post20's reason. `hands: true` draws the
-   resting pair from frame zero, and this clip wants no hand at all until he has
-   landed: none while the box is being typed into, and none in the air. so one
-   multiplier goes on every glove's own opacity, up as the point comes out and
-   down as it goes home, and **the hand that never acts is never drawn** — a
-   second gate rather than a tighter first one, because before this pose the
-   module is holding a resting pair that has nothing to leave from. */
-const GLOVE_IN = 0.18, GLOVE_OUT = 0.22;
+   post20's gate at post20's reason and this clip's shape. `hands: true` draws
+   the resting pair from frame zero and nothing here wants a hand until the pill
+   pops, so one multiplier goes on every glove's own opacity and **the hand that
+   never acts is never drawn** — a second gate rather than a tighter first one,
+   because before this pose the module is holding a resting pair that has nothing
+   to leave from.
+
+   **this gate is a cut rather than a fade, and that is the brief.** the hand
+   appears with the glitch hit on the frame the pill pops: it does not travel in
+   and it does not fade up. the pose's own entrance runs underneath it, so what
+   the hit uncovers is a hand already out and already pointing, and the second of
+   the pose's two jabs lands a quarter of a second later where it can be seen.
+
+   the frame is the output frame's rather than the instant's, so the gate, the
+   green and the glitch are all the same switch. */
 let GATE = null;
 
-/* how green the iris is, nought to one: dark until he is on screen, then flat
-   for the rest of the film. the breathing is on the brightness, below. */
-const greenAt = t => (t < DROP.at ? 0 : 1);
-const pulseAt = t => n4(lerp(PULSE.lo, PULSE.hi,
-  0.5 + 0.5 * Math.sin(2 * Math.PI * (t - LAND) / PULSE.period - Math.PI / 2)));
+/* ---------- a point on the head, in css px on the frame ----------
+   `headRect`'s own chain for a point in card space: its offset from the card's
+   centre, through the card's two scales and its rotation, then out to the page.
+   the sparkles hang off it and they have to sit on the eyes that are drawn. */
+function cardPoint(plan, fr, gx, gy) {
+  const u = plan.unit, c = fr.card;
+  const th = c.rot * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th);
+  const ax = c.sx * (gx - GRID / 2), ay = c.sy * (gy - GRID / 2);
+  return {
+    x: n4(plan.box.left + (GRID / 2) * u + c.x + (cs * ax - sn * ay) * u),
+    y: n4(plan.box.top + (GRID / 2) * u + c.y + (sn * ax + cs * ay) * u),
+  };
+}
+const EYE_CX_LOCAL = [
+  HEAD.plate.x + HEAD.plate.s / 2 - HEAD.eye.sep / 2,
+  HEAD.plate.x + HEAD.plate.s / 2 + HEAD.eye.sep / 2,
+];
+const eyeSpots = (plan, fr) =>
+  [0, 1].map(k => cardPoint(plan, fr, EYE_CX_LOCAL[k] + fr.eyes[k].x, HEAD.eye.cy + fr.eyes[k].y));
+
+/* the glint. eight slots, each on a period of its own so they never fire
+   together, each alive two or three frames, all of them written against the
+   **sixty frame grid** so they are held across every capture of a frame under
+   the shutter and still change on every frame of a twelve fps preview. */
+function sparksAt(ft, eyes) {
+  const out = [];
+  for (let k = 0; k < SPARK.n; k++) {
+    const period = SPARK.period + (k % 3);
+    const m = g60(ft) - k;
+    const c = Math.floor(m / period), i = m - c * period;
+    const r = prng(0x5a7a12 ^ (c * 2654435761) ^ (k * 40503));
+    const len = SPARK.life[0] + (r() < 0.5 ? 0 : SPARK.life[1] - SPARK.life[0]);
+    if (i < 0 || i >= len) { out.push(null); continue; }
+    const e = eyes[k % 2];
+    const a = r() * Math.PI * 2;
+    const rad = SPARK.r0 + r() * (SPARK.r1 - SPARK.r0);
+    const sz = SPARK.size[0] + r() * (SPARK.size[1] - SPARK.size[0]);
+    out.push({
+      x: n4(e.x + Math.cos(a) * rad), y: n4(e.y + Math.sin(a) * rad),
+      s: n4(sz), rot: n4(r() * 90),
+      /* brightest on its first frame: a glint is not a fade in. */
+      o: n4(1 - (i / len) * 0.5),
+    });
+  }
+  return out;
+}
 
 /* ---------- the glitch ----------
    post12's, through post20's and post21's: a function of the output frame index
@@ -549,10 +679,13 @@ let STUT = [];
 function glitchWindows(fps) {
   return [
     { ...onGrid(LAND, AP.hard + AP.tail, fps), kind: 'impact', seed: 0x22a1e0 },
+    { ...onGrid(POP, AP.hard + AP.tail, fps), kind: 'pop', seed: 0x7e1c40 },
     ...STUT.map((w, i) => ({ ...onGrid(w.t, w.for, fps), kind: 'stutter', force: w.force, seed: 0x3300 + i * 811 })),
     ...END.pre.map((w, i) => ({ ...onGrid(w.t, w.for, fps), kind: 'stutter', force: w.force, seed: 0x51a0 + i * 977 })),
     { ...onGrid(END.at, END.hard + END.tail, fps), kind: 'hit', seed: 0x0c1a55 },
-  ];
+  /* in time order, because the overlap guard reads consecutive pairs and the
+     pop's window is written next to the impact's rather than where it falls. */
+  ].sort((a, b) => a.t0 - b.t0);
 }
 let GL_WINDOWS = [], GL_WINDOWS_60 = [];
 
@@ -594,21 +727,23 @@ function frameAt(plan, mf, t, f) {
   const born = f >= Math.round(DROP.at * FPS);
   const cut = f >= Math.round(END.at * FPS);
   const on = born && !cut;
-  const green = on ? greenAt(t) : 0;
-  /* the brightness, and it is the whole of "the eyes are alive": full while he
-     is still in the air, then breathing between the pulse's own two ends. it
-     never touches the shape, the size or the hue. */
-  const b = green * (t < LAND ? 1 : pulseAt(t));
+  /* **the green is on the output frame, not on the instant.** it is an exchange
+     like every other one in this file: the pill pops, the hand appears and the
+     eyes light on one frame or the shutter finds the seam between them. before
+     it there is no override at all and the module paints its own dark iris. */
+  const green = on && f >= Math.round(POP * FPS) ? 1 : 0;
   const wp = span(t, END.wmIn, END.wmIn + END.wmFor);
   return {
     t: +t.toFixed(4), f,
     mo: on ? 1 : 0,
-    /* the iris, dimmed from the site's own accent toward the module's own token,
-       written as a resolved colour rather than as a colour-mix so the number in
-       the report and the number on the frame are the same one. at b = 1 it is
-       the accent exactly, and the guard checks that on a real frame. */
-    iris: 'rgb(' + EYE_DARK.map((c, i) => Math.round(lerp(c, NEON[i], b))).join(',') + ')',
-    eyeB: n4(b),
+    /* null means "do not write anything", and the page removes the property
+       rather than setting it to the module's value: the module's own paint is
+       then the only thing describing his eyes, which is what an ordinary clip
+       looks like. */
+    iris: green ? 'rgb(' + NEON.join(',') + ')' : null,
+    green,
+    /* the glint, only while the eyes are lit. */
+    sparks: green ? sparksAt(f / FPS, eyeSpots(plan, mf)) : new Array(SPARK.n).fill(null),
     box: {
       dy: cut ? 0 : boxDy(t),
       o: cut ? 0 : 1,
@@ -707,11 +842,17 @@ ${mascotCss(plan)}
   filter:drop-shadow(calc(var(--split,0) * -1px) 0 var(--split-r))
          drop-shadow(calc(var(--split,0) * 1px) 0 var(--split-c))}
 
-/* **there is no eye glow layer in this cut and that is deliberate.** the last
-   one drew a soft disc over each eye and it bled past the slab; this one is two
-   flat marks of the accent, the shape the module draws, and the only halo on the
-   frame is the module's own white one round the whole head. nothing here blurs,
-   so there is no rule in this block at all — only the iris override above. */
+/* ---- the glint ----
+   four pointed stars in the accent, over the head, on while the eyes are. no
+   blur and no glow: a star is a shape and the thing that makes it read as a
+   glint is that it is there for two frames and then it is not. the layer sits
+   above the mascot and below the pill, and it is one svg rather than eight
+   divs because a star is a path. */
+.fx{position:absolute;left:0;top:0;z-index:5;pointer-events:none;overflow:visible}
+.star{fill:rgb(${NEON.join(',')})}
+.stage[data-gl="1"] .fx{
+  filter:drop-shadow(calc(var(--split,0) * -1px) 0 var(--split-r))
+         drop-shadow(calc(var(--split,0) * 1px) 0 var(--split-c))}
 
 /* ---- the chat box ----
    an outline in the site's own --bub over a ground a shade above the page, which
@@ -795,6 +936,10 @@ ${mascotCss(plan)}
     </svg>
   </div>
 ${mascotMarkup(plan)}
+  <svg class="fx" id="fx" viewBox="0 0 ${VW} ${VH}" width="${VW}" height="${VH}" aria-hidden="true">
+${Array.from({ length: SPARK.n }, (_, i) => '    <path class="star" data-star="' + i + '"'
+    + ' d="M 0 -1 Q 0.16 -0.16 1 0 Q 0.16 0.16 0 1 Q -0.16 0.16 -1 0 Q -0.16 -0.16 0 -1 Z"/>').join('\n')}
+  </svg>
   <div class="wm" id="wm">${WM.lines.map(l => '<span>' + l + '</span>').join('')}</div>
 ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' + i
     + '"><div class="tear-in"><div class="wm">'
@@ -836,6 +981,8 @@ function scenePage() {
   const typed = document.getElementById('typed');
   const caret = document.getElementById('caret');
   const wms = [...document.querySelectorAll('.wm')];
+  const stars = [...document.querySelectorAll('.star')];
+  const pill = document.getElementById('m-bubble-text');
   const tears = [...document.querySelectorAll('.tear')];
   const tearIns = tears.map(t => t.querySelector('.tear-in'));
   let lastChars = -1;
@@ -926,10 +1073,32 @@ function scenePage() {
       };
     },
 
+    /* the pill as it actually painted: the string in it and the face it is set
+       in, both read off the rendered element rather than off what was asked for.
+       a curly apostrophe that fell back to a mono glyph is exactly the thing
+       this catches and there is no way to know it without measuring. */
+    pillText() {
+      const cs = getComputedStyle(pill);
+      const cv = document.createElement('canvas').getContext('2d');
+      cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      const m = cv.measureText('H');
+      return {
+        text: pill.textContent,
+        family: cs.fontFamily, weight: cs.fontWeight, size: cs.fontSize,
+        font: cv.font,
+        capPx: +((m.actualBoundingBoxAscent || 0) * P.DSF).toFixed(1),
+        /* the apostrophe measured on its own. a glyph the face does not carry is
+           drawn by a fallback and comes back a different width. */
+        apos: +cv.measureText('\u2019').width.toFixed(3),
+        aposInManrope: cv.font.indexOf('Manrope') > -1,
+      };
+    },
+
     apply(o) {
       const s = stage.style;
       s.setProperty('--m-o', o.mo.toFixed(4));
-      s.setProperty('--iris', o.iris);
+      if (o.iris) s.setProperty('--iris', o.iris);
+      else s.removeProperty('--iris');
       s.setProperty('--sx', o.sx.toFixed(2));
       s.setProperty('--sy', o.sy.toFixed(2));
       s.setProperty('--split', o.g.split.toFixed(2));
@@ -953,6 +1122,13 @@ function scenePage() {
         lastChars = o.box.chars;
       }
 
+      for (let i = 0; i < stars.length; i++) {
+        const sp = o.sparks[i], el = stars[i];
+        if (!sp) { el.style.opacity = '0'; continue; }
+        el.style.opacity = sp.o.toFixed(4);
+        el.setAttribute('transform', 'translate(' + sp.x.toFixed(2) + ' ' + sp.y.toFixed(2)
+          + ') rotate(' + sp.rot.toFixed(1) + ') scale(' + sp.s.toFixed(2) + ')');
+      }
       for (let i = 0; i < tears.length; i++) {
         const band = o.g.bands[i], st = tears[i].style;
         if (!band) { st.setProperty('--to', '0'); st.setProperty('--th', '0px'); continue; }
@@ -1092,6 +1268,7 @@ async function render(plan, R) {
   }
   const bubSafe = await page.evaluate((w, h) => window.__mas.bubbleSafe(w, h), VW, VH);
   const bubCaps = await page.evaluate(() => window.__mas.caps());
+  const pillText = await page.evaluate(() => window.__p22.pillText());
   console.log('  the bubble at ' + bubAt + 's: ' + bubSafe.w + ' device px wide, clear '
     + bubSafe.left + ' left / ' + bubSafe.top + ' top / ' + bubSafe.right + ' right / '
     + bubSafe.bottom + ' bottom, caps ' + bubCaps.capPx + ' device');
@@ -1154,7 +1331,7 @@ async function render(plan, R) {
            not on the frame would let the first three and a half seconds pass
            this guard on motion nobody can see. what carries the opening is the
            box's own focus glow, which is the honest answer. */
-        let s = o.mo * 7 + o.eyeB * 11 + o.box.dy * 17 + o.box.o * 19
+        let s = o.mo * 7 + o.green * 11 + o.box.dy * 17 + o.box.o * 19
           + o.box.chars * 23 + o.box.caret * 29 + o.box.glow * 31
           + o.sx * 37 + o.sy * 41 + o.wm.o * 43 + o.wm.sc * 47 + o.wm.glow * 53
           + o.g.split * 61 + o.g.noise * 67 + o.g.flash * 71 + o.g.bands.length * 73;
@@ -1167,6 +1344,10 @@ async function render(plan, R) {
         }
         s += o.mo * (mf.bubble.o * 151 + mf.bubble.pill.sc * 157
           + mf.bubble.dots[0].sc * 163 + mf.bubble.dots[1].sc * 167);
+        for (let i = 0; i < o.sparks.length; i++) {
+          if (o.sparks[i]) s += o.sparks[i].x * (173 + i) + o.sparks[i].o * (191 + i);
+        }
+        if (mf.hands) for (const h of mf.hands.list) s += h.o * 197 + h.x * 199 + h.y * 211 + h.rot * 223;
         sigs.push(+s.toFixed(6));
       }
 
@@ -1201,13 +1382,14 @@ async function render(plan, R) {
     [LAND + 0.01, 'f-the-landing'],
     [LAND + 0.30, 'g-green-eyes'],
     [STUT[1].t, 'h-a-stutter'],
-    [+(LAND + (MARK2 - LAND) / 2).toFixed(3), 'i-holding'],
-    [bub.in + 0.10, 'j-the-dots'],
-    [bubAt, 'k-the-line-he-says'],
-    [7.55, 'l-the-hold'],
-    [END.pre[1].t, 'm-the-second-stutter'],
-    [END.at + END.hard + END.tail + 0.16, 'n-the-wordmark'],
-    [SECONDS - 0.06, 'o-the-last-frame'],
+    [MARK2, 'i-the-settle'],
+    [bub.in + 0.06, 'j-the-dots'],
+    [POP, 'k-the-pop-hand-and-green'],
+    [POP + 0.30, 'l-the-glint'],
+    [bubAt, 'm-the-line-he-says'],
+    [END.pre[1].t, 'n-the-second-stutter'],
+    [END.at + END.hard + END.tail + 0.16, 'o-the-wordmark'],
+    [SECONDS - 0.06, 'p-the-last-frame'],
   ];
   for (const [want, name] of stills) {
     const f = Math.min(N - 1, Math.round(want * FPS));
@@ -1236,7 +1418,7 @@ async function render(plan, R) {
   srv.close();
   if (SUB > 1) blend(N);
 
-  const state = { built, wm, boxUp, boxDown, bubSafe, bubCaps, bubAt, head: worst, air, gap, gapAt, gapType, gapTypeAt, sigs, frames: N };
+  const state = { built, wm, boxUp, boxDown, bubSafe, bubCaps, pillText, bubAt, head: worst, air, gap, gapAt, gapType, gapTypeAt, sigs, frames: N };
   fs.writeFileSync(path.join(OUT, 'post22.json'), JSON.stringify(state, null, 2));
   return state;
 }
@@ -1289,17 +1471,49 @@ function probe(file) {
    one take, cached, and **the delivery is part of the cache key**: the copy is
    one half of what a take is and the rate and the pitch are the other. post19's
    shape through post20's, unchanged. */
-async function take() {
-  const name = 'post22-l1';
+async function take(name, text, pitch) {
   const cached = path.join(VOICE_OUT, name + '-' + VOICE + '.json');
-  const want = SAID.replace(/\s+/g, ' ').trim();
+  const want = text.replace(/\s+/g, ' ').trim();
   if (fs.existsSync(cached)) {
     const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
-    if (j.text === want && j.rate === RATE && j.pitch === PITCH && fs.existsSync(j.file)) {
+    if (j.text === want && j.rate === RATE && j.pitch === pitch && fs.existsSync(j.file)) {
       return { ...j, cached: true };
     }
   }
-  return { ...(await speak(SAID, { voice: VOICE, name, rate: RATE, pitch: PITCH })), cached: false };
+  return { ...(await speak(text, { voice: VOICE, name, rate: RATE, pitch })), cached: false };
+}
+
+/* ---------- the pitch of one word, measured ----------
+   autocorrelation over 45ms windows on the voiced frames only, 70 to 300 Hz,
+   which covers a male read with room either side. it answers the one question
+   the brief asks: does the end go up. the first third of the word against the
+   last third, in hertz, off the rendered audio rather than off an intention.
+
+   a frame counts as voiced when its best lag explains 30% of its own energy: an
+   unvoiced frame has no period and its best lag is noise agreeing with itself,
+   and averaging those in is how a pitch tracker reports a rise that is not
+   there. */
+function contour(pcm, a, b) {
+  const W = Math.round(0.045 * SR), H = Math.round(0.010 * SR);
+  const lo = Math.floor(SR / 300), hi = Math.floor(SR / 70);
+  const rows = [];
+  for (let st = Math.round(a * SR); st + W < Math.round(b * SR); st += H) {
+    let e = 0;
+    for (let i = 0; i < W; i++) e += pcm[st + i] * pcm[st + i];
+    if (e / W < 1e-5) continue;
+    let best = 0, bl = 0;
+    for (let l = lo; l <= hi; l++) {
+      let c = 0;
+      for (let i = 0; i < W - l; i++) c += pcm[st + i] * pcm[st + i + l];
+      c /= (W - l);
+      if (c > best) { best = c; bl = l; }
+    }
+    if (bl && best / (e / W) > 0.30) rows.push(SR / bl);
+  }
+  if (rows.length < 4) return null;
+  const n = Math.max(2, Math.floor(rows.length / 3));
+  const mean = x => x.reduce((q, r) => q + r, 0) / x.length;
+  return { first: +mean(rows.slice(0, n)).toFixed(1), last: +mean(rows.slice(-n)).toFixed(1), n: rows.length };
 }
 
 /* where the take's sound actually starts and stops, off the waveform rather than
@@ -1323,31 +1537,51 @@ function audioEdges(pcm) {
   return { start: +(a * 0.005).toFixed(4), end: +((b + 1) * 0.005).toFixed(4), peak: +(20 * Math.log10(peak)).toFixed(1) };
 }
 
-const TAKE = await take();
-const PCM = decode(ffmpeg, TAKE.file);
-const EDGE = audioEdges(PCM);
-if (TAKE.timing !== 'engine') {
-  throw new Error('the take came back with estimated timings — the picture is cut to the read'
-    + ' and an estimate is not a read');
+const TAKES = [
+  await take('post22-body', BODY, PITCH),
+  await take('post22-tail', TAIL, TAIL_PITCH),
+];
+const PCM = TAKES.map(t => decode(ffmpeg, t.file));
+const EDGE = PCM.map(audioEdges);
+for (let i = 0; i < TAKES.length; i++) {
+  if (TAKES[i].timing !== 'engine') {
+    throw new Error('take ' + (i + 1) + ' came back with estimated timings — the picture is cut'
+      + ' to the read and an estimate is not a read');
+  }
 }
+/* where the body ends and what the tail does across its own word. both are read
+   off the rendered audio and both are guarded. */
+const BODY_W = TAKES[0].words[TAKES[0].words.length - 1];
+const BODY_END_HZ = contour(PCM[0], BODY_W.start, BODY_W.end);
+const TAIL_W = TAKES[1].words[0];
+const RISE = contour(PCM[1], TAIL_W.start, TAIL_W.end);
+if (!BODY_END_HZ || !RISE) throw new Error('the pitch tracker found no voiced frames to measure');
 
 /* ---------- the clock ----------
    the first half is the read's, the second half is pinned. the read is laid in
    with `PRE` of silence in front of it, the words are pushed onto the clip's own
    clock, the characters are placed inside the words, and the caret, the knock
    down and the fall follow in that order. */
-const off = +(PRE - EDGE.start).toFixed(4);
-const wv = TAKE.words;
-if (wv.length !== SAID.split(' ').length) {
-  throw new Error('the take came back with ' + wv.length + ' words and the line has '
-    + SAID.split(' ').length + ' — the typing cannot be cut to a read it does not match');
-}
-for (let i = 0; i < wv.length; i++) {
-  WORDS.push({
-    word: COPY.split(' ')[i], said: wv[i].word,
-    start: +(wv[i].start + off).toFixed(4),
-    end: +(wv[i].end + off).toFixed(4),
-  });
+/* the body is laid in after `PRE` of silence and the tail is butted onto it,
+   `JOIN` after the body's last word, so the two takes read as one sentence with
+   its last word lifted rather than as two clips played in a row. */
+const off = [+(PRE - EDGE[0].start).toFixed(4), 0];
+off[1] = +((BODY_W.end + off[0] + JOIN) - TAIL_W.start).toFixed(4);
+{
+  const want = COPY.split(' ');
+  const got = [...TAKES[0].words, ...TAKES[1].words];
+  if (got.length !== want.length) {
+    throw new Error('the takes came back with ' + got.length + ' words and the line has '
+      + want.length + ' — the typing cannot be cut to a read it does not match');
+  }
+  for (let i = 0; i < got.length; i++) {
+    const k = i < TAKES[0].words.length ? 0 : 1;
+    WORDS.push({
+      word: want[i], said: got[i].word, take: k,
+      start: +(got[i].start + off[k]).toFixed(4),
+      end: +(got[i].end + off[k]).toFixed(4),
+    });
+  }
 }
 /* the characters, inside the words. a word's own letters are spread across its
    own spoken window and the space in front of it arrives with it, so the typing
@@ -1368,18 +1602,33 @@ for (let i = 0; i < wv.length; i++) {
   }
 }
 
-const READ_END = +Math.max(WORDS[WORDS.length - 1].end, EDGE.end + off).toFixed(3);
+const READ_END = +Math.max(WORDS[WORDS.length - 1].end, EDGE[1].end + off[1]).toFixed(3);
 SNAP.at = +(WORDS[WORDS.length - 1].end + CARET_AFTER).toFixed(3);
 DROP.at = +(SNAP.at + FALL_LEAD).toFixed(3);
 LAND = +(DROP.at + DROP.for).toFixed(4);
+/* and the back half, all of it derived off the landing now rather than pinned. */
+MARK2 = +(LAND + SETTLE).toFixed(4);
+POP = +(MARK2 + POP_OFF).toFixed(4);
+END.at = +(MARK2 + BUB_IN_OFF + BUB_LIFE).toFixed(4);
+END.wmIn = END.at;
+END.pre = [
+  { t: +(END.at - 0.38).toFixed(3), for: 0.05, force: 0.34 },
+  { t: +(END.at - 0.18).toFixed(3), for: 0.05, force: 0.60 },
+];
+SECONDS = +(END.at + CARD).toFixed(2);
 STUT = STUT_AT.map((d, i) => ({ t: +(LAND + d).toFixed(3), for: 0.05, force: [0.62, 0.44, 0.30][i] }));
 GL_WINDOWS = glitchWindows(FPS);
 GL_WINDOWS_60 = FPS === 60 ? GL_WINDOWS : glitchWindows(60);
 
-console.log('  the read: ' + (TAKE.cached ? 'cached' : 'fetched') + ', ' + VOICE + ' ('
-  + VOICES[VOICE].id + ') at ' + RATE + ' / ' + PITCH + ', ' + WORDS.length + ' words, sound from '
-  + EDGE.start.toFixed(2) + ' to ' + EDGE.end.toFixed(2) + 's in the file');
-console.log('    "' + SAID + '"');
+console.log('  the read: two takes, ' + VOICE + ' (' + VOICES[VOICE].id + '), '
+  + TAKES.map(t => (t.cached ? 'cached' : 'fetched')).join(' + ') + ', ' + WORDS.length + ' words');
+console.log('    body "' + BODY + '"  at ' + RATE + ' / ' + PITCH);
+console.log('    tail "' + TAIL + '"  at ' + RATE + ' / ' + TAIL_PITCH);
+console.log('    the question goes up: the tail runs ' + RISE.first + ' -> ' + RISE.last
+  + ' Hz across its own word, a rise of ' + (RISE.last - RISE.first).toFixed(1)
+  + ' (floor ' + MIN_RISE + '), and it starts ' + (RISE.first - BODY_END_HZ.last >= 0 ? '+' : '')
+  + (RISE.first - BODY_END_HZ.last).toFixed(1) + ' Hz off where the body ends at '
+  + BODY_END_HZ.last + ' Hz (ceiling ' + MAX_JOIN_STEP + ')');
 console.log('    on the clip\'s clock: ' + WORDS[0].start.toFixed(2) + ' to '
   + READ_END.toFixed(2) + 's, which is ' + (READ_END - WORDS[0].start).toFixed(2) + 's of reading');
 /* the gaps, printed, because this is the thing that was wrong last round and a
@@ -1395,8 +1644,10 @@ if (VOICE_ONLY) {
   console.log('    ' + SNAP.at.toFixed(2).padStart(5) + 's  the box goes down');
   console.log('    ' + DROP.at.toFixed(2).padStart(5) + 's  he starts falling');
   console.log('    ' + LAND.toFixed(2).padStart(5) + 's  he lands');
-  console.log('    ' + MARK2.toFixed(2).padStart(5) + 's  the pinned mark that places the bubble');
-  console.log('    the hold beat is ' + (MARK2 - LAND).toFixed(2) + 's');
+  console.log('    ' + MARK2.toFixed(2).padStart(5) + 's  the mark carrying the thought and the hand');
+  console.log('    ' + POP.toFixed(2).padStart(5) + 's  the pill and the hand pop together');
+  console.log('    ' + END.at.toFixed(2).padStart(5) + 's  the fault, ' + BUB_HOLD.toFixed(2) + 's after the pop');
+  console.log('    ' + SECONDS.toFixed(2).padStart(5) + 's  end');
   process.exit(0);
 }
 
@@ -1412,25 +1663,32 @@ if (VOICE_ONLY) {
    small settle from 5.44: neutral's own exit and entrance, which is two per cent
    of scale, and it lands as an anticipation before he speaks. */
 /* ---------- the hand ----------
-   the module's own `point-viewer`, which is the row that exists for exactly this
-   and says so: `point` aims the finger at camera and a foreshortened finger at a
-   240px head closes into the fist, so this one aims it across and down, out of
-   the frame toward the viewer, with the whole length of it on screen. it needs
-   no `side` — the drawing keeps its handedness and the acting hand is the screen
-   right one.
+   the module's own `point`, placed the way `mascot-test.mjs` places it in the
+   hands chapter and for that file's stated reason.
 
-   **it comes in after he has landed and not a frame before.** the entrance
-   starts once the smash has finished springing back, which is `SMASH.flat` plus
-   `SMASH.back` off the landing plus a beat: a hand arriving while the head is
-   still compressing is two events on one frame and neither reads.
+   **`side: 'left'` is the whole of it.** the pose table is written once, for the
+   screen right hand, and mirroring the row itself would send that hand across
+   the width of the face in the four tenths a jab has — the module says so and
+   the guard scores it at fifty two css px a frame against a ceiling of twelve.
+   which side a one handed pose lands on is `side` on the mark, so it is on the
+   mark: `['point', 'agreeing', 'left', 2.50]` is the test's row and `side:
+   'left'` is what it means.
 
-   the hold is not the table's 1.15 — the brief asks for one point, held through
-   the bubble beat and out at the end, so it is bought as arithmetic: whatever
-   makes the exit finish exactly on the fault, the same frame the bubble's own
-   exit finishes on. */
-const HAND_AT = +(LAND + SMASH.flat + SMASH.back + 0.06).toFixed(3);
-const HAND = { entry: 0.40, exit: 0.28 };
-HAND.hold = +(END.at - HAND_AT - HAND.entry - HAND.exit).toFixed(3);
+   and it is **not mirrored**, which falls out of the same choice rather than
+   being a second one. `point`'s shape is a bare string, and `handShape` reads a
+   bare string as "the screen left hand gets the file and the screen right one
+   gets its mirror" — so asking for the left hand is asking for the drawing as it
+   was traced. the finger is aimed at camera, which is what this row is for.
+
+   the mark it sits on is the one that already carries the thought, which is
+   `mascot-test`'s move as well: it puts its bubble on the hands mark rather than
+   giving it its own, so the hands and the words are on screen together. here
+   they are asked to arrive on the same frame, so that is the only place it can
+   go.
+
+   the entrance and the exit are the table's. only the hold is bought, so the
+   hand is still out on the frame the fault takes it. */
+const HAND = { entry: HAND_POSES.point.entry, exit: HAND_POSES.point.exit };
 
 const plan = planMascot({
   seconds: SECONDS,
@@ -1455,16 +1713,17 @@ const plan = planMascot({
      that — the run climbs off the crown to his right at 50 degrees. **held from
      the last cut on instruction**, along with every number in its timing. */
   thought: 'over-right',
-  /* three marks now rather than two, and the third is the hand's. a hands pose
-     starts on a **state mark's** time — that is the module's shape and there is
-     no other way to place one — so asking for the point after the landing means
-     there is a mark there. the state on it is `neutral` again, so what it costs
-     is the same two per cent settle the bubble's mark costs, and it lands under
-     the smash's own tail where there is already movement. */
+  /* two marks. the second carries the state, the thought and the hand at once,
+     because all three are one beat: he settles, and then the answer, the point
+     and the green arrive together. its hold is bought so the pose is still out
+     on the frame the fault takes. */
   marks: [
     { t: 0.00, state: 'neutral' },
-    { t: HAND_AT, state: 'neutral', hands: { pose: 'point-viewer', entry: HAND.entry, hold: HAND.hold, exit: HAND.exit } },
-    { t: MARK2, state: 'neutral', bubble: BUB_TEXT },
+    {
+      t: MARK2, state: 'neutral', bubble: BUB_TEXT, side: 'left',
+      hands: { pose: 'point', entry: HAND.entry, exit: HAND.exit,
+        hold: +(END.at - MARK2 - HAND.entry).toFixed(4) },
+    },
   ],
 });
 
@@ -1481,8 +1740,12 @@ const R = +(HEAD.plate.s / 2 * plan.unit).toFixed(3);
 /* the pose's own window, read back off the plan rather than assumed, so the
    glove gate moves with a timing somebody changes rather than drifting off it.
    post20's line, unchanged. */
+/* the pose's own window and the frame the gate opens on, read back off the plan
+   rather than assumed. the gate is snapped to the grid that is actually
+   rendering, so at twelve the hand appears on the same frame the glitch does
+   rather than a twelfth either side of it. */
 const LG = plan.marks[1].hands;
-GATE = { from: HAND_AT, leaving: LG.leaving, acting: LG.acting };
+GATE = { at: onGrid(POP, AP.hard, FPS).t0, leaving: LG.leaving, acting: LG.acting };
 
 const BUB = plan.marks[plan.marks.length - 1].bubble;
 const rep = mascotMotion(plan, FPS, SECONDS);
@@ -1495,10 +1758,11 @@ console.log(describeMotion(rep));
    the take laid into one track at the offset the clock worked out, with a short
    fade on each end so a trimmed silence cannot click. */
 const VTRACK = new Float32Array(Math.ceil(SECONDS * SR));
-{
-  const a = Math.max(0, Math.round((EDGE.start - PRE) * SR));
-  const b = Math.min(PCM.length, Math.round((EDGE.end + POST) * SR));
-  const at = Math.round(off * SR) + a;
+for (let k = 0; k < TAKES.length; k++) {
+  const pcm = PCM[k], e = EDGE[k];
+  const a = Math.max(0, Math.round((e.start - PRE) * SR));
+  const b = Math.min(pcm.length, Math.round((e.end + POST) * SR));
+  const at = Math.round(off[k] * SR) + a;
   const fade = Math.round(EDGE_FADE * SR);
   for (let i = a; i < b; i++) {
     const j = at + (i - a);
@@ -1506,7 +1770,7 @@ const VTRACK = new Float32Array(Math.ceil(SECONDS * SR));
     let g = 1;
     if (i - a < fade) g = (i - a) / fade;
     else if (b - i < fade) g = (b - i) / fade;
-    VTRACK[j] += PCM[i] * g;
+    VTRACK[j] += pcm[i] * g;
   }
 }
 
@@ -1599,12 +1863,15 @@ const beats = [
     + SNAP.for.toFixed(2) + 's with a ' + SNAP.bounce + 'px bounce'],
   [DROP.at, 'he starts falling, ' + DROP.from + 'px over ' + DROP.for.toFixed(2) + 's'],
   [LAND, 'he lands on a glitch hit and smashes to ' + (1 + SMASH.k).toFixed(2) + ' wide by '
-    + (1 / (1 + SMASH.k)).toFixed(2) + ' tall. the green starts breathing'],
+    + (1 / (1 + SMASH.k)).toFixed(2) + ' tall. dark eyes, no hand, the module\'s own glow'],
   ...STUT.map((w, i) => [w.t, 'stutter ' + (i + 1) + ' of three, ' + (w.force * 100).toFixed(0) + '% heat']),
   [QUIET_FROM, 'nothing sounds from here to ' + POP_AT.toFixed(2) + 's. the answer is voice free on purpose'],
-  [MARK2, 'the second neutral mark: a two per cent settle before he speaks'],
+  [END.at - 0.0001, 'the pill has been up ' + (END.at - POP_AT).toFixed(2) + 's, which is the brief\'s hold'],
+  [MARK2, 'the mark that carries the thought, the hand and the state, ' + SETTLE.toFixed(2)
+    + 's after the landing'],
   [BUB.in, 'the dots leave the crown'],
-  [POP_AT, 'the pill pops. "' + BUB_TEXT + '"'],
+  [POP_AT, 'the pill pops, the point is cut in on the left hand and the eyes go neon green with '
+    + 'the glint round them, all on one frame. "' + BUB_TEXT + '"'],
   [BUB.leaving, 'it starts to go, and the fault takes it at ' + BUB.out.toFixed(2)],
   ...END.pre.map((w, i) => [w.t, 'stutter ' + (i + 1) + ' of two, into the fault']),
   [END.at, 'the fault. he, the box and the bubble are cut and the wordmark is born on that frame'],
@@ -1712,14 +1979,18 @@ if (!p.audio) fail.push('no audio track — the read did not mux');
   /* and the green on the frame is the token, not a colour near it. the iris is
      resolved in node, so this asks the frame function itself, on the frame the
      pulse peaks on: half a period after the landing. */
-  const peakT = LAND + PULSE.period / 2, peakF = Math.round(peakT * FPS);
-  const peak = frameAt(plan, compose(plan, peakF / FPS, R), peakF / FPS, peakF).iris;
-  if (peak !== 'rgb(' + NEON.join(',') + ')') {
-    fail.push('at the top of its pulse the iris is ' + peak + ' rather than the site accent rgb('
-      + NEON.join(',') + ')');
+  /* the green on the frame is the token itself, at full, and it is asked of the
+     frame function rather than of the constant. */
+  const litF = Math.round((POP + 0.20) * FPS);
+  const lit = frameAt(plan, compose(plan, litF / FPS, R), litF / FPS, litF).iris;
+  if (lit !== 'rgb(' + NEON.join(',') + ')') {
+    fail.push('the lit iris is ' + lit + ' rather than the site accent rgb(' + NEON.join(',') + ')');
   }
   if (/eyeglow|radial-gradient\(circle,\s*rgba\(var\(--neon/.test(mine)) {
     fail.push('there is an eye glow layer back in the page, and this cut draws the eyes flat');
+  }
+  if (!new RegExp('\\.star\\{fill:rgb\\(' + NEON.join(',') + '\\)').test(mine)) {
+    fail.push('the glint is not drawn in the site accent');
   }
 }
 
@@ -1734,15 +2005,33 @@ if (state.head.near < floor - 0.5) {
 }
 {
   const got = plan.marks.map(m => m.state);
-  if (got.join(',') !== 'neutral,neutral,neutral') fail.push('the states are ' + got.join(', ') + ', wanted three neutrals');
+  if (got.join(',') !== 'neutral,neutral') fail.push('the states are ' + got.join(', ') + ', wanted two neutrals');
   if (plan.hand) fail.push('the plan draws the old single hand, and this clip uses the glove pair');
   if (!plan.hands) fail.push('the plan draws no hands, and the brief asks for the point');
   /* one pose, and it is the one the brief names by name. asserted on the plan so
      a second cannot arrive unnoticed. */
   const poses = plan.marks.filter(m => m.hands).map(m => m.hands.pose);
-  if (poses.join(',') !== 'point-viewer') {
-    fail.push('the hands poses are ' + (poses.join(', ') || 'none') + ', wanted one point-viewer');
+  if (poses.join(',') !== 'point') {
+    fail.push('the hands poses are ' + (poses.join(', ') || 'none') + ', wanted one point');
   }
+  /* ---------- left, and not mirrored, which is one fact rather than two ------
+     `point` carries a bare shape string, and `handShape` reads a bare string as
+     "the screen left hand gets the traced file and the screen right one gets its
+     mirror". so **asking for the left hand is asking for the drawing as it was
+     traced**, and the two halves of the instruction are the same choice.
+
+     it is asserted on `acting`, which is what the module resolved rather than
+     what the mark asked for — index 0 is the screen left hand. and on the shape
+     still being a bare string, because the day somebody gives `point` a drawing
+     a side the word "unmirrored" stops meaning anything here. */
+  const acting = plan.marks[1].hands.acting;
+  if (acting.join(',') !== '0') {
+    fail.push('the point is acting on hand ' + acting.join(', ') + ', and the left one is 0');
+  }
+  if (Array.isArray(HAND_POSES.point.shape)) {
+    fail.push('`point` now carries a shape a side, so asking for the left hand no longer means unmirrored');
+  }
+  if (handShape('point', 0).mir !== 1) fail.push('the left hand no longer draws the trace unflipped');
 }
 for (const st of rep60.states) {
   if (st.entryFrames == null) fail.push(st.state + ' never reached its own mark');
@@ -1750,7 +2039,7 @@ for (const st of rep60.states) {
 }
 if (rep60.poses.length !== 1) fail.push('the report has ' + rep60.poses.length + ' hand poses in it, wanted one');
 for (const ps of rep60.poses) {
-  if (ps.pose !== 'point-viewer') fail.push('the report names the pose ' + ps.pose);
+  if (ps.pose !== 'point') fail.push('the report names the pose ' + ps.pose);
   if (ps.entryFrames == null) fail.push('the point never reached its own mark');
 }
 if (rep60.outside.units > 0) {
@@ -1764,22 +2053,44 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
   if (Math.abs(offX / DSF - LEFT_OF_CENTRE) > 0.5) fail.push('his box is not where LEFT_OF_CENTRE put it');
 }
 {
-  const inBeat = plan.idle.blinks.filter(b => b.t >= 7.00 && b.t < END.at);
   const LGh = plan.marks[1].hands;
-  console.log('  the hand: ' + LGh.pose + ', in at ' + HAND_AT.toFixed(2) + 's ('
-    + (HAND_AT - LAND).toFixed(2) + 's after the landing), full at ' + LGh.settled.toFixed(2)
-    + ', leaving ' + LGh.leaving.toFixed(2) + ', out at ' + LGh.out.toFixed(2)
+  console.log('  the hand: ' + LGh.pose + ' on the ' + (LGh.acting.includes(0) ? 'left' : 'right')
+    + ' hand, its pose starting at '
+    + MARK2.toFixed(2) + 's under the gate, cut on at ' + GATE.at.toFixed(2)
+    + ' with the pill and the green, leaving ' + LGh.leaving.toFixed(2)
     + ', against a fault at ' + END.at.toFixed(2));
-  console.log('  blinks: ' + plan.idle.blinks.length + ' in the film, '
-    + plan.idle.blinks.filter(b => b.t >= LAND && b.t < END.at).length + ' while he is on his mark, '
-    + inBeat.length + ' in the last beat at ' + inBeat.map(b => b.t.toFixed(2)).join(', '));
-  if (inBeat.length !== 1) fail.push('there are ' + inBeat.length + ' blinks between 7.00s and the fault, '
-    + 'and the brief asks for one — walk the seed');
+  /* the blink guard is against the beat he is actually on screen for now. the
+     old one asked for one between 7.00 and the fault, which was the last cut's
+     clock; this film ends at ~6.1 and that window is past the end of it. what
+     matters is that the idle is running while he is up. */
+  const onScreen = plan.idle.blinks.filter(b => b.t >= LAND && b.t < END.at);
+  console.log('  blinks: ' + plan.idle.blinks.length + ' in the film, ' + onScreen.length
+    + ' while he is on his mark, at ' + (onScreen.map(b => b.t.toFixed(2)).join(', ') || 'none'));
+  if (!onScreen.length) fail.push('he never blinks while he is on screen — walk the seed');
 }
 
 /* ---------- the read, and the picture cut to it ---------- */
 {
-  if (TAKE.timing !== 'engine') fail.push('the take is not on engine timings');
+  for (let i = 0; i < TAKES.length; i++) {
+    if (TAKES[i].timing !== 'engine') fail.push('take ' + (i + 1) + ' is not on engine timings');
+  }
+  /* ---------- the question goes up ----------
+     the brief's own test, made into a number. the tail's fundamental across its
+     own word has to climb, and it has to start where the body left off or the
+     two takes read as two clips rather than as one sentence. both are measured
+     on the rendered audio by `contour`. */
+  const rise = +(RISE.last - RISE.first).toFixed(1);
+  const step = +(RISE.first - BODY_END_HZ.last).toFixed(1);
+  if (rise < MIN_RISE) {
+    fail.push('the question does not go up: the tail runs ' + RISE.first + ' to ' + RISE.last
+      + ' Hz, a rise of ' + rise + ' against a floor of ' + MIN_RISE);
+  }
+  if (Math.abs(step) > MAX_JOIN_STEP) {
+    fail.push('the tail starts ' + step + ' Hz off the body, over the ' + MAX_JOIN_STEP
+      + ' ceiling — the join will read as two takes');
+  }
+  if (WORDS[WORDS.length - 1].take !== 1) fail.push('the last word is not on the lifted take');
+  if (WORDS.filter(w => w.take === 1).length !== 1) fail.push('the lifted take carries more than the last word');
   const said = SAID.split(' '), shown = COPY.split(' ');
   if (said.length !== shown.length) fail.push('the spoken line and the typed line are different lengths');
   /* one deliberate difference and it is a capital. anything else between the two
@@ -1799,16 +2110,14 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
     }
     if (i && !(WORDS[i].start >= WORDS[i - 1].end - 0.02)) fail.push('the words overlap at ' + i);
   }
-  /* the read has a ceiling, because the back half of the clock is pinned. the
-     hold beat between his landing and the mark that places the bubble may not go
-     under half a second, or the fall and the thought are one event. */
-  const hold = +(MARK2 - LAND).toFixed(3);
-  console.log('  the read bought a landing at ' + LAND.toFixed(2) + 's and a hold beat of '
-    + hold.toFixed(2) + 's before the bubble\'s own mark');
-  if (hold < 0.50) {
-    fail.push('the read runs long: he lands at ' + LAND.toFixed(2) + ' and the pinned mark is at '
-      + MARK2 + ', a hold of ' + hold.toFixed(2) + 's — shorten the copy or unpin the bubble');
-  }
+  /* the settle, which is the only typed number in the back half now. it is a
+     beat rather than a wait: long enough that the landing has read, short enough
+     that the answer is not being waited for. */
+  console.log('  the read bought a landing at ' + LAND.toFixed(2) + 's, a settle of '
+    + SETTLE.toFixed(2) + 's, the pill and the hand at ' + POP.toFixed(2)
+    + ' and the fault at ' + END.at.toFixed(2));
+  if (Math.abs((MARK2 - LAND) - SETTLE) > 1e-6) fail.push('the settle is not SETTLE');
+  if (POP < LAND) fail.push('the pill pops before he lands');
   if (READ_END > SNAP.at + 0.01) fail.push('the box is knocked down while the read is still going');
   /* **the line reads as one phrase.** the last cut shipped 0.136s of silence
      between `did` and `AI` and that gap is what sounded wrong; it is a
@@ -1851,18 +2160,23 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
   if (biggest > 2) fail.push(biggest + ' characters arrive on one frame at sixty, at ' + biggestAt + 's');
   /* the copy, on what reaches the screen. */
   if (COPY !== COPY.toLowerCase()) fail.push('the typed line is not lower case');
+  /* **the apostrophe ban is gone and it was never the brand's.** the rule in
+     CLAUDE.md is about punctuation dashes; the no-apostrophe rule was this
+     clip's own, from the first brief, and this round replaces it with the
+     opposite instruction. so what is checked now is the dash rule, which is the
+     one the house actually has, and the pill's exact string below. */
   for (const [what, s] of [['the typed line', COPY], ['the bubble', BUB_TEXT], ['the take', SAID]]) {
-    if (/['\u2019]/.test(s)) fail.push(what + ' carries an apostrophe: "' + s + '"');
     if (/[!]/.test(s)) fail.push(what + ' carries an exclamation mark');
     if (/[—–]/.test(s) || /\s-\s/.test(s)) fail.push(what + ' carries a punctuation dash');
   }
-  /* the pill is the joke as it reads: the initialism in capitals, the rest in
-     the house's lower case, and the apostrophe written out rather than typed. */
-  if (BUB_TEXT !== 'AI ll be back') fail.push('the pill reads "' + BUB_TEXT + '"');
-  if (BUB_TEXT.split(' ')[0] !== 'AI') fail.push('the initialism in the pill is not in capitals');
-  if (BUB_TEXT.split(' ').slice(1).join(' ') !== BUB_TEXT.split(' ').slice(1).join(' ').toLowerCase()) {
-    fail.push('the pill shouts past its initialism: "' + BUB_TEXT + '"');
+  /* the pill, to the character. mixed case, and the apostrophe is the curly one
+     rather than the typewriter one — a straight quote in a pill set in a face
+     that has a real apostrophe is a typo, and the two are one code point apart
+     and indistinguishable in a diff, so the check is on the code point. */
+  if (BUB_TEXT !== 'AI\u2019ll be back') {
+    fail.push('the pill reads "' + BUB_TEXT + '" and it is exactly AI\u2019ll be back');
   }
+  if (/'/.test(BUB_TEXT)) fail.push('the pill uses a straight quote, and it wants the curly apostrophe');
 }
 
 /* ---------- the box ---------- */
@@ -1968,11 +2282,42 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
     fail.push('the bubble caps measure ' + state.bubCaps.capPx + ' device px, floor is ' + BUBBLE.minCap);
   }
   if (!/Manrope/.test(state.bubCaps.font)) fail.push('the bubble is not set in Manrope: ' + state.bubCaps.font);
-  if (BUB.words !== 4) fail.push('the bubble is ' + BUB.words + ' words and the line is four');
+  /* ---------- and the face actually applied, on the rendered pill ----------
+     the brief asks for this to be checked on the frame rather than in the plan,
+     and it is the right thing to ask: a face that failed to load leaves the
+     string looking almost right in a fallback, and a curly apostrophe is exactly
+     the glyph a fallback gets wrong. so the text is read back off the element,
+     the computed family is read off it, and the apostrophe is measured on its
+     own — a glyph the face does not carry comes back a different width from a
+     substitute. */
+  const pt = state.pillText;
+  console.log('  the pill: "' + pt.text + '" in ' + pt.font + ', caps ' + pt.capPx
+    + ' device, the apostrophe ' + pt.apos + 'px wide');
+  if (pt.text !== BUB_TEXT) fail.push('the pill rendered "' + pt.text + '" and the copy is "' + BUB_TEXT + '"');
+  if (!/Manrope/.test(pt.family)) fail.push('the pill computed to ' + pt.family + ', not Manrope');
+  if (!pt.aposInManrope) fail.push('the apostrophe is not being drawn in Manrope');
+  if (!(pt.apos > 0)) fail.push('the apostrophe measured ' + pt.apos + 'px, so the face has no glyph for it');
+  if (pt.text.indexOf('\u2019') < 0) fail.push('the rendered pill has no curly apostrophe in it');
+  if (BUB.words !== 3) fail.push('the bubble is ' + BUB.words + ' words and the line is three');
   /* the numbers that were signed off, asserted so this round cannot have moved
      them by accident. */
-  if (Math.abs(BUB.in - 6.32) > 0.005) fail.push('the bubble now starts at ' + BUB.in + ' rather than 6.32');
-  if (Math.abs(POP_AT - 6.46) > 0.005) fail.push('the pill now pops at ' + POP_AT + ' rather than 6.46');
+  /* the module's own arithmetic and this file's prediction of it have to agree.
+     the whole back half of the clock is derived from `POP` and `END.at`, which
+     are worked out before `planMascot` runs, so if the module ever changes its
+     bubble timings this fails rather than drifting. */
+  if (Math.abs(BUB.in - (MARK2 + BUB_IN_OFF)) > 0.005) {
+    fail.push('the module opened the bubble at ' + BUB.in + ' and this file predicted '
+      + (MARK2 + BUB_IN_OFF).toFixed(4));
+  }
+  if (Math.abs(POP_AT - POP) > 0.005) {
+    fail.push('the pill pops at ' + POP_AT + ' and this file predicted ' + POP.toFixed(4));
+  }
+  /* and the brief's hold: the pill pops, and this much later the glitch. */
+  const held = +(END.at - POP_AT).toFixed(3);
+  console.log('  the pill is up for ' + held.toFixed(2) + 's before the fault takes it');
+  if (Math.abs(held - 1.5) > 0.12) {
+    fail.push('the pill holds ' + held.toFixed(2) + 's and the brief asks for 1.5');
+  }
   if (Math.abs(BUB.out - END.at) > 0.02) {
     fail.push('the bubble is out at ' + BUB.out + 's rather than on the fault at ' + END.at);
   }
@@ -1983,35 +2328,78 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
 
 /* ---------- the green ---------- */
 {
-  if (greenAt(DROP.at - 0.02) !== 0) fail.push('the eyes are lit before he is on the frame');
-  if (greenAt(DROP.at) !== 1) fail.push('the eyes are not lit on the frame he starts falling');
-  if (greenAt(END.at - 0.02) !== 1) fail.push('the eyes have gone out before the fault');
-  /* the pulse is a breath rather than a flicker: it never lets go completely and
-     it turns over at least twice while he is on his mark. */
-  let lo = 2, hi = -1, turns = 0, up = null;
-  for (let f = Math.round(LAND * 60); f < Math.round(END.at * 60); f++) {
-    const a = pulseAt(f / 60), b = pulseAt((f + 1) / 60);
-    lo = Math.min(lo, a); hi = Math.max(hi, a);
-    const dir = b > a;
-    if (up != null && dir !== up) turns++;
-    up = dir;
+  const at = t => frameAt(plan, compose(plan, t, R), t, Math.round(t * FPS));
+  const popF = Math.round(POP * FPS);
+  const frame = f => frameAt(plan, compose(plan, f / FPS, R), f / FPS, f);
+  /* **he is the ordinary mascot until the pill pops.** nothing this file writes
+     touches his face before that frame, which is asserted as `iris` being null
+     rather than as a colour that happens to match: a null is the page removing
+     the property and letting the module paint. */
+  /* a **frame** before, not an instant before: the switch is on the output frame
+     and at twelve fps an instant 0.05 short of the pop still rounds onto it. */
+  for (const t of [0.02, DROP.at, LAND, LAND + 0.10, POP - 1.5 / FPS]) {
+    const o = at(t);
+    if (o.iris !== null) fail.push('the iris is overridden at ' + t.toFixed(2) + 's, before the pill pops');
+    if (o.green !== 0) fail.push('the eyes are green at ' + t.toFixed(2) + 's, before the pill pops');
+    if (o.sparks.some(Boolean)) fail.push('there is a glint at ' + t.toFixed(2) + 's, before the eyes are lit');
   }
-  console.log('  the glow breathes between ' + lo.toFixed(2) + ' and ' + hi.toFixed(2)
-    + ', turning over ' + turns + ' times on a ' + PULSE.period.toFixed(2) + 's period');
-  if (lo < PULSE.lo - 0.01) fail.push('the glow drops to ' + lo.toFixed(2) + ', under its own floor');
-  if (turns < 2) fail.push('the glow turns over ' + turns + ' times, which is not breathing');
+  if (frame(popF - 1).green !== 0) fail.push('the eyes are green on the frame before the pill pops');
+  if (frame(popF).green !== 1) fail.push('the eyes are not green on the frame the pill pops');
+  if (frame(Math.round(END.at * FPS) - 1).green !== 1) fail.push('the green has gone out before the fault');
   /* nothing lit survives the fault. */
   const cutF = Math.round(END.at * FPS);
-  const on = frameAt(plan, compose(plan, cutF / FPS, R), cutF / FPS, cutF);
-  if (on.eyeB !== 0) fail.push('the eyes are still lit on the frame the wordmark arrives on');
-  /* the pulse never changes the eye's size or its shape, only its brightness.
-     the module owns both of those and this file writes exactly one channel, so
-     the assertion is that it writes exactly one: `iris` and `eyeB` and nothing
-     else about an eye appears in a frame this file builds. */
-  const keys = Object.keys(frameAt(plan, compose(plan, LAND + 1, R), LAND + 1, Math.round((LAND + 1) * FPS)));
-  const eyeish = keys.filter(k => /eye|glow|iris/i.test(k)).sort();
-  if (eyeish.join(',') !== 'eyeB,iris') {
-    fail.push('this file writes ' + eyeish.join(', ') + ' about the eyes, and it may write the colour and its brightness only');
+  const on = frame(cutF);
+  if (on.green !== 0 || on.iris !== null) fail.push('the eyes are still lit on the frame the wordmark arrives on');
+  if (on.sparks.some(Boolean)) fail.push('a glint survives the fault');
+  /* the glint flickers rather than sitting there: it never holds a slot past its
+     own life, and there is at least one frame of the lit beat with none at all
+     and one with several, which is what makes it read as a glint. */
+  /* walked on the **sixty grid**, which is the grid the slots are written
+     against, so the answer does not change with the pass being rendered — and a
+     period that aliases with the preview is caught here rather than only being
+     visible in the preview. `everySlot` is the other half of it: a slot that
+     never fires is a slot that is aliased out. */
+  let none = 0, most = 0, longest = 0;
+  const run = new Array(SPARK.n).fill(0), fired = new Array(SPARK.n).fill(0);
+  const eyes60 = t => eyeSpots(plan, compose(plan, t, R));
+  for (let f = Math.round(POP * 60); f < Math.round(END.at * 60); f++) {
+    const sp = sparksAt(f / 60, eyes60(f / 60));
+    const live = sp.filter(Boolean).length;
+    if (!live) none++;
+    most = Math.max(most, live);
+    for (let k = 0; k < SPARK.n; k++) {
+      run[k] = sp[k] ? run[k] + 1 : 0;
+      longest = Math.max(longest, run[k]);
+      if (sp[k]) fired[k]++;
+    }
+  }
+  const silent = fired.filter(x => !x).length;
+  console.log('  the glint, at sixty: at most ' + most + ' stars on one frame, ' + none
+    + ' frame(s) with none, longest life ' + longest + ' frames, ' + silent + ' slot(s) that never fire');
+  if (!most) fail.push('no glint ever fires while the eyes are green');
+  if (longest > SPARK.life[1]) {
+    fail.push('a star is on for ' + longest + ' frames at sixty, and they live ' + SPARK.life.join(' or '));
+  }
+  if (silent) fail.push(silent + ' glint slot(s) never fire at all');
+  /* and at the pass actually rendering, so an aliased period cannot hide. */
+  {
+    let lo = 0, hi = 0, r2 = new Array(SPARK.n).fill(0);
+    for (let f = popF; f < cutF; f++) {
+      const sp = frame(f).sparks;
+      for (let k = 0; k < SPARK.n; k++) { r2[k] = sp[k] ? r2[k] + 1 : 0; hi = Math.max(hi, r2[k]); }
+      if (!sp.filter(Boolean).length) lo++;
+    }
+    console.log('    and at ' + FPS + ': longest life ' + hi + ' frames, ' + lo + ' frame(s) with none');
+    if (hi > Math.ceil(SPARK.life[1] * 60 / FPS)) {
+      fail.push('a star holds ' + hi + ' frames at ' + FPS + ', which is the period aliasing with the preview');
+    }
+  }
+  /* and this file writes the colour and the glint about his eyes, and nothing
+     else: no size, no shape, no blur. the module owns all three. */
+  const keys = Object.keys(at(POP + 0.20));
+  const eyeish = keys.filter(k => /eye|glow|iris|green|spark/i.test(k)).sort();
+  if (eyeish.join(',') !== 'green,iris,sparks') {
+    fail.push('this file writes ' + eyeish.join(', ') + ' about the eyes, and it may write the colour and the glint only');
   }
 }
 
@@ -2143,11 +2531,11 @@ if (under.over.length) {
   /* the three that follow the landing: all of them inside the second after it,
      all of them weaker than the hit that came first, and all of them over before
      the mark that places the bubble. */
-  const after = GL_WINDOWS.filter(w => w.kind === 'stutter' && w.t0 < MARK2);
+  const after = GL_WINDOWS.filter(w => w.kind === 'stutter' && w.t0 < POP);
   if (after.length !== 3) fail.push('there are ' + after.length + ' stutters after the landing, wanted three');
   for (let i = 0; i < after.length; i++) {
-    if (after[i].t0 < LAND || after[i].t1 > LAND + 1.0 + 1e-9) {
-      fail.push('stutter ' + (i + 1) + ' is outside the second after the landing');
+    if (after[i].t0 < LAND || after[i].t1 > POP + 1e-9) {
+      fail.push('stutter ' + (i + 1) + ' is not between the landing and the pop');
     }
     if (i && !(after[i].force < after[i - 1].force)) fail.push('stutter ' + (i + 1) + ' is not weaker than the one before it');
   }
@@ -2187,9 +2575,9 @@ if (peak.reduction > MAX_REDUCTION + 1e-6) {
 }
 
 console.log('\n  outstanding');
-console.log('    the clip is ' + SECONDS.toFixed(2) + 's and the back half of the clock is pinned:'
-  + ' the bubble at ' + BUB.in.toFixed(2) + ' and the fault at ' + END.at.toFixed(2)
-  + ' are held from the last cut, so the read has a ceiling rather than a free run');
+console.log('    the clip is ' + SECONDS.toFixed(2) + 's, against the last cut\'s 8.95. nothing in'
+  + ' the clock is pinned any more: the settle is ' + SETTLE.toFixed(2) + 's and everything after'
+  + ' it is the module\'s own bubble arithmetic');
 console.log('    the knock down, the fall and the smash are post20\'s tables and post20\'s two'
   + ' functions, unchanged. only the box\'s travel is this clip\'s, because the box is not that'
   + ' clip\'s caption block');
@@ -2197,14 +2585,16 @@ console.log('    the box says `ai` and the take is sent `A.I.`, which is the one
   + ' difference between the screen and the read. it is not a spelling preference: `AI` put '
   + '0.136s of silence in front of itself and `A.I.` puts 0.014, and the whole line reads as '
   + 'one phrase because of it');
-console.log('    rate and pitch were measured over six deliveries and they scale the line '
-  + 'uniformly — they cannot change how one word sits, so the read is the voice\'s own default');
-console.log('    the eyes are two flat slabs of the accent with no glow layer at all. what is '
-  + 'alive about them is the brightness, ' + PULSE.lo.toFixed(2) + ' to 1.00 on a '
-  + PULSE.period.toFixed(2) + 's period, and nothing else moves');
-console.log('    the point comes in ' + (HAND_AT - LAND).toFixed(2) + 's after the landing and its '
-  + 'exit is taken by the fault. its anticipation dips a fingertip over the box\'s top padding for '
-  + 'four frames at sixty, clear of the type — see the note in the run above');
+console.log('    the question is read in two takes because ssml is escaped by speak(): the body '
+  + 'at the voice\'s own pitch and `terminator?` five hertz over it, which measured the biggest '
+  + 'rise of the five tried and the smallest step at the join');
+console.log('    the eyes are the module\'s own until the pill pops and the site accent after it. '
+  + 'no glow layer, no brightness pulse: the life in them is the glint');
+console.log('    the hand is the module\'s `point` on the left hand, which is mascot-test\'s own '
+  + 'placement and is what "not mirrored" means — a bare shape string gives the screen left hand '
+  + 'the traced file and the right one its mirror');
+console.log('    it is cut on rather than faded in, on the glitch frame, so the pill, the hand and '
+  + 'the green are one event. the pose\'s own entrance runs under the gate');
 console.log('    the glitch hit is on his landing now rather than on a materialisation, because'
   + ' he arrives by falling. the three stutters follow it, which is the relationship the brief asked for');
 

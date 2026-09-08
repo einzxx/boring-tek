@@ -6,6 +6,51 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's fourth cut is green at 12fps and 6.08s, and the hand is
+  the open question.** Einz's seven fixes, one round. What a later session cannot
+  re-derive:
+  - **`speak()` escapes its input, so the ssml question form is unreachable.**
+    The way to make a question rise is the last word on its own take at its own
+    pitch. Five tails were measured against where the body ends: **+5Hz gave both
+    the biggest rise (+33.0 Hz across the word) and the smallest join step
+    (+0.9 Hz)**, so it wins on both at once. The single-take line rose only +13.3.
+    There is a `contour()` autocorrelation pitch tracker in the file now and
+    guards on `MIN_RISE` and `MAX_JOIN_STEP` — **any clip that needs a question
+    to sound like one should copy that rather than re-derive it.**
+  - **A period written against the 60-frame grid must not be a multiple of five.**
+    The glint's slots had `period: 5` and a 12fps frame steps exactly 5 of that
+    grid, so every slot froze on one phase: one star on for 19 straight frames,
+    others never firing. **Invisible at 60, broken only on the pass the clip is
+    judged on.** Periods are 7/8/9 and the guard walks both grids.
+  - **A guard testing "before the switch" has to step a whole frame**, not an
+    instant. `POP - 0.05` still rounds onto the pop frame at 12fps.
+  - **Glitch windows must be sorted by time before the overlap check** — the
+    overlap guard reads consecutive pairs and windows are written in the order
+    they were added, not the order they fire.
+  - **`side: 'left'` and "not mirrored" are one fact, not two.** `point` carries
+    a bare shape string and `handShape` gives hand 0 (screen left) the traced
+    file and hand 1 its mirror, so asking for the left hand *is* asking for the
+    trace unflipped. Asserted on `plan.marks[k].hands.acting`, not on the mark's
+    own `side` — the module's rebuilt records do not carry `side` through.
+  - **`point` still does not read at a 240px head, and the module said so first.**
+    Placed exactly as `mascot-test.mjs` places it, it renders as a small lump
+    behind the plate: the finger is foreshortened at camera and the pose, mirrored
+    onto the left hand of a near-centred mascot, lands on top of the head. The
+    module's own note predicted "a fist with a bump on it" and that is what is on
+    the frame. **`point-viewer` exists because of this.** Flagged with the still
+    in `demo/out/review-post22-dark-1080x1920.md`; Einz's call between reverting
+    to `point-viewer`, supplying `assets/hands/point-camera.svg`, or moving him.
+  - **The no-apostrophe rule was never the brand's.** CLAUDE.md forbids
+    punctuation *dashes*; the apostrophe ban was this clip's own first brief and
+    is now reversed. The pill is `AI’ll be back` with U+2019, checked on the
+    rendered element rather than in the plan — text, computed family and the
+    apostrophe's own measured width, because a missing glyph falls back silently.
+  - **The clock is fully derived now**, off the landing plus a 0.30s settle, and
+    the fault follows the pill's own life: `BUB_IN_OFF`, `BUB_LIFE` and `POP_OFF`
+    are read off `STATES.neutral.entry` and `BUBBLE` rather than typed, with a
+    guard that the module agrees with the prediction. 6.08s against 8.95.
+    **Not pushed.**
+
 - **2026-09-08: post22's third cut is green at 12fps. It has the question mark,
   a fixed read, the joke's own casing, flat green eyes and the point.** Einz's six
   fixes, one round. What is new that a later session cannot re-derive:
