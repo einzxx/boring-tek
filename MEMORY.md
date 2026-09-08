@@ -6,6 +6,58 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's first cut is green at 12fps and the frames found a dead
+  spot.** `demo/post22.mjs`, new, dark only, 8.95s to
+  `demo/out/post22-dark-1080x1920.mp4`. Somebody types "what did ai say to the
+  terminator" into a chat box, the box falls out of frame, and a glitch hit puts him
+  there with red neon eyes; he holds, then thinks "AI LL BE BACK". **No voice and no
+  music**, and no captions engine either — the first clip with no caption band in it.
+  The file is small on purpose (~1200 lines against post21's 2060) because there is no
+  scene layer, no camera and no caption plan. This is what a later session cannot
+  re-derive:
+  - **A clip that does not call `captionCss` has no brand tokens.** `captionCss` is
+    what emits index.html's `:root` and `html[data-theme=dark]` blocks into the page,
+    and every clip before this one called it. Drop it and `--bg`, `--fg` and `--bub`
+    are undefined: the first render came back **white**, with a borderless box and
+    invisible icons, and every geometry guard passed on it. post22 emits the two
+    blocks itself out of `brandTokens()`. **Any future clip without captions must do
+    the same.** (Related: `--bub` is scoped to `.m-zone` inside `mascotCss`, so a
+    layer outside the mascot's zone cannot borrow the module's copy — post21's cable
+    edge is drawn in `var(--bub)` outside the zone and is therefore black, which is
+    worth a look next time that file is opened.)
+  - **The module's thought bubble is exactly 1.68s and that is a ceiling.** 0.48 in,
+    a hold capped at `BUBBLE.hold` 0.90, 0.30 out. A clip cannot ask for longer, and
+    the `bubbles: [{t}]` list spelling is the *quick* profile at 0.80s, not a way
+    round it. So a bubble that must still be on the frame a cut takes has exactly one
+    start time, and a single `bubble:` on a mark is placed at that mark's `settled +
+    0.12` — which means **the mark's time is the only knob**, and asking for a
+    bubble at a chosen second costs a second mark.
+  - **`thought: 'beside'` does not fit a centred head at 540 wide.** A four word
+    pill is ~250 css px and `beside` starts it a head's width off his flank; it
+    leaves the safe box unless he is pushed a third of the way to the left edge.
+    `over-right` costs 54 css px of offset instead. The module says this in its own
+    comments and it is now confirmed on rendered frames.
+  - **A drop is a square, not a bezier.** The shutter ceiling is on the *peak* step
+    between two frames at 60, and a bezier steep enough to read as a fall peaks at
+    ~3.8x its own average — it blew the 42px ceiling at a third of the distance.
+    `p => p * p` peaks at 1.96x, which is the flattest accelerating curve there is
+    and bought 470px in the same 0.40s window.
+  - **A blink is the module's schedule, and `seed` is how a clip asks for one.**
+    The brief wanted one slow blink in the last beat; seeds were walked until the
+    schedule put exactly one inside 7.00 to 7.50 and none across the frame he
+    arrives on. That is seed 27, and the guard re-checks the window rather than
+    trusting the comment.
+  - **The liveness signature has to be multiplied by what is visible.** The mascot
+    is planned from 0.00 and drifts the whole time, so counting his channels while
+    `mo` is 0 would have let the first two and a half seconds pass the identical
+    frames guard on motion nobody can see. What honestly carries the opening is the
+    chat box's own focus glow.
+  - **The review found what the guards cannot: 3.20 to 6.40 is one frame.** The red
+    glow's breathing (0.62 to 1.00 layer opacity, 2.60s period) is invisible against
+    a soft low alpha bloom. Shape right, amplitude wrong. Full write up in
+    `demo/out/review-post22-dark-1080x1920.md`. **Awaiting Einz's fixes before the
+    60fps final. Not pushed.**
+
 - **2026-09-08: post21's first cut is green at 12fps and the frames found three
   things.** `demo/post21.mjs`, new, dark only, 9.95s to
   `demo/out/post21-dark-1080x1920.mp4`. He hums in a lit room, gets plugged into the
