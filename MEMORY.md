@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's third cut is green at 12fps. It has the question mark,
+  a fixed read, the joke's own casing, flat green eyes and the point.** Einz's six
+  fixes, one round. What is new that a later session cannot re-derive:
+  - **`rate` and `pitch` in `lib/voice.mjs` are a global speed and a global
+    transpose, and they cannot change how one word sits against another.** Six
+    deliveries of the same line were fetched and measured: `did` came back at
+    1.06x the line's mean per syllable and 1.38x `what` in **every single one**,
+    to two decimal places. So a note about one word sounding wrong is never
+    fixed by the delivery — do not spend takes on it.
+  - **What sounds wrong is usually a gap, not a word.** The reported fault was
+    "did sounds strange"; the measurement was 0.136s of silence directly *after*
+    `did`, against 0.014s between every other pair. The engine was breaking the
+    phrase before spelling out `AI`. A word with a tenth of a second hanging off
+    the end of it is a word that sounds odd, and it is the neighbour that is at
+    fault.
+  - **`A.I.` is the spelling to send.** Five were measured for the silence in
+    front of them: `AI` 0.136s, `ai` 0.081, `Ai` 0.109, **`A.I.` 0.014**, and
+    `aye eye` is two words so the typing cannot map onto it. The screen still
+    says `ai`. There is now a `MAX_GAP` guard at 0.06s so the fault cannot come
+    back unnoticed — **any clip cutting a picture to a read should carry one.**
+  - **`point-viewer` is the pose for a finger at the camera and `point` is not.**
+    The module says so in its own comment and post20 learned it the hard way: a
+    foreshortened finger at a 240px head closes into the fist. `point-viewer`
+    aims it across and down instead, needs no `side`, and must not be mirrored.
+  - **A hands pose starts on a state mark's time and there is no other way to
+    place one.** Wanting the point after the landing therefore means a third
+    state mark exists purely to carry it. Its `hold` is bought as arithmetic so
+    the exit finishes exactly on the fault.
+  - **Every pose's exit anticipates, so ink goes further before it leaves.** The
+    point's exit dips a fingertip 11.5 css px below its held position for four
+    frames. A clearance guard on a pose has to be measured against the thing that
+    actually matters — here the box's type, not the box's edge — or a correct
+    animation fails a correct guard.
+  - **`headRect` already skips gloves at `o <= 0.004`**, so post20's opacity gate
+    is enough to keep an invisible hand out of the clearance numbers as well as
+    off the frame.
+  - **`lib/captions.mjs` does not name Manrope.** It renders a caption in
+    `var(--body)` and every post file since post18 names the family itself. The
+    page now carries a guard: one stylesheet request, exactly Michroma and
+    Manrope in it, and `--body` resolved to Manrope so the module's pill inherits
+    the same face rather than picking up a second one.
+  - **The pill is `AI ll be back`.** The no-apostrophe rule forces the elision to
+    be written out; it does not force capitals, and the second cut used it to
+    justify a shout nobody asked for. **Open: the read is verified by measurement
+    and not by ear — one listen wanted before the 60fps pass. Not pushed.**
+
 - **2026-09-08: post22's second cut is green at 12fps. It has a voice now, the
   fall instead of a drop out, and green eyes.** Einz's seven fixes, one round, all
   in. What is new that a later session cannot re-derive:
