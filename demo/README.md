@@ -149,6 +149,14 @@ All headless Chrome, all tooling. The renderers first:
   `demo/out/post22-dark-1080x1920.mp4`. post20 is the template for the knock
   down, the fall and the smash, and post12 for the fault and the end card. See
   The twenty second clip.
+- **`post23.mjs`** renders an 8.92 second clip, vertical, dark only, **and it is
+  parked: the 2d dance in it does not match the reference and it will not be
+  used as it stands.** The mascot with both fists up and a pair of boots under
+  him, swinging on a fixed beat, his head coming off its axis twice, then a snap
+  onto his face and the end card. It renders green at 12fps and **no 60fps final
+  was made and none should be.** It is kept because three things in it outlive
+  it: the `cheer` pose, the three svg assets and the spin. Out to
+  `demo/out/post23-dark-1080x1920.mp4`. See The twenty third clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -6186,6 +6194,171 @@ number the file names.
   px either side and cannot move left with him.
 - **post21 still has no section in this file.**
 
+## The twenty third clip — the dance, and why it is parked
+
+`demo/post23.mjs`, dark only, 8.92 seconds, **green at 12fps and never rendered
+at 60.** The mascot is on the frame from frame zero: white head in the middle of
+a black frame under the module's own deep glow, both fists up, both boots planted
+under him. He swings left, right, left, right on a fixed beat — eight swings,
+0.75s each — and on the third and the sixth his head turns all the way, the eyes
+slide off the edge of his own face, and for a fifth of a second there is nothing
+on the front of his head at all. Then the camera snaps onto his face for two
+seconds and post12's fault takes it and puts the wordmark up.
+
+```
+cd demo
+node post23.mjs                 # 1080x1920, 60fps, shutter closed
+DEMO_FPS=12 node post23.mjs     # the fast preview pass
+node post23.mjs --blur=6        # 60fps with the shutter open
+node post23.mjs --clock         # the clock and the beats only, no browser
+node post23.mjs --keep-frames   # leave the jpegs on disk
+node post23.mjs --encode-only   # re-encode from kept frames
+```
+
+### It is parked, and this is the reason
+
+**The 2d dance does not match the reference and the clip will not be used as it
+stands.** A body swinging on a fixed beat, built as a turn, a small tilt, a small
+horizontal squash and a 20 css px lateral sway, is a head bobbing on static
+boots. It is on the beat, it is legible, and it is not the movement the reference
+has. That is a fact about the technique rather than about the numbers, so nothing
+here is being tuned toward the reference: **the next attempt is not this
+technique.**
+
+**The plan that replaces it is an ai motion transfer clip of the mascot, with the
+rig adding only the end card.** The motion comes from a reference performance
+instead of from a channel table, the mascot is driven by it, and neither
+`lib/mascot.mjs` nor a post file is asked to animate a dance at all — the rig's
+job shrinks to the house ending over the transferred footage: the two stutters,
+the fault, the rgb split on the wordmark and THE / BORING / TEK stacked three
+lines. Nothing is built for it yet and no tool is chosen. Adding one is a
+conversation, not a decision to make while working.
+
+The file, the pose and the three assets are committed and kept as they are. What
+follows is what is worth carrying forward out of them.
+
+### `cheer`, and three new assets
+
+**`cheer` is a pose in `lib/mascot.mjs`** — both fists up beside the head, inside
+of the fists to camera, `both: true`, carrying the file's own pair
+`['cheer-left', 'cheer-right']` so neither hand is flipped and each gets the
+drawing it was traced for. It sits where `rest` sits across, 68.0, and takes that
+hand from 47.5 down to 26.0, which puts the top of a fist a shade above the
+crown. That is `panic`'s travel and it is `panic`'s two gears for `panic`'s
+reason: a single tween over that distance is either too slow to be a cheer or too
+fast for the shutter. The conversion the drawing needed is written up under Ten
+traced paths above.
+
+**Three svg assets, all tracked, and only one of them is a hand.**
+
+- `demo/assets/hands/cheering-fists.svg` — both raised fists, one drawing a
+  side, registered in the module.
+- `demo/assets/hands/boots.svg` — front view of the pair, two paths a boot.
+- `demo/assets/hands/boots-side.svg` — side view, one path a boot.
+
+**The boots are not in the module and should not be.** A boot is not a hand: it
+has no wrist, it is not placed against the head's own grid and no pose table
+wants a row for it. post23 draws them as **its own image layer**, inlined from
+the two files, at z-index 3 against the mascot zone's own 4 — under his face and
+behind it, so a fist that swings low is in front of a boot. They are styled the
+way the gloves are: the plate's own white, an outline in the page colour, and the
+head's own two glow radii and two opacities scaled by the boots' width against
+the plate. They never sway and they never travel; they bounce 4.5 css px on the
+beat and that is all. Anything that wants boots does the same rather than asking
+the module for them.
+
+### The turn is composed, because a mark cannot carry eight of them
+
+The module's turn is a **mark** channel: a mark carries `turn` and reaches it over
+its own window. A `neutral` mark needs `entry + exit + 0.30`, which is 1.06s, and
+this clip's beat is 0.75 — so eight swings cannot be eight marks and there is no
+spelling of the plan that makes them one.
+
+So the turn is composed on top of the module's own frame out of the module's own
+numbers: `TURN.squeeze`, `TURN.tilt`, `TURN.shift`, `TURN.wrap`, `TURN.farX` and
+`TURN.farY`, applied in the post file the way `mascotFrame` applies them there.
+`bias: 0` means the plan itself never writes the channel, so there is exactly one
+thing turning his head. **Any clip that wants a turn faster than a state's own
+floor has to do this**, and the thing to be careful of is the second writer: a
+resting bias plus a composed turn is two hands on one channel.
+
+### The spin, which is the one part of it that worked
+
+**The back of his head is not a second drawing.** The module holds every eye
+`TURN.margin` inside the plate so a state and a turn cannot add up to an eye on
+the cheek. The spin wants the opposite: the eyes are pushed 48 grid units past
+the silhouette and **the module's own clip path** — the one every facial feature
+already carries — takes them off the frame. What is left is the plate, which at
+the shipped radius is a circle. A white circle with no eyes on it.
+
+**The sign of the offset flips while they are off the frame**, which is the whole
+difference between a spin and a look away: they leave on the side he is turning
+to and come back from the other one, so the head reads as having gone all the way
+round. It costs nothing because nobody can see it — and it is why the fast-things
+walk has to skip the blank beat, since that swap is 96 grid units on one frame
+and would otherwise be the fastest thing in the film by a factor of five.
+
+Frame by frame at twelve, spin one runs: eyes hard against the left edge with one
+already half cut at 1.58s, three blank frames at 1.67, 1.75 and 1.83 with the
+shake and the stutter on the middle one, and the eyes arriving from the right
+edge at 1.92.
+
+### Three numbers this clip paid for
+
+**The blank beat is snapped to the render grid.** The stutter, the camera shake
+and the frame with nothing on his face all have to be the same frame, and a
+window written in seconds lands a twelfth either side of one on the preview pass.
+The first run failed on exactly that: the guard found the stutter on a frame that
+still had eyes on it. `spinWindowsAt(fps)` builds the window in frames and the
+slide out finishes on its first frame.
+
+**`MOVE` is too peaky for a ten frame snap zoom.** A ten frame snap is the house
+definition of one, and on `bezier(.4, 0, .2, 1)` a 2.8x push carries the far
+corner of a fist 56 css px on its fastest frame against a ceiling of 42.
+`SNAP = bezier(.18, 0, .46, 1)` does the same distance in the same ten frames
+with its worst frame at 35 — quick off the mark, hard deceleration into the
+landing, still a snap rather than a pan.
+
+**A push-in on a figure standing on boots has to pan as it pushes.** What is
+centred on the safe band is him **and his boots**, so his head sits above the
+middle of the frame. Push in on that and the face ends up in the top half with a
+pair of boots filling the bottom one, which is a shot of a boot. The pan is 43
+css px, on the same curve over the same window, so the two are one move that
+lands on one frame. And the sway is divided by the zoom while it is in, which is
+a camera tracking a face: he swings exactly as much and what stops growing is how
+far across the frame it carries him.
+
+### The sound
+
+Five glitches and nothing else. No voice, no music, no bed, no key ticks: two
+stutters where his face goes blank, two into the fault and the fault itself.
+-23.9 LUFS integrated, true peak -1.7 dBFS on the finished file.
+
+### What the review found, and none of it will be fixed
+
+`demo/out/review-post23-dark-1080x1920.md`, off a clean 0.4s ladder, a `--guides`
+pass over the zoom and a frame by frame tile of the first spin. The clip is
+parked, so these stand as the record rather than as a list of work:
+
+- **The 1.8s zoom hold is the slackest part of the film.** The snap lands at 6.17
+  and nothing new happens until the first stutter at 7.62.
+- **The lateral swing is 20 css px**, 40 device px on a 1080 frame, and reads as
+  a bobble rather than a dance. With the first item, this is the reference
+  mismatch by another name.
+- **The boots carry an outline all the way round and the fists do not.** The
+  module's rule is that a glove is a white shape on a dark page and gets no edge
+  out there; a whole-path stroke is the only thing that separates the two boots
+  from each other and the shaft from the foot, so the boots break it. Unmissable
+  at 2.8x.
+- **`boots-side.svg` splays its two boots outward** rather than both facing the
+  way the head turned. It is the file as drawn and it was placed untouched.
+- **8.92s against a brief that said about eight**, because the beat list put the
+  end card after 8.0 and the beat list won over the length.
+
+Safe margins pass through the whole dance — worst head clearance 261 device px
+against a floor of 140 — and are crossed deliberately under the zoom by the fists
+and the boots, with the head itself still inside the rectangle.
+
 ## The og card
 
 ```
@@ -7442,6 +7615,36 @@ the fist rather than as a shape beside it.
 each hand gets its own; `wave`, `thumbs-up`, `facepalm`, `point` and `laugh` are
 one handed and the second hand is the first one flipped, which is `mir` on the
 frame and a sign on the page's own scale.
+
+##### Four more since, and there are fourteen drawings and ten poses
+
+The ten above are the sheet's. Four were drawn for this rig afterwards, for the
+same reason each time: **a viewer reads the pose a drawing was made for**, and a
+placement cannot fix a drawing that says something else.
+
+- `laugh`, because the facepalm turned forty five degrees onto the mouth read as
+  a facepalm lying down.
+- `point-side`, because `point` aims its finger at camera and at a 240px head
+  the tip closes into the fist. It carries the crease across its folded fingers
+  as a second subpath under `fill-rule="evenodd"`, and `point-viewer` puts it in
+  **both** hands unflipped so the finger keeps its direction.
+- `cheer-left` and `cheer-right`, off `demo/assets/hands/cheering-fists.svg`,
+  for post23. They are the first drawings that are **not a 400 unit frame** —
+  the file is 800 by 600 and the coordinates went in untouched anyway, because
+  `box` scales every drawing by 32.5/400 and a fist drawn bigger simply comes
+  out bigger. At 23.1 by 24.9 grid units they land between the open hand and the
+  fists already there, inside the module's own "none of them is a mitten" band.
+
+**`cheering-fists.svg` needed one conversion and it is worth knowing about.**
+That file draws its knuckle and thumb creases as `fill:none` **strokes**, and a
+`HAND_SHAPES` entry is one filled path — there is no slot for a second, unfilled
+one. So each stroked subpath was carried in as a **closed sliver inside the
+silhouette under `even`**: the file's own polyline offset either way by half its
+own 10 unit stroke, joined at both ends. Under `evenodd` that is a hole, and on
+the dark theme a hole is the page showing through, which is exactly the black
+line the drawing has. Nothing was redrawn and no coordinate was judged. It is
+the same shape of answer `point-side`'s crease already is, and it is the recipe
+for the next drawing whose detail is strokes rather than subpaths.
 
 Five one handed poses off **four** drawings: `laugh` is the facepalm's own file
 turned onto the mouth, and it is the only pose in the table that borrows one. So

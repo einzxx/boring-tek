@@ -6,12 +6,28 @@ names in here either.
 
 ## Status
 
-- **2026-09-08: post23's first cut is green at 12fps and 8.92s, and it is waiting
-  on Einz's fixes before the 60fps final.** `demo/post23.mjs` ->
-  `demo/out/post23-dark-1080x1920.mp4`. No voice, no music, no captions: the bus
-  is five glitches. The review is in
-  `demo/out/review-post23-dark-1080x1920.md`. What a later session cannot
-  re-derive:
+- **2026-09-08: post23 is PARKED. The 2d dance does not match the reference and
+  will not be used as it stands.** `demo/post23.mjs` renders green at 12fps and
+  8.92s to `demo/out/post23-dark-1080x1920.mp4` — no voice, no music, no
+  captions, five glitches on the bus — and the review is in
+  `demo/out/review-post23-dark-1080x1920.md`. **No 60fps final was rendered and
+  none should be.** Einz's call after watching the preview: a body swinging on a
+  fixed beat, drawn as a turn, a tilt and a lateral sway, is not the dance the
+  reference has. The file, the pose and the assets are committed and kept as they
+  are; nothing about them is to be tuned toward the reference, because the next
+  attempt is not this technique.
+
+  **The plan that replaces it: an ai motion transfer clip of the mascot, with the
+  rig adding only the end card.** The motion comes from a reference performance
+  rather than from a channel table, the mascot is driven by it, and
+  `lib/mascot.mjs` and the post file are not asked to animate a dance at all —
+  the rig's job shrinks to the house end card: the fault, the two stutters, the
+  rgb split on the wordmark and THE / BORING / TEK stacked three lines, over the
+  transferred footage. Nothing has been built for this yet and no tool has been
+  chosen; adding one is a conversation, not a decision to make while working.
+
+  **What post23 leaves behind that is worth keeping, and all of it is committed
+  and green:**
   - **`cheer` is a pose in `lib/mascot.mjs` now, and it is the first drawing that
     did not come off the sheet at 400 units.**
     `demo/assets/hands/cheering-fists.svg` is an 800 by 600 frame with a white
@@ -21,13 +37,21 @@ names in here either.
     polylines offset by half its own 10 unit stroke — which is exactly what
     `point-side` already does with its crease. On the dark theme a hole is the
     page showing through, which is the black line the drawing has. Coordinates
-    are otherwise untouched and the pair form `['cheer-left','cheer-right']`
+    are otherwise untouched, and the pair form `['cheer-left','cheer-right']`
     means neither hand is flipped. **This is the recipe for any future drawing
-    whose detail is strokes rather than subpaths.**
+    whose detail is strokes rather than subpaths, and it outlives the clip.**
+  - **Three new svg assets, all tracked, all reusable.**
+    `demo/assets/hands/cheering-fists.svg` (both raised fists, inside of the
+    fists to camera, one drawing a side), `demo/assets/hands/boots.svg` (front
+    view of the pair, two paths a boot) and `demo/assets/hands/boots-side.svg`
+    (side view, one path a boot). The boots are **not** a hand and are not in the
+    module: post23 places them as its own image layer under the face at z-index
+    3, plate white on page black with the head's own two glow radii scaled onto
+    them. Anything that wants boots does the same.
   - **A mark cannot carry eight turns 0.75s apart.** `neutral` needs
-    `entry + exit + 0.30` = 1.06s of room, and the beat is 0.75, so post23's turn
-    is **composed** on the module's frame out of the module's own `TURN` table
-    rather than planned. `bias: 0` is what keeps the plan from writing the
+    `entry + exit + 0.30` = 1.06s of room, and the beat was 0.75, so post23's
+    turn is **composed** on the module's frame out of the module's own `TURN`
+    table rather than planned, with `bias: 0` so the plan never writes the
     channel as well. Any clip that wants a turn faster than a state's own floor
     has to do this.
   - **The back of the head is not a second drawing.** The eyes are pushed past
@@ -37,6 +61,8 @@ names in here either.
     flips **while they are off the frame**, which is what makes it read as a spin
     rather than a look away, and it is why the fast-things walk has to skip the
     blank beat: that swap is 96 grid units on one frame and nobody can see it.
+    **This one worked** — it is the part of the clip the review had nothing
+    against.
   - **The blank beat is snapped to the render grid.** The stutter, the shake and
     the frame with nothing on his face have to be one frame; a window written in
     seconds lands a twelfth either side of one on the preview pass, and the first
@@ -49,14 +75,14 @@ names in here either.
     zoom on that and the face is in the top half with a pair of boots filling the
     bottom one. The pan is 43px, on the same curve and the same window, so it is
     one move.
-  - **Open, and all five are Einz's call** — see the review for the frames:
-    1. the 1.8s zoom hold is the slackest part of the film;
-    2. the lateral swing is 20 css px and reads as a bobble rather than a dance;
-    3. the boots carry an outline all the way round and the gloves do not;
-    4. `boots-side.svg` splays its two boots outward rather than both facing the
-       turn;
-    5. the clip is 8.92s against a brief that said "about eight".
-  - `demo/README.md` has no post23 section yet, and still has no post21 one.
+  - **What the review found, and none of it will be fixed** because the clip is
+    parked: the 1.8s zoom hold is slack, the 20 css px lateral swing reads as a
+    bobble rather than a dance, the boots carry an outline all the way round
+    where a glove gets none off the head, `boots-side.svg` splays its two boots
+    outward rather than both facing the turn, and the film is 8.92s against a
+    brief that said about eight. The first two are the reference mismatch by
+    another name.
+  - `demo/README.md` now has a post23 section. It still has no post21 one.
     **Not pushed.**
 
 - **2026-09-08: post22 is finished and the 60fps final is rendered, green and
