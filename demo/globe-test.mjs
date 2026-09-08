@@ -79,7 +79,9 @@
      growing from a dot to 40 device px over 0.8s and fading as it goes, with a
      tiny lowercase `ai` held still at the middle of it. a ping is a latitude
      and a longitude, so it turns with the globe and it goes behind the edge
-     rather than sliding off it. see PING for why they spawn at sea.
+     rather than sliding off it. **it is only ever born on a black pixel**, and
+     that is tested against the rendered frame rather than against the land
+     mask — see PING.maxLum for why the rule is a colour and not a continent.
 
    ---------- it is silent and it is one layer ----------
    no camera, no mascot, no transitions, no voice, no sound. the question this
@@ -220,26 +222,47 @@ const PING = {
   size: flag('ping-size', 40),          /* device px across at full growth */
   width: flag('ping-width', 1.5),       /* device px of stroke */
   max: 5,
-  /* how far onto the near side a ping has to start. 0.18 is about 80 degrees
-     from the point facing the camera, so a ping can still begin close to the
-     limb and turn out of sight, but not begin behind the globe. */
-  minZ: 0.18,
+  /* how far onto the near side a ping has to start. 0.35 is about 70 degrees
+     from the point facing the camera, which keeps every ping on the face of the
+     sphere rather than on the rim. it was 0.18 for one render and the review
+     caught it: four consecutive samples from 1.75s put a ping at the left limb,
+     two of them clipped by the edge of the disc. a ping can still leave — the
+     globe turns 19 degrees in a ping's life — it just cannot be born there. */
+  minZ: 0.35,
   seed: 20260908,
   label: 'ai',
   font: { family: 'Manrope', weight: 700, size: 12 },   /* size in device px */
 
-  /* the two knobs the look hangs on, and they move together: a ping has to sit
-     on the ground it does not match or it is invisible.
-
-     **white, on the ocean, decided 2026-09-08.** the brief asked for white
-     pings on land, and on this globe those are the same colour — land is the
-     white one, which is what `white continents, black ocean` asked for in the
-     first place. so one of the two had to give. white won and the ground moved:
-     the pings keep the brand's white-on-dark and they spawn at sea, which is
-     where the dark is. `--pings-on=land` puts them back on the continents and
-     is only useful next to a dark `ink`. */
   ink: '255,255,255',
-  where: (argv.find(a => a.startsWith('--pings-on=')) || '').split('=')[1] || 'ocean',
+
+  /* ---------- where a ping is allowed to be born ----------
+     **the rule is the rendered colour under the point, and nothing else.**
+     black is allowed, white is not. there is no land test and no ocean test
+     here any more, and that is the point of writing it this way: those two
+     words describe the data, the eye only ever sees the picture, and the two
+     had already been argued about three times before this rule replaced them.
+
+     so the check is made against the frame the ping is actually born on.
+     `spawnPoint` draws the globe at that moment first, then reads the pixel out
+     of `imgSharp.data` — the same buffer that is about to be put on the canvas
+     and screenshotted. a mask lookup would be a second opinion about what the
+     picture contains; this is the picture.
+
+     reading the frame rather than the mask also picks up two things a mask
+     cannot. the limb shading is in it, so a point is judged at the brightness
+     it will really have. and the antialiased coastline is in it, so a candidate
+     half a pixel into a coast reads as grey and is refused rather than
+     rounded one way by a threshold on a mask.
+
+     `maxLum` is strict on purpose. the ocean renders as an exact 0 — black ink
+     multiplied by any shade is still black — so anything above a handful of
+     levels is either land, a graticule line or a coastline edge, and none of
+     the three is somewhere a white ring belongs. */
+  maxLum: 12,
+  /* and the four neighbours at this radius have to be dark too, so a ping is
+     never born straddling a coastline. the point alone is the letter of the
+     rule; this is the half pixel of margin that keeps it true at the edges. */
+  clear: 3,
 };
 
 /* the land mask. 2048 x 1024 equirectangular, which is 5.69 px a degree
@@ -575,27 +598,47 @@ body{width:${VW}px;height:${VH}px}
     return { x: R + R * px, y: R - R * py, z: pz, vis: pz >= 0 };
   }
 
-  /* a real place: area correct, well inside its own ground, and **facing the
-     camera at the moment it starts**.
+  /* is the picture black at this screen point. reads imgSharp.data, which is
+     the frame itself: the same bytes that go to the canvas and into the
+     screenshot. alpha under 250 means the point is off the disc or on its
+     antialiased rim, and neither is inside the globe. (no backticks in this
+     comment on purpose: it lives inside a template literal.) */
+  function darkHere(x, y){
+    const xi = Math.round(x), yi = Math.round(y);
+    if (xi < 0 || yi < 0 || xi >= N || yi >= N) return false;
+    const d = imgSharp.data, k = (yi * N + xi) * 4;
+    if (d[k + 3] < 250) return false;
+    return (d[k] * 0.299 + d[k + 1] * 0.587 + d[k + 2] * 0.114) <= PING.maxLum;
+  }
 
-     that last condition is the difference between a schedule and a clip. a
-     point picked anywhere on the sphere is on the far side half the time, and a
-     ping that spawns back there lives its whole 0.8s behind the globe and is
-     never seen — the first render of this had two pings on screen at best and
-     nineteen of thirty six frames with none at all. requiring z above minZ at
-     spawn means every ping is actually watched to start. it does not stop one
-     leaving: the globe turns 19 degrees in a ping's lifetime, so one that
-     starts near the leading limb still rotates out under its own fade, which is
-     the going-behind-the-edge the brief asked for. */
+  /* a place to be born: area correct, **facing the camera**, and **black on the
+     frame it is born on**.
+
+     facing the camera is the difference between a schedule and a clip. a point
+     picked anywhere on the sphere is on the far side half the time, and a ping
+     that spawns back there lives its whole 0.8s behind the globe and is never
+     seen — one render of this had two pings on screen at best and nineteen of
+     thirty six frames with none at all. requiring z above minZ means every ping
+     is actually watched to start. it does not stop one leaving: the globe turns
+     19 degrees in a ping's lifetime, so one born near the edge of the face
+     still rotates out under its own fade.
+
+     black on the frame is the colour rule, and it needs the frame, so the globe
+     is drawn at this ping's own moment before any candidate is judged. that is
+     one full render per scheduled ping, about a dozen over a clip, and it is
+     worth it: it is the only test that cannot disagree with what ships. */
   function spawnPoint(rnd, t){
-    const wantLand = PING.where === 'land';
     const spin = SPIN0 + RATE * t;
+    draw(spin);                       /* the frame this ping is born on */
+    const c = PING.clear;
     for (let i = 0; i < 20000; i++){
       const lon = rnd() * 360 - 180;
       const lat = Math.asin(rnd() * 2 - 1) * 180 / Math.PI;
-      const v = sample(mask, (lon + 180) / 360 * MW, (90 - lat) / 180 * MH);
-      if (wantLand ? !(v > 0.9) : !(v < 0.1)) continue;
-      if (forward(lon, lat, spin).z < PING.minZ) continue;
+      const q = forward(lon, lat, spin);
+      if (q.z < PING.minZ) continue;
+      if (!darkHere(q.x, q.y)) continue;
+      if (!darkHere(q.x + c, q.y) || !darkHere(q.x - c, q.y)
+        || !darkHere(q.x, q.y + c) || !darkHere(q.x, q.y - c)) continue;
       return { lon: lon, lat: lat };
     }
     return null;
@@ -605,7 +648,14 @@ body{width:${VW}px;height:${VH}px}
     if (!PING.on) return [];
     const rnd = prng(PING.seed);
     const out = [];
-    let t = PING.every[0] * rnd();
+    /* **the schedule starts before the clip does.** a first spawn at t=0 or
+       later leaves frame one as a bare globe, and on a three second clip the
+       opening frame is a large share of what anyone sees before deciding. so
+       the first ping is born at a random offset in the past and is already
+       partway through its life when the clip opens: 15% to 75% through, which
+       is alpha 0.79 down to 0.13, so it is always visibly there on frame one
+       and never at full size. */
+    let t = -PING.life * (0.15 + rnd() * 0.60);
     while (t < SECONDS + PING.life){
       const p = spawnPoint(rnd, t);
       if (p) out.push({ t: t, lon: p.lon, lat: p.lat });
@@ -613,6 +663,12 @@ body{width:${VW}px;height:${VH}px}
     }
     return out;
   })();
+
+  /* which pings were ever actually put on a frame. the schedule deliberately
+     runs past the end of the clip so the last second is not thinner than the
+     rest, so "scheduled" and "seen" are different numbers and the run should
+     report the one a viewer gets. */
+  const seen = new Set();
 
   function drawPings(t, spin){
     gp.clearRect(0, 0, N, N);
@@ -636,6 +692,7 @@ body{width:${VW}px;height:${VH}px}
     for (const p of use){
       const q = forward(p.lon, p.lat, spin);
       if (!q.vis) continue;                 /* on the far side, so behind the globe */
+      seen.add(p.t);
       const u = (t - p.t) / PING.life;
       /* out fast then settling, which is what a ping does. the fade is a shade
          faster than linear so the ring is gone before it reaches full size
@@ -659,6 +716,13 @@ body{width:${VW}px;height:${VH}px}
     ready: true,
     n: N,
     pings: sched.length,
+    /* the schedule, so the run can be checked against the encoded clip from
+       outside this page. the colour rule is enforced in here against the frame
+       buffer; handing the points out lets it be re-proved against the mp4 with
+       an independently written projection, which is the only version of the
+       check that shares no code with the thing it is checking. */
+    schedule: sched,
+    seen(){ return seen.size; },
     apply(t, spin){ draw(spin); return drawPings(t, spin); },
     /* what got built, for the run's own log. a render that reports nothing
        cannot be argued with afterwards. */
@@ -816,6 +880,7 @@ async function main() {
 
   const { browser, srv, page, shoot } = await open();
   const pings = await page.evaluate(() => window.__globe.pings);
+  const schedule = await page.evaluate(() => window.__globe.schedule);
   const N = Math.round(FPS * SECONDS);
   const wall = Date.now();
   /* the pings are reported off the render rather than off the schedule: the
@@ -829,6 +894,8 @@ async function main() {
     pingFrames += shown > 0 ? 1 : 0;
     await shoot(path.join(FRAMES, 'f' + String(f).padStart(5, '0') + '.png'));
   }
+  /* read out of the page before it is closed, not after. */
+  const seen = await page.evaluate(() => window.__globe.seen());
   await browser.close(); srv.close();
   console.log('  ' + N + ' frames in ' + ((Date.now() - wall) / 1000).toFixed(1) + 's');
 
@@ -841,14 +908,25 @@ async function main() {
     '-r', String(FPS), '-movflags', '+faststart', out]);
   if (!KEEP) fs.rmSync(FRAMES, { recursive: true, force: true });
 
+  /* the sidecar, beside the clip and gitignored with it. it is what makes the
+     colour rule checkable after the fact rather than only trustable. */
+  fs.writeFileSync(path.join(OUT, 'globe-pings.json'), JSON.stringify({
+    tilt: TILT, spin0: SPIN0, rate: TURN_RATE,
+    disc: { cx: VW * DSF / 2, cy: VH * DSF / 2, r: GLOBE.d * DSF / 2 },
+    maxLum: PING.maxLum, minZ: PING.minZ, life: PING.life,
+    pings: schedule,
+  }, null, 2));
+
   const p = probe(out);
   console.log('  ' + path.relative(HERE, out));
   console.log('  ' + p.w + 'x' + p.h + ', ' + p.seconds + 's, ' + p.fps + 'fps, '
     + (fs.statSync(out).size / 1024).toFixed(0) + ' KB');
   const turned = TURN_RATE * SECONDS;
-  console.log('  ' + pings + ' pings scheduled on ' + PING.where + ', at most '
-    + mostAlive + ' on screen at once, on ' + pingFrames + ' of ' + N + ' frames'
-    + ' (the rest of each one is behind the globe)');
+  console.log('  ' + seen + ' pings on screen of ' + pings + ' scheduled (the rest fall '
+    + 'past the end of the clip), at most ' + mostAlive + ' at once, on '
+    + pingFrames + ' of ' + N + ' frames');
+  console.log('  every one born on a pixel the frame itself renders at or under '
+    + 'luminance ' + PING.maxLum + ', measured on the frame and not on the mask');
   console.log('  it turns ' + turned.toFixed(0) + ' degrees over the clip, '
     + TURN_RATE + ' a second, one direction, no ease');
 }
