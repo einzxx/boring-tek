@@ -6,6 +6,48 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's second cut is green at 12fps. It has a voice now, the
+  fall instead of a drop out, and green eyes.** Einz's seven fixes, one round, all
+  in. What is new that a later session cannot re-derive:
+  - **`fit()` must never set an inline `opacity` on something a css variable
+    drives.** The caret was measured with `caret.style.opacity = '1'` and an
+    inline declaration beats `opacity:var(--co,1)` for the rest of the render, so
+    it never blinked and was still sitting under a finished line with nobody
+    typing. **Every guard passed** — the numbers written were all correct and
+    nothing on the frame obeyed them. The video review caught it. Force a channel
+    on through its own variable when measuring.
+  - **Two guards that looked right and were wrong, both caught on the first run
+    of the round.** A "no red left in this file" check that scanned its own source
+    matched its own regex literal; it scans the generated page css now, sliced
+    past index.html's token blocks so the site's unused `--red` is not mistaken
+    for this clip using one. And post20's "the smash goes below zero exactly once"
+    is **one dip, which is two crossings** — counting crossings and asking for one
+    asks the curve to end on the wrong side of the axis.
+  - **A `worst of four sides` head guard cannot be used on a clip where he
+    falls in.** He is deliberately 317 device px above the top border while
+    airborne. post20's split is the answer and it is now here: on the mark all
+    four sides, in the air only the three he is not supposed to leave through.
+  - **The typing is the read at character level.** post20 cut its typing to the
+    read word by word; this places each character inside its own spoken word's
+    window, so a chat box still types letter by letter and the rhythm is the
+    reading's. The key ticks are gone entirely — the voice is the sound of the
+    typing.
+  - **`ai` lower case is read as a word by the synthesiser.** The box shows `ai`
+    and the take is sent `AI`. That is the one deliberate screen/voice difference
+    and there is a guard that it is the only one, which is post20's `u`/`you`
+    pattern.
+  - **The back half of the clock is pinned and the read has a ceiling.** The
+    bubble at 6.32 and the fault at 8.00 were signed off on the first cut, so the
+    read cannot run long: a guard fails the run if the landing leaves less than
+    half a second of hold before the bubble's own mark. The take is 2.12s and the
+    hold came out at 2.60s.
+  - **He is 54 css px left of centre and the box under him is centred, and the
+    two cannot be reconciled at this stage width.** The box is 384 wide with 78
+    css px either side, so it cannot move left with him. Either he centres and the
+    pill goes over the crown, or they stay offset. Einz's call; flagged in
+    `demo/out/review-post22-dark-1080x1920.md`. **Not pushed. 60fps final not run
+    yet.**
+
 - **2026-09-08: post22's first cut is green at 12fps and the frames found a dead
   spot.** `demo/post22.mjs`, new, dark only, 8.95s to
   `demo/out/post22-dark-1080x1920.mp4`. Somebody types "what did ai say to the
