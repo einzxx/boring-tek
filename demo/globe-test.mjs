@@ -97,11 +97,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { STAGE, GLOW, SAFE } from './lib/mascot.mjs';
+import { globeCss, globeMarkup, globeScript, GLOBE_FONT, readLand, LAND_FILE } from './lib/globe.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, 'out');
 const FRAMES = path.join(OUT, 'frames-globe');
-const LAND = path.join(HERE, 'assets', 'ne_110m_land.geojson');
+const LAND = LAND_FILE;
 
 const VW = STAGE.w, VH = STAGE.h, DSF = STAGE.dsf;
 
@@ -285,19 +286,18 @@ const CHROME = [
 ].find(p => { try { return fs.existsSync(p); } catch { return false; } });
 
 /* ---------- the page ----------
-   three canvases, stacked, all the same size and all drawn from the same two
-   image buffers. the two behind carry the disc in flat white and are blurred by
-   css; the one in front carries the globe. that is the face's arrangement
-   exactly — see `.m-glow-wide` / `.m-glow-mid` / `.m-face` in lib/mascot.mjs. */
+   the globe itself is `lib/globe.mjs` now, because post24 wanted the same one
+   in a film and two copies of a sphere is two spheres. what is left here is the
+   harness around it: a stage, the theme, and the one animation chrome needs to
+   keep producing frames. */
 function pageHtml(geojson) {
-  const px = GLOBE.d;
   return `<!doctype html>
 <html lang="en" data-theme="${THEME}">
 <head>
 <meta charset="utf-8">
 <title>globe</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@${PING.font.weight}&display=swap">
+<link rel="stylesheet" href="${GLOBE_FONT(PING.font.weight)}">
 <style>
 :root{ --bg:#ffffff; }
 [data-theme=dark]{ --bg:#06070a; }
@@ -312,448 +312,28 @@ body{width:${VW}px;height:${VH}px}
 .tick{position:absolute;left:-20px;top:-20px;width:2px;height:2px;background:var(--bg);
   will-change:transform;animation:tick 34s cubic-bezier(.45,0,.55,1) infinite alternate}
 @keyframes tick{from{transform:translate3d(0,0,0)}to{transform:translate3d(1px,0,0)}}
-
-.g-zone{position:absolute;left:${(GLOBE.cx - px / 2).toFixed(2)}px;top:${(GLOBE.cy - px / 2).toFixed(2)}px;
-  width:${px}px;height:${px}px}
-.g-zone canvas{position:absolute;inset:0;width:${px}px;height:${px}px;display:block}
-/* the face's own two layers, at the face's own numbers. */
-.g-glow{pointer-events:none}
-.g-glow-wide{filter:blur(${GLOW.wide.blur}px);opacity:${GLOW.wide.o}}
-.g-glow-mid{filter:blur(${GLOW.mid.blur}px);opacity:${GLOW.mid.o}}
+${globeCss(GLOBE_OPTS)}
 </style>
 </head>
 <body>
 <div class="stage">
   <div class="tick"></div>
-  <div class="g-zone">
-    <canvas class="g-glow g-glow-wide" id="g-wide"></canvas>
-    <canvas class="g-glow g-glow-mid" id="g-mid"></canvas>
-    <canvas id="g-sharp"></canvas>
-    <canvas id="g-ping"></canvas>
-  </div>
+  ${globeMarkup(geojson)}
 </div>
-<script type="application/json" id="land">${geojson.replace(/</g, '\\u003c')}</script>
 <script>
-(function(){
-  const D = ${GLOBE.d}, DSF = ${DSF}, SS = ${SS};
-  const MW = ${MASK.w}, MH = ${MASK.h};
-  const LIMB = ${JSON.stringify(LIMB)};
-  const TILT = ${TILT};
-  const N = Math.round(D * DSF);          /* device px across the disc */
-  const R = N / 2;
-
-  /* ---------- the land mask ----------
-     equirectangular, drawn once. this projection needs no clipping either: a
-     longitude is an x and a latitude is a y, and natural earth already splits
-     its rings at the antimeridian so nothing wraps across the seam. holes are
-     the second and later rings of a feature, so every feature is one path
-     filled evenodd — there is exactly one hole in this file and this is what
-     makes it a hole rather than a second island. */
-  function buildMask(fc){
-    const c = document.createElement('canvas');
-    c.width = MW; c.height = MH;
-    const g = c.getContext('2d', { willReadFrequently: true });
-    g.fillStyle = '#000'; g.fillRect(0, 0, MW, MH);
-    g.fillStyle = '#fff';
-    for (const f of fc.features){
-      const geom = f.geometry;
-      const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
-      for (const poly of polys){
-        g.beginPath();
-        for (const ring of poly){
-          for (let i = 0; i < ring.length; i++){
-            const x = (ring[i][0] + 180) / 360 * MW;
-            const y = (90 - ring[i][1]) / 180 * MH;
-            if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-          }
-          g.closePath();
-        }
-        g.fill('evenodd');
-      }
-    }
-    const d = g.getImageData(0, 0, MW, MH).data;
-    /* one byte a texel is all this needs, and it keeps the working set small
-       enough to stay in cache while a frame walks it in longitude order. */
-    const m = new Uint8Array(MW * MH);
-    for (let i = 0; i < m.length; i++) m[i] = d[i * 4];
-    return m;
-  }
-
-  /* ---------- the inverse projection, once ----------
-     for a pixel at (x, y) on the unit disc, the point on the sphere facing us
-     is (x, -y, sqrt(1 - x^2 - y^2)). undoing the tilt about the x axis gives
-     the latitude and the longitude **relative to whatever is facing the
-     camera**, which is the pair that does not change when the globe spins.
-
-     cov, below, is how much of the pixel is inside the disc, from the same
-     subsample grid, so the edge of the sphere is antialiased by the same pass
-     that antialiases the coastline. (no backticks in this comment on purpose:
-     it lives inside a template literal.) */
-  function project(){
-    const S = N * SS;
-    const lat = new Float32Array(S * S);
-    const lam = new Float32Array(S * S);
-    const on  = new Uint8Array(S * S);
-    const ct = Math.cos(TILT * Math.PI / 180), st = Math.sin(TILT * Math.PI / 180);
-    for (let j = 0; j < S; j++){
-      const y = ((j + 0.5) / SS - R) / R;
-      for (let i = 0; i < S; i++){
-        const k = j * S + i;
-        const x = ((i + 0.5) / SS - R) / R;
-        const r2 = x * x + y * y;
-        if (r2 > 1){ on[k] = 0; continue; }
-        on[k] = 1;
-        const pz = Math.sqrt(1 - r2), py = -y;
-        const b = ct * py + st * pz;          /* sin(phi) */
-        const a = -st * py + ct * pz;         /* cos(phi) cos(lam) */
-        lat[k] = Math.asin(Math.max(-1, Math.min(1, b))) * 180 / Math.PI;
-        lam[k] = Math.atan2(x, a) * 180 / Math.PI;
-      }
-    }
-
-    /* how fast latitude and longitude move across the screen, in degrees a
-       device pixel, by finite difference on the arrays we just filled. the
-       neighbours are one subsample apart, which is 1/SS of a pixel, so the
-       difference is multiplied back up by SS.
-
-       a pixel with no usable neighbour is one lone subsample at the very rim.
-       its gradient is set enormous, which makes the line spacing there
-       vanishingly small, which makes the fade below switch the grid off for it.
-       that is the correct answer rather than a fallback: there is nothing
-       truthful to draw in a pixel that thin. */
-    const gLon = new Float32Array(S * S);
-    const gLat = new Float32Array(S * S);
-    for (let j = 0; j < S; j++){
-      for (let i = 0; i < S; i++){
-        const k = j * S + i;
-        if (!on[k]) continue;
-        const kx = (i + 1 < S && on[k + 1]) ? k + 1 : ((i > 0 && on[k - 1]) ? k - 1 : -1);
-        const ky = (j + 1 < S && on[k + S]) ? k + S : ((j > 0 && on[k - S]) ? k - S : -1);
-        if (kx < 0 || ky < 0){ gLon[k] = 1e9; gLat[k] = 1e9; continue; }
-        const dxLon = wrapDeg(lam[kx] - lam[k]) * SS, dyLon = wrapDeg(lam[ky] - lam[k]) * SS;
-        const dxLat = (lat[kx] - lat[k]) * SS, dyLat = (lat[ky] - lat[k]) * SS;
-        gLon[k] = Math.hypot(dxLon, dyLon);
-        gLat[k] = Math.hypot(dxLat, dyLat);
-      }
-    }
-    return { S, lat, lam, on, gLon, gLat };
-  }
-
-  const wrapDeg = d => d - 360 * Math.round(d / 360);
-
-  /* one subsample's worth of graticule. the distance to the nearest line is
-     computed in degrees and then divided into pixels by the local gradient, so
-     the line is GRID.width across on the screen wherever it falls. the +0.5 is
-     a box filter over the pixel, which is what antialiases it. */
-  function line(lon, lat, gl, gt){
-    const half = GRID.width / 2;
-    const band = (d, g) => {
-      if (!(g > 0)) return 0;
-      const spacing = GRID.step / g;
-      if (spacing <= GRID.fadeLo) return 0;
-      const cov = Math.max(0, Math.min(1, half + 0.5 - Math.abs(d) / g));
-      if (cov <= 0) return 0;
-      const fade = Math.min(1, (spacing - GRID.fadeLo) / (GRID.fadeHi - GRID.fadeLo));
-      return cov * fade;
-    };
-    let v = band(wrapDeg(lon - Math.round(lon / GRID.step) * GRID.step), gl);
-    /* the parallel at either pole is a point, not a circle, so it is not drawn.
-       the meridians already meet there and drawing a nought radius circle on
-       top of them is a bright dot at the pole and nothing else. */
-    const nearLat = Math.round(lat / GRID.step) * GRID.step;
-    if (Math.abs(nearLat) < 90) v = Math.max(v, band(lat - nearLat, gt));
-    return v;
-  }
-
-  /* bilinear, wrapping in longitude so the seam at the antimeridian is a seam
-     in the data and not a seam on the screen. */
-  function sample(m, u, v){
-    let x = u - 0.5, y = v - 0.5;
-    const y0 = Math.max(0, Math.min(MH - 1, Math.floor(y)));
-    const y1 = Math.max(0, Math.min(MH - 1, y0 + 1));
-    const fy = Math.max(0, Math.min(1, y - y0));
-    let x0 = Math.floor(x) % MW; if (x0 < 0) x0 += MW;
-    let x1 = (x0 + 1) % MW;
-    const fx = x - Math.floor(x);
-    const a = m[y0 * MW + x0], b = m[y0 * MW + x1];
-    const c = m[y1 * MW + x0], d = m[y1 * MW + x1];
-    return ((a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy) / 255;
-  }
-
-  const fc = JSON.parse(document.getElementById('land').textContent);
-  const mask = buildMask(fc);
-  const P = project();
-
-  const sharp = document.getElementById('g-sharp');
-  const mid = document.getElementById('g-mid');
-  const wide = document.getElementById('g-wide');
-  for (const c of [sharp, mid, wide]){ c.width = N; c.height = N; }
-  const gs = sharp.getContext('2d');
-  const gm = mid.getContext('2d');
-  const gw = wide.getContext('2d');
-  const imgSharp = gs.createImageData(N, N);
-  const imgDisc = gs.createImageData(N, N);
-
-  /* the disc, in flat white, is the glow source and it never changes, so it is
-     painted once. this is the face's plate: the silhouette of the object, not
-     a picture of it. */
-  (function(){
-    const d = imgDisc.data, S = P.S;
-    for (let j = 0; j < N; j++){
-      for (let i = 0; i < N; i++){
-        let cov = 0;
-        for (let sj = 0; sj < SS; sj++){
-          const row = (j * SS + sj) * S + i * SS;
-          for (let si = 0; si < SS; si++) cov += P.on[row + si];
-        }
-        const k = (j * N + i) * 4;
-        d[k] = 255; d[k + 1] = 255; d[k + 2] = 255;
-        d[k + 3] = Math.round(255 * cov / (SS * SS));
-      }
-    }
-    gm.putImageData(imgDisc, 0, 0);
-    gw.putImageData(imgDisc, 0, 0);
-  })();
-
-  const LAND = [${INK.land}], OCEAN = [${INK.ocean}];
-  const GRID = ${JSON.stringify(GRID)};
-
-  function draw(spinDeg){
-    const d = imgSharp.data, S = P.S, n = SS * SS;
-    for (let j = 0; j < N; j++){
-      for (let i = 0; i < N; i++){
-        let cov = 0, land = 0, shade = 0, grid = 0;
-        for (let sj = 0; sj < SS; sj++){
-          const row = (j * SS + sj) * S + i * SS;
-          for (let si = 0; si < SS; si++){
-            const k = row + si;
-            if (!P.on[k]) continue;
-            cov++;
-            let lon = P.lam[k] - spinDeg;
-            lon = lon - 360 * Math.floor((lon + 180) / 360);
-            const ls = sample(mask, (lon + 180) / 360 * MW, (90 - P.lat[k]) / 180 * MH);
-            land += ls;
-            /* masked to the white areas by multiplying by the land coverage of
-               this very subsample, so the grid stops at a coastline with the
-               same antialiased edge the coastline itself has. */
-            if (GRID.on && ls > 0) grid += ls * line(lon, P.lat[k], P.gLon[k], P.gLat[k]);
-            /* the limb, computed on the subsample so it is smooth across the
-               pixel like everything else here. */
-            const x = ((i * SS + si + 0.5) / SS - R) / R;
-            const y = ((j * SS + sj + 0.5) / SS - R) / R;
-            const e = Math.abs(x), r = Math.sqrt(x * x + y * y);
-            shade += (1 - LIMB.amount * Math.pow(e, LIMB.power))
-                   * (1 - LIMB.radial * Math.pow(r, 3));
-          }
-        }
-        const k = (j * N + i) * 4;
-        if (!cov){ d[k + 3] = 0; continue; }
-        const L = land / cov, sh = shade / cov;
-        let r = OCEAN[0] + (LAND[0] - OCEAN[0]) * L;
-        let g = OCEAN[1] + (LAND[1] - OCEAN[1]) * L;
-        let b = OCEAN[2] + (LAND[2] - OCEAN[2]) * L;
-        /* the grid goes on before the limb shading, not after, so a line at the
-           edge of the sphere dims with the ground it is drawn on. a graticule
-           composited over the top would stay at full strength into the dark
-           edge and read as a wire in front of the globe rather than as
-           something printed on it. */
-        if (grid > 0){
-          const a = (grid / cov) * GRID.o;
-          r += (GRID.ink[0] - r) * a;
-          g += (GRID.ink[1] - g) * a;
-          b += (GRID.ink[2] - b) * a;
-        }
-        r *= sh; g *= sh; b *= sh;
-        d[k] = r; d[k + 1] = g; d[k + 2] = b;
-        d[k + 3] = Math.round(255 * cov / n);
-      }
-    }
-    gs.putImageData(imgSharp, 0, 0);
-  }
-
-  /* ---------- the pings ----------
-     the same lcg lib/mascot.mjs seeds its idle from, so the schedule is uneven
-     the way a real one is and identical on every run. */
-  const PING = ${JSON.stringify(PING)};
-  const SECONDS = ${SECONDS};
-  function prng(seed){
-    let s = seed >>> 0;
-    return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
-  }
-
-  const ping = document.getElementById('g-ping');
-  ping.width = N; ping.height = N;
-  const gp = ping.getContext('2d');
-  const DEG = Math.PI / 180;
-  const CT = Math.cos(TILT * DEG), ST = Math.sin(TILT * DEG);
-  const SPIN0 = ${SPIN0}, RATE = ${TURN_RATE};
-
-  /* the forward projection, which is the inverse of the one the pixels use and
-     has to agree with it exactly or a ping sits next to its own country. */
-  function forward(lon, lat, spin){
-    const lam = (lon + spin) * DEG, phi = lat * DEG;
-    const px = Math.cos(phi) * Math.sin(lam);
-    const py = CT * Math.sin(phi) - ST * Math.cos(phi) * Math.cos(lam);
-    const pz = ST * Math.sin(phi) + CT * Math.cos(phi) * Math.cos(lam);
-    return { x: R + R * px, y: R - R * py, z: pz, vis: pz >= 0 };
-  }
-
-  /* is the picture black at this screen point. reads imgSharp.data, which is
-     the frame itself: the same bytes that go to the canvas and into the
-     screenshot. alpha under 250 means the point is off the disc or on its
-     antialiased rim, and neither is inside the globe. (no backticks in this
-     comment on purpose: it lives inside a template literal.) */
-  function darkHere(x, y){
-    const xi = Math.round(x), yi = Math.round(y);
-    if (xi < 0 || yi < 0 || xi >= N || yi >= N) return false;
-    const d = imgSharp.data, k = (yi * N + xi) * 4;
-    if (d[k + 3] < 250) return false;
-    return (d[k] * 0.299 + d[k + 1] * 0.587 + d[k + 2] * 0.114) <= PING.maxLum;
-  }
-
-  /* a place to be born: area correct, **facing the camera**, and **black on the
-     frame it is born on**.
-
-     facing the camera is the difference between a schedule and a clip. a point
-     picked anywhere on the sphere is on the far side half the time, and a ping
-     that spawns back there lives its whole 0.8s behind the globe and is never
-     seen — one render of this had two pings on screen at best and nineteen of
-     thirty six frames with none at all. requiring z above minZ means every ping
-     is actually watched to start. it does not stop one leaving: the globe turns
-     19 degrees in a ping's lifetime, so one born near the edge of the face
-     still rotates out under its own fade.
-
-     black on the frame is the colour rule, and it needs the frame, so the globe
-     is drawn at this ping's own moment before any candidate is judged. that is
-     one full render per scheduled ping, about a dozen over a clip, and it is
-     worth it: it is the only test that cannot disagree with what ships. */
-  function spawnPoint(rnd, t){
-    const spin = SPIN0 + RATE * t;
-    draw(spin);                       /* the frame this ping is born on */
-    const c = PING.clear;
-    for (let i = 0; i < 20000; i++){
-      const lon = rnd() * 360 - 180;
-      const lat = Math.asin(rnd() * 2 - 1) * 180 / Math.PI;
-      const q = forward(lon, lat, spin);
-      if (q.z < PING.minZ) continue;
-      if (!darkHere(q.x, q.y)) continue;
-      if (!darkHere(q.x + c, q.y) || !darkHere(q.x - c, q.y)
-        || !darkHere(q.x, q.y + c) || !darkHere(q.x, q.y - c)) continue;
-      return { lon: lon, lat: lat };
-    }
-    return null;
-  }
-
-  const sched = (function(){
-    if (!PING.on) return [];
-    const rnd = prng(PING.seed);
-    const out = [];
-    /* **the schedule starts before the clip does.** a first spawn at t=0 or
-       later leaves frame one as a bare globe, and on a three second clip the
-       opening frame is a large share of what anyone sees before deciding. so
-       the first ping is born at a random offset in the past and is already
-       partway through its life when the clip opens: 15% to 75% through, which
-       is alpha 0.79 down to 0.13, so it is always visibly there on frame one
-       and never at full size. */
-    let t = -PING.life * (0.15 + rnd() * 0.60);
-    while (t < SECONDS + PING.life){
-      const p = spawnPoint(rnd, t);
-      if (p) out.push({ t: t, lon: p.lon, lat: p.lat });
-      t += PING.every[0] + rnd() * (PING.every[1] - PING.every[0]);
-    }
-    return out;
-  })();
-
-  /* which pings were ever actually put on a frame. the schedule deliberately
-     runs past the end of the clip so the last second is not thinner than the
-     rest, so "scheduled" and "seen" are different numbers and the run should
-     report the one a viewer gets. */
-  const seen = new Set();
-
-  function drawPings(t, spin){
-    gp.clearRect(0, 0, N, N);
-    if (!PING.on) return 0;
-    const live = [];
-    for (const p of sched){ if (t >= p.t && t < p.t + PING.life) live.push(p); }
-    /* the ceiling keeps the newest, because the oldest are the faintest and are
-       the ones a viewer has already read. */
-    const use = live.slice(-PING.max);
-    gp.save();
-    /* clipped to the disc, which is what makes a ping near the edge disappear
-       into the limb instead of hanging off the side of the sphere. */
-    gp.beginPath(); gp.arc(R, R, R, 0, Math.PI * 2); gp.clip();
-    gp.lineWidth = PING.width;
-    gp.strokeStyle = 'rgb(' + PING.ink + ')';
-    gp.fillStyle = 'rgb(' + PING.ink + ')';
-    gp.font = PING.font.weight + ' ' + PING.font.size + 'px "' + PING.font.family + '", sans-serif';
-    gp.textAlign = 'center';
-    gp.textBaseline = 'middle';
-    let drawn = 0;
-    for (const p of use){
-      const q = forward(p.lon, p.lat, spin);
-      if (!q.vis) continue;                 /* on the far side, so behind the globe */
-      seen.add(p.t);
-      const u = (t - p.t) / PING.life;
-      /* out fast then settling, which is what a ping does. the fade is a shade
-         faster than linear so the ring is gone before it reaches full size
-         rather than snapping off at it. */
-      const grow = 1 - Math.pow(1 - u, 3);
-      const a = Math.pow(1 - u, 1.5);
-      const rad = Math.max(0.5, (PING.size / 2) * grow);
-      gp.globalAlpha = a;
-      gp.beginPath(); gp.arc(q.x, q.y, rad, 0, Math.PI * 2); gp.stroke();
-      /* the label does not grow with the ring. a two letter word scaling up
-         from nothing reads as a zoom; held still at the centre it reads as a
-         thing the ring is about. */
-      gp.fillText(PING.label, q.x, q.y);
-      drawn++;
-    }
-    gp.restore();
-    return drawn;
-  }
-
-  window.__globe = {
-    ready: true,
-    n: N,
-    pings: sched.length,
-    /* the schedule, so the run can be checked against the encoded clip from
-       outside this page. the colour rule is enforced in here against the frame
-       buffer; handing the points out lets it be re-proved against the mp4 with
-       an independently written projection, which is the only version of the
-       check that shares no code with the thing it is checking. */
-    schedule: sched,
-    seen(){ return seen.size; },
-    apply(t, spin){ draw(spin); return drawPings(t, spin); },
-    /* what got built, for the run's own log. a render that reports nothing
-       cannot be argued with afterwards. */
-    stats(){
-      let land = 0, on = 0;
-      for (let i = 0; i < P.on.length; i++){ if (P.on[i]) on++; }
-      for (let i = 0; i < mask.length; i++){ if (mask[i] > 127) land++; }
-      /* six places whose answer is not a matter of opinion. if any of these is
-         wrong the mask is wrong, and it is wrong in a way a picture of a globe
-         will not obviously show — sea and land are both plausible shapes. */
-      const probe = (lon, lat) => +sample(mask, (lon + 180) / 360 * MW, (90 - lat) / 180 * MH).toFixed(2);
-      return {
-        disc: N, samples: on,
-        maskLandPct: +(100 * land / mask.length).toFixed(2),
-        features: fc.features.length,
-        probes: {
-          'sahara 20E 20N': probe(20, 20),
-          'amazon 60W 5S': probe(-60, -5),
-          'siberia 100E 60N': probe(100, 60),
-          'mid atlantic 30W 0N': probe(-30, 0),
-          'mid pacific 150W 0N': probe(-150, 0),
-          'south indian 80E 40S': probe(80, -40),
-        },
-      };
-    },
-  };
-})();
-</script>
+${globeScript(GLOBE_OPTS)}
+<\/script>
 </body>
 </html>`;
 }
+
+/* every flag this harness carries, folded into the shape lib/globe.mjs takes.
+   the module holds the defaults; this holds the knobs. */
+const GLOBE_OPTS = {
+  d: GLOBE.d, cx: GLOBE.cx, cy: GLOBE.cy, dsf: DSF, ss: SS, mask: MASK,
+  tilt: TILT, spin0: SPIN0, rate: TURN_RATE, seconds: SECONDS,
+  limb: LIMB, ink: INK, grid: GRID, ping: PING,
+};
 
 function serve(html) {
   const srv = http.createServer((req, res) => {
@@ -773,7 +353,7 @@ const spinAt = t => SPIN0 + TURN_RATE * t;
 
 async function open() {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
-  const geojson = fs.readFileSync(LAND, 'utf8');
+  const geojson = readLand();
   const { srv, port } = await serve(pageHtml(geojson));
   const browser = await puppeteer.launch({
     executablePath: CHROME,
