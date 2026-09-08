@@ -6,6 +6,36 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post22's sixth cut is green at 12fps and 7.07s. The pill is held
+  past the module's own exit.** Einz reported the bubble missing and asked for a
+  second on the hold. What a later session cannot re-derive:
+  - **`BUBBLE` caps a thought at 1.68s end to end — 0.48 in, 0.90 hold, 0.30 out —
+    and no clip may ask for more.** Every earlier cut of post22 hid that by
+    putting the fault at the end of exactly that life, so the two agreed by
+    construction. The moment a hold is asked for that is longer than 1.68, **the
+    pill leaves before the beat ends and every guard still passes**, because the
+    bubble's own timings are the module's and are internally consistent. That is
+    the trap.
+  - **The fix is to freeze the module's own bubble frame, not to re-time it.**
+    `BUB_FREEZE` holds `mascotFrame(plan, BUB.full).bubble` from the frame the
+    pill is fully up until the fault, applied in `compose` the same way the iris
+    override, the glove gate and the fall are. The dots, the pop and the spring
+    all still play — only the exit is replaced. **This is the pattern for any
+    clip that needs a thought to outlast the module's ceiling.**
+  - **The guard is on the composed frame, not the plan**, and it fails from both
+    ends: the pill must not fade or shrink anywhere inside the hold, and the
+    module's own `out` must land *before* the fault — because if it did not, the
+    freeze would be doing nothing and nobody would find out.
+  - **Einz's "the bubble is missing" was not true of the committed file.** The
+    frame at 4.20s of that build shows it, and the `pillText` guard read it back
+    off the rendered element. Most likely an older render — `demo/out/` is
+    overwritten in place several times a session. Worth remembering before
+    chasing a phantom: check the current file first, then fix the real thing.
+  - **A brief that asks for a longer hold also asks for the mascot to stay
+    alive**, so there is a guard that at least one blink lands inside the hold.
+    Seed 27 puts one at 4.02. **Open: it is in the hold's first half second, so
+    the last 1.8s is drift and breathe only.** Not pushed.
+
 - **2026-09-08: post22's fifth cut is green at 12fps. No voice, no fringing, red
   laser eyes.** Einz's six fixes, one round. What a later session cannot re-derive:
   - **A clip can lose its voice and keep its clock by freezing the word table.**

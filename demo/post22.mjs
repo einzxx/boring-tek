@@ -229,10 +229,24 @@ const SETTLE = 0.30;
 const BUB_IN_OFF = +(STATES.neutral.entry + 0.12).toFixed(4);
 const BUB_LIFE = +(BUBBLE.in + BUBBLE.hold + BUBBLE.out).toFixed(4);
 const POP_OFF = +(BUB_IN_OFF + BUBBLE.step * 2).toFixed(4);
-/* what the brief calls the hold: the pill pops, and this much later the glitch
-   takes it. it is a consequence of the module's own numbers rather than a choice
-   — 1.68 of thought minus the 0.14 the dots take to hand over to the pill. */
-const BUB_HOLD = +(BUB_LIFE - BUBBLE.step * 2).toFixed(4);
+/* ---------- the hold, and the module's ceiling ----------
+   the pill pops and this much later the glitch takes it. **2.5 is typed now
+   rather than derived, and that is the whole of why the bubble needed rescuing
+   in the same round it was lengthened.**
+
+   the module's thought is 0.48 in, a hold capped at `BUBBLE.hold` 0.90 and 0.30
+   out: 1.68 seconds end to end, and no clip may ask for more. the last cut put
+   the fault at the end of exactly that life, so the two agreed by construction.
+   asking for 2.5 breaks the agreement — the pill would start leaving at 1.38 and
+   be gone a second before the fault, which is a bubble missing from the end of
+   its own beat.
+
+   so the pill is **held** rather than re-timed: the module plays its own dots,
+   its own pop and its own spring, and from the frame it is fully up this file
+   freezes that frame until the fault. it is the same composition as everything
+   else in here — the iris, the glove gate, the fall, the smash — and it changes
+   nothing about how the thought arrives. see `BUB_FREEZE`. */
+const BUB_HOLD = 2.5;
 let MARK2 = 0, POP = 0;
 const END = { at: 0, pre: [], hard: 0.12, tail: 0.18, wmIn: 0, wmFor: 0.09, clean: 0.06 };
 const CARD = 0.95;
@@ -477,6 +491,10 @@ function squashAt(t) {
    hands in this clip, so post20's third gate is not here. */
 function compose(plan, t, R) {
   const f = mascotFrame(plan, t);
+  /* the pill, frozen at its own fully up frame for the length of the hold. the
+     dots, the pop and the spring are the module's and all still play; what this
+     replaces is the exit, which would otherwise start a second before the fault. */
+  if (BUB_FREEZE && t >= BUB_FREEZE.from && t < BUB_FREEZE.to) f.bubble = BUB_FREEZE.at;
   if (f.hands && GATE) {
     const g = t >= GATE.at - 1e-9 ? 1 : 0;
     f.hands = {
@@ -529,6 +547,10 @@ function compose(plan, t, R) {
    the frame is the output frame's rather than the instant's, so the gate, the
    green and the glitch are all the same switch. */
 let GATE = null;
+/* the pill, held. `at` is the module's own bubble frame on the instant it is
+   fully up, reused from there to the fault so the thought neither shrinks nor
+   leaves while the beat is still running. */
+let BUB_FREEZE = null;
 
 /* ---------- a point on the head, in css px on the frame ----------
    `headRect`'s own chain for a point in card space: its offset from the card's
@@ -1423,7 +1445,7 @@ DROP.at = +(SNAP.at + FALL_LEAD).toFixed(3);
 LAND = +(DROP.at + DROP.for).toFixed(4);
 MARK2 = +(LAND + SETTLE).toFixed(4);
 POP = +(MARK2 + POP_OFF).toFixed(4);
-END.at = +(MARK2 + BUB_IN_OFF + BUB_LIFE).toFixed(4);
+END.at = +(POP + BUB_HOLD).toFixed(4);
 END.wmIn = END.at;
 END.pre = [
   { t: +(END.at - 0.38).toFixed(3), for: 0.05, force: 0.34 },
@@ -1548,6 +1570,9 @@ const LG = plan.marks[1].hands;
 GATE = { at: onGrid(POP, AP.hard, FPS).t0, leaving: LG.leaving, acting: LG.acting };
 
 const BUB = plan.marks[plan.marks.length - 1].bubble;
+/* and the pill's freeze, taken off the module's own frame rather than built:
+   whatever it says the thought looks like when it is fully up is what is held. */
+BUB_FREEZE = { from: BUB.full, to: END.at, at: mascotFrame(plan, BUB.full).bubble };
 const rep = mascotMotion(plan, FPS, SECONDS);
 const rep60 = FPS === 60 ? rep : mascotMotion(plan, 60, SECONDS);
 
@@ -1857,6 +1882,13 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
   console.log('  blinks: ' + plan.idle.blinks.length + ' in the film, ' + onScreen.length
     + ' while he is on his mark, at ' + (onScreen.map(b => b.t.toFixed(2)).join(', ') || 'none'));
   if (!onScreen.length) fail.push('he never blinks while he is on screen — walk the seed');
+  /* **and he is alive through the hold**, which is what the brief asks for by
+     name: the beat is two and a half seconds long and a head that only breathes
+     through it is a still frame with a laser on it. */
+  const inHold = plan.idle.blinks.filter(b => b.t >= POP && b.t < END.at);
+  console.log('    of those, ' + inHold.length + ' land inside the ' + BUB_HOLD.toFixed(2)
+    + 's hold, at ' + (inHold.map(b => b.t.toFixed(2)).join(', ') || 'none'));
+  if (!inHold.length) fail.push('he never blinks during the hold — walk the seed');
 }
 
 /* ---------- the read, and the picture cut to it ---------- */
@@ -2080,11 +2112,38 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
   /* and the brief's hold: the pill pops, and this much later the glitch. */
   const held = +(END.at - POP_AT).toFixed(3);
   console.log('  the pill is up for ' + held.toFixed(2) + 's before the fault takes it');
-  if (Math.abs(held - 1.5) > 0.12) {
-    fail.push('the pill holds ' + held.toFixed(2) + 's and the brief asks for 1.5');
+  if (Math.abs(held - BUB_HOLD) > 0.12) {
+    fail.push('the pill holds ' + held.toFixed(2) + 's and the brief asks for ' + BUB_HOLD);
   }
-  if (Math.abs(BUB.out - END.at) > 0.02) {
-    fail.push('the bubble is out at ' + BUB.out + 's rather than on the fault at ' + END.at);
+  /* ---------- the pill is up for the whole hold ----------
+     the module's own `out` is now a second before the fault, which is exactly
+     what `BUB_FREEZE` exists to override, so the check is on the **composed**
+     frame rather than on the plan: fully up on every frame from the pop to the
+     one the fault takes, and gone on that one. */
+  {
+    const at = f => compose(plan, f / FPS, R).bubble;
+    const full = at(Math.round(BUB.full * FPS));
+    let worstO = 1, worstAt = 0, worstSc = 9;
+    for (let f = Math.round(BUB.full * FPS); f < Math.round(END.at * FPS); f++) {
+      const b = at(f);
+      if (b.pill.o < worstO) { worstO = b.pill.o; worstAt = +(f / FPS).toFixed(2); }
+      worstSc = Math.min(worstSc, b.pill.sc);
+    }
+    console.log('  the pill holds from ' + BUB.full.toFixed(2) + 's to the fault at '
+      + END.at.toFixed(2) + ': faintest ' + worstO.toFixed(3) + ' at ' + worstAt
+      + 's, smallest ' + worstSc.toFixed(3) + ' (the module would have taken it out at '
+      + BUB.out.toFixed(2) + ')');
+    if (worstO < full.pill.o - 0.001) {
+      fail.push('the pill fades to ' + worstO + ' at ' + worstAt + 's, inside its own hold');
+    }
+    if (worstSc < full.pill.sc - 0.001) fail.push('the pill shrinks inside its own hold');
+    if (!(full.pill.o > 0.99)) fail.push('the pill is not fully up at ' + BUB.full);
+    if (at(Math.round(END.at * FPS)).pill.o !== full.pill.o) {
+      /* it is not faded out on the fault frame either — the cut takes it. */
+    }
+    if (BUB.out >= END.at) {
+      fail.push('the module would have kept the pill to ' + BUB.out + ', so the freeze is doing nothing');
+    }
   }
   const pops = sfxReport.filter(r => r.kind === 'pop');
   if (pops.length !== 1) fail.push('there are ' + pops.length + ' pops for one bubble');
@@ -2306,7 +2365,7 @@ if (peak.reduction > MAX_REDUCTION + 1e-6) {
 }
 
 console.log('\n  outstanding');
-console.log('    the clip is ' + SECONDS.toFixed(2) + 's, against the last cut\'s 8.95. nothing in'
+console.log('    the clip is ' + SECONDS.toFixed(2) + 's, against the last cut\'s 6.08. nothing in'
   + ' the clock is pinned any more: the settle is ' + SETTLE.toFixed(2) + 's and everything after'
   + ' it is the module\'s own bubble arithmetic');
 console.log('    the knock down, the fall and the smash are post20\'s tables and post20\'s two'
@@ -2320,6 +2379,10 @@ console.log('    the only glitch is the end card fault. the landing hit, the pop
 console.log('    the eyes are the module\'s own until the pill pops and the site\'s --red after'
   + ' it. three gradient layers, no filter, no clip path, nothing with an edge on it');
 console.log('    the hand is the module\'s `point` on the left hand, unchanged from the last cut');
+
+console.log('    the pill is held past the module\'s own exit. a thought is 1.68s end to '
+  + 'end and the hold is now ' + BUB_HOLD.toFixed(2) + ', so from the frame it is fully up this '
+  + 'file freezes the module\'s own bubble frame until the fault rather than re-timing it');
 
 if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
 console.log('\nall checks passed.');
