@@ -140,6 +140,15 @@ All headless Chrome, all tooling. The renderers first:
   twentieth clip. post12 is the template for the frame, the fault and the end
   card; post19 for the fall, the smash and the read's own machinery. Out to
   `demo/out/post20-dark-1080x1920.mp4`. See The twentieth clip.
+- **`post22.mjs`** renders a 7.07 second clip, vertical, dark only, **and it is
+  the first clip in the folder with no voice in it and no read to fetch.** A chat
+  box types a question into a black frame, is knocked down to the lower third and
+  stays there with the question still in it; he falls into the space it left as
+  the ordinary mascot; and one frame later the pill, the pointing hand and a set
+  of red lasers all arrive together. Out to
+  `demo/out/post22-dark-1080x1920.mp4`. post20 is the template for the knock
+  down, the fall and the smash, and post12 for the fault and the end card. See
+  The twenty second clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -5977,6 +5986,205 @@ check, which is now its inverse.
 - **The glove fades while it is still travelling home.** See the note above.
 - **`point-viewer` still does not say "at you"**, and the fix is still a third
   traced drawing. Nothing in this clip depends on it any more.
+
+## The twenty second clip — no voice, a held pill and a laser
+
+`demo/post22.mjs`, dark only, 7.07 seconds, shipped at 60fps with the shutter
+open at six subframes a frame. A chat box types `what did ai say to the
+terminator?` into a black frame, drops to the lower third and stays there with
+the question still in it. He falls in as the ordinary mascot — the module's own
+dark iris, its own idle, its own white glow. A beat later the pill pops with
+`AI’ll be back` in it, the pointing hand is cut in on his left, and his eyes
+light red with a streak across them and two beams out at the viewer. Two and a
+half seconds later post12's fault takes the lot and puts the wordmark up.
+
+It went through six cuts and a final, and most of what is worth keeping is what
+each one broke.
+
+### There is no voice, and the clock survived anyway
+
+The read drove the typing character by character: every letter of the line is
+placed inside its own spoken word's window, so the line types unevenly the way a
+person reads rather than on a grid. The brief then took the voice out — the line
+is spoken over the finished file — which would ordinarily throw that away.
+
+So the word list is **frozen into the file as a literal**, `WORD_CLOCK`, and
+every time downstream is bit identical to the cut that fetched it. Nothing
+touches `demo/out/voice/` at render time and the clip has no network dependency
+at all. **The silence the read left, 0.25 to 1.83, is untouched and guarded**:
+nothing sounds before the pill's own pop at 3.62.
+
+This is the pattern for any clip that needs its picture timing to outlive its
+read.
+
+### What was learned about the voice before it came out
+
+Two things worth keeping even though the voice is gone.
+
+**`rate` and `pitch` are a global speed and a global transpose and they cannot
+change how one word sits against another.** A review said `did` sounded strange;
+six deliveries of the same line were fetched and measured and `did` came back at
+1.06x the line's mean per syllable and 1.38x `what` in every single one, to two
+decimal places. No delivery was ever going to fix it.
+
+**What sounded wrong was a gap, not a word.** The engine was putting 0.136s of
+silence directly *after* `did`, against 0.014 between every other pair, because
+it broke the phrase before spelling out `AI`. Five spellings were measured for
+the silence in front of them — `AI` 0.136, `ai` 0.081, `Ai` 0.109, **`A.I.`
+0.014** — and `A.I.` was sent while the screen kept `ai`, which is post20's
+`u`/`you` shape. A word with a tenth of a second hanging off the end of it is a
+word that sounds odd, and it is the neighbour that is at fault.
+
+**And `speak()` escapes its input, so the ssml question form is unreachable.**
+The way to make a question rise is the last word on its own take: five tail
+pitches were measured against where the body ends and **+5Hz gave both the
+biggest rise (+33.0 Hz across the word) and the smallest join step (+0.9)**. The
+single take rose only +13.3. `contour()`, an autocorrelation pitch tracker, is
+still in the file's history for the next clip that needs it.
+
+### The module caps a thought at 1.68 seconds
+
+0.48 in, a hold capped at `BUBBLE.hold` 0.90, and 0.30 out. **No clip may ask for
+more**, and every earlier cut of this file hid that by putting the fault at the
+end of exactly that life, so the two agreed by construction.
+
+The moment a longer hold was asked for, the pill left before the beat ended —
+**and every guard still passed**, because the bubble's own timings are the
+module's and are internally consistent. That is the trap.
+
+The fix is to freeze rather than re-time. `BUB_FREEZE` holds
+`mascotFrame(plan, BUB.full).bubble` from the frame the pill is fully up until
+the fault, applied in `compose` the same way the iris override, the glove gate
+and the fall are. The dots, the pop and the spring all still play; only the exit
+is replaced. **The guard is on the composed frame and fails from both ends** —
+the pill may not fade or shrink inside the hold, and the module's own `out` must
+land before the fault, because otherwise the freeze would be doing nothing and
+nobody would find out.
+
+### `point-camera.svg` does not exist, and `point` does not read
+
+The brief asked for a new pose registered from
+`demo/assets/hands/point-camera.svg`, a fist pointing straight at the viewer.
+**That file is not in the repo** and the run stopped rather than drawing a hand
+in code. What it would need, if it is ever made:
+
+- `demo/assets/hands/point-camera.svg`, `viewBox="0 0 400 400"`, a single
+  `<path fill="#ffffff" fill-rule="evenodd">`, coordinates untouched — the same
+  shape as the twelve traces already in that folder.
+- **Registration is a paste, not a load.** The `d` string is inlined into
+  `HAND_SHAPES` in `lib/mascot.mjs` as a string literal; the module never reads
+  the file at runtime. Each entry also needs a `wrist: [x, y]` anchor.
+- It must carry `['point-camera', 'point-camera']` rather than a bare string, so
+  it is never mirrored — `point-side`'s documented lesson.
+
+Instead the clip uses the module's own `point`, placed exactly as
+`mascot-test.mjs` places it: `side: 'left'` on the mark. **`side: 'left'` and
+"not mirrored" are one fact rather than two** — `point` carries a bare shape
+string and `handShape` gives hand 0, the screen left one, the traced file and
+hand 1 its mirror, so asking for the left hand *is* asking for the drawing as it
+was traced.
+
+**It does not read, and the module said so first.** On the frame it is a small
+white lump with a dark squiggle, half buried behind the plate. `point` aims the
+finger at camera, foreshortened, and the module's own note records that at a
+240px head "the tip closes into the fist and what is left is a fist with a bump
+on it" — which is why `point-viewer` was added. The second problem is
+composition: mascot-test's mascot stands in a corner with clear space off his
+flank, and this one is near the middle, so mirrored onto the left hand the pose
+lands on top of the head.
+
+### The lasers, and why nothing in them has an edge
+
+The eyes are the module's own dark iris until the pill pops and index.html's own
+`--red` after it. Three layers a side and **not one is clipped or filtered**:
+every one is a radial gradient that reaches zero alpha inside its own box, so
+there is nothing to feather and no seam anywhere.
+
+    the core    a 22px disc at the centre of each eye, white hot in the middle.
+                **22 rather than 40, and the eye's own shape is why**: the iris
+                is a flat pill 30 css px across and 10 tall, and a 40px disc over
+                it covered it completely — the frame showed a round red light
+                where a slab should be. Measure the feature before sizing the
+                glow.
+    the streak  one very wide, very shallow ellipse per eye, so the pair overlap
+                across the bridge and run past both edges of the head.
+    the beams   one a side, out of the eye and down at the viewer, tilted +12 and
+                -12 so they leave the frame wider than they started. Elongated
+                radial gradients anchored at the eye, so a beam has no sides —
+                it only stops being bright.
+
+A blur filter over a layer this size is a full frame raster every frame, and the
+gradient already is the blur. There is a guard that `clip-path`, `filter:`,
+`border:` and `box-shadow` appear nowhere in the laser block.
+
+### The split reaches the wordmark and nothing else
+
+`.stage[data-gl="1"]` rules on the mascot and the box put red and blue edges on
+him during the two stutters before the fault, and the frames showed exactly what
+that is: colour fringing on a mascot who is not glitching. A guard now scans the
+rendered page for every `[data-gl="1"]` rule and fails unless the only one is
+`.wm`. The landing's hit, the pop's hit and the three stutters went with it —
+**the only glitch in the film is the end card's fault.**
+
+### Four bugs the guards could not see and the frames could
+
+**The caret was welded on.** `fit()` measured the line with
+`caret.style.opacity = '1'`, and an inline declaration beats the
+`opacity:var(--co,1)` that drives it — so it never blinked and was still sitting
+under a finished line with nobody typing. Every number the guards read was
+correct. Force a channel on through its own variable when measuring.
+
+**The glint aliased with the preview.** Its slots had `period: 5` and a 12fps
+frame steps exactly 5 of the 60-frame grid they are written against, so every
+slot froze on one phase: one star on for nineteen straight frames, others never
+firing. Invisible at 60. **A period written against the 60 grid must not be a
+multiple of five**, and the guard walks both grids.
+
+**A clip with no captions has no brand tokens.** `captionCss` is what emits
+index.html's `:root` and `html[data-theme=dark]` blocks into the page, and every
+clip before this one called it. Without it `--bg`, `--fg` and `--bub` are
+undefined: the first render came back **white**, with a borderless box and
+invisible icons, and every geometry guard passed on it. This file emits the two
+blocks itself out of `brandTokens()`.
+
+**And `css.indexOf('--mono:')` is not a safe slice point** — index.html's own
+`:root` declares `--mono` and it is emitted first, so a guard slicing there scans
+the site's whole token block. There is a sentinel comment in the page now.
+
+### The final, and the one fault in it
+
+`--blur=6`, which is post20's number and is there because the fall wants it:
+2544 captures averaged into 424 frames. 1.94 MB, -21.9 LUFS integrated, true
+peak -1.7 dBFS.
+
+**The shutter ran and the frames prove it**: at 2.50s, the fall's fastest moment,
+the head is a vertical smear; at 2.75s on his mark he is sharp. That is the
+video-review checklist's own test for whether `--blur` did anything.
+
+**The smear shows six discrete copies rather than one streak.** At 38.03 css px a
+frame across six samples the copies land 6.3 css px apart, and on the eye slabs —
+small and hard edged — that reads as a stack. It is under `STEP_CEIL`, which is
+about the ceiling past which `tmix` blends separated copies, and it is still
+visible because the feature is small rather than because the move is too fast.
+`--blur=10` or `12` would close it at roughly twice the render. Not run: 6 is the
+number the file names.
+
+### Outstanding
+
+- **The hand does not read.** Flagged on four cuts. Either revert to
+  `point-viewer`, supply `assets/hands/point-camera.svg`, or move him so there is
+  clear space on his left — which moves the pill too.
+- **The lasers do not change across the 2.5 second hold.** They are a hard cut on
+  one frame and then a constant. Over 1.5s that read as a state; over 2.5s a very
+  slow breath in the beams would carry it better.
+- **There is one blink in the hold and it is at 4.02**, in its first half second,
+  so the last 1.8s is drift and breathe under a frozen pill and a static laser.
+  The idle's `seed` is the knob.
+- **The six-copy smear**, above.
+- He is 54 css px left of centre over a centred box, which is the pill's doing
+  and cannot be reconciled at this stage width: the box is 384 wide with 78 css
+  px either side and cannot move left with him.
+- **post21 still has no section in this file.**
 
 ## The og card
 

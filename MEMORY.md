@@ -6,23 +6,52 @@ names in here either.
 
 ## Status
 
-- **2026-09-08: post22's 60fps final is rendered and green.** `--blur=6`, the
-  file's own number off post20, 2544 captures averaged into 424 frames, 7.07s,
-  1.94 MB, -21.9 LUFS, true peak -1.7. Every guard that passed on the preview
-  passed at sixty. What is new:
-  - **The shutter ran and the frames prove it**: at 2.50s, the fall's fastest
-    moment, the head is a vertical smear; at 2.75s on his mark he is sharp. That
-    is the video-review checklist's own test for whether `--blur` did anything.
-  - **Open, and it is the only fault in the final: the smear shows six discrete
-    copies rather than one streak.** At 38 css px a frame across six samples the
-    copies land 6.3 css px apart, and on the eye slabs — small and hard edged —
-    that reads as a stack. `STEP_CEIL` is about the ceiling past which tmix
-    blends separated copies; this is under it and still visible because the
-    feature is small. **`--blur=10` or `12` would close it at roughly twice the
-    render.** Not run: 6 is the number the file names and the call is Einz's.
-  - A 60fps pass at six subframes is about 25 minutes of capture on this machine
-    plus blending and encode. Run it in the background.
-    **Not pushed.**
+- **2026-09-08: post22 is finished and the 60fps final is rendered, green and
+  committed. Not pushed.** `demo/post22.mjs` -> `demo/out/post22-dark-1080x1920.mp4`,
+  1080x1920 @60fps, 7.07s, `--blur=6`, 2544 captures averaged into 424 frames,
+  1.94 MB, -21.9 LUFS integrated, true peak -1.7 dBFS. The full write up is now in
+  `demo/README.md` under **The twenty second clip**; the per cut entries below are
+  the working log and the README is the account. What must not be lost:
+  - **The clip has no voice and no read to fetch.** The word list the read bought
+    is frozen into the file as `WORD_CLOCK`, so the typing is still cut character
+    by character to a real reading and the timing is bit identical, with no
+    network dependency. The silence the read left, 0.25 to 1.83, is untouched and
+    guarded.
+  - **`BUBBLE` caps a thought at 1.68s end to end and no clip may ask for more.**
+    Ask for a longer hold and the pill leaves before the beat ends **while every
+    guard still passes**, because the bubble's own timings are the module's and
+    are internally consistent. `BUB_FREEZE` holds the module's own bubble frame
+    from fully up until the fault; the guard is on the composed frame and fails
+    from both ends.
+  - **`demo/assets/hands/point-camera.svg` does not exist.** The run stopped
+    rather than drawing a hand in code. If it is ever made: `viewBox="0 0 400
+    400"`, one `<path fill="#ffffff" fill-rule="evenodd">`, coordinates
+    untouched; registration is a **paste** of the `d` string into `HAND_SHAPES`
+    in `lib/mascot.mjs` plus a `wrist: [x, y]` anchor, not a runtime load; and it
+    must carry `['point-camera','point-camera']` so it is never mirrored.
+  - **The final's one fault is the smear.** `--blur=6` at 38.03 css px a frame
+    puts the six copies 6.3 css px apart, and on the eye slabs — small and hard
+    edged — that reads as a stack rather than a streak. Under `STEP_CEIL` and
+    still visible because the feature is small. **`--blur=10` or `12` closes it at
+    roughly twice the render**; not run, because 6 is the number the file names.
+    A six subframe pass is about 25 minutes of capture on this machine — run it in
+    the background.
+  - **Open, and all four are Einz's call:**
+    1. **The hand does not read.** Flagged on four cuts. `point` aims the finger
+       at camera foreshortened and the module's own note already said that at a
+       240px head it becomes "a fist with a bump on it"; mirrored onto the left
+       hand of a near centred mascot it also lands on top of the plate. Revert to
+       `point-viewer`, supply the svg, or move him — which moves the pill too.
+    2. **The lasers are static across the 2.5s hold.** A hard cut on one frame
+       and then a constant. Over 1.5s that read as a state; over 2.5s a very slow
+       breath in the beams would carry it.
+    3. **One blink in the hold, at 4.02**, in its first half second, so the last
+       1.8s is drift and breathe under a frozen pill and a static laser. The
+       idle's `seed` is the knob.
+    4. **The six copy smear**, above.
+  - He is 54 css px left of centre over a centred box; the pill is why and it
+    cannot be reconciled at this stage width.
+  - **`demo/README.md` still has no post21 section.**
 
 - **2026-09-08: post22's sixth cut is green at 12fps and 7.07s. The pill is held
   past the module's own exit.** Einz reported the bubble missing and asked for a
