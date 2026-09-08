@@ -6,6 +6,59 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post23's first cut is green at 12fps and 8.92s, and it is waiting
+  on Einz's fixes before the 60fps final.** `demo/post23.mjs` ->
+  `demo/out/post23-dark-1080x1920.mp4`. No voice, no music, no captions: the bus
+  is five glitches. The review is in
+  `demo/out/review-post23-dark-1080x1920.md`. What a later session cannot
+  re-derive:
+  - **`cheer` is a pose in `lib/mascot.mjs` now, and it is the first drawing that
+    did not come off the sheet at 400 units.**
+    `demo/assets/hands/cheering-fists.svg` is an 800 by 600 frame with a white
+    silhouette and three `fill:none` stroked detail paths a side. A
+    `HAND_SHAPES` entry is **one filled path**, so the strokes are carried as
+    **closed slivers inside the silhouette under `even`** — the file's own
+    polylines offset by half its own 10 unit stroke — which is exactly what
+    `point-side` already does with its crease. On the dark theme a hole is the
+    page showing through, which is the black line the drawing has. Coordinates
+    are otherwise untouched and the pair form `['cheer-left','cheer-right']`
+    means neither hand is flipped. **This is the recipe for any future drawing
+    whose detail is strokes rather than subpaths.**
+  - **A mark cannot carry eight turns 0.75s apart.** `neutral` needs
+    `entry + exit + 0.30` = 1.06s of room, and the beat is 0.75, so post23's turn
+    is **composed** on the module's frame out of the module's own `TURN` table
+    rather than planned. `bias: 0` is what keeps the plan from writing the
+    channel as well. Any clip that wants a turn faster than a state's own floor
+    has to do this.
+  - **The back of the head is not a second drawing.** The eyes are pushed past
+    the module's own `TURN.margin` clamp and the module's own clip path — the one
+    every facial feature already carries — takes them off the face. What is left
+    is the plate, which at the shipped radius is a circle. The sign of the offset
+    flips **while they are off the frame**, which is what makes it read as a spin
+    rather than a look away, and it is why the fast-things walk has to skip the
+    blank beat: that swap is 96 grid units on one frame and nobody can see it.
+  - **The blank beat is snapped to the render grid.** The stutter, the shake and
+    the frame with nothing on his face have to be one frame; a window written in
+    seconds lands a twelfth either side of one on the preview pass, and the first
+    run failed exactly there.
+  - **`MOVE` is too peaky for a ten frame snap zoom.** At 2.8x it carries a fist
+    56 css px on its fastest frame against a ceiling of 42. `SNAP =
+    bezier(.18,0,.46,1)` does the same distance in the same ten frames at 35.
+  - **A push-in on a figure standing on boots has to pan as it pushes.** He is
+    centred as head *plus* boots, so his head is above the middle of the frame;
+    zoom on that and the face is in the top half with a pair of boots filling the
+    bottom one. The pan is 43px, on the same curve and the same window, so it is
+    one move.
+  - **Open, and all five are Einz's call** — see the review for the frames:
+    1. the 1.8s zoom hold is the slackest part of the film;
+    2. the lateral swing is 20 css px and reads as a bobble rather than a dance;
+    3. the boots carry an outline all the way round and the gloves do not;
+    4. `boots-side.svg` splays its two boots outward rather than both facing the
+       turn;
+    5. the clip is 8.92s against a brief that said "about eight".
+  - `demo/README.md` has no post23 section yet, and still has no post21 one.
+    **Not pushed.**
+
 - **2026-09-08: post22 is finished and the 60fps final is rendered, green and
   committed. Not pushed.** `demo/post22.mjs` -> `demo/out/post22-dark-1080x1920.mp4`,
   1080x1920 @60fps, 7.07s, `--blur=6`, 2544 captures averaged into 424 frames,

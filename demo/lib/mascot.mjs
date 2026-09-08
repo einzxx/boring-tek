@@ -590,13 +590,13 @@ export const YAP = {
    right proportions are five rounded rects, and at a fist — which is what
    `thumbs-up`, `point` and `panic` all are — a primitive has nowhere to hide.
 
-   so a pose is now **a shape rather than an arrangement**: ten paths traced off
-   the sheet, in `demo/assets/hands/`, imported into `HAND_SHAPES` below with
+   so a pose is now **a shape rather than an arrangement**: fourteen paths, twelve
+   traced off the sheet, in `demo/assets/hands/`, imported into `HAND_SHAPES` below with
    their coordinates untouched. nothing in this file draws a hand, computes a
    knuckle or curls a finger. the pose table says which path, where it goes,
    which way it is turned and how big it is, and that is the whole of it.
 
-   **three poses carry a path a side and four are mirrored.** `rest`, `shrug`
+   **four poses carry a path a side and four are mirrored.** `rest`, `shrug`
    and `panic` are two handed and the sheet draws both hands, so both are
    imported and each hand gets its own; `wave`, `thumbs-up`, `facepalm` and
    `point` are one handed and the second hand is the first one flipped, which is
@@ -698,7 +698,7 @@ export const YAP = {
    the wrist with the palm just clear of the silhouette. every pose exits back
    to that. */
 
-/* ---------- the twelve traced paths ----------
+/* ---------- the fourteen traced paths ----------
    imported out of `demo/assets/hands/*.svg` with their coordinates untouched,
    wrapped at eighty columns and otherwise as the files hold them. **do not
    redraw these.** they are a trace of somebody else's sheet, the reason they
@@ -710,7 +710,7 @@ export const YAP = {
    `fill-rule`, which is what draws the folded finger as a line inside the fist
    rather than as a shape beside it.
 
-   **ten of them came off the sheet and two were drawn for this rig**, and the
+   **ten of them came off the sheet and four were drawn for this rig**, and the
    two are here because the traced review rejected the poses that borrowed a
    drawing. `laugh` was the facepalm turned forty five degrees onto the mouth
    and read as a facepalm lying down; `point` aims its finger at camera,
@@ -982,13 +982,149 @@ export const HAND_SHAPES = {
       + 'C 152 116 122 107 89 104 C 86 95 89 83 95 74 C 101 65 110 62 122 63.5 '
       + 'C 176 71 227 92 263 131 C 299 170 323 221 326 254 C 329 293 302 338 257 338 Z',
   },
+
+  /* ---------- the two raised fists, and they are not off the sheet ----------
+     `demo/assets/hands/cheering-fists.svg`, which is drawn for this rig the way
+     `laugh` and `point-side` were: the sheet has no cheer in it. the file is an
+     800 by 600 frame rather than a 400 one and the coordinates are still
+     untouched — `box` scales every drawing by 32.5/400 and a fist that is drawn
+     bigger simply comes out bigger, which at 23.2 by 25.1 grid units puts it
+     between the open hand and the fists already here.
+
+     **the file draws its creases as strokes and a HAND_SHAPES entry is one
+     filled path**, so the three `fill:none` lines a side are carried as closed
+     slivers inside the silhouette under `even`, which is exactly what
+     `point-side` already does with the crease across its folded fingers. on the
+     dark theme a hole is the page showing through, which is the black line the
+     drawing has. nothing was redrawn: the slivers are that file's own polylines
+     offset by half its own 10 unit stroke.
+
+     both hands are drawn, so this is a pair and neither is flipped. */
+  'cheer-left': {
+    /* the wrist is the middle of the cuff at the bottom of the forearm, which
+       is where the arm comes into a raised fist. */
+    wrist: [244.3, 450],
+    even: true,
+    d: 'M 190.73 452.1 C 186.71 452.1 184.29 446.47 183.49 440.83 '
+      + 'C 182.68 436 181.07 433.59 174.63 431.98 '
+      + 'C 155.32 427.15 139.22 415.08 125.53 400.59 '
+      + 'C 113.46 387.71 104.61 368.39 99.78 348.27 '
+      + 'C 95.75 332.17 94.95 314.47 94.95 299.98 '
+      + 'C 89.31 289.51 86.1 279.05 85.29 264.56 '
+      + 'C 84.49 250.88 85.29 239.61 88.51 230.76 '
+      + 'C 91.73 221.1 102.19 213.85 116.68 209.03 '
+      + 'C 123.92 206.61 132.78 203.39 140.02 204.2 '
+      + 'C 144.05 204.68 147.27 206.61 149.68 209.83 '
+      + 'C 149.68 196.95 152.1 187.29 159.34 181.66 '
+      + 'C 170.61 176.03 185.1 171.2 197.17 167.17 '
+      + 'C 205.22 164.6 210.85 167.98 216.49 176.03 '
+      + 'C 219.71 180.85 222.12 184.88 224.54 188.9 '
+      + 'C 223.73 177.64 226.95 167.98 232.58 163.15 '
+      + 'C 236.61 159.93 243.85 157.51 252.71 154.29 '
+      + 'C 260.76 151.07 268.8 148.66 276.05 147.05 '
+      + 'C 284.1 145.44 291.34 149.46 296.17 155.1 '
+      + 'C 300.19 161.54 303.41 170.39 305.83 180.85 '
+      + 'C 310.66 197.76 314.68 213.05 317.9 224.32 '
+      + 'C 328.37 225.93 338.83 230.76 343.66 235.59 '
+      + 'C 350.9 254.9 358.95 278.25 365.39 302.39 '
+      + 'C 370.22 320.9 370.22 332.98 363.78 344.25 '
+      + 'C 352.51 364.37 329.98 385.3 303.41 407.83 '
+      + 'C 301 409.92 301 412.66 303.41 415.88 '
+      + 'C 309.05 423.12 310.66 432.78 309.05 443.25 '
+      + 'C 307.84 450.49 305.02 452.1 297.78 452.1 '
+      + 'C 267.19 453.71 220.51 453.71 190.73 452.1 '
+      + 'Z M 145.55 212.65 C 157.62 230.36 164.09 251.8 168.92 277.56 '
+      + 'C 171.33 290.43 176.88 301.94 166.41 311.6 '
+      + 'C 155.28 321.13 138.75 320.06 125.06 316.84 '
+      + 'C 112.26 313.64 106.19 306.64 98.95 296.98 '
+      + 'L 90.95 302.98 C 98.19 312.64 109.84 323.34 122.71 326.56 '
+      + 'C 136.47 329.8 161.78 328.73 173.05 319.07 '
+      + 'C 183.66 309.28 181.15 288.59 178.74 275.72 '
+      + 'C 173.91 249.96 165.88 224.72 153.81 207.01 '
+      + 'Z M 220.38 191.67 C 231.64 208.58 239.11 225.9 244.75 242.8 '
+      + 'L 254.23 239.64 C 248.59 222.74 239.96 203.04 228.7 186.13 '
+      + 'Z M 174.32 303.52 C 184.79 313.98 210.82 308.4 230.13 297.94 '
+      + 'L 225.37 289.14 C 206.06 299.6 191.85 306.9 181.38 296.44 '
+      + 'Z M 318.07 219.32 C 293.93 218.51 265.24 226.96 244.32 235.82 '
+      + 'C 234.69 239.82 223.07 249.13 220.66 255.57 '
+      + 'C 218.81 265.28 218.86 279.38 221.28 289.84 '
+      + 'C 223.69 300.29 233.22 314.92 243.68 324.57 '
+      + 'C 246.75 327.66 256.29 329.52 261.92 327.1 '
+      + 'C 278.82 319.87 295.93 311.23 312.83 306.4 '
+      + 'L 310.09 296.78 C 293.19 301.61 274.88 310.67 257.98 317.91 '
+      + 'C 252.35 320.34 253.83 320.58 250.61 317.36 '
+      + 'C 240 307.58 233.43 298.05 231.02 287.59 '
+      + 'C 228.6 277.12 228.65 267.06 230.26 258.21 '
+      + 'C 232.43 252.63 238.53 249.06 248.19 245.04 '
+      + 'C 269.14 236.16 293.59 228.51 317.73 229.32 '
+      + 'Z',
+  },
+  'cheer-right': {
+    /* the wrist is the middle of the cuff at the bottom of the forearm, which
+       is where the arm comes into a raised fist. */
+    wrist: [555.7, 450],
+    even: true,
+    d: 'M 609.27 452.1 C 613.29 452.1 615.71 446.47 616.51 440.83 '
+      + 'C 617.32 436 618.93 433.59 625.37 431.98 '
+      + 'C 644.68 427.15 660.78 415.08 674.47 400.59 '
+      + 'C 686.54 387.71 695.39 368.39 700.22 348.27 '
+      + 'C 704.25 332.17 705.05 314.47 705.05 299.98 '
+      + 'C 710.69 289.51 713.9 279.05 714.71 264.56 '
+      + 'C 715.51 250.88 714.71 239.61 711.49 230.76 '
+      + 'C 708.27 221.1 697.81 213.85 683.32 209.03 '
+      + 'C 676.08 206.61 667.22 203.39 659.98 204.2 '
+      + 'C 655.95 204.68 652.73 206.61 650.32 209.83 '
+      + 'C 650.32 196.95 647.9 187.29 640.66 181.66 '
+      + 'C 629.39 176.03 614.9 171.2 602.83 167.17 '
+      + 'C 594.78 164.6 589.15 167.98 583.51 176.03 '
+      + 'C 580.29 180.85 577.88 184.88 575.46 188.9 '
+      + 'C 576.27 177.64 573.05 167.98 567.42 163.15 '
+      + 'C 563.39 159.93 556.15 157.51 547.29 154.29 '
+      + 'C 539.24 151.07 531.2 148.66 523.95 147.05 '
+      + 'C 515.9 145.44 508.66 149.46 503.83 155.1 '
+      + 'C 499.81 161.54 496.59 170.39 494.17 180.85 '
+      + 'C 489.34 197.76 485.32 213.05 482.1 224.32 '
+      + 'C 471.63 225.93 461.17 230.76 456.34 235.59 '
+      + 'C 449.1 254.9 441.05 278.25 434.61 302.39 '
+      + 'C 429.78 320.9 429.78 332.98 436.22 344.25 '
+      + 'C 447.49 364.37 470.02 385.3 496.59 407.83 '
+      + 'C 499 409.92 499 412.66 496.59 415.88 '
+      + 'C 490.95 423.12 489.34 432.78 490.95 443.25 '
+      + 'C 492.16 450.49 494.98 452.1 502.22 452.1 '
+      + 'C 532.81 453.71 579.49 453.71 609.27 452.1 '
+      + 'Z M 646.19 207.01 C 634.12 224.72 626.09 249.96 621.26 275.72 '
+      + 'C 618.85 288.59 616.34 309.28 626.81 318.94 '
+      + 'C 638.22 328.73 663.53 329.8 677.22 326.58 '
+      + 'C 690.16 323.34 701.81 312.64 709.05 302.98 '
+      + 'L 701.05 296.98 C 693.81 306.64 687.74 313.64 674.87 316.86 '
+      + 'C 661.25 320.06 644.72 321.13 633.45 311.47 '
+      + 'C 623.12 301.94 628.67 290.43 631.08 277.56 '
+      + 'C 635.91 251.8 642.38 230.36 654.45 212.65 '
+      + 'Z M 571.3 186.13 C 560.04 203.04 551.41 222.74 545.77 239.64 '
+      + 'L 555.25 242.8 C 560.89 225.9 568.36 208.58 579.62 191.67 '
+      + 'Z M 618.62 296.44 C 608.15 306.9 593.94 299.6 574.63 289.14 '
+      + 'L 569.87 297.94 C 589.18 308.4 615.21 313.98 625.68 303.52 '
+      + 'Z M 482.27 229.32 C 506.41 228.51 530.86 236.16 551.78 245.02 '
+      + 'C 561.47 249.06 567.57 252.63 569.98 259.07 '
+      + 'C 571.35 267.06 571.4 277.12 568.98 287.58 '
+      + 'C 566.57 298.05 560 307.58 549.54 317.23 '
+      + 'C 546.17 320.58 547.65 320.34 542.02 317.92 '
+      + 'C 525.12 310.67 506.81 301.61 489.91 296.78 '
+      + 'L 487.17 306.4 C 504.07 311.23 521.18 319.87 538.08 327.11 '
+      + 'C 543.71 329.52 553.25 327.66 556.47 324.44 '
+      + 'C 566.78 314.92 576.31 300.29 578.72 289.83 '
+      + 'C 581.14 279.38 581.19 265.28 579.58 256.43 '
+      + 'C 576.93 249.13 565.31 239.82 555.65 235.8 '
+      + 'C 534.76 226.96 506.07 218.51 481.93 219.32 '
+      + 'Z',
+  },
 };
 export const HAND_SHAPE_NAMES = Object.keys(HAND_SHAPES);
 
 export const HANDS = {
   /* what one file's own 400 unit frame measures on the head's 64 grid. it is
      the only size number in the part, because the sheet already fixed the ten
-     poses against each other and re-fitting each one would throw that away.
+     poses it drew against each other and re-fitting each one would throw that away.
 
      at 32.5 the open hand — `wave`, the one pose in the sheet with the hand
      flat to camera, and the one the first cut's ratios were all read off —
@@ -1169,7 +1305,7 @@ function hullOf(pts) {
   return [...half(p), ...half([...p].reverse())];
 }
 
-/* ---------- the ten, resolved once at load ----------
+/* ---------- the fourteen, resolved once at load ----------
    a hull is a fact about a path and these paths do not change, so this runs
    once: each is translated so its own wrist is the origin, scaled into grid
    units by `box`, grown by half a stroke on each axis — the same half stroke
@@ -1342,11 +1478,11 @@ export const LAUGH = {
 };
 
 /* ---------- the poses ----------
-   eight, each a different picture at a glance with the sound off, and each an
+   ten, each a different picture at a glance with the sound off, and each an
    entrance, a hold with its own beat, and an exit back to rest. the shape is
    the state table's shape and the numbers are in the same units.
 
-   **nine now, and every one of them carries its own drawing.** for one build
+   **ten now, and every one of them carries its own drawing.** for one build
    two of them did not: `laugh` was the facepalm's path turned forty five
    degrees onto the mouth, on the argument that a pose is a shape *and* a
    placement and there was no second file to trace one from. the argument is
@@ -1807,6 +1943,42 @@ export const HAND_POSES = {
         B.set(k, { rot: A.rot + by }, { for: 0.13, at: at + ph, ease: 'glide' });
       }
       B.set(k, { rot: A.rot }, { for: 0.22, at: 1.68 + ph, ease: 'glide' });
+    },
+  },
+
+  /* ---------- both fists up, inside to camera ----------
+     the cheer, and it is the pair pose the sheet never had one of. it is a
+     `both` because a fist on its own is a threat and two of them is a
+     celebration, and it carries the file's own pair — `['cheer-left',
+     'cheer-right']` — so neither drawing is flipped and each hand gets the one
+     that was drawn for it.
+
+     it sits where `rest` sits across, 68.0, and takes that hand nearly the whole
+     height of the head to get there: rest is 47.5 down and this is 26.0, which
+     puts the top of a fist a shade above the crown. that is `panic`'s travel and
+     it is `panic`'s two gears for `panic`'s reason — a single tween over that
+     distance is either too slow to be a cheer or too fast for the shutter. */
+  cheer: {
+    label: 'both fists up beside the head, inside of the fists to camera',
+    shape: ['cheer-left', 'cheer-right'],
+    entry: 0.80, hold: 1.30, exit: 0.30, both: true,
+    at: { x: 68.0, y: 26.0, rot: 8, sc: 1.0 },
+    mark: { chan: 'y', to: 26.0 },
+    build(B, k) {
+      const A = HAND_POSES.cheer.at;
+      /* the lift, on the calm curve, and then the throw, which is short enough
+         that pop's own snap costs nothing. */
+      B.set(k, { x: 66.8, y: 36.0, rot: 4 },
+        { for: 0.42, ease: 'glide', anti: 0.16, antiFor: 4 / 60 });
+      B.set(k, { x: A.x, y: A.y, rot: A.rot, sc: A.sc },
+        { for: 0.32, at: 0.42, ease: 'pop' });
+      /* the hold is two pumps, and the two fists are a twentieth of a second out
+         of phase with each other, which is `panic`'s rule: two hands doing the
+         same thing on the same frame is a machine. */
+      const ph = k ? 0 : 0.05;
+      for (const [at, by] of [[0.80, -1.4], [0.98, 0], [1.16, -1.1], [1.34, 0]]) {
+        B.set(k, { y: A.y + by }, { for: 0.18, at: at + ph, ease: 'glide' });
+      }
     },
   },
 };
@@ -2491,7 +2663,7 @@ export function planMascot(opts = {}) {
           + '", and this plan has no hands on it — pass `hands: true`');
       }
       if (!HAND_POSES[spec.pose]) {
-        throw new Error('no hands pose called "' + spec.pose + '" — the nine are '
+        throw new Error('no hands pose called "' + spec.pose + '" — the ten are '
           + HAND_POSE_NAMES.join(', '));
       }
       for (const key of Object.keys(spec)) {
@@ -6403,11 +6575,11 @@ function selfTest() {
     'fastest frame moves a hand ' + grep.hands.stepCss.toFixed(2) + ' css px at '
     + grep.hands.stepAt.toFixed(2) + 's');
 
-  /* the nine read as nine, and with traced paths that is **two** questions
+  /* the ten read as ten, and with traced paths that is **two** questions
      rather than one, because the drawing carries most of the difference.
 
-     the first is that the twelve files are twelve different outlines, which is
-     by construction and is checked as one: twelve distinct `d` strings, none of
+     the first is that the fourteen files are fourteen different outlines, which
+     is by construction and is checked as one: fourteen distinct `d` strings, none of
      them the same as another. that is what a primitive glove could not promise
      — five rects at two sets of curls are two arrangements of the same shape,
      and the review said so.
@@ -6429,7 +6601,7 @@ function selfTest() {
     const h = mascotFrame(gp, m.hands.settled + 0.05).hands.list[m.hands.acting[0]];
     return { pose: p.pose, shape: h.shape, v: [h.pose.x / 8, h.pose.y / 8, h.pose.rot / 40, h.o] };
   });
-  ok('the twelve drawings are twelve different outlines',
+  ok('the fourteen drawings are fourteen different outlines',
     new Set(HAND_SHAPE_NAMES.map(nm => HAND_SHAPES[nm].d)).size === HAND_SHAPE_NAMES.length,
     HAND_SHAPE_NAMES.length + ' files, ' + gposes.map(g => g.shape).join(', ') + ' posed');
   let gshared = null, gsharedD = 1e9;
@@ -6657,7 +6829,7 @@ function selfTest() {
       w.w.toFixed(2) + ' by ' + w.h.toFixed(2) + ' grid units against the sheet own 27.0 by 26.1');
   }
 
-  /* the ten paths themselves, because everything above is downstream of them
+  /* the paths themselves, because everything above is downstream of them
      parsing. the flattener takes M, C and Z absolute and nothing else, and it
      is asserted to refuse the rest rather than read it as something: a relative
      `c` taken for an absolute one is a hand in the wrong place, and the first
@@ -6980,7 +7152,7 @@ function selfTest() {
         if (Math.abs(a.eyes[0].sy - b.eyes[0].sy) > 1e-9) return false;
       }
       return true;
-    }), 'the other seven move a glove and nothing else');
+    }), 'every other pose moves a glove and nothing else');
   /* every pose carries its own drawing into both gloves and both layers, which
      is thirty six groups off twelve traced files. the markup emits a group per
      **drawing** rather than per pose, and it still does even though no two

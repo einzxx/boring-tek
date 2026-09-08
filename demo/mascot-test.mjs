@@ -161,7 +161,7 @@ function cut() {
    "do the nine read as nine" would have stopped being a control. the second is
    that they are separately useful — a review of the hands wants the hands.
 
-   eight poses in the order they were designed in, each with a face under it,
+   ten poses in the order they were designed in, each with a face under it,
    and **the face is deliberately not `neutral` every time**: the question this
    chapter has to answer beyond "does the pose read" is whether a pose composes
    with an eye state or fights it. a facepalm over an unimpressed face and a
@@ -193,6 +193,12 @@ const HANDS_CUT = [
   ['shrug', 'thinking', 'both', 2.60],
   ['point', 'agreeing', 'left', 2.50],
   ['panic', 'surprised', 'both', 2.90],
+  /* the cheer, and it goes straight after `panic` because those two are the
+     pair this chapter has to be able to tell apart: both take both hands the
+     whole height of the head and stop at the crown, and the only thing that
+     separates them is the drawing and where the fist points. `delighted` under
+     it, because that is the face a cheer has. */
+  ['cheer', 'delighted', 'both', 2.80],
   /* the laugh asks for the right hand outright, which is also what it gets when
      a mark says nothing: `pos` is `bottom-left` here and by default, and the
      acting hand is derived from it — he stands in a corner and gestures into
@@ -203,7 +209,7 @@ const HANDS_CUT = [
      in the table: a second to get a hand across the face, four bounces at four
      and a half a second, and a beat to settle before the exit. */
   ['laugh', 'surprised', 'right', 3.00],
-  /* the point at the viewer, and it goes last of the nine because it is the one
+  /* the point at the viewer, and it goes last of the ten because it is the one
      that has to be read against the pose above it rather than on its own:
      `point` and `point-viewer` are the same gesture aimed two different ways,
      and the question this chapter exists to answer about them is whether a
@@ -234,7 +240,7 @@ function handsCut() {
 /* ---------- the chain cut ----------
    the third chapter, and it is its own clip for the same reason the second one
    is: it asks a question the other two cannot. the hands chapter answers "do
-   the nine read as nine", one pose at a time, each arriving from rest and going
+   the ten read as ten", one pose at a time, each arriving from rest and going
    back to it. that is the right shape for a catalogue and it is the wrong shape
    for the thing this part just grew — **a run of poses inside one clip, each
    with its own timing, handed from one to the next without a trip home.**
@@ -982,7 +988,7 @@ for (const chapter of want) {
     if (chapter === 'hands') {
       if (seenPose.size !== HAND_POSE_NAMES.length) {
         fail.push(c + 'the cut only exercises ' + [...seenPose].join(', ')
-          + ' — the nine are ' + HAND_POSE_NAMES.join(', '));
+          + ' — the ten are ' + HAND_POSE_NAMES.join(', '));
       }
       /* one hand, the other one, and two. a cut that never named a side would
          leave half of what this part is untested. */
