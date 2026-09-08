@@ -3807,6 +3807,73 @@ huggingface, neither of them ours, and neither module has a key or an account.
 
 ## Decisions
 
+### 2026-09-08 — ElevenLabs reads the narrator, edge becomes the fallback
+
+`lib/voice.mjs` had one engine. It has two now, and **elevenlabs is the default
+narrator** whenever `demo/.env` carries a key. Edge is untouched and takes over
+whenever the key is missing, so a fresh clone with no `.env` still renders every
+clip, just in the old voice.
+
+**The endpoint is `/with-timestamps`, not the plain one, and that is the whole
+reason the swap was safe.** Word timings are what `lib/captions.mjs` cuts every
+card against. The plain `text-to-speech` route returns audio and nothing else,
+which would have made every elevenlabs line `timing: 'estimated'` — a guess, and
+one that would have quietly degraded every caption in the reel without failing a
+single guard. `/with-timestamps` returns base64 audio plus a character level
+alignment, and the characters are folded back into words.
+
+**The alignment is over the text we sent, not over the engine's normalised
+reading of it**, so `attachPunctuation` is not called on that path and does not
+need to be. Edge hands back the spoken token — `parts.` arrives as `parts` — and
+the stops have to be walked back on afterwards. Here the full stop is a
+character with its own timestamp and is simply still attached.
+
+**Both copy rules survive untouched, and neither is enforced in code.** Nothing
+on the new path normalises, lowercases, strips or re-spaces copy beyond the
+whitespace collapse `chunkText` already did, so `chat g p t` (post18) reaches the
+api spelled and the full stop in front of `the boring tek` (post11's `go to. the
+boring tek, dot com`) is sent verbatim. `previous_text` carries that stop across
+a chunk boundary, which is the one thing chunking would otherwise have broken.
+
+**`uk` and `aside` stay on edge whatever the default is, and the reason is the
+same for both: we have one cloned voice, and a slot that exists to be a
+different person cannot be it.** `uk` exists to be a different accent, and one
+voice id is one accent. `aside` exists to be somebody who is *not* the agency —
+post11's typed line is what a person in front of the form is thinking, and it
+reads as somebody else on the first syllable only because it is somebody else.
+Routing either through the narrator's voice would have deleted the distinction
+silently. `calm` and `dry` are two registers of one narrator, which is exactly
+what stability expresses, so they are the same elevenlabs voice at 0.5 and 0.7.
+`voice.eleven` is null on the two edge only slots and carries the reason in
+`whyEdge`.
+
+**`rate` maps to `speed`, clamped to the api's 0.7..1.2; `pitch` is dropped and
+not faked.** Elevenlabs has no ssml, so the rates already written into `VOICES`
+and into ten post scripts keep meaning something instead of being silently
+ignored: -8% becomes 0.92. There is no pitch equivalent at all, so the sidecar
+records `provider`, `model`, `speed` and a null `pitch`, and a rendered line is
+never ambiguous about which engine made it. Per line `stability`, `style` and
+`speed` are overridable the way `rate` and `pitch` already were.
+
+**The key lives in `demo/.env` and is read by hand rather than with a fourth
+devDependency.** `demo/` stays at three. The root `.gitignore`'s bare `.env` line
+matches at any depth, so `demo/.env` is covered without a rule of its own —
+`git check-ignore -v demo/.env` says so. The key is never printed, and every
+error string on that path is redacted before it reaches a terminal or a stack
+trace, because an http error body can echo a header back.
+
+**The trap, measured rather than assumed: every elevenlabs response opens with a
+Xing header frame.** A chunk's byte duration is therefore one mp3 frame longer
+than what ffmpeg reports for it — 51453 bytes is 3.2158s of bytes and ffmpeg says
+3.19s, and the gap is 1152/44100 = 0.0261s to three places. **The byte figure is
+the right one to carry** across a chunk boundary anyway, because mid file that
+header is no longer at offset zero, so no decoder recognises it and it plays as
+26ms of silence in front of the chunk it belongs to. Carrying the probed duration
+instead would pull every chunk after the first 26ms early, and it would compound.
+
+Committed as `afb5902`. `demo/out/voice-test.mp3` is the listen test: 3.19s,
+8 words, timings from the engine, punctuation still attached.
+
 ### 2026-09-07 — `side` applies from its mark on, so a hand that was never on screen still fades off one
 
 post20 wanted no gloves at all until the laugh. `side: 'right'` on the laugh's
