@@ -44,6 +44,16 @@
      node lib/voice.mjs test "some copy"     the same for your own line
      node lib/voice.mjs voices               the four we picked, and why
      node lib/voice.mjs say "copy" --voice=dry --format=wav --name=post6
+     node lib/voice.mjs say "copy" --out=out/voice-test.mp3
+     node lib/voice.mjs say "copy" --stability=0.7 --speed=0.9
+     node lib/voice.mjs test --provider=edge         the old narrator, on purpose
+
+   **since 2026-09-08 edge is the fallback, not the narrator.** elevenlabs reads
+   the two narrator slots when demo/.env carries a key, through the
+   `with-timestamps` endpoint so the word timings above keep arriving. the two
+   slots that exist to be a *different person* — `uk`, an accent, and `aside`,
+   somebody who is not the agency — stay on edge, because one cloned voice
+   cannot be two people. everything below about edge is still true of edge.
 */
 
 import tls from 'node:tls';
@@ -57,6 +67,61 @@ import ffmpeg from 'ffmpeg-static';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO = path.resolve(HERE, '..');
 export const VOICE_OUT = path.join(DEMO, 'out', 'voice');
+
+/* ---------- demo/.env ----------
+   two keys live here and neither is ever printed: ELEVENLABS_API_KEY and
+   ELEVENLABS_VOICE_ID. the file is covered by the root `.gitignore`'s bare
+   `.env` line, which matches at any depth, so demo/.env needs no rule of its
+   own — `git check-ignore -v demo/.env` says so.
+
+   read by hand rather than with dotenv. demo/ carries three devDependencies
+   and a fourth is a conversation, and this is a dozen lines: KEY=value, blank
+   lines and `#` comments skipped, surrounding quotes stripped if somebody
+   pasted them. process.env wins over the file so a shell can override one run
+   without editing anything. */
+function readEnv() {
+  const out = {};
+  let raw;
+  try { raw = fs.readFileSync(path.join(DEMO, '.env'), 'utf8'); }
+  catch { return out; }
+  for (const line of raw.split(/\r?\n/)) {
+    if (/^\s*(#|$)/.test(line)) continue;
+    const m = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!m) continue;
+    let v = m[2].trim();
+    if (/^".*"$/.test(v) || /^'.*'$/.test(v)) v = v.slice(1, -1);
+    out[m[1]] = v;
+  }
+  return out;
+}
+const ENV = readEnv();
+const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || ENV.ELEVENLABS_API_KEY || '';
+const ELEVEN_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || ENV.ELEVENLABS_VOICE_ID || '';
+
+/* the key must not reach a terminal, a sidecar or a stack trace. an http error
+   body can echo a header back, so every string this file prints or throws on
+   the elevenlabs path goes through here first. */
+const redact = s => {
+  let t = String(s);
+  if (ELEVEN_KEY) t = t.split(ELEVEN_KEY).join('<elevenlabs key>');
+  if (ELEVEN_VOICE_ID) t = t.split(ELEVEN_VOICE_ID).join('<voice id>');
+  return t;
+};
+
+/* both halves or neither. a .env with a key and no voice id is a half filled
+   file rather than a decision to use edge, so it says so once and then stops:
+   speak() is called per line and a warning per line is noise. */
+let warnedHalf = false;
+export function elevenReady() {
+  if (ELEVEN_KEY && ELEVEN_VOICE_ID) return true;
+  if ((ELEVEN_KEY || ELEVEN_VOICE_ID) && !warnedHalf) {
+    warnedHalf = true;
+    console.error('  demo/.env carries only half of elevenlabs — '
+      + (ELEVEN_KEY ? 'ELEVENLABS_VOICE_ID' : 'ELEVENLABS_API_KEY')
+      + ' is empty. reading with edge instead.');
+  }
+  return false;
+}
 
 /* ---------- the endpoint ----------
    the token is public: it is compiled into edge and printed in every article
@@ -90,16 +155,29 @@ const ORIGIN = 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold';
 export const VOICES = {
   calm: {
     id: 'en-US-AndrewNeural', rate: '-8%', pitch: '-2Hz',
-    note: 'the default. male, us, warm and unhurried. reads a statement as a '
+    /* on elevenlabs this is the narrator at rest. stability mid: high enough
+       that two takes of the same line match, low enough that it is not a
+       reading of a list. style 0 because the brand is deadpan and style is the
+       knob that adds performance. */
+    eleven: { stability: 0.5, similarity: 0.8, style: 0, speakerBoost: true },
+    note: 'the default. warm and unhurried. reads a statement as a '
       + 'statement rather than as an offer.',
   },
   dry: {
     id: 'en-US-EricNeural', rate: '-10%', pitch: '-4Hz',
-    note: 'flatter and older. microsoft files it under rational, which is the '
-      + 'closest thing in the list to deadpan. for a line that is a fact.',
+    /* the same elevenlabs voice held flatter. this is the whole difference
+       between the two narrator slots there: one voice, two registers, and
+       stability is the register. */
+    eleven: { stability: 0.7, similarity: 0.8, style: 0, speakerBoost: true },
+    note: 'the same narrator held flatter, for a line that is a fact. on '
+      + 'elevenlabs that is stability 0.7; on edge it is a second voice that '
+      + 'microsoft files under rational.',
   },
   uk: {
     id: 'en-GB-RyanNeural', rate: '-6%', pitch: '0Hz',
+    /* edge only, whatever the default provider is. this slot exists to be a
+       different accent and we have one cloned voice, which is one accent. */
+    eleven: null, whyEdge: 'it exists to be a different accent, and one voice id is one accent',
     note: 'male, british. the same register in a different accent, for when a '
       + 'clip should not sound american. we are in riga, not in california.',
   },
@@ -126,6 +204,10 @@ export const VOICES = {
      and `NARRATORS` below is every voice that is not marked. */
   aside: {
     id: 'en-US-JennyNeural', rate: '+2%', pitch: '0Hz', comedy: true,
+    /* edge only, and for the stronger version of the same reason: this is not
+       the agency talking. reading it in the narrator's voice would make the one
+       line in the film that belongs to somebody else sound like ours. */
+    eleven: null, whyEdge: 'it is somebody who is not the agency, and the narrator cannot be them',
     note: 'female, us. the comedy voice, and the only one that is not the '
       + 'agency speaking: for a line a person in the film is thinking. light '
       + 'and warm, never played for the joke.',
@@ -520,6 +602,212 @@ export function sentencesOf(words) {
 
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'line';
 
+/* ---------- elevenlabs ----------
+   the paid narrator, and the default when demo/.env carries both halves. edge
+   stays exactly where it was and takes over whenever the key is missing, so a
+   fresh clone with no .env still renders every clip, just in the old voice.
+
+   why `with-timestamps` rather than the plain endpoint. word timings are the
+   whole reason this file exists: `captions.mjs` eats `{word, start, end}` and
+   cuts every card against it. the plain `text-to-speech` route returns audio
+   and nothing else, which would have made every elevenlabs line
+   `timing: 'estimated'` — a guess, and one that would have quietly degraded
+   every caption in the reel. `/with-timestamps` is the same request with a
+   json envelope: base64 audio plus a character level alignment. we fold the
+   characters back into words below.
+
+   the alignment is over **the text we sent**, not over the engine's normalised
+   reading of it, which is why `attachPunctuation` is not called on this path
+   and does not need to be. edge hands back the spoken token — `parts.` arrives
+   as `parts` — and the stops have to be walked back on afterwards. here the
+   full stop is a character with its own timestamp, so it is simply still
+   attached. the `normalized_alignment` field in the same response is the other
+   one, and it is deliberately ignored.
+
+   what this means for the two copy rules, because they are the reason the read
+   sounds right and neither of them is enforced in code:
+
+     - **`chat g p t`, spelled out.** post18 writes the name as four tokens so
+       the synthesiser reads letters as letters. nothing here normalises,
+       lowercases, strips or re-spaces the copy beyond the whitespace collapse
+       `chunkText` already did, so the spelling reaches the api exactly as
+       written and comes back read exactly as intended.
+     - **the full stop in front of the boring tek.** post11 writes
+       `go to. the boring tek, dot com`, because after a stop the synthesiser
+       restarts the phrase and the name stops arriving glued to `go to the`.
+       same argument: the stop is sent verbatim, and `previous_text` below is
+       what keeps it working across a chunk boundary.
+
+   `previous_text` is the one field here that is not per line style. a long
+   script is split by `chunkText`, and multilingual_v2 restarts its prosody at
+   every request; handing it the chunk before as context is how the second
+   chunk carries on the sentence rather than opening a new one. it is text we
+   already sent, so it is not billed as audio. */
+const ELEVEN_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
+const ELEVEN_MODEL = 'eleven_multilingual_v2';
+/* constant bitrate on purpose, and for the same reason edge's wire format is:
+   the chunks of a long read are concatenated byte for byte, so the byte count
+   has to be a duration and the file must carry no per chunk header. 128 kbps
+   mp3 at 44.1k satisfies both. */
+const ELEVEN_FORMAT = 'mp3_44100_128';
+const ELEVEN_BPS = 128000;
+
+/* edge's per voice `rate` is an ssml prosody percentage, and elevenlabs has no
+   ssml. `speed` is the nearest thing it has, so the rates already written into
+   VOICES and into ten post scripts keep meaning something instead of being
+   silently dropped: -8% becomes 0.92. the api's usable band is 0.7..1.2 and
+   anything outside it is clamped rather than refused.
+
+   `pitch` has no equivalent at all and is not faked. the pitch offsets in
+   VOICES apply on the edge path only, and the sidecar records which path made
+   the file so a rendered line is never ambiguous about it. */
+function rateToSpeed(rate) {
+  const m = String(rate || '').match(/^([+-]?\d+(?:\.\d+)?)%$/);
+  if (!m) return 1;
+  return Math.min(1.2, Math.max(0.7, +(1 + parseFloat(m[1]) / 100).toFixed(3)));
+}
+
+/* the per line style options, which is every knob the api actually exposes.
+   defaults come from the voice's own `eleven` block and any of them can be
+   overridden for one line, the way `rate` and `pitch` already could:
+
+     speak(line, { stability: 0.7 })      hold this one steadier
+     speak(line, { style: 0.15 })         let this one lean
+     speak(line, { speed: 0.9 })          slower than the voice's own rate
+
+   stability is the one worth touching. low is expressive and drifts, high is
+   flat and repeatable, which is what a deadpan brand wants, and it is why the
+   `dry` slot sits higher than `calm` rather than on a different voice. */
+function elevenStyleFor(voice, opts, rate) {
+  const base = voice.eleven || {};
+  const num = (a, b) => (a === undefined || a === null ? b : a);
+  return {
+    stability: num(opts.stability, base.stability),
+    similarity: num(opts.similarity, base.similarity),
+    style: num(opts.style, base.style),
+    speakerBoost: num(opts.speakerBoost, base.speakerBoost),
+    speed: num(opts.speed, rateToSpeed(rate)),
+  };
+}
+
+/* one request. json in, json out, and the audio arrives base64 inside it
+   because the timestamps have to arrive with it. */
+async function elevenOnce(text, style, previous, allowSpeed = true) {
+  const settings = {
+    stability: style.stability,
+    similarity_boost: style.similarity,
+    style: style.style,
+    use_speaker_boost: style.speakerBoost,
+  };
+  if (allowSpeed && style.speed !== 1) settings.speed = style.speed;
+  const body = { text, model_id: ELEVEN_MODEL, voice_settings: settings };
+  if (previous) body.previous_text = previous;
+
+  let res;
+  try {
+    res = await fetch(ELEVEN_URL + '/' + encodeURIComponent(ELEVEN_VOICE_ID)
+      + '/with-timestamps?output_format=' + ELEVEN_FORMAT, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': ELEVEN_KEY,
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    throw new Error('elevenlabs did not answer: ' + redact(e.message));
+  }
+
+  if (!res.ok) {
+    const detail = redact((await res.text().catch(() => '')).slice(0, 400));
+    /* 422 is the request schema talking back. `speed` is the only field in this
+       body new enough for an account's model to not know it, so it gets one
+       retry without it and then the error stands. the same shape as the edge
+       path's one retry against a 403. */
+    if (res.status === 422 && allowSpeed && settings.speed !== undefined) {
+      console.error('  elevenlabs refused voice_settings.speed — retrying without it');
+      return elevenOnce(text, style, previous, false);
+    }
+    const err = new Error('elevenlabs answered ' + res.status + ' ' + res.statusText
+      + (detail ? ': ' + detail : ''));
+    err.status = res.status;
+    throw err;
+  }
+
+  let json;
+  try { json = await res.json(); }
+  catch (e) { throw new Error('elevenlabs sent something that is not json: ' + redact(e.message)); }
+  const audio = Buffer.from(json.audio_base64 || '', 'base64');
+  if (!audio.length) throw new Error('elevenlabs sent an empty audio_base64');
+  return { audio, words: wordsFromAlignment(json.alignment) };
+}
+
+/* characters into words. the alignment is one entry per character of the text
+   we sent, with a start and an end, so a word is a run between whitespace and
+   its box runs from the first character's start to the last one's end.
+   punctuation is a character like any other and stays attached, which is the
+   whole advantage of this response over edge's.
+
+   whitespace characters carry timestamps too and they are dropped on purpose:
+   the space after a full stop is the breath, and a caption that holds a word
+   through the breath after it reads as lag — the same reasoning `estimate()`
+   already applies on the edge path. */
+function wordsFromAlignment(a) {
+  if (!a || !Array.isArray(a.characters)) return [];
+  const chars = a.characters;
+  const st = a.character_start_times_seconds || [];
+  const en = a.character_end_times_seconds || [];
+  const out = [];
+  let word = '', start = 0, end = 0, open = false;
+  const flush = () => {
+    if (open && word.trim()) out.push({ word, start: +start.toFixed(3), end: +end.toFixed(3) });
+    word = ''; open = false;
+  };
+  for (let i = 0; i < chars.length; i++) {
+    if (/\s/.test(chars[i])) { flush(); continue; }
+    if (!open) { open = true; word = ''; start = Number(st[i] || 0); }
+    word += chars[i];
+    const e = en[i] ?? st[i];
+    if (e !== undefined && e !== null) end = Number(e);
+  }
+  flush();
+  return out;
+}
+
+/* ---------- which engine reads this line ----------
+   elevenlabs is the default narrator. two of the four slots stay on edge
+   whatever the default is, and the reason is the same for both: **we have one
+   cloned voice, and a slot that exists to be a different person cannot be it.**
+
+     - `uk` exists to be a different accent. one voice id is one accent.
+     - `aside` exists to be somebody who is not the agency — post11's typed line
+       is what a person sitting in front of the form is thinking, and it reads
+       as somebody else on the first syllable only because it is somebody else.
+
+   so `voice.eleven` is null on those two and they route to edge. `calm` and
+   `dry` are two registers of one narrator, which is exactly what stability and
+   speed express, so they are the same elevenlabs voice read two ways.
+
+   an explicit `{ provider: 'elevenlabs' }` on one of those two slots falls back
+   rather than throwing, so `node lib/voice.mjs test` can still walk all four. */
+export const DEFAULT_PROVIDER = 'elevenlabs';
+let warnedSlot = false;
+function pickProvider(key, opts) {
+  const want = opts.provider || DEFAULT_PROVIDER;
+  if (want === 'edge') return 'edge';
+  const voice = VOICES[key];
+  if (!voice.eleven) {
+    if (opts.provider && !warnedSlot) {
+      warnedSlot = true;
+      console.error('  "' + key + '" is an edge only slot — ' + voice.whyEdge
+        + '. reading it with edge.');
+    }
+    return 'edge';
+  }
+  return elevenReady() ? 'eleven' : 'edge';
+}
+
 /* ---------- the one call worth knowing ----------
    speak(text) writes an mp3 into demo/out/voice/ and hands back the file, the
    duration measured off that file, and the words with their timestamps. */
@@ -529,50 +817,95 @@ export async function speak(text, opts = {}) {
   if (!voice) throw new Error('no voice called "' + key + '". we ship ' + Object.keys(VOICES).join(', '));
   const format = opts.format || 'mp3';
   if (!FORMATS[format]) throw new Error('format is mp3 or wav, not "' + format + '"');
-  /* per call overrides, so a clip can slow one line down without a new voice. */
+  /* per call overrides, so a clip can slow one line down without a new voice.
+     rate and pitch are edge's; on the elevenlabs path rate becomes `speed` and
+     pitch is dropped, which `elevenStyleFor` says out loud. */
   const v = { id: voice.id, rate: opts.rate || voice.rate, pitch: opts.pitch || voice.pitch };
+  const provider = pickProvider(key, opts);
 
   const chunks = chunkText(text);
   const audio = [];
-  const marks = [];
+  let words = [];
   let carried = 0;                       /* seconds of audio already written */
-  for (const chunk of chunks) {
-    let got;
-    try {
-      got = await once(chunk, v, 0);
-    } catch (e) {
-      /* the one failure worth a second attempt. the token is a hash of the
-         server's clock, so a machine a few minutes out is refused with no
-         explanation beyond a Date header — which is the clock we should have
-         used. one retry against it, then give up honestly. */
-      if (e.serverDate) {
-        const skew = (Date.parse(e.serverDate) - Date.now()) / 1000;
-        got = await once(chunk, v, skew);
-      } else throw e;
+
+  if (provider === 'eleven') {
+    const style = elevenStyleFor(voice, opts, v.rate);
+    let previous = '';
+    for (const chunk of chunks) {
+      const got = await elevenOnce(chunk, style, previous);
+      /* the alignment restarts at zero every request, so a chunk after the
+         first is pushed along by the audio the chunks before it really
+         produced. constant bitrate, so that is exact arithmetic on the byte
+         count and needs no probe — the same trick the edge path uses.
+
+         the trap, measured rather than assumed. every response opens with a
+         xing header frame, so a chunk's byte duration is one frame longer than
+         what ffmpeg reports for it: 51453 bytes is 3.2158s of bytes and ffmpeg
+         says 3.19s, and the gap is 1152/44100 = 0.0261s to three places. the
+         **byte** figure is the right one to carry anyway, because mid file that
+         header is no longer at offset zero, so no decoder recognises it and it
+         plays as 26ms of silence in front of the chunk it belongs to. carrying
+         the probed duration instead would pull every chunk after the first
+         26ms early, and it would compound. */
+      for (const w of got.words) {
+        words.push(carried
+          ? { word: w.word, start: +(w.start + carried).toFixed(3), end: +(w.end + carried).toFixed(3) }
+          : w);
+      }
+      audio.push(got.audio);
+      carried += got.audio.length * 8 / ELEVEN_BPS;
+      previous = chunk;
     }
-    for (const m of got.marks) {
-      if (!carried) { marks.push(m); continue; }
-      const d = { ...(m.Data || {}) };
-      d.Offset = Number(d.Offset || 0) + Math.round(carried * 1e7);
-      marks.push({ ...m, Data: d });
+    /* no attachPunctuation here on purpose: the alignment is over the text we
+       sent, so the stops never came off in the first place. */
+  } else {
+    const marks = [];
+    for (const chunk of chunks) {
+      let got;
+      try {
+        got = await once(chunk, v, 0);
+      } catch (e) {
+        /* the one failure worth a second attempt. the token is a hash of the
+           server's clock, so a machine a few minutes out is refused with no
+           explanation beyond a Date header — which is the clock we should have
+           used. one retry against it, then give up honestly. */
+        if (e.serverDate) {
+          const skew = (Date.parse(e.serverDate) - Date.now()) / 1000;
+          got = await once(chunk, v, skew);
+        } else throw e;
+      }
+      for (const m of got.marks) {
+        if (!carried) { marks.push(m); continue; }
+        const d = { ...(m.Data || {}) };
+        d.Offset = Number(d.Offset || 0) + Math.round(carried * 1e7);
+        marks.push({ ...m, Data: d });
+      }
+      audio.push(got.audio);
+      /* how much audio this chunk really produced, so the next chunk's word
+         offsets can be pushed along by it. the wire format is constant bitrate,
+         so the answer is exact arithmetic on the byte count and needs no probe.
+         counting the last word boundary instead would drift, because a chunk ends
+         with silence that no word is inside. */
+      carried += got.audio.length * 8 / WIRE_BPS;
     }
-    audio.push(got.audio);
-    /* how much audio this chunk really produced, so the next chunk's word
-       offsets can be pushed along by it. the wire format is constant bitrate,
-       so the answer is exact arithmetic on the byte count and needs no probe.
-       counting the last word boundary instead would drift, because a chunk ends
-       with silence that no word is inside. */
-    carried += got.audio.length * 8 / WIRE_BPS;
+    words = attachPunctuation(wordsFromMarks(marks), text);
   }
 
   const buf = Buffer.concat(audio);
   if (!buf.length) throw new Error('the endpoint sent no audio at all');
-  fs.mkdirSync(VOICE_OUT, { recursive: true });
-  const name = (opts.name ? slug(opts.name) : slug(text)) + '-' + key;
-  let file = path.join(VOICE_OUT, name + '.mp3');
+  /* `out` writes to an exact path — for a one off listen, or a clip that wants
+     the file somewhere of its own. everything else lands in demo/out/voice/
+     under a slug, which is what every post script relies on. */
+  const target = opts.out ? path.resolve(DEMO, opts.out) : null;
+  const dir = target ? path.dirname(target) : VOICE_OUT;
+  fs.mkdirSync(dir, { recursive: true });
+  const name = target
+    ? path.basename(target).replace(/\.(mp3|wav)$/i, '')
+    : (opts.name ? slug(opts.name) : slug(text)) + '-' + key;
+  let file = path.join(dir, name + '.mp3');
   fs.writeFileSync(file, buf);
   if (format === 'wav') {
-    const wav = path.join(VOICE_OUT, name + '.wav');
+    const wav = path.join(dir, name + '.wav');
     execFileSync(ffmpeg, ['-y', '-hide_banner', '-loglevel', 'error', '-i', file,
       ...FORMATS.wav.ffmpeg, wav], { stdio: ['ignore', 'pipe', 'pipe'] });
     fs.rmSync(file, { force: true });
@@ -580,12 +913,18 @@ export async function speak(text, opts = {}) {
   }
 
   const seconds = probeSeconds(file);
-  let words = attachPunctuation(wordsFromMarks(marks), text);
   const timing = words.length ? 'engine' : 'estimated';
   if (!words.length) words = estimate(text, seconds);
   const result = {
     text: String(text).replace(/\s+/g, ' ').trim(),
-    voice: key, voiceId: v.id, rate: v.rate, pitch: v.pitch,
+    voice: key, voiceId: provider === 'eleven' ? ELEVEN_VOICE_ID : v.id,
+    /* which engine read it, and under what. a line rendered before the .env
+       existed and a line rendered after it are different takes, and the sidecar
+       is the only place that says which one a file is. */
+    provider: provider === 'eleven' ? 'elevenlabs' : 'edge',
+    model: provider === 'eleven' ? ELEVEN_MODEL : null,
+    rate: v.rate, pitch: provider === 'eleven' ? null : v.pitch,
+    speed: provider === 'eleven' ? elevenStyleFor(voice, opts, v.rate).speed : null,
     format, file, bytes: fs.statSync(file).size, seconds,
     timing,                       /* 'engine' or 'estimated'. never guess which */
     words,
@@ -613,11 +952,19 @@ async function cli(argv) {
   const cmd = rest[0] || 'test';
 
   if (cmd === 'voices') {
+    const live = elevenReady();
     console.log('the boring tek — the four voices we picked\n');
+    console.log('  narrator: ' + (live ? 'elevenlabs, ' + ELEVEN_MODEL
+      : 'edge — demo/.env has no elevenlabs key, so edge is reading everything') + '\n');
     for (const [k, v] of Object.entries(VOICES)) {
-      console.log('  ' + k.padEnd(6) + v.id + '   rate ' + v.rate + ', pitch ' + v.pitch
+      const engine = v.eleven && live ? 'elevenlabs' : 'edge';
+      console.log('  ' + k.padEnd(6) + engine.padEnd(12)
+        + (engine === 'edge' ? v.id + '   rate ' + v.rate + ', pitch ' + v.pitch
+          : 'stability ' + v.eleven.stability + ', speed ' + rateToSpeed(v.rate))
         + (k === DEFAULT_VOICE ? '   [default]' : '') + (v.comedy ? '   [comedy]' : ''));
-      console.log('         ' + v.note + '\n');
+      console.log('         ' + v.note);
+      if (!v.eleven) console.log('         edge only: ' + v.whyEdge + '.');
+      console.log('');
     }
     return;
   }
@@ -633,9 +980,14 @@ async function cli(argv) {
     const done = [];
     for (const key of which) {
       const t0 = Date.now();
-      const r = await speak(text, { voice: key, format: flags.format || 'mp3', name: 'test' });
+      const r = await speak(text, {
+        voice: key, format: flags.format || 'mp3', name: 'test',
+        provider: flags.provider,
+      });
       done.push(r);
-      console.log('  ' + key.padEnd(6) + r.voiceId.padEnd(22)
+      /* the engine, not the voice id: on the elevenlabs path the id is an
+         account resource and there is no reason for it to be on a terminal. */
+      console.log('  ' + key.padEnd(6) + r.provider.padEnd(12)
         + r.seconds.toFixed(2) + 's   ' + (r.bytes / 1024).toFixed(0) + ' KB   '
         + r.words.length + ' words, timings from the ' + r.timing
         + '   ' + (Date.now() - t0) / 1000 + 's to make');
@@ -654,12 +1006,16 @@ async function cli(argv) {
   }
 
   if (cmd === 'say') {
+    /* the style flags are numbers to the api and strings on a command line. */
+    const num = f => (flags[f] === undefined ? undefined : parseFloat(flags[f]));
     const r = await speak(text, {
       voice: flags.voice, format: flags.format, name: flags.name,
       rate: flags.rate, pitch: flags.pitch,
+      provider: flags.provider, out: flags.out,
+      stability: num('stability'), style: num('style'), speed: num('speed'),
     });
-    console.log(r.voice + ' — ' + r.seconds.toFixed(2) + 's, ' + r.words.length
-      + ' words (' + r.timing + ') — ' + path.relative(DEMO, r.file));
+    console.log(r.voice + ' on ' + r.provider + ' — ' + r.seconds.toFixed(2) + 's, '
+      + r.words.length + ' words (' + r.timing + ') — ' + path.relative(DEMO, r.file));
     return;
   }
 
@@ -680,6 +1036,19 @@ if (RUN_DIRECTLY) {
         + '    2. microsoft moved the drm on. GEC_VERSION at the top of this file is a\n'
         + '       real edge build number and is the thing to bump. check what the\n'
         + '       python edge-tts package is sending today.');
+    }
+    if (/^elevenlabs answered 401/.test(e.message)) {
+      console.error('\n  the key in demo/.env is not being accepted. check it is the whole\n'
+        + '  key, unquoted, on the ELEVENLABS_API_KEY line. --provider=edge reads the\n'
+        + '  line with the old narrator in the meantime.');
+    }
+    if (/^elevenlabs answered 404/.test(e.message)) {
+      console.error('\n  the voice id in demo/.env is not one this account can see. it is the\n'
+        + '  id on the voice\'s own page, not its name.');
+    }
+    if (/^elevenlabs answered 429/.test(e.message)) {
+      console.error('\n  out of credits, or too many at once. this file sends one request per\n'
+        + '  chunk in series, so 429 here means the account, not the loop.');
     }
     process.exit(1);
   });
