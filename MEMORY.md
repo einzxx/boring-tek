@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **2026-09-08: post21's first cut is green at 12fps and the frames found three
+  things.** `demo/post21.mjs`, new, dark only, 9.95s to
+  `demo/out/post21-dark-1080x1920.mp4`. He hums in a lit room, gets plugged into the
+  mains, is electrocuted, comes out with laser eyes and burns the room down, and it
+  turns out somebody asked him about the weather. **No voice and no music**, so unlike
+  post20 nothing in the clock is derived — the brief's six beats are the clock. Full
+  write up goes in `demo/README.md` once the cut settles; this is what a later session
+  cannot re-derive:
+  - **The eyes cannot be white and the brief asked for white.** On the dark theme the
+    module inverts: the head is `--face` #f4f7f5 and the iris is `--eye`, which is
+    defined to equal the page background. White eyes on a white head are no eyes. So
+    "white" is read as "back to their own colour" and the iris mixes from the module's
+    token to red. **This is the one place the cut does not do what the brief says in
+    the brief's own words**, and it is flagged rather than quietly changed.
+  - **The red is index.html's own `--red`**, `#ff5c5c` on dark, written as components
+    so it can be used at an alpha, with a guard that reads the token back out of the
+    site and fails if the two ever disagree. **Only the warm lamps are invented**,
+    because a light source in a room is not an accent — post18 and post19's argument
+    for the blue on somebody else's panel. No green anywhere in the film.
+  - **Nothing was added to `lib/mascot.mjs`.** Three marks off its own table —
+    `unimpressed`, `surprised`, `unimpressed` — and all the red is composed on top:
+    the iris is one css variable behind a `#m-zone .m-iris` selector, which beats the
+    module's without touching `--eye` (the brows, the pill's ground and a glove edge
+    are all drawn in it). `cardPoint` is `headRect`'s own chain for a point in card
+    space, and the beams, the eye glow and the notes' crown all hang off it.
+  - **`unimpressed` has no overshoot and the guard had to say so.** Its mark is a lid,
+    and the module's own note calls it the one entrance in the table with almost no
+    anticipation. Asking a lid to bounce is asking for a different module, so the
+    overshoot check names the states that have one.
+  - **The rendered plate rect is not the plug's depth.** `getBoundingClientRect` on a
+    turned shape returns the box of its geometry, so a circle rotated two and a half
+    degrees comes back three css px wider each side — the module says this in as many
+    words. How deep the plug sits comes off `headRect` in node; the page only checks
+    that the prong is where the table put it.
+  - **The caption is refitted wrapped, not on one row.** post19's `capRefit` solves a
+    size from the widest card as a single line, which is right for its four word cards
+    and puts `you asked how the weather is` at **23 css px** inside a 400px box — a
+    footnote. `.cap-float` already carries `flex-wrap`, so the fit became post20's:
+    the largest size whose wrapped block fits the box height, with no single word
+    wider than the box. 42 css px, 62 device px of cap height, two lines.
+  - **Open, from the review in `demo/out/review-post21-dark-1080x1920.md`:** the aim
+    sweep whips 43.8 css px a frame between lamps 1 and 2, past the file's own 42
+    ceiling, and there was no guard on it; half the sparks are drawn from a point
+    inside the head and read as white scratches on the white face; the stutters leave
+    the cable un-split. Not pushed.
+
 - **Fix 2026-09-07: post20's punchline is centred, by measured ink.**
   `demo/post20.mjs` only. The caption table carried a `dx` of 25 css px onto the side
   the finger points, and the finger went with the pose when this cut dropped the
