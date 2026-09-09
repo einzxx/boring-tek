@@ -6,6 +6,61 @@ names in here either.
 
 ## Status
 
+- **2026-09-09: post24 is rendered as a 60fps final and is the current clip.**
+  `demo/post24.mjs` → `demo/out/post24-dark-1080x1920.mp4`, **12.82s, 1080x1920,
+  60fps, dark only, 2047 KB**, 769 frames blended from **9228 subframes at 12 a
+  frame**, shutter open. Guards all green. Review in
+  `demo/out/review-post24-dark-1080x1920.md`. Committed `3661fd4`, **not pushed**.
+
+  The clip: the globe turns with the mascot standing on its crown waving and a
+  question over them both; he jumps off and falls out of the bottom while the
+  camera whips down and the earth leaves through the top; three numbers draw
+  themselves onto black one at a time; he comes back up, lands on post20's smash
+  table and gives it a thumbs up; then the house fault and the wordmark.
+
+  **The read is elevenlabs `calm`, five lines, 9.50s of sound**, cached under
+  `demo/out/voice/` on the copy:
+
+  ```
+  how many people use ai.
+  over one billion. every month.
+  sixteen percent of everyone on earth.
+  growing faster than the internet did.
+  the future is already here.
+  ```
+
+  **Open on it, and none of it is a blocker:**
+  - **The camera whip is what sets the shutter, not the fall.** 90.9 css px a
+    frame at sixty at 2.27s, against a closed-shutter ceiling of 42. It is
+    `SNAP` — 760 css px over 0.34s on an eased start, so the front of it runs
+    about three times its own average. The fall was lengthened to 0.60s this
+    round and that moved the fall's peak, not this one.
+  - **The shutter is capped.** The file solves for post20's sample step (6.3 css
+    px, 12.6 device px) and wants **15 subframes**; `SUB_MAX` is 12, so it lands
+    at **15.2 device px a sample**, about a fifth coarser than post20's landing.
+    It smears rather than separating, which is the test the cap protects.
+  - **The ping re-check has NOT been run at 60fps.** The rule was proved end to
+    end on the 12fps delivery — 57 ping/frame samples, worst ground luminance
+    **2 of 255** — and it is enforced upstream of the shutter, in
+    `lib/globe.mjs` at spawn against the globe's own frame buffer. But `DARK_AT`
+    moved 2.61 → 2.79 when the fall got longer, so a few more pings draw.
+    Re-proving it needs a second 12-subframe `--no-pings` control render,
+    **about 23 minutes**. Not run.
+  - **0.09s of near-empty frame between the fault and the wordmark.** The hit is
+    at 11.94 and the wordmark is born at 12.03, so about five frames at sixty
+    carry only the centre bloom. post12's rule is that the frame exchanges one
+    thing for another and is never empty. The fix is one number, `END.wmFor` to
+    0, and it was left alone because the brief said nothing else changes.
+  - **12.82s against an asked-for 11.** 9.50s of sound plus a 0.28 lead, gaps of
+    0.62 / 0.20 / 0.20 / 0.83 and a 0.88 tail. The 0.83 is exactly how long he
+    takes to rise and land, which the closing card has to wait for. It is copy
+    or read speed, not joins.
+  - **He smears heavily arriving**, around 9.60s: the rise starts at three times
+    its average under `OUTC` and he is still moving as he enters the frame.
+  - **`demo/out/verify-post24/` is empty.** `--check` cleared the output folders
+    on its way in and returned before writing any, so it destroyed the beat
+    stills of the render it was checking. Fixed, but they need a re-render.
+
 - **2026-09-08: post23 is PARKED. The 2d dance does not match the reference and
   will not be used as it stands.** `demo/post23.mjs` renders green at 12fps and
   8.92s to `demo/out/post23-dark-1080x1920.mp4` — no voice, no music, no
@@ -3054,6 +3109,19 @@ Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
 
+- **`demo/post24.mjs` is the twenty fourth clip and the current one.** 12.82s,
+  1080x1920, 60fps, dark only, shutter open at 12 subframes, out to
+  `demo/out/post24-dark-1080x1920.mp4`. It is the first clip to use
+  `lib/globe.mjs`, the first read by elevenlabs, and the first whose captions
+  are drawn in the post file rather than planned by `lib/captions.mjs`. Needs
+  `demo/assets/ne_110m_land.geojson`, which is untracked, and `demo/.env` for
+  the voice. Full write up under The twenty fourth clip in `demo/README.md`.
+
+- **`demo/lib/globe.mjs` is the globe**, shared by `demo/globe-test.mjs` and
+  `demo/post24.mjs`. `globeCss` / `globeMarkup` / `globeScript`, natural earth
+  110m land on an inverse orthographic, a graticule drawn in screen space and
+  ping rings that may only be born on a black pixel.
+
 - **`demo/post20.mjs` is the twentieth clip, the first one with hands in it and
   the first whose whole clock is cut from a read.** 8.67s, 1080x1920, 60fps, dark
   only, out to `demo/out/post20-dark-1080x1920.mp4`. It needs no assets at all:
@@ -3806,6 +3874,78 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-09 — the globe becomes a library, and post24 draws its numbers instead of setting them
+
+**`lib/globe.mjs` is the globe, and `globe-test.mjs` is a harness around it.**
+The sphere was that harness's own page until post24 wanted the same one in a
+film, and two copies of a sphere is two spheres. It moved out as the three
+pieces every module in `demo/lib/` hands back — `globeCss`, `globeMarkup`,
+`globeScript` — plus `readLand()` and one defaults object. **The move is proved
+rather than claimed:** the harness renders byte-identical numbers through the
+module afterwards — same 391 KB, same 8 pings of 11, same 36 of 36 frames.
+
+Nothing in it changed on the way. The arguments for why the projection runs
+backwards, why the glow is a copy of the disc rather than of the globe, why the
+graticule is drawn in screen space and why a ping is born on a black pixel all
+still live in `globe-test.mjs`'s header, which is the file those notes are about.
+
+**post24 draws its captions rather than planning them, and that is the second
+attempt.** The first cut set the three numbers with `captions.mjs`'s `type`
+style. That style **stacks** up to `maxLines` and keeps them, and it draws **the
+words that were spoken** — so all three lines sat on the frame together and the
+middle one read `that is sixteen percent` rather than `16%`. Neither is a bug;
+both are what the style is for, and the module plans one style into one box per
+page, so two plans would paint over each other.
+
+What the clip wanted is the opposite of a transcript: one card at a time, each
+replacing the last completely, and the numerals rather than the words. So the
+cards are drawn in the post file in the module's own tokens at the module's own
+face, which is post20's arrangement. `brandTokens()` is still the module's, so a
+caption there still cannot hold a colour index.html has not got.
+
+Two things make it a rule rather than an intention. **The card is written as a
+sweep every frame** — every key set to nought and the live one set to its
+opacity — so there is no state that could leave one up. And **the numerals are
+counted**: a guard fails if either the card stops saying `1 billion` / `16%` or
+the line stops saying `one billion` / `sixteen percent`. That is post20's `u` /
+`you` with the guard it came with.
+
+**The middle beat is three drawings, not three cards.** A counter racing 0 to
+1 000 000 000 with its ticks laid on a `k^1.75` curve so they start sparse and
+finish dense, a ring filling clockwise to 16% with the number counting inside
+it, and two lines on a chart where a grey `internet` climbs and a white `ai`
+overtakes it and leaves the top of the box. All three are drawn in code on one
+canvas in Manrope, painted with `--fg` and `--muted` read off the page. Each one
+**finishes a tenth of a second before its line does**, so it is seen arriving
+rather than arriving on the frame the card starts fading out of.
+
+**The shutter is derived, not picked.** `--blur` with no number solves for
+post20's own sample step — 37.7 css px over six subframes is 6.3 css px, 12.6
+device px — against this cut's fastest **visible** move. Visible matters: the
+last third of the fall is hundreds of px below the bottom edge and how fast a
+thing moves where nobody can see it is not a picture question. The answer was
+90.9 css px a frame at sixty, and **it is the camera whip rather than the fall**
+— which is why lengthening the fall to 0.60s did not change it.
+
+**Two bugs this clip found were in its own guards**, which is the right place for
+them:
+- `cardBoxes` measured five cards all sitting at zero, because `apply` only
+  writes a band to the card that is live. A sweep taken at build time has to put
+  the band on first or it reports every card as breaking the top margin.
+- The black-hole check read "more than one frame", and that was frame rate
+  dependent by accident. `CARD_GAP` is the designed 0.10s beat between one card
+  leaving and the next arriving; at twelve one frame is 0.083s and it slipped
+  under, at sixty one frame is 0.017s and the same gap failed. It reads
+  `CARD_GAP + one frame` now, which is what it always meant, and the quarter
+  second hole it was built for still fails it.
+
+**`--check` exists because a threshold question should not cost a render.** It
+builds the page, takes its measurements, runs the guards and stops — fifteen
+seconds against twenty three minutes. It clears nothing on the way in; the first
+version wiped the beat stills of the render it was checking.
+
+Committed `3abf34e`, `10d4789`, `3661fd4`. Not pushed.
 
 ### 2026-09-08 — ElevenLabs reads the narrator, edge becomes the fallback
 
