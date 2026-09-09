@@ -76,6 +76,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, 'out');
 const FRAMES = path.join(OUT, 'frames-post24');
 const VERIFY = path.join(OUT, 'verify-post24');
+const SUBS = path.join(OUT, 'subframes-post24');
 
 const VW = STAGE.w, VH = STAGE.h, DSF = STAGE.dsf;
 const FPS = Number(process.env.DEMO_FPS || 60);
@@ -87,6 +88,23 @@ const VOICE_ONLY = argv.includes('--voice');
 const ONLY_ENCODE = argv.includes('--encode-only');
 const KEEP = argv.includes('--keep-frames');
 const NO_PINGS = argv.includes('--no-pings');
+const CHECK = argv.includes('--check');
+/* ---------- the shutter ----------
+   **a frame is the light that arrived over its own duration**, not a sample of
+   one instant, so a fast move is rendered as several subframes and averaged.
+   `--blur` opens it and `--blur=8` says how far; with no number the file works
+   it out from its own fastest move, which is what "as the file needs" means and
+   is the only honest way to pick it: the number that matters is how far the
+   quickest thing on the screen travels **between two samples**, and that is a
+   property of this cut rather than a taste.
+
+   post20's landing is the reference: 37.7 css px on the frame it lands, at six
+   subframes, is 6.3 css px a sample — 12.6 device px. that is the step this
+   aims at. */
+const BLUR = argv.some(a => a === '--blur' || a.startsWith('--blur='));
+const BLUR_ARG = Number((argv.find(a => a.startsWith('--blur=')) || '').split('=')[1]) || 0;
+const SUB_STEP_WANT = 6.3;     /* css px between samples, post20's number */
+const SUB_MAX = 12;
 
 /* ---------- the read ----------
    five lines, one a beat, elevenlabs' default narrator. shorter than the first
@@ -126,7 +144,7 @@ const GLOVE_IN = 0.18;
    to 1.52 wide by 0.66 tall over 70ms with his chin on the ground and springs
    out on a damped cosine that crosses zero exactly once. */
 const HOP = { up: 62, for: 0.20 };
-const FALL = { for: 0.42, to: 1450 };
+const FALL = { for: 0.60, to: 1450 };
 const RISE = { from: 1450, for: 0.48 };
 const SMASH = { air: 0.10, flat: 0.07, back: 0.42, k: 0.52, damp: 4.2, cycles: 1.15 };
 
@@ -778,6 +796,33 @@ function cues() {
   return out.filter(x => x.t >= 0 && x.t < SECONDS).sort((a, b) => a.t - b.t);
 }
 
+/* ---------- how fast anything moves, before a browser is opened ----------
+   walked at sixty whatever the render is set to, because the shutter is a
+   property of the finished clip rather than of the preview. measured **only
+   while he is inside the frame**: the last third of the fall is hundreds of px
+   below the bottom edge and how fast a thing moves where nobody can see it is
+   not a picture question. */
+function fastestMove() {
+  let worst = 0, at = 0, prev = null;
+  const N = Math.round(SECONDS * 60);
+  for (let f = 0; f < N; f++) {
+    const t = f / 60;
+    const y = masXY(t).y + sceneY(t);
+    const on = plan.box.top + y > -SIZE * 2 && plan.box.top + y < VH + SIZE;
+    if (prev != null && on && prev.on) {
+      const d = Math.abs(y - prev.y);
+      if (d > worst) { worst = d; at = t; }
+    }
+    prev = { y, on };
+  }
+  return { worst: +worst.toFixed(1), at: +at.toFixed(2) };
+}
+const MOVE = fastestMove();
+/* the subframe count this cut needs, capped. `--blur=N` overrides it outright. */
+const SUB = !BLUR ? 1
+  : BLUR_ARG ? Math.max(2, Math.min(SUB_MAX, Math.round(BLUR_ARG)))
+    : Math.max(2, Math.min(SUB_MAX, Math.ceil(MOVE.worst / SUB_STEP_WANT)));
+
 /* ---------- report ---------- */
 function printClock() {
   const row = (n, a, b) => console.log('  ' + n.padEnd(24) + a.toFixed(2).padStart(6)
@@ -808,6 +853,16 @@ function printClock() {
   row('the closing card', WINDOWS[4].in);
   row('the fault', FAULT_AT);
   row('the end', SECONDS, ASKED.end);
+  console.log('\n  the shutter:');
+  console.log('    fastest visible move  ' + MOVE.worst + ' css px a frame at 60, at ' + MOVE.at + 's'
+    + '   (' + (MOVE.worst * DSF).toFixed(0) + ' device px, closed-shutter ceiling ' + STEP_CEIL + ')');
+  if (SUB > 1) {
+    console.log('    ' + SUB + ' subframes' + (BLUR_ARG ? ' (asked for)' : ' (worked out from the move above)')
+      + ', so ' + (MOVE.worst / SUB).toFixed(2) + ' css px a sample — '
+      + (MOVE.worst / SUB * DSF).toFixed(1) + ' device px, against post20\'s 12.6');
+  } else {
+    console.log('    shutter closed. --blur opens it.');
+  }
 }
 
 printClock();
@@ -816,7 +871,12 @@ if (VOICE_ONLY) process.exit(0);
 /* ---------- render ---------- */
 async function render() {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
-  for (const d of [FRAMES, VERIFY]) { fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); }
+  /* **--check clears nothing.** it opens the page to take its measurements and
+     returns; wiping the frame and still folders on the way in threw away the
+     beat stills of the render it was checking, which is the opposite of what a
+     check is for. */
+  const dirs = CHECK ? [] : [FRAMES, VERIFY, SUBS];
+  for (const d of dirs) { fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); }
   const { srv, port } = await serve(pageHtml(readLand()));
   const browser = await puppeteer.launch({
     executablePath: CHROME, headless: true,
@@ -853,6 +913,12 @@ async function render() {
   console.log('  wordmark: ' + built.wm.size + 'px michroma, widest line ' + built.wm.widestCss
     + ' css of ' + WM.w + ' allowed, cap about ' + built.wm.capPx + ' device px (floor ' + WM.minCapPx + ')');
 
+  /* **before the frame loop, not after it.** --check wants the page's own
+     measurements and nothing else; the first version of this line sat below the
+     render and cheerfully shot nine thousand subframes to answer a question
+     about a threshold. */
+  fs.writeFileSync(path.join(OUT, 'post24-built.json'), JSON.stringify(built, null, 2));
+  if (CHECK) { await browser.close(); srv.close(); return { N: 0, built }; }
   const schedule = await page.evaluate(() => window.__globe.schedule);
   fs.writeFileSync(path.join(OUT, 'post24-pings.json'), JSON.stringify({
     tilt: G.tilt, spin0: G.spin0, rate: G.rate, cx: G.cx, cy: G.cy, d: G.d,
@@ -870,39 +936,55 @@ async function render() {
     [Math.min(SECONDS - 0.01, WM_AT + 0.06), 'j-wordmark'],
   ].map(([t, n]) => [Math.round(t * FPS), n]));
 
-  let worstStep = 0, worstAt = 0;
-  let prev = null;   /* {y, on} of the frame before */
+  /* **one loop, and the shutter is how many samples it takes per frame.** with
+     the shutter closed SUB is 1 and this is exactly the loop it always was; with
+     it open the samples land in their own folder and ffmpeg averages them
+     afterwards. the beat stills come off the **first** sample of their frame, so
+     a still is a sharp picture of the instant rather than a smear of it. */
+  const SUBSTEP = STEP / SUB;
+  const shotDir = SUB > 1 ? SUBS : FRAMES;
+  let wrote = 0;
   for (let f = 0; f < N; f++) {
-    const t = f * STEP;
-    const fr = frameAt(t);
-    /* how fast anything in this file moves, in css px between two frames at
-       sixty. it is the shutter's ceiling rather than the animation's, and it is
-       **measured only while he is inside the frame**: the last third of the fall
-       is four hundred px below the bottom edge and how fast a thing moves where
-       nobody can see it is not a picture question. */
-    const here = fr.move.y + fr.scene;
-    const screenY = plan.box.top + here;
-    const onScreen = screenY > -SIZE * 2 && screenY < VH + SIZE;
-    if (prev != null && onScreen && prev.on) {
-      const d = Math.abs(here - prev.y) * (FPS / 60);
-      if (d > worstStep) { worstStep = d; worstAt = t; }
+    for (let k = 0; k < SUB; k++) {
+      const t = f * STEP + k * SUBSTEP;
+      const fr = frameAt(t);
+      await page.evaluate(x => window.__post24.apply(x), fr);
+      if (fr.globe.on) await page.evaluate((tt, s) => window.__globe.apply(tt, s), t, fr.globe.spin);
+      await page.evaluate(x => window.__mas.apply(x), fr.mas);
+      const shot = await cdp.send('Page.captureScreenshot', {
+        format: 'jpeg', quality: 92, captureBeyondViewport: false,
+        clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+      });
+      const idx = f * SUB + k;
+      const name = (SUB > 1 ? 's' + String(idx).padStart(6, '0') : 'f' + String(f).padStart(5, '0')) + '.jpg';
+      fs.writeFileSync(path.join(shotDir, name), Buffer.from(shot.data, 'base64'));
+      wrote++;
+      if (k === 0 && STILLS.has(f)) {
+        fs.writeFileSync(path.join(VERIFY, STILLS.get(f) + '.jpg'), Buffer.from(shot.data, 'base64'));
+      }
     }
-    prev = { y: here, on: onScreen };
-    await page.evaluate(x => window.__post24.apply(x), fr);
-    if (fr.globe.on) await page.evaluate((tt, s) => window.__globe.apply(tt, s), t, fr.globe.spin);
-    await page.evaluate(x => window.__mas.apply(x), fr.mas);
-    const shot = await cdp.send('Page.captureScreenshot', {
-      format: 'jpeg', quality: 92, captureBeyondViewport: false,
-      clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
-    });
-    fs.writeFileSync(path.join(FRAMES, 'f' + String(f).padStart(5, '0') + '.jpg'), Buffer.from(shot.data, 'base64'));
-    if (STILLS.has(f)) fs.writeFileSync(path.join(VERIFY, STILLS.get(f) + '.jpg'), Buffer.from(shot.data, 'base64'));
   }
-  console.log('  ' + N + ' frames in ' + ((Date.now() - wall) / 1000).toFixed(1) + 's');
-  console.log('  fastest move: ' + worstStep.toFixed(1) + ' css px between frames at 60 at '
-    + worstAt.toFixed(2) + 's (ceiling ' + STEP_CEIL + ')');
+  console.log('  ' + wrote + ' samples for ' + N + ' frames in '
+    + ((Date.now() - wall) / 1000).toFixed(1) + 's');
   await browser.close(); srv.close();
+  if (SUB > 1) blend(N);
   return { N, built };
+}
+
+/* the shutter, closed. the subframes are averaged into frames, because a frame
+   is the light that arrived over its own duration rather than a sample of one
+   instant. post10's chain, unchanged: tmix over SUB frames, then throw away the
+   SUB-1 partial averages at the head and keep every SUBth result. */
+function blend(N) {
+  console.log('  blending ' + N * SUB + ' subframes into ' + N + ' frames ...');
+  ff(['-y', '-hide_banner', '-loglevel', 'error',
+    '-framerate', String(FPS * SUB), '-i', path.join(SUBS, 's%06d.jpg'),
+    '-vf', 'tmix=frames=' + SUB + ',trim=start_frame=' + (SUB - 1)
+      + ',setpts=PTS-STARTPTS,framestep=' + SUB,
+    '-q:v', '2', path.join(FRAMES, 'f%05d.jpg')]);
+  const got = fs.readdirSync(FRAMES).filter(f => f.endsWith('.jpg')).length;
+  if (got !== N) console.log('  the blend produced ' + got + ' frames of ' + N + ' wanted');
+  if (!KEEP) fs.rmSync(SUBS, { recursive: true, force: true });
 }
 
 /* ---------- the mix ---------- */
@@ -974,8 +1056,19 @@ function guards(built) {
     }
   }
   if (twoUp) fail.push('two cards are up at ' + twoUp.t + 's: ' + twoUp.keys.join(' and '));
-  if (worstBlack > 1 / FPS + 1e-6) {
-    fail.push('the middle beat has ' + worstBlack.toFixed(2) + 's with nothing on the frame');
+  /* **the threshold is CARD_GAP, not one frame.** what this guard is for is the
+     hole the last cut had between the globe leaving and the first number
+     arriving — a quarter second of nothing nobody asked for. the deliberate
+     tenth of a second between one card leaving and the next arriving is the beat
+     that makes a replacement read as a replacement, and it is allowed.
+
+     it was written as `one frame` and that was a frame rate dependent accident:
+     at twelve, one frame is 0.083s and the designed gap of 0.10 slipped under it
+     by a hundredth; at sixty, one frame is 0.017 and the same gap failed. the
+     number was always meant to be the gap this file designs. */
+  if (worstBlack > CARD_GAP + 1 / FPS + 1e-6) {
+    fail.push('the middle beat has ' + worstBlack.toFixed(2) + 's with nothing on the frame, '
+      + 'past the ' + CARD_GAP + 's beat between cards');
   }
   /* the closing card cannot arrive before the chart has gone or before he lands. */
   if (WINDOWS[4].in < WINDOWS[3].out - 1e-6) fail.push('the closing card arrives before the chart leaves');
@@ -996,6 +1089,17 @@ function guards(built) {
   for (let f = 0; f < Math.round(SECONDS * FPS); f++) idle = Math.max(idle, frameAt(f * STEP).mas.hands.list[0].o);
   if (idle > 0.004) fail.push('the screen left glove appears at ' + idle.toFixed(3));
   return fail;
+}
+
+/* `--check` builds the page, takes its measurements and runs the guards against
+   them, then stops. no frames, no mix, no encode — a twenty three minute render
+   is a bad way to re-ask a question about a threshold. */
+if (CHECK) {
+  const { built } = await render();
+  const fail = guards(built);
+  console.log('\n  guards: ' + (fail.length ? fail.length + ' FAILED' : 'all green'));
+  for (const f of fail) console.log('    - ' + f);
+  process.exit(fail.length ? 1 : 0);
 }
 
 const done = ONLY_ENCODE
