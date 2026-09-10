@@ -167,6 +167,18 @@ All headless Chrome, all tooling. The renderers first:
   away; he says `good one` and blinks; the fault takes it and puts the wordmark
   up. **The bug and the eating are post15's, unchanged.** Out to
   `demo/out/post25-dark-1080x1920.mp4`. See The twenty fifth clip.
+- **`site-intro.mjs`** renders a 12 second **landscape** clip, 1920x1080,
+  **light and then dark**, with the read in the file. It is the first thing in
+  this folder that is not a phone and the first that changes theme mid clip: he
+  drops onto a white frame beside a turning globe, says hello and waves, says
+  wait and turns to the globe, and then the picture breaks for four tenths of a
+  second and comes back black. He says now much better, and the house fault
+  takes the globe and leaves the wordmark standing where it was. It is for the
+  website rather than for a feed. Out to `demo/out/site-intro-1920x1080.mp4`.
+  See The site intro.
+- **`site-intro-stills.mjs`** is that clip's two approval stills and the font
+  sheet that chose its subtitle face. It is a sibling rather than a mode because
+  the film fetches a read before it does anything and a still has no read.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -6802,6 +6814,309 @@ face inherits it.
 - **-22.4 LUFS**, down from -16.7. A consequence of the silence that was asked
   for: pulling the four crunches took the only mid-level events out of the
   middle two seconds. It will move again when the real sound goes on.
+
+## The site intro — landscape, two themes, and a switch in the middle
+
+```
+cd demo
+DEMO_FPS=12 node site-intro.mjs     the preview pass
+node site-intro.mjs --blur          the 60fps final, shutter open
+node site-intro.mjs --voice         the read, the clock and the shutter, no browser
+node site-intro.mjs --check         build the page, run the guards, render nothing
+node site-intro.mjs --stills        the two approval stills
+node site-intro.mjs --fonts         the subtitle font sheet
+node site-intro.mjs --blur=8        say the subframe count rather than solving for it
+```
+
+**12.00 seconds, 1920x1080, light then dark, one output path overwritten every
+run:** `demo/out/site-intro-1920x1080.mp4`. Beat stills land in
+`demo/out/verify-site-intro/`, both ping schedules and the delivered ping list in
+`out/site-intro-pings.json`, and the page's own measurements in
+`out/site-intro-built.json`.
+
+He drops in from over the top edge of a white frame onto the spot the approved
+still put him on, beside a turning globe. He says hello and waves. He says wait
+and turns all the way to the globe — and then **the picture breaks**: four tenths
+of a second of rgb split, torn scanlines and static, with the theme turning over
+on one frame inside it, and it comes back black. He turns to the viewer, says now
+much better, and the house fault takes the globe and leaves the wordmark standing
+where it was.
+
+**It is the first landscape thing in this folder and the first that changes theme
+mid clip.** Everything else here is a phone.
+
+### The two stills are the contract, and they are a separate file
+
+`site-intro-stills.mjs` renders `out/site-still-light.png` and
+`out/site-still-dark.png`. They are the two ends of the film — the light one is
+what the first half looks like, the dark one is what the second half looks like,
+and the cut in the middle is the film going from one to the other on a single
+frame. Every number the film places is a number that was agreed there.
+
+It is a sibling rather than a mode inside the film for one reason: the film
+fetches a read from elevenlabs before it does anything else, and a still has no
+read. Keeping them in one file would mean either a stills path that skips half
+the file's own setup, or a still waiting on a voice it does not use.
+
+The font sheet is the same file's other half and it is tooling. It set the
+subtitle face — Nunito 500 at 18 css px — by putting the same words in five faces
+on one dark frame, and it dies the day nobody is arguing about that any more.
+**It also found something worth keeping:** asking Google Fonts for a weight a
+family does not have, inside a request that names four other families, returns a
+**200 with that family silently missing from the reply**. Nothing errors, the
+sheet renders, and one of the five candidates is quietly the fallback serif
+wearing its name. `document.fonts.check` is the call that answers it;
+`document.fonts.load` resolves either way.
+
+### The cut is a theme, not a dissolve
+
+One attribute. `data-theme` goes from light to dark on one frame and every colour
+on the page follows it: the ground, his face, his eyes, the glow, the shadow and
+the subtitle. That is `index.html`'s own mechanism and `lib/mascot.mjs` already
+carries `__mas.theme()` for it.
+
+**The globe cannot follow an attribute, so there are two of them.** The light one
+is dark continents on a light ball and the dark one is post24's, white land on
+black. They are different ink rather than an inversion, and that is not a
+preference: a limb darkens a ball at its edge in both themes, so `filter:invert`
+would leave one of them brightening toward the rim. So `lib/globe.mjs` grew a
+namespace, both instances sit at the same centre at the same diameter turning at
+the same rate, and the cut hides one and shows the other. **Only the visible one
+is ever drawn**, so a frame costs what one globe costs; what two cost is a second
+mask and a second projection at page load.
+
+### The switch replaced a clap, and the clap was built first
+
+The first cut had him clap the lights off, on a new `clap` pose traced from
+`demo/assets/hands/clap-left.svg` with the screen right hand mirrored in code.
+It worked — the pose is in the git history with its contact times, its crease
+conversion and its speed solve — and it was cut whole.
+
+**The reason is worth more than the pose.** A clap costs a drawing, a pose entry,
+a pair of sfx, a hand's travel time and a beat and a half of clock, and none of
+that is on the screen at the moment the frame changes. The switch is the same
+event with the mechanism taken out: the picture itself breaks and comes back
+dark. It needs no entrance, so it sits 0.28s after the wait bubble clears instead
+of waiting for a hand to cross a head, and it gave the middle of the film back
+about three quarters of a second.
+
+Four things over 0.40s, all on one heat curve so they arrive and die together:
+the house rgb split on the whole scene, horizontal slice tearing, a static burst
+and the shake. The theme flips **inside** the burst rather than at either end of
+it, so the change is hidden by the thing making it — which is what a switch on a
+television looks like, and it is still one frame with no fade.
+
+**The tear is composited rather than displaced**, and that is worth saying
+plainly: the bands are slabs of the page's own ink drawn over the frame and
+offset sideways, not slices of the rendered picture moved. Displacing the real
+image needs either N copies of a subtree holding two canvases and an svg with
+fixed ids, or an `feDisplacementMap` over the whole scene. Neither is five frames
+of work.
+
+### Every random thing is quantised to the frame, and the shutter is why
+
+`FRAME_OF(t)` is the frame a time belongs to, and the switch's seed, the switch's
+heat, the fault's seed and the fault's heat are all read at the frame's own start
+rather than at the instant.
+
+With the shutter closed that is post10's rule — a glitch lands on a frame. With
+it open it is the difference between a glitch and a grey smudge. A frame is
+twelve subframes averaged; if the noise field, the torn bands and the shake are
+redrawn per subframe, twelve different random pictures are averaged together and
+static becomes flat grey, tearing becomes a wash and the shake becomes a blur.
+Quantised, all twelve subframes draw the **identical** glitch, so averaging them
+changes nothing about it — while the mascot underneath, which really is at twelve
+different places, still smears. Sharp glitch, blurred motion, one pass. The
+rendered frame at 4.78s is the proof: per-pixel static with the rgb fringes still
+crisp on both objects.
+
+### The shutter's step is a fraction of the smallest moving feature
+
+post20 measured 6.3 css px a sample off a landing and every clip since has aimed
+at it. post25 found that wrong when the moving ink has a small feature in it —
+its lunge banded into six countable copies at 5.57 css px a sample because an eye
+slab is 8.8 css px tall — and prescribed about 4.
+
+**Four is still too coarse, and this clip is where that showed.** It solved 6
+subframes at 3.46 css px a sample, finer than post25 asked for, and the landing
+at 1.13s came back with both eye slabs combed into six stripes while the head's
+own edge blurred perfectly smoothly.
+
+The step is only half the criterion. What a viewer sees is the **ripple**, and
+the ripple is set by how many copies of the feature overlap at a point: that
+count is the feature's height over the step, and the ripple is its reciprocal. At
+8.7 over 3.46 the count alternates between two and three copies — a fifty per
+cent swing in brightness across the smear, which is a stripe.
+
+So the target is written as a **fraction of the smallest moving feature** rather
+than as a constant measured once on another clip:
+
+```
+EYE_CSS        = 4.4 grid units at size 127 = 8.73 css px
+SUB_STEP_WANT  = EYE_CSS / 5 = 1.75 css px
+fastest visible move  20.79 css px a frame at 60, at 1.15s, the landing
+12 subframes, so 1.73 css px a sample — 3.5 device px
+```
+
+A fifth keeps the count between four and five copies and the ripple around twenty
+per cent, which reads as a blur. It is the same shape of correction post25 made
+to post20 and for the same reason — a constant tuned against one clip's ink is
+not a rule — taken one step further. **Every clip in `demo/` that opens its
+shutter over a face inherits this.**
+
+`fastestMove()` walks the composed frame and excludes the two glitch windows on
+purpose. The shake is frame quantised, so it contributes exactly nought to what a
+subframe pair measures, and solving the shutter against a number that cannot
+smear would buy subframes nobody can see.
+
+### A film whose theme is a function of time cannot take its glow from the plan
+
+`mascotFrame` sets `glow: plan.theme === 'dark' ? 1 : 0`. A plan has one theme
+and this film has two, so the plan is built light — and the dark half rendered
+with **both glow layers at nought**. He was on black with no glow at all for
+seven seconds, and it read as a design choice rather than as a bug: the review
+called it thin.
+
+One line in the post file sets it from the film's own theme instead, at the
+module's own values — `GLOW.wide` 30px at 0.13 and `GLOW.mid` 11px at 0.20, which
+is post22's and every dark short's. Nothing in the module says this is a trap,
+and the next clip that changes theme mid film will fall in it the same way.
+
+### A ping is on a continent twice over, and the run names the ground
+
+The colour rule reads the rendered pixel under the point, which is its whole
+strength: it cannot disagree with what ships. It is also one test, and a picture
+can be right about a colour and wrong about a place — an antialiased coastline, a
+lake drawn in the land's own ink, a limb angle that pulls a shallow sea into the
+window.
+
+So `lib/globe.mjs` gained two opt-in options and a caller has to ask for both:
+
+- **`ping.lum`, a window rather than a ceiling.** The rule was written when land
+  was white and sea was black, so one number said both "dark" and "the sea".
+  Invert the ink and they come apart: the ground is still the dark half but it is
+  not black any more. The light globe asks for `[0, 60]`, its dark continents;
+  the dark globe asks for `[90, 255]`, its white ones. Ocean is 0 on the dark
+  globe at every limb angle, so nothing in that window can be sea.
+- **`ping.inLand`, ray casting against the land polygons themselves**, under the
+  same even-odd rule `buildMask` fills with, so a hole in the data is a hole to
+  both tests. The two share no code and no intermediate: one reads a rendered
+  byte, the other reads a coordinate. It runs **last** in the spawn loop, because
+  the colour rule has already thrown out everything but land by then, so it costs
+  a handful of calls a ping rather than one per candidate.
+
+`ne_110m_land.geojson` carries no names, so naming the ground is the post file's
+own ordered table of lon/lat boxes — the small and the specific first, because
+Greenland sits inside a North America box and the British Isles sit inside a
+Europe one. It names rather than decides: the fail is the polygon test.
+
+The run prints every ping the delivered film puts on a frame with its coordinates
+and its continent. **18 on this cut, every one on land.**
+
+### The eyes are read on every frame, not asserted
+
+Only `neutral` and `delighted` may appear on a mark — no wide eye, no brows, no
+turn-away. **The allowlist is not the guard.** A state is not the only thing that
+writes an eye: the idle layer, a blink and the turn all move the same channels.
+So the guard walks the film at the render's own step and reads what is actually
+drawn — no brow ever inked, no eye past a calm height.
+
+720 frames read on the final. Worst eye height 1.14 of its own against a ceiling
+of 1.6; `surprised` would be 2.6. Brows inked on none.
+
+### Two things a frame settled that a number could not
+
+**A turn cannot be judged on a frame the idle layer is blinking on.** The settled
+turn was pulled back from 1.0 to 0.75 on the frame at 4.00s, where both lids are
+0.45 down and the pair reads as one white dash and a hairline — which is post25's
+own sentence about its gaze, and it looked like the same finding. It was the
+wrong frame. At 4.30s, lids up, the two eyes measure 52 and 35 device px and both
+are plainly there. It is back at 1.0. This rig carries a `stillMoment` for exactly
+this and it was not used to pick the frame that made the judgement.
+
+**The widest thought in a clip has to be measured with its own string in it.**
+The bubble guard measured the pill once at build time, before the runtime had
+written a word into it, so it compared an empty pill to the globe's edge and
+passed — while a four word thought sat 122 css px inside the earth. Measured
+properly it also has to be measured **after** the film's own translate, or it
+reports a bubble 700px down a 540px stage and is right about a picture nobody
+will see.
+
+The fix in the end was copy, not geometry: the bubble says `welcome` and the
+subtitle carries the whole sentence. A thought is two or three words in this
+house anyway.
+
+### The clock, and where it sits against the storyboard
+
+```
+0.55  he enters over the top edge
+1.15  he lands, post20's smash
+1.50  hello, the wave                     brief 1.5
+3.14  wait, and the turn to 1.0           brief 3.0
+4.70  the switch breaks the picture
+4.83  the theme turns over, one frame
+5.10  the picture comes back
+5.20  he turns to the viewer              brief 5.5
+6.30  now much better. welcome.           brief 6.5
+9.00  the fault, and the wordmark         brief 9.0
+12.00 end                                 brief 12.0
+```
+
+Every state in `lib/mascot.mjs` has an entrance and an exit it will not go under,
+and a bubble has to live inside what is left, so a mark that pops one needs 1.56
+to 1.74 seconds before the next mark. The storyboard spaced two beats 1.00 apart,
+which is under the floor for every state in the table. Taking the clap out bought
+most of it back.
+
+### The subtitle, the safe area and the wordmark
+
+Nunito 500 at 18 css px, one line, no pill, bottom centre, `--sub` grey on the
+white half and white on the black one — a token rather than a colour, so it
+follows the cut with everything else. `nowrap` plus a height check is what makes
+one line a fact rather than a hope.
+
+The safe area is **title safe, ten per cent** — 96 css px sides, 54 top and
+bottom — rather than the phone numbers in `lib/mascot.mjs`, because those are
+about a platform's own chrome over a vertical clip and there is none here. Him,
+both globes, the wordmark, every subtitle and every bubble are measured against
+it where they are really drawn.
+
+The wordmark stands in the globe's place at 260 css wide against the ball's 212.
+**Fitting it found a bug worth knowing about:** the three lines are
+`display:block`, so each one's rect is the width of its *container*, not of its
+glyphs — the first version divided the allowance by that and reported "100px
+michroma, widest line 260 of 260 allowed", which is the wordmark handing back the
+number it was given. Measured at `max-content` it is 45px and 256.3 css wide.
+post24's `fitWordmark` has the same shape and is worth a look.
+
+### The guards
+
+The head size and the wordmark fit; title safe on him, both globes, the wordmark,
+every subtitle and every bubble measured where they draw; one subtitle at a time,
+walked at the render's own step; the cut one frame, inside the burst, with the
+glitch running either side of it; the theme changing exactly once; only `wave` on
+the hands and no glove outside its pose's window; both ping windows and both land
+tests actually asked for; every delivered ping inside a land polygon and named;
+the four faces really loaded; and the eyes read on every frame.
+
+### Outstanding
+
+- **The static is heavy.** At 4.78s it very nearly takes the picture. That is a
+  burst and it is four tenths of a second, but if it should read as a switch
+  rather than as a dead channel, `SWITCH.static` comes down from 0.42.
+- **The tear is composited, not displaced.** Above. A real tear is an
+  `feDisplacementMap` over the scene and it is a decision rather than an
+  afternoon.
+- **The fall has no anticipation and no stretch.** At 1.00s he reads as a wide
+  ellipse rather than a body falling; what is on the frame is the idle breathing.
+- **9.50 to 12.00 is 2.5 seconds of a settled wordmark.** It earns some of that
+  as an end card. It is the place a thumb would move.
+- **`demo/assets/hands/clap-left.svg` and `clap-right.svg` are on disk and
+  untracked.** Nothing uses them now. They are drawings rather than output, so
+  they were not deleted.
+- **The two globes cost a second mask and a second projection at page load**,
+  about fifteen seconds. A clip that wanted three themes would want the ink to be
+  a function of time inside one instance instead.
 
 ## The og card
 

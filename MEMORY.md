@@ -6,6 +6,89 @@ names in here either.
 
 ## Status
 
+- **2026-09-10: the site intro is rendered as a 60fps final and it is the first
+  thing here that is not for a feed.** `demo/site-intro.mjs` →
+  `demo/out/site-intro-1920x1080.mp4`, **12.00s, 1920x1080 landscape, 60fps,
+  light then dark**, 720 frames blended from **8640 subframes at 12 a frame**,
+  shutter open. Guards all green. Review in
+  `demo/out/review-site-intro-1920x1080.md`. Committed, **not pushed**.
+
+  The clip: he drops in over the top edge of a white frame onto the spot the
+  approved still put him on, beside a turning globe; he says hello and waves; he
+  says wait and turns all the way to the globe; **the picture breaks for four
+  tenths of a second** — rgb split, torn scanlines, static — and comes back
+  black; he turns to the viewer and says now much better; the house fault takes
+  the globe and leaves the wordmark standing where it was.
+
+  **The read is elevenlabs `calm`, three lines, 2.40s of sound in 12s of film**,
+  cached under `demo/out/voice/`:
+
+  ```
+  1.62..2.21   hello.
+  3.24..3.58   wait.
+  6.42..7.89   now much better. welcome.
+  ```
+
+  **It is the first landscape thing in `demo/` and the first that changes theme
+  mid clip.** `data-theme` flips on one frame inside the glitch burst and every
+  colour follows it. The globe cannot follow an attribute, so there are two
+  instances at the same centre turning at the same rate and the cut hides one and
+  shows the other; only the visible one is ever drawn.
+
+  **A clap was built for this and cut whole.** It had a traced pose, its own
+  contact times, a crease conversion and a speed solve, and it worked. It cost a
+  drawing, a pose entry, a pair of sfx, a hand's travel and a beat and a half of
+  clock, and none of that is on the screen at the moment the frame changes.
+  `lib/mascot.mjs` is back to byte-identical with it removed.
+
+  **Five things it settled that outlive it:**
+  - **The shutter's step is a fraction of the smallest moving feature, not a
+    constant.** post20 said 6.3 css px a sample; post25 found that wrong over a
+    face and said about 4. Four is still too coarse: this clip solved 6 subframes
+    at **3.46** and the landing came back with both eye slabs combed into six
+    stripes while the head's edge blurred perfectly. The ripple is set by how
+    many copies of a feature overlap, which is its height over the step, so the
+    target is now **`EYE_CSS / 5`** — 1.75 css px here — and it solves 12
+    subframes at 1.73. Every clip in `demo/` that opens its shutter over a face
+    inherits this.
+  - **A film whose theme is a function of time cannot take its glow from
+    `plan.theme`.** `mascotFrame` sets it from the plan, which is one value for a
+    whole clip. This plan is built light, so the dark half rendered with **both
+    glow layers at nought** — he was on black with no glow at all for seven
+    seconds and it read as a design choice. One line sets it from the film's own
+    theme at the module's own values.
+  - **Every random thing has to be quantised to the frame or the shutter eats
+    it.** Twelve subframes of a redrawn noise field average to flat grey. Frame
+    quantised, all twelve draw the identical glitch and averaging changes nothing
+    about it while the mascot underneath still smears. Sharp glitch, blurred
+    motion, one pass.
+  - **A ping is on a continent twice over now.** The rendered pixel has to be
+    that globe's own continent colour **and** the point has to be inside a land
+    polygon by ray casting against the geojson. The two share no code. 18 pings
+    on the delivered frames, every one on land, each named in the run.
+  - **A turn cannot be judged on a frame the idle layer is blinking on.** The
+    full turn was pulled back from 1.0 to 0.75 on a frame where both lids are
+    0.45 down and the pair reads as one dash — post25's own sentence about its
+    gaze, and it looked like the same finding. Wrong frame. It is back at 1.0.
+
+  **Open on it, and none of it is a blocker:**
+  - **The static is heavy.** At 4.78s it very nearly takes the picture.
+    `SWITCH.static` comes down from 0.42 if it should read as a switch rather
+    than as a dead channel.
+  - **The tear is composited, not displaced.** The bands are slabs of the page's
+    own ink offset sideways, not slices of the rendered picture moved. A real
+    tear is an `feDisplacementMap` over the scene, which is a decision.
+  - **The fall has no anticipation and no stretch.** At 1.00s he reads as a wide
+    ellipse; what is on the frame is the idle breathing.
+  - **9.50 to 12.00 is 2.5 seconds of a settled wordmark.** It earns some of it
+    as an end card.
+  - **`demo/assets/hands/clap-left.svg` and `clap-right.svg` are on disk and
+    untracked.** Nothing uses them. They are drawings rather than output, so they
+    were not deleted.
+  - **The two globes cost a second mask and a second projection at page load.**
+    A clip wanting three themes would want the ink to be a function of time
+    inside one instance instead.
+
 - **2026-09-10: post25 is rendered as a 60fps final and is the current clip.**
   `demo/post25.mjs` → `demo/out/post25-dark-1080x1920.mp4`, **7.87s, 1080x1920,
   60fps, dark only, 695 KB**, 472 frames blended from **2832 subframes at 6 a
@@ -2717,6 +2800,39 @@ names in here either.
   no copy of the site; see Decisions before touching them.
 - **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked.
 
+#### The website card — the video, and chapter buttons beside it
+
+**Planned, not built.** The site intro is rendered and the card that will carry
+it on `index.html` is agreed in shape:
+
+- **A single card, video left and chapter buttons right.** The video is the wide
+  half; the buttons are a vertical stack down the right, one a chapter, each one
+  seeking the video rather than loading anything.
+- **On phone the two halves stack**, video on top and the chapter list under it,
+  which is the only arrangement a 16:9 clip and a column of buttons can share
+  under about 700px.
+- The clip is landscape 1920x1080 because of this card. Everything else in
+  `demo/` is a phone and is for a feed; this one is for the page.
+
+Nothing about it is written yet — no markup, no styles, no player. The open
+questions before it can be:
+
+- **Autoplay, muted, loop, or a poster and a play button.** The clip has a read
+  in it, so autoplay with sound is out; muted autoplay costs the read entirely
+  and the read is most of the copy. A poster frame plus a press is the honest
+  default and it is a decision.
+- **Where the file lives.** `demo/out/` is gitignored and the mp4 is 4.4 MB. It
+  cannot ship from `out/`, and putting a 4.4 MB binary in a public repo that
+  GitHub Pages serves is a decision rather than a detail — the build constraints
+  say no image files unless discussed first, and a video is that argument with
+  another zero on it.
+- **What the chapters are.** The clip is 12 seconds and has four beats. Chapter
+  buttons want a longer clip, or they want to point at more than one.
+- **The single external request budget.** A `<video>` is not a font, but it is
+  another request at load unless it waits for a press. Whatever the answer is, it
+  has to be said out loud against the one-request rule rather than assumed past
+  it.
+
 ### Socials
 
 - **Handles, all six the same word:** `t.me/boringtek`, `x.com/boringtek`,
@@ -3193,6 +3309,15 @@ post5 under Socials for what that clip actually carries.
 Still no posting cadence or content pillars. See Next steps.
 
 ### Demo reel and the og card — `demo/`
+
+- **`demo/site-intro.mjs` is the website intro and the current render.** 12.00s,
+  **1920x1080 landscape**, 60fps, light then dark, shutter open at 12 subframes,
+  out to `demo/out/site-intro-1920x1080.mp4`. It is the first landscape thing
+  here, the first that changes theme mid clip, and the first that is for the
+  website rather than for a feed. `demo/site-intro-stills.mjs` beside it holds
+  the two approval stills and the font sheet that chose the subtitle face. Needs
+  `demo/assets/ne_110m_land.geojson`, which is untracked, and `demo/.env` for the
+  voice. Full write up under The site intro in `demo/README.md`.
 
 - **`demo/post24.mjs` is the twenty fourth clip and the current one.** 12.82s,
   1080x1920, 60fps, dark only, shutter open at 12 subframes, out to
@@ -3959,6 +4084,127 @@ huggingface, neither of them ours, and neither module has a key or an account.
     Nothing it produces is committed unless somebody asks for it to be.
 
 ## Decisions
+
+### 2026-09-10 — the shutter's step is a fraction of the smallest moving feature, not a constant
+
+post20 measured **6.3 css px a sample** off its own landing and every clip since
+aimed at it. post25 found that wrong when the moving ink has a small feature in
+it: its lunge banded into six countable copies at **5.57** — finer than the
+reference — because an eye slab is 8.8 css px tall, and it prescribed about 4.
+
+**Four is still too coarse.** The site intro solved 6 subframes at **3.46 css px
+a sample** and the landing at 1.13s came back with both eye slabs combed into six
+stripes, one per subframe, while the head's own edge blurred perfectly smoothly.
+
+The step was only ever half the criterion. What a viewer sees is the **ripple**,
+and the ripple is set by how many copies of the feature overlap at a given point.
+That count is the feature's height over the step and the ripple is its
+reciprocal: at 8.7 over 3.46 the count alternates between two and three copies,
+which is a fifty per cent swing in brightness across the smear. Fifty per cent is
+a stripe.
+
+So the target is written as a fraction of the smallest thing that moves:
+
+```
+EYE_CSS       = 4.4 grid units at the clip's own size
+SUB_STEP_WANT = EYE_CSS / 5
+```
+
+A fifth keeps the count between four and five copies and the ripple near twenty
+per cent, which reads as a blur. At size 127 that is 1.75 css px and it solves 12
+subframes against a fastest move of 20.79.
+
+It is the same correction post25 made to post20 and for the same reason — a
+constant tuned against one clip's ink is not a rule — taken one step further.
+**Every clip in `demo/` that opens its shutter over a face inherits this**, and
+the two that already shipped at the older numbers are the ones to re-check first.
+
+### 2026-09-10 — a film whose theme is a function of time cannot take its glow from the plan
+
+`mascotFrame` sets `glow: plan.theme === 'dark' ? 1 : 0`. That is correct for
+every clip that came before it, because a clip had one theme and a plan is made
+once.
+
+The site intro is light for five seconds and dark for seven. Its plan is built
+light, so **both glow layers rendered at nought for the whole dark half** — he
+was a flat white disc on black with no bloom at all. It did not look like a bug.
+It looked like a design choice, and the review called it thin rather than absent.
+
+The fix is one line in the post file: the frame's glow is set from the **film's**
+theme rather than the plan's, at the module's own `GLOW` values. The module is
+untouched.
+
+**The general shape is the thing to keep.** A module option that is a property of
+a plan is a constant for the whole clip, and any clip that makes that property a
+function of time has to override the field the module derived from it. Theme is
+the first one this repo hit. The next clip that changes theme mid film will hit
+it the same way unless it knows.
+
+### 2026-09-10 — every random thing has to be quantised to the frame, or the shutter averages it away
+
+post10's rule was that a glitch lands on a frame, so the glitch's seed came off
+the frame grid. With the shutter open the same rule is load bearing for a
+different reason.
+
+A frame is twelve subframes averaged. If a noise field, a set of torn bands and a
+shake are redrawn per subframe, then twelve **different** random pictures are
+averaged together: static becomes flat grey, tearing becomes a wash, and the
+shake becomes a blur. The glitch disappears into the thing that was supposed to
+make the motion look right.
+
+Quantised to the frame, all twelve subframes draw the *identical* glitch, so
+averaging them changes nothing about it — while the mascot underneath, which
+really is at twelve different places, still smears. Sharp glitch, blurred motion,
+one pass, no second render and no mask.
+
+It also means the shake contributes **nought** to what a subframe pair measures,
+which is why `fastestMove()` excludes the glitch windows: solving the shutter
+against a number that cannot smear buys subframes nobody can see.
+
+### 2026-09-10 — a ping is on a continent twice over, and the two tests share no code
+
+The colour rule — a ping is born on a pixel of the frame it is born on — is the
+strongest thing about the ping layer, because it cannot disagree with what ships.
+It is also one test, and a picture can be right about a colour and wrong about a
+place: an antialiased coastline, a lake drawn in the land's own ink, a limb angle
+that pulls a shallow sea into the window.
+
+`lib/globe.mjs` now takes two opt-in options and the site intro asks for both:
+
+- **`ping.lum`** makes the colour test a **window** rather than a ceiling. The
+  original was written when land was white and sea was black, so one number said
+  both "dark" and "the sea"; invert the ink for a light theme and they come
+  apart. The light globe asks for `[0, 60]` and the dark one for `[90, 255]`.
+- **`ping.inLand`** ray casts the point against the land polygons themselves,
+  under the same even-odd rule `buildMask` fills with. It runs last in the spawn
+  loop, because the colour rule has already thrown out everything but land by
+  then.
+
+Both default off, and `globe-test.mjs still` renders the same sha256 as before
+either change, which is the promise the defaults are written to keep.
+
+**Naming the ground is the caller's job.** `ne_110m_land.geojson` is land and
+nothing else — no names, no codes, no continent field — so the continent table is
+an ordered list of lon/lat boxes in the post file, small and specific first
+because Greenland sits inside a North America box. It names rather than decides:
+the fail is the polygon test.
+
+### 2026-09-10 — a turn cannot be judged on a frame the idle layer is blinking on
+
+The site intro's full turn was pulled back from 1.0 to 0.75 because the frame at
+4.00s reads as one white dash and a hairline — which is, word for word, post25's
+finding about its own gaze, so it looked like the same thing arriving again.
+
+It was the wrong frame. 4.00s is **inside a blink**: both lids are 0.45 down, and
+a half lidded eye is a thin slab at any turn at all. At 4.30s, lids up, the two
+eyes measure 52 and 35 device px and both are plainly there. The turn went back
+to 1.0.
+
+`lib/mascot.mjs` has carried `stillMoment` since the stills, precisely so a
+picture is taken off a blink. It was used to choose the still frames and not used
+to choose the frame that a judgement about the animation was made on. **Any frame
+pulled out of a clip to decide something about the drawing should go through it**,
+or the idle layer gets a vote nobody asked for.
 
 ### 2026-09-09 — the globe becomes a library, and post24 draws its numbers instead of setting them
 

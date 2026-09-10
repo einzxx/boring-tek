@@ -97,6 +97,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, 'out');
 const FRAMES = path.join(OUT, 'frames-site-intro');
 const VERIFY = path.join(OUT, 'verify-site-intro');
+/* the subframes, when the shutter is open. it is SAMPLE_DIR rather than SUBS
+   because SUBS is already the subtitle windows in this file. */
+const SAMPLE_DIR = path.join(OUT, 'subframes-site-intro');
 
 /* ---------- the stage ---------- */
 const VW = 960, VH = 540, DSF = 2;
@@ -118,11 +121,55 @@ const CHECK = argv.includes('--check');
 const ONLY_ENCODE = argv.includes('--encode-only');
 const KEEP = argv.includes('--keep-frames');
 
+/* ---------- the shutter ----------
+   **a frame is the light that arrived over its own duration**, not a sample of
+   one instant, so a fast move is rendered as several subframes and averaged.
+   `--blur` opens it and `--blur=8` says how far; with no number the file solves
+   it from its own fastest move, which is the only honest way to pick it — the
+   number that matters is how far the quickest thing on the screen travels
+   between two samples, and that is a property of this cut rather than a taste.
+
+   **4.0 css px a sample, not post20's 6.3, and post25 is why.** that reference
+   is a landing: a large soft shape moving fast, where consecutive copies of it
+   overlap and average into a smear. post25 solved 6 subframes off its own
+   fastest move, landed at 5.57 css px a sample — finer than the reference — and
+   its lunge still banded into six countable copies. the reason was the eyes: an
+   eye slab is a few px tall, so consecutive copies of it barely overlap and the
+   average is a comb rather than a blur. **the step has to be under the smallest
+   moving feature** — this mascot's eye is 4.4 grid units, which is 8.7 css px
+   at size 127.
+
+   **and post25's own answer for that, about 4 css px, is still too coarse.**
+   this clip solved 6 subframes at 3.46 css px a sample — finer than post25
+   asked for — and the landing at 1.13s came back with both eye slabs combed
+   into six countable stripes while the head's own edge blurred perfectly
+   smoothly. the reason is that the step is only half the criterion. what a
+   viewer sees is the **ripple**, and the ripple is set by how many copies of
+   the feature overlap at a given point: that count is the feature's height over
+   the step, and the ripple is its reciprocal. at 8.7 over 3.46 the count
+   alternates between two and three copies, which is a fifty per cent swing in
+   brightness across the smear, and fifty per cent is a stripe.
+
+   so the target is written as a **fraction of the smallest moving feature**
+   rather than as a constant somebody measured once on a different clip. a fifth
+   of the eye keeps the count between four and five copies and the ripple around
+   twenty per cent, which reads as a blur. it is the same shape of correction
+   post25 made to post20 and for the same reason — a constant tuned against one
+   clip's ink is not a rule — taken one step further. */
+const BLUR = argv.some(a => a === '--blur' || a.startsWith('--blur='));
+const BLUR_ARG = Number((argv.find(a => a.startsWith('--blur=')) || '').split('=')[1]) || 0;
+const SUB_MAX = 12;
+
 /* ---------- him ----------
    127 css px puts the plate at 238 device px, which sits in the middle of
    `lib/mascot.mjs`'s own head window rather than on its ceiling. */
 const SIZE = 127;
 const MAS = { cx: 250, cy: 252 };
+/* the smallest thing on this mascot that moves: one eye slab, in css px, and
+   the shutter's target step is a fifth of it. see The shutter above — it lives
+   down here because it is a property of how big he is drawn. */
+const EYE_CSS = 4.4 * SIZE / 64;
+const SUB_STEP_WANT = +(EYE_CSS / 5).toFixed(2);
 
 /* ---------- the globe ----------
    212 css across against his 119 css plate, and 340 degrees of spin at the top
@@ -595,13 +642,31 @@ function subAt(t) {
   return { i: -1, key: null, o: 0 };
 }
 
+/* ---------- the frame a time belongs to ----------
+   **every random thing in this film is quantised to this and not to the clock**,
+   and with the shutter open that is the difference between a glitch and a grey
+   smudge. a frame is six subframes averaged; if the noise field, the torn bands
+   and the shake are redrawn per subframe then six different random pictures are
+   averaged together and static becomes flat grey, tearing becomes a wash and
+   the shake becomes a blur. quantised to the frame, all six subframes draw the
+   **identical** glitch, so averaging them changes nothing about it — while the
+   mascot underneath, which really is at six different places, still smears.
+   sharp glitch, blurred motion, one pass.
+
+   it is post10's rule — the glitches are quantised to the frame grid — arriving
+   from the other direction: that clip wanted the glitch to land on a frame, and
+   this one needs it to survive being averaged. */
+const FRAME_OF = t => Math.floor(t * FPS + 1e-6);
+const FRAME_T = t => FRAME_OF(t) / FPS;
+
 /* ---------- the switch's heat ----------
-   a burst rather than a decay: it arrives at full, jitters, and is gone. the
-   jitter is on the frame index rather than on the clock so the same frame is
-   the same picture at twelve and at sixty, and the whole thing is nought
-   outside its own window, which is what keeps the filter off the scene for the
-   other eleven and a half seconds. */
-function switchAt(t) {
+   a burst rather than a decay: it arrives at full, jitters, and is gone. both
+   the heat and the seed are read at the frame's own start, so the same frame is
+   the same picture at twelve, at sixty, and across every subframe of it. it is
+   nought outside its own window, which is what keeps the filter off the scene
+   for the other eleven and a half seconds. */
+function switchAt(t0) {
+  const t = FRAME_T(t0);
   if (t < SWITCH_AT || t >= SWITCH_END) return { on: false, heat: 0, seed: 0 };
   const p = span(t, SWITCH_AT, SWITCH_END);
   /* full for the first fifth, then down with two bites out of it. */
@@ -610,7 +675,7 @@ function switchAt(t) {
   return {
     on: true,
     heat: +Math.max(0, Math.min(1, base * bite)).toFixed(4),
-    seed: (SWITCH.seed + Math.round(t * 1000)) % 9973,
+    seed: (SWITCH.seed + FRAME_OF(t0)) % 9973,
   };
 }
 
@@ -660,10 +725,57 @@ function frameAt(t) {
     sub: subAt(t),
     sw: switchAt(t),
     wm: { o: t >= FAULT_AT + END.wmFor ? 1 : 0 },
+    /* the fault, quantised the same way and for the same reason. */
     gl: (t < FAULT_AT || hit >= 1) ? { heat: 0, seed: 0 }
-      : { heat: +heatAt(hit).toFixed(4), seed: Math.floor(t * 1000) % 9973 },
+      : { heat: +heatAt(span(FRAME_T(t), FAULT_AT, FAULT_AT + END.hard + END.tail)).toFixed(4),
+        seed: FRAME_OF(t) % 9973 },
   };
 }
+
+/* ---------- how fast the quickest thing on the screen moves ----------
+   walked on the composed frame rather than modelled off the fall's own
+   arithmetic, so it counts whatever this cut actually does: the zone's travel
+   and the card's own offset together, only over the frames he is on the screen
+   for, and only outside the two glitch windows.
+
+   **the glitches are excluded on purpose and it is not a dodge.** the shake is
+   frame quantised — every subframe of a frame draws it at the same offset — so
+   it contributes exactly nought to what a subframe pair measures, and solving
+   the shutter against a number that cannot smear would buy subframes nobody can
+   see. post24 excluded a move for a nearby reason and wrote down the same kind
+   of sentence: how fast a thing moves where it cannot be seen is not a picture
+   question.
+
+   post25's other note is honoured by construction here — it worried that its
+   own solver only measured the mascot when a bug was the second fastest thing
+   on the frame. the second fastest thing in this film is the globe, and it
+   turns at 9 degrees a second, which is under a third of a css pixel a frame at
+   the equator of a 212 px ball. him is the answer and it is not luck. */
+function fastestMove() {
+  let worst = 0, at = 0, prev = null;
+  const N = Math.round(SECONDS * 60);
+  for (let f = 0; f < N; f++) {
+    const t = f / 60;
+    const fr = frameAt(t);
+    const y = fr.move.y + fr.mas.card.y, x = fr.move.x + fr.mas.card.x;
+    const on = plan.box.top + fr.move.y > -SIZE * 2 && plan.box.top + fr.move.y < VH + SIZE
+      && !fr.sw.on && !fr.gl.heat;
+    if (prev && on && prev.on) {
+      const d = Math.hypot(x - prev.x, y - prev.y);
+      if (d > worst) { worst = d; at = t; }
+    }
+    prev = { x, y, on };
+  }
+  return { worst: +worst.toFixed(2), at: +at.toFixed(2) };
+}
+const MOVE = fastestMove();
+/* the subframe count this cut needs, capped. `--blur=N` overrides it outright.
+   it is SAMPLES rather than SUB because SUB is already the subtitle in this
+   file, and two constants a letter apart is how a render ends up asking the
+   caption how many times to shoot a frame. */
+const SAMPLES = !BLUR ? 1
+  : BLUR_ARG ? Math.max(2, Math.min(SUB_MAX, Math.round(BLUR_ARG)))
+    : Math.max(2, Math.min(SUB_MAX, Math.ceil(MOVE.worst / SUB_STEP_WANT)));
 
 /* ---------- the page ---------- */
 function pageHtml(geojson) {
@@ -1042,6 +1154,19 @@ function printClock() {
     ['now much better', WELCOME_AT], ['the fault', FAULT_AT], ['end', SECONDS],
   ];
   for (const [n, t] of rows) console.log('    ' + t.toFixed(2).padStart(6) + '  ' + n);
+  console.log('\n  the shutter:');
+  if (SAMPLES > 1) {
+    console.log('    fastest visible move  ' + MOVE.worst.toFixed(2) + ' css px a frame at 60, at '
+      + MOVE.at.toFixed(2) + 's  (' + (MOVE.worst * DSF).toFixed(0) + ' device px)');
+    console.log('    ' + SAMPLES + ' subframes' + (BLUR_ARG ? ' (asked for)' : ' (solved)')
+      + ', so ' + (MOVE.worst / SAMPLES).toFixed(2) + ' css px a sample — '
+      + (MOVE.worst / SAMPLES * DSF).toFixed(1) + ' device px, against a target of '
+      + SUB_STEP_WANT + ' css');
+    console.log('    the eye slab is ' + (4.4 * SIZE / 64).toFixed(1)
+      + ' css px tall, which is the feature the step has to stay under');
+  } else {
+    console.log('    closed. --blur opens it.');
+  }
 }
 
 printClock();
@@ -1101,7 +1226,7 @@ function mix() {
 /* ---------- render ---------- */
 async function render() {
   if (!CHROME) throw new Error('no chrome found — add its path to CHROME at the top of this file');
-  const dirs = CHECK ? [] : [FRAMES, VERIFY];
+  const dirs = CHECK ? [] : [FRAMES, VERIFY, SAMPLE_DIR];
   for (const d of dirs) { fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); }
   const { srv, port } = await serve(pageHtml(readLand()));
   const browser = await puppeteer.launch({
@@ -1189,26 +1314,57 @@ async function render() {
     [FAULT_AT + 0.60, 'm-wordmark'], [SECONDS - 0.10, 'n-hold'],
   ].map(([t, n]) => [Math.round(t * FPS), n]));
 
+  /* **one loop, and the shutter is how many samples it takes per frame.** with
+     it closed SAMPLES is 1 and this is exactly the loop it always was; with it
+     open the samples land in their own folder and ffmpeg averages them
+     afterwards. the beat stills come off the **first** sample of their frame, so
+     a still is a sharp picture of the instant rather than a smear of it. */
+  const SUBSTEP = STEP / SAMPLES;
+  const shotDir = SAMPLES > 1 ? SAMPLE_DIR : FRAMES;
+  let wrote = 0;
   for (let f = 0; f < N; f++) {
-    const t = f * STEP;
-    const fr = frameAt(t);
-    await page.evaluate(x => window.__intro.apply(x), fr);
-    if (fr.globe.on) {
-      await page.evaluate((w, tt, s) => window['__globe_' + w].apply(tt, s), fr.globe.which, t, fr.globe.spin);
-    }
-    await page.evaluate(x => window.__mas.apply(x), fr.mas);
-    const shot = await cdp.send('Page.captureScreenshot', {
-      format: 'jpeg', quality: 92, captureBeyondViewport: false,
-      clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
-    });
-    fs.writeFileSync(path.join(FRAMES, 'f' + String(f).padStart(5, '0') + '.jpg'), Buffer.from(shot.data, 'base64'));
-    if (BEATS.has(f)) {
-      fs.writeFileSync(path.join(VERIFY, BEATS.get(f) + '.jpg'), Buffer.from(shot.data, 'base64'));
+    for (let k = 0; k < SAMPLES; k++) {
+      const t = f * STEP + k * SUBSTEP;
+      const fr = frameAt(t);
+      await page.evaluate(x => window.__intro.apply(x), fr);
+      if (fr.globe.on) {
+        await page.evaluate((w, tt, s) => window['__globe_' + w].apply(tt, s), fr.globe.which, t, fr.globe.spin);
+      }
+      await page.evaluate(x => window.__mas.apply(x), fr.mas);
+      const shot = await cdp.send('Page.captureScreenshot', {
+        format: 'jpeg', quality: 92, captureBeyondViewport: false,
+        clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+      });
+      const idx = f * SAMPLES + k;
+      const name = (SAMPLES > 1 ? 's' + String(idx).padStart(6, '0') : 'f' + String(f).padStart(5, '0')) + '.jpg';
+      fs.writeFileSync(path.join(shotDir, name), Buffer.from(shot.data, 'base64'));
+      wrote++;
+      if (k === 0 && BEATS.has(f)) {
+        fs.writeFileSync(path.join(VERIFY, BEATS.get(f) + '.jpg'), Buffer.from(shot.data, 'base64'));
+      }
     }
   }
-  console.log('  ' + N + ' frames in ' + ((Date.now() - wall) / 1000).toFixed(1) + 's');
+  console.log('  ' + wrote + ' samples for ' + N + ' frames in '
+    + ((Date.now() - wall) / 1000).toFixed(1) + 's');
   await browser.close(); srv.close();
+  if (SAMPLES > 1) blend(N);
   return { N, built };
+}
+
+/* the shutter, closed. the subframes are averaged into frames, because a frame
+   is the light that arrived over its own duration rather than a sample of one
+   instant. post10's chain, unchanged: tmix over SAMPLES frames, then throw away
+   the SAMPLES-1 partial averages at the head and keep every SAMPLESth result. */
+function blend(N) {
+  console.log('  blending ' + N * SAMPLES + ' subframes into ' + N + ' frames ...');
+  ff(['-y', '-hide_banner', '-loglevel', 'error',
+    '-framerate', String(FPS * SAMPLES), '-i', path.join(SAMPLE_DIR, 's%06d.jpg'),
+    '-vf', 'tmix=frames=' + SAMPLES + ',trim=start_frame=' + (SAMPLES - 1)
+      + ',setpts=PTS-STARTPTS,framestep=' + SAMPLES,
+    '-q:v', '2', path.join(FRAMES, 'f%05d.jpg')]);
+  const got = fs.readdirSync(FRAMES).filter(f => f.endsWith('.jpg')).length;
+  if (got !== N) console.log('  the blend produced ' + got + ' frames of ' + N + ' wanted');
+  if (!KEEP) fs.rmSync(SAMPLE_DIR, { recursive: true, force: true });
 }
 
 /* the eye reading, printed rather than only asserted: the brief asked for every
