@@ -67,9 +67,14 @@ names in here either.
     because that is when the clip's own theme flips. It is honest — that is
     what the film looks like — but a second poster cut from the dark half and
     swapped by the theme toggle would fix it for the cost of another 24 KB.
-  - **`skills/page-builder/SKILL.md` does not know this card exists.** Its
-    radius list still says 16px belongs to the text cards "and nothing else",
-    and the `.pv-s` pinned pair is a pattern the file has no entry for.
+  - ~~`skills/page-builder/SKILL.md` does not know this card exists.~~
+    **Closed the same day.** The file now carries a `## The video card` section
+    between the section below the hero and terminal texture, and the four rules
+    it touches were amended in place rather than left to contradict it: the
+    request budget gained a named same-origin allowance, `16px` now covers the
+    video frame, `720px` is recorded as doing two jobs, and the page skeleton
+    shows `section.show`. There is a video block in Not allowed and one in
+    Before shipping.
   - **The `.cd` hover lift applies to it**, so a 3px rise happens under the
     pointer on the way to the play sign. It is consistent with its neighbours
     and it may still be wrong on a card you press.
@@ -2875,11 +2880,25 @@ names in here either.
 
 #### The website card — the video, and the chapters beside it
 
-**Built and live in `index.html` as of 2026-09-10.** Its own
-`<section class="show">` between `main.wrap` and `.below`, so the form's unfold
-cannot move it, holding one `.cd` — the same card class as the three text cards,
-same 860px column, same 1px `--line` border, same 16px radius, same `--field`
-background, same padding, same one-shot scroll reveal. Only the contents are new.
+**Built and live in `index.html` as of 2026-09-10.** The full spec is
+`skills/page-builder/SKILL.md` → **The video card**; this is the state, that is
+the source of truth.
+
+Its own `<section class="show">` between `main.wrap` and `.below`, so the form's
+unfold cannot move it, holding one `.cd` — **the same card class as the three
+text cards, not a fork of it**: same 860px column, same 1px `--line` border,
+same 16px radius, same `--field` background, same padding, same hover lift,
+same one-shot scroll reveal. Only the contents are new. `.show` is `.below`'s
+geometry minus the page's bottom air, and it carries its own thread, so there
+are two threads on the page now.
+
+**Two house rules it moved rather than broke:**
+- **`16px` now covers the video frame as well as the text cards.** The four
+  radii are unchanged; the frame matches its own card instead of becoming a
+  fifth one.
+- **`720px` does two jobs now**, the card grid and this split. The ask was
+  "under 700px"; the page allows exactly three breakpoints and a fourth is a
+  decision, so it was built at the one already there.
 
 - **`// the intro`**, then a two column split above 720px: the video at `2fr`,
   the chapters at `1fr`. Below 720 it stacks, video full width on top and the
@@ -2897,7 +2916,10 @@ background, same padding, same one-shot scroll reveal. Only the contents are new
 - **The chapters** come from `CHAPTERS` in the script. Today: `hello` →
   `assets/video/intro.mp4`, lit and `aria-current`; then `who we are`,
   `what we build` and `how it works`, greyed, `disabled`, each with a mono
-  `soon` tag. Pills on the chip's own geometry; the active one takes
+  `soon` tag. **Adding a chapter is one line in `CHAPTERS` with its `src`, plus
+  its label under that key in `T.en`, `T.ru` and `T.lv`. Nothing else** — if it
+  needs a markup change, the list has been bypassed and that is the bug.
+  Pills on the chip's own geometry; the active one takes
   `--accent-soft` and `--accent`. All labels and the `soon` tag are `data-k`,
   so a language switch repaints them.
 - **EN / RU / LV** for the card label, all four chapter names, the tag and the
@@ -2907,7 +2929,18 @@ background, same padding, same one-shot scroll reveal. Only the contents are new
   committed; `demo/out/` stays ignored and is not what the page serves.
 - **The request budget:** external is unchanged at one Google Fonts stylesheet.
   The poster is one new same origin request at load; the mp4 is fetched only on
-  the press.
+  the press. That same origin allowance is now written down as a budget of its
+  own — one image at load, one media file per press — in the skill's
+  Non-negotiables. A third is a decision.
+
+**Open on it, and it is the only one:** the poster is the light half of the
+clip, so **in dark mode the card holds a bright white slab**, and it stays white
+for the first seconds of playback because that is when the film's own theme
+flips. It is honest — that is what the clip looks like — but it is the loudest
+thing on a dark page. The fix, if it is ever wanted, is a **second poster cut
+from the dark half and swapped by the theme toggle**, for another ~25 KB and a
+second tracked file. Not built, and not to be worked around by tinting, dimming
+or overlaying the poster instead.
 
 ### Socials
 

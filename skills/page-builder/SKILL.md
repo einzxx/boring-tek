@@ -19,9 +19,16 @@ off. Dark is where the identity lives. Light is where the customers are. Both sh
   library, no CDN scripts.
 - **Exactly one external request at load, and it now carries two families.** One
   Google Fonts `<link>`, `family=Michroma&family=Space+Grotesk:wght@400;500`. That is
-  still one request and it is the whole budget. No other assets, no analytics, no
-  trackers. Inline `data:` URIs are fine, they ship in the file. See Type for the
+  still one request and it is the whole budget. No analytics, no trackers, nothing off
+  any other host. Inline `data:` URIs are fine, they ship in the file. See Type for the
   exact tag.
+- **Same-origin media is a second budget, and it is small and named.** The video card
+  brought the first files the page loads that are not the document: a poster at load
+  and an mp4 on a press. Both are ours, both are served from this domain, and neither
+  touches the external budget above — but they are still requests, they are still bytes
+  in a public repo, and the line is drawn on purpose:
+  **one image at load, one media file per press, and that is the whole allowance.**
+  A third is a decision, not a detail. See The video card.
 - **Two runtime requests, and only on a press:** the contact form posts to Web3Forms and
   to our own Cloudflare Worker at the same time. Nothing fetches on load, on scroll, on
   hover or on idle. If a page grows another endpoint, that's a decision, not an
@@ -1044,7 +1051,8 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   nothing between them:
   - `999px` — anything that reads as a pill: buttons, chips, the bubble, the dots.
   - `18px` — the form card.
-  - `16px` — the cards in the section below the hero, and nothing else.
+  - `16px` — the cards in the section below the hero, **and the video frame inside
+    the video card**, which matches its card rather than inventing a fifth radius.
   - `12px` — input and textarea fields.
 
   Everything else is still square: rules, dividers, the depth layers, any future table
@@ -1053,10 +1061,12 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 - No box shadows. Depth comes from the glow and vignette layers, never from a drop
   shadow on a card.
 - Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints.
-  **Three width breakpoints exist and that is the ceiling:** `720px` for the card grid,
-  `640px` for the stacked lockup (in JS, `mqS`), and `560px` for the socials, which is
-  the only one that moves a block from one end of the page to the other. A fourth is a
-  decision, not a convenience.
+  **Three width breakpoints exist and that is the ceiling:** `720px` for the card grid
+  **and the video card's split**, `640px` for the stacked lockup (in JS, `mqS`), and
+  `560px` for the socials, which is the only one that moves a block from one end of the
+  page to the other. A fourth is a decision, not a convenience — the video card was
+  asked for at 700px and was built at 720 for exactly this reason. When a new block
+  wants a breakpoint, check whether one of these three already does the job.
 
 ### The socials row
 
@@ -1613,6 +1623,133 @@ The first thing under the hero, and the shape every later section copies.
 - The reveal is the one scroll animation on the site — see Motion budget → The one
   scroll reveal.
 
+## The video card
+
+The fourth card, added after v1, and the first thing on the page that is not drawn in
+code. It carries the site intro with a chapter list beside it.
+
+- **It is its own `<section class="show">`, a sibling of `main.wrap` and of `.below`,
+  sitting between them.** Same reason `.below` is a sibling: the lockup grows when the
+  form unfolds, and anything inside it rides that. `.show` is the `.below` geometry
+  minus the page's bottom air — `max-width: 860px`, `16px` side padding, and a bottom
+  padding matching the thread's own drop so the section under it reads as the next beat.
+- **The card is `.cd`, unchanged.** The same class as the two text cards under it: same
+  column, same `1px solid var(--line)`, same `16px` radius, same `var(--field)`, same
+  padding, same hover lift, same one-shot reveal. **Do not fork `.cd` for it.** Only
+  the contents are new, and a new card type is a decision.
+- **It opens with the same mono `// label`** the text cards use, keyed off `T` like
+  everything else.
+- **It carries its own thread**, so there are two on the page now — one from the hint
+  down to the video card, one from the video card down to the text cards.
+
+### Layout
+
+**Mobile first, and write it that way.** The stack is the default and the split is the
+media query, because a 16:9 frame and a column of labels can only share a phone as a
+stack.
+
+```
+.pv{display:grid;gap:12px}                       /* stacked: video, then chapters */
+@media (min-width:720px){
+  .pv{grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+}
+```
+
+- **Above `720px`:** video left at `2fr`, chapters a vertical stack right at `1fr`.
+- **Below:** video full width on top, chapters a **horizontal swipe row** under it —
+  `overflow-x:auto`, `scroll-snap-type:x proximity`, `scroll-snap-align:start` on each
+  pill, `scrollbar-width:none` and a hidden `::-webkit-scrollbar`. The row clips at the
+  card's padding, which is what says there is more to the right.
+- `720px` is the card grid's own breakpoint. See Layout → breakpoints; do not add one.
+
+### The player
+
+- **A native `<video>`. Never an iframe, never YouTube, never a player library.**
+- `preload="none"`, `playsinline`, a `poster`, **no `controls`**. The file is not
+  fetched until someone presses.
+- **The whole frame is the control.** `.pv-b` is a transparent button covering the
+  picture; the sign centred in it says so. Press plays, press again pauses. There is no
+  controls bar and there is no second target.
+- **It plays with sound and it never autoplays.** The clip has a read in it, so the
+  audio is most of the copy: muted autoplay costs the read entirely and autoplay with
+  sound is the thing everybody hates. A poster and a press is the honest default.
+- **`ended` calls `vid.load()`, not `currentTime = 0`.** Only `load()` puts the poster
+  back, and by then the file is cached, so it is not a second request.
+- **Subtitles are burned into the render**, so the page carries no `<track>` and needs
+  none. If a future clip ships without them, that is a `<track>` and a decision.
+- The sign hides through a `.pv.on` class on opacity and transform — never
+  `display:none`, and the button underneath stays live so the second press lands.
+
+### The sign does not follow the theme
+
+The poster is the light half of the clip, so **it is white under both themes**. A sign
+in `--fg` is near-black on white in light and near-white on white in dark, which means
+it disappears exactly half the time.
+
+So `.pv-s` pins its own pair locally:
+
+```css
+.pv-s{ --ink:#0b0d10; --pap:#ffffff; }   /* :root's own light --fg and --bg */
+```
+
+Those are **not new colours** — they are the light theme's `--fg` and `--bg` written
+out, because they have to stay put while everything around them inverts. This is the
+one place on the page a colour is allowed to be literal, it is scoped to this one
+element, and it needs the comment saying why. Everything else in the card follows the
+theme normally. Do not widen this into a habit.
+
+### The chapters are a list, not markup
+
+The buttons are built at boot from one array in the script:
+
+```js
+var CHAPTERS = [
+  {k:'ch1', src:'assets/video/intro.mp4'},   /* has a file: plays, lit */
+  {k:'ch2'},                                 /* no file: greyed, soon tag, disabled */
+  {k:'ch3'},
+  {k:'ch4'}
+];
+```
+
+- **An entry with a `src` plays it. An entry without one is not built yet** — it
+  renders greyed at `.5`, carries `disabled`, and gets a small mono `soon` tag.
+- Each label span is given `data-k`, so `paintKeys()` repaints the whole list on every
+  language switch like every other string on the page. The `soon` tags all share one
+  key.
+- The active chapter carries `aria-current="true"` and takes `--accent-soft` and
+  `--accent`. Switching one sets `vid.src`, calls `load()`, and plays.
+- The pills are the form chip's geometry — `--t-micro`, `10px 15px`, `min-height:40px`,
+  `999px`, `1px solid var(--line)` on `var(--bg)`.
+
+**To add a chapter:** one line in `CHAPTERS` with its `src`, and its label in `T.en`,
+`T.ru` and `T.lv` under that key. Nothing else. If adding a chapter needs a markup
+change, the list has been bypassed and that is the bug.
+
+### The files
+
+They live in `assets/video/`, they are **tracked and committed**, and they never ship
+out of `demo/out/` — that directory is gitignored and regenerable, and the page cannot
+serve from it.
+
+- **The clip:** h264, **1080p max**, `+faststart` (moov ahead of mdat — check it, a
+  progressive download stalls without it), about **2 MB**. Two-pass at ~1250k video,
+  and **copy the master's audio rather than re-encoding it**. Scale down if the master
+  is bigger; the card is ~570 css px at its widest, so 4K is bytes nobody sees, and
+  level 4.2 does not allow 2160p60 anyway.
+- **The poster:** a real frame from the clip, 1280x720, JPEG, **about 25 KB**. Check it
+  still matches after the clip is re-rendered — a poster from an older cut is a visible
+  jump on the first press.
+- **Verify before shipping:** duration, `moov` position, that the audio stream survived
+  the encode and is not silence (measure it — `volumedetect` or `ebur128`, not by
+  looking at the stream list), and that it actually plays in a browser unmuted.
+
+**Open on it:** the poster is white, so in dark mode the card holds a bright slab, and
+it stays white for the first seconds of playback because that is when the clip's own
+theme flips. It is honest — it is what the film looks like — but it is the loudest
+thing on a dark page. The fix, if it is ever wanted, is a **second poster cut from the
+dark half, swapped by the theme toggle**, for the cost of another ~25 KB and a second
+tracked file. Not built. Do not "fix" it by tinting, dimming or overlaying the poster.
+
 ## Terminal texture
 
 Use sparingly — one or two per page, not all of them.
@@ -1704,6 +1841,10 @@ The shape a new page starts from:
     p.tag     -> .tag-size + .tag-live
     .cta-zone -> button.cta + p.hint
     section.card > .cardin > .pad                    <- rendered by JS
+  section.show                                       <- sibling of main, not lockup
+    .thread  +  article.cd > p.cl + .pv
+      .pv-f > video.pv-v + button.pv-b > span.pv-s   <- poster, no controls
+      .chs  > button.ch                              <- built from CHAPTERS by JS
   section.below                                      <- sibling of main, not lockup
     .thread  +  .cards > article.cd > p.cl + p.ct
   footer.foot    -> .socials  +  p.foot-t            <- under 560px only
@@ -1711,6 +1852,8 @@ The shape a new page starts from:
 ```
 
 - **The `<script>` is in `<head>` and is not deferred.** See Non-negotiables.
+- `.chs` is empty in the markup and `.pv-v` has no `controls`. The chapters are built
+  from `CHAPTERS` before `[data-k]` is queried, so `paintKeys()` picks their labels up.
 - The markup ships English copy so the page still reads with JS off; boot rewrites it
   from `T` before paint work matters.
 - Four `.hero` layers, each holding three `.ln > .t` lines. Cells are built into `.t`.
@@ -1774,6 +1917,21 @@ Added:
 - **Easing the decode's progress instead of its reveal schedule.** It front-loads every
   glyph into the first third and leaves dead air before the settle beat.
 - **Glow as the only state indicator.** Contrast has to carry it too.
+
+Added with the video card:
+
+- **A YouTube, Vimeo or any other embed**, an iframe, or a player library. A native
+  `<video>` off our own origin, or nothing.
+- **Autoplay of any kind**, muted included, and any `loop`. A poster and a press.
+- **A native `controls` bar.** The frame is the control; the sign is the affordance.
+- **`preload="auto"` or `preload="metadata"`** on a page-load video. `none`, always.
+- **Shipping the clip out of `demo/out/`**, or linking the page at anything under
+  `demo/`. That directory is gitignored, regenerable, and not a web root.
+- **A video without `+faststart`**, or one whose poster came from an older cut.
+- **Building the chapter buttons in the markup.** They come from `CHAPTERS`, or the
+  one-line-to-add-a-chapter property is gone.
+- **Letting the play sign follow the theme** while the poster is white in both. See
+  The video card.
 
 Added with Michroma:
 
@@ -2092,6 +2250,30 @@ Correctness:
   branching, not the delivery.
 - No secrets, no client names, no personal contact details - the repo is public.
 - Copy re-read once against the banned-words list, in all three languages.
+
+The video card:
+
+- Load the page with the network panel open: **the mp4 is not requested.** The poster
+  is, once. Press play: the mp4 is requested, once, and not before.
+- Press play in both themes: it plays **with sound**, the sign goes, and the aria-label
+  reads `pause`. Press again: it pauses, the sign comes back, the label reads `play`.
+- Let it run to the end: the poster comes back rather than the last frame freezing.
+- Check the encode before it is committed — duration, `moov` ahead of `mdat`, and the
+  audio **measured**, not assumed. A silent stream still shows up in a stream list.
+- Drag across 720px: the split becomes a stack and the chapter column becomes a swipe
+  row, with no scrollbar drawn and no horizontal scroll on the document.
+- Swipe the chapter row on a phone: it snaps, and the clipped pill on the right says
+  there is more.
+- Only the chapter with a file is lit and pressable. The other three are greyed, carry
+  a `soon` tag, and do not respond to a press or take focus.
+- Switch language over the card in EN, RU and LV at 320px: the label, all four chapter
+  names, the `soon` tags and the play label all change, and no pill clips its own text.
+  Russian reads entirely in mono.
+- Dark mode: the white poster is a known, accepted glare. Anything else about the card
+  — border, background, chapter pills, the accent on the active one — follows the theme
+  with everything else on the 0.5s fade.
+- Reduced motion: the card is already there on arrival and the sign does not animate,
+  but the video still plays on a press.
 
 The section below the hero:
 
