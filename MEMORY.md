@@ -6,7 +6,71 @@ names in here either.
 
 ## Status
 
-- **2026-09-09: post24 is rendered as a 60fps final and is the current clip.**
+- **2026-09-10: post25 exists as a 12fps preview and is waiting on Einz's sound
+  and a 60fps final.** `demo/post25.mjs` → `demo/out/post25-dark-1080x1920.mp4`,
+  **7.83s, 1080x1920, 12fps, dark only, 335 KB**, shutter closed. Guards all
+  green. Review in `demo/out/review-post25-dark-1080x1920.md`. Committed, **not
+  pushed**.
+
+  The clip: he sits still in the middle of a black frame; a bug comes in over
+  the top edge dead centre, curves left around him, down the left lane and along
+  the floor to a stop underneath him while he watches it come; he drops on it
+  and eats it; he holds still with his eyes a little wide; a green cloud comes
+  out from under him and drifts away; he says `good one` and blinks; the fault
+  takes it and puts the wordmark up.
+
+  **It reuses post15 twice over.** The bug is post15's asset unchanged — the
+  same top view, table, alternating tripod, antenna schedule — and so is the
+  eating: the rise, the lunge, the contact, the three chews and the bob, on
+  post15's one transform on `#m-zone`. **No voice, no music.** The sound is 21
+  cues: 18 footsteps read off the walk, the sputter, the bubble's pop and the
+  glitch.
+
+  **Three things it settled that are worth keeping:**
+  - **A curved lane costs post15's gait nothing.** post15's no-sliding argument
+    is that a foot is planted at a position worked out from the distance the
+    body had covered, and that does not care whether the lane is straight. Only
+    `legFoot` changed — it asks the path where the body was at arclength `xs`
+    and plants in that frame — and the guard still measures **0 px** of planted
+    foot movement. The path is six segments, three straight and three arcs,
+    tangent at every join, every number derived off the safe line and the bug's
+    own width.
+  - **The module's turn can be driven per frame, and `bias: 0` is what makes it
+    safe.** A mark's turn is a beat; a gaze that follows something for two
+    seconds is not expressible as one. So post25 writes the channel itself using
+    the module's own `TURN` table, `EYE_CX`, the module's own `room` clamp and
+    `headSD` as the guard — and because no mark sets a turn and `neutral` does
+    not author one, the module writes nought and there is nothing to fight.
+    **Capped at 0.60**: mapped straight it hit 0.90 and a rendered frame came
+    back as one dash and a smudge.
+  - **A bite depth wants the middle of its admissible range, not the first
+    depth that works plus a margin.** post15's "first + 5" is right when the
+    range is wide. Here the bug arrives along the floor heading right, its ink
+    sits ~14 px right of where `fwd` leans his head, and what is left is a
+    **3.5 px window** — the flat margin walked past the far side of it and the
+    guard caught it at 1.022. Also: **the squash on the frame the bug goes is
+    not the peak**, so the derivation reads it off the same sine `biteZone`
+    draws rather than assuming full squash.
+
+  **Open on it, and none of it is a blocker:**
+  - **The gait is 6.5 frames a cycle at sixty, against post15's 8.1.** The curve
+    is 818 page px where a straight lane was 659 and the walk kept its 2.20s, so
+    there are 18.5 strides where there were 14.9. Half a second more walk puts
+    it back exactly and nothing else would move; it was left alone because it
+    shifts the whole clock.
+  - **The eyes-wider beat and the tiny shake do not read** — 1.20x on a 4.4 unit
+    slab is about five device px, and 1.5 css px at 11 Hz is under a frame.
+  - **The cloud sits beside him rather than under him and is dim** on the first
+    and last third of its life.
+  - **There is one empty frame at 7.00** between the cut and the wordmark.
+  - **The mix is -22.4 LUFS**, down from -16.7, because pulling the crunches
+    took the only mid-level events out of the middle two seconds. It will move
+    again when Einz's sound goes on that stretch.
+  - **The final wants `--blur`.** The lunge is 33.4 css px on its fastest frame
+    at sixty against a closed-shutter ceiling of 42; the file solves the
+    subframe count itself.
+
+- **2026-09-09: post24 is rendered as a 60fps final and is the previous clip.**
   `demo/post24.mjs` → `demo/out/post24-dark-1080x1920.mp4`, **12.82s, 1080x1920,
   60fps, dark only, 2047 KB**, 769 frames blended from **9228 subframes at 12 a
   frame**, shutter open. Guards all green. Review in
