@@ -48,6 +48,8 @@
   --line:#dfe3e7;
   --field:#fbfbfc;
   --pill-on:#eef1f4;
+  --pill-hover:#f5f7f9;
+  --pill-on-hover:#e5eaef;
   --bub:rgba(11,13,16,.55);
   --face:#0b0d10;
   --eye:#ffffff;
@@ -86,6 +88,8 @@ html[data-theme=dark]{
   --line:#1e242d;
   --field:#0b0d12;
   --pill-on:#161c24;
+  --pill-hover:#0f151c;
+  --pill-on-hover:#1e2530;
   --bub:rgba(213,219,216,.5);
   --face:#f4f7f5;
   --eye:#06070a;
@@ -612,28 +616,31 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
   transition:border-color .2s ease-out,background-color .2s ease-out,
              color .2s ease-out,transform .28s var(--spring);
 }
-.ch:hover{border-color:var(--fg)}
+/* hover is the only thing on these that says button: there is no underline, no
+   chevron, no shadow. it lifts the fill one step and takes the border from
+   --line to --muted, over the .2s already declared above - short, and the same
+   .2s the fill uses, so the two land together.
+   `:not([disabled])` rather than a later rule cancelling it, so a soon pill has
+   no hover state to begin with instead of one that is undone. */
+.ch:not([disabled]):hover{background:var(--pill-hover);border-color:var(--muted)}
 .ch:active{transform:scale(.96)}
 /* the chapter being played is the same pill as its neighbours, lifted rather
-   than coloured in: the card's own border, the label at full ink, and a filled
-   dot in front of it. --pill-on is the one thing that moves, and it moves the
-   only way each theme allows - up off the near-black in dark, and into a soft
-   fill in light, where the resting pill is already pure white and there is no
-   brighter left to go. no accent, no glow: this sits a few px from the play
-   control, and green here made a list item louder than the thing you press.
-   flex-start because the wide layout spaces .ch children apart, and the dot
-   is a child now. */
-.ch[aria-current=true]{
-  background:var(--pill-on); border-color:var(--line); color:var(--fg);
-  justify-content:flex-start;
-}
-.ch[aria-current=true]::before{
-  content:''; flex:0 0 auto;
-  width:5px; height:5px; border-radius:999px;
-  background:currentColor;
-}
+   than coloured in: the card's own border, the label at full ink, a brighter
+   fill and nothing else. --pill-on is the one thing that moves, and it moves
+   the only way each theme allows - up off the near-black in dark, and into a
+   soft fill in light, where the resting pill is already pure white and there is
+   no brighter left to go. no accent, no glow: this sits a few px from the play
+   control, and green here made a list item louder than the thing you press. */
+.ch[aria-current=true]{background:var(--pill-on);border-color:var(--line);color:var(--fg)}
+/* the active pill is pressable too, so it answers a pointer as well - one step
+   further from where it already rests. its own hover value rather than a shared
+   one, because a single fill cannot be "one step up" from two different rest
+   states: in light the hover on a resting white pill has to go darker, and in
+   dark it has to go lighter. the pair also keeps a hovered soon-to-be chapter
+   from impersonating the active one, since --pill-hover lands between the
+   resting fill and --pill-on in both themes. */
+.ch[aria-current=true]:not([disabled]):hover{background:var(--pill-on-hover);border-color:var(--muted)}
 .ch[disabled]{opacity:.5;cursor:default;color:var(--muted)}
-.ch[disabled]:hover{border-color:var(--line)}
 .ch-s{
   font-family:var(--mono); font-size:.85em;
   letter-spacing:.14em; text-transform:uppercase; color:var(--muted);

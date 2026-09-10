@@ -1742,22 +1742,38 @@ var CHAPTERS = [
 - The pills are the form chip's geometry — `--t-micro`, `10px 15px`, `min-height:40px`,
   `999px`, `1px solid var(--line)` on `var(--bg)`.
 - **The active pill is the same pill, lifted rather than coloured in.** `--pill-on` for
-  the fill, `--line` for the border like every other pill, the label at `--fg`, and a
-  `5px` filled dot in `currentColor` as a `::before`. **No accent and no glow**, which
-  is the rule and not a preference: the list sits a few px from the play control, and
-  green on a list item made it louder than the thing you press. It took
-  `--accent-soft` and `--accent` until 2026-09-10 and it was wrong.
-- `--pill-on` moves the only way each theme allows. Dark lifts off the near-black —
-  `#161c24` against a `#0b0d12` card and `#06070a` neighbours, so it reads as brighter.
-  **Light cannot go brighter**: the resting pill is already `#ffffff` on a `#fbfbfc`
-  card, so it goes to a soft fill at `#eef1f4` and reads as filled instead. Do not try
-  to make light "brighter" — there is nothing above white.
-- **`justify-content:flex-start` on the active pill.** The wide layout gives `.ch`
-  `space-between`, and the dot is a child, so without it the dot and the label fly to
-  opposite ends of the pill.
+  the fill, `--line` for the border like every other pill, the label at `--fg`, and
+  nothing else — no marker, no icon. **No accent and no glow**, which is the rule and
+  not a preference: the list sits a few px from the play control, and green on a list
+  item made it louder than the thing you press. It took `--accent-soft` and `--accent`
+  until 2026-09-10 and it was wrong. A `5px` `::before` dot was tried the same day and
+  taken out again: the fill already says which one is playing, and the dot was a second
+  thing saying it.
 - The label is `--fg`, which is near-white in dark and near-black in light. **Not
   literal white** — white on the light pill is invisible, and the token is what keeps
   one rule correct in both themes.
+- **Four fills, and every one of them moves the only way its theme allows.** Dark lifts
+  off the near-black; **light cannot go brighter**, because the resting pill is already
+  `#ffffff` on a `#fbfbfc` card, so it deepens into a fill instead. Do not try to make
+  light "brighter" — there is nothing above white.
+
+  | | resting | hover | light | dark |
+  |---|---|---|---|---|
+  | enabled | `--bg` | `--pill-hover` | `#ffffff` -> `#f5f7f9` | `#06070a` -> `#0f151c` |
+  | active | `--pill-on` | `--pill-on-hover` | `#eef1f4` -> `#e5eaef` | `#161c24` -> `#1e2530` |
+
+- **Hover is the only thing on these that says button.** No underline, no chevron, no
+  shadow. It lifts the fill one step and takes the border from `--line` to `--muted`,
+  on the `.2s` the pill already declares, so fill and border land together.
+- **Two hover tokens, not one.** A single hover fill cannot be one step up from two
+  different rest states: in light a resting white pill has to go darker on hover and in
+  dark it has to go lighter. The pair also keeps `--pill-hover` landing **between** the
+  resting fill and `--pill-on` in both themes, so a hovered chapter never impersonates
+  the one that is playing.
+- **`:not([disabled])` on both hover rules**, rather than a later rule cancelling them.
+  A `soon` pill has no hover state to begin with instead of one that is undone, and it
+  keeps `cursor:default`. Measured: a hovered `soon` pill's fill and border are
+  byte-identical to its resting ones.
 
 **To add a chapter:** one line in `CHAPTERS` with its `src`, and its label in `T.en`,
 `T.ru` and `T.lv` under that key. Nothing else. If adding a chapter needs a markup
@@ -2317,6 +2333,10 @@ The video card:
 - Put a colour picker on the active chapter pill in both themes: no green in the fill,
   the border or the label, and `box-shadow` is `none`. It is the one control on the
   page that sits beside the play sign, and the accent belongs to the sign.
+- Hover every chapter pill in both themes. A pill with a file lifts its fill and takes a
+  `--muted` border and shows a pointer; a `soon` pill does not move at all and keeps the
+  default cursor. Check the hovered fill against `--pill-on` too — a hovered chapter
+  must not look like the one that is playing.
 - Reduced motion: the card is already there on arrival and the sign does not animate,
   but the video still plays on a press.
 

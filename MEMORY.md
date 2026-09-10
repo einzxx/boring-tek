@@ -6,6 +6,60 @@ names in here either.
 
 ## Status
 
+- **2026-09-10: the chapter pills lost the dot and gained a hover.**
+  `index.html` plus a rebuild of `ru/` and `lv/`. Committed and **pushed**.
+
+  The `5px` `::before` dot in front of the active label is gone: the fill
+  already says which chapter is playing and the dot was a second thing saying
+  it. `justify-content:flex-start` went with it, because the only reason for
+  that line was the dot being a flex child. **A pill with a file now answers a
+  pointer** - the fill lifts one step, the border goes `--line` to `--muted`,
+  over the `.2s` the pill already declares. `soon` pills are untouched: default
+  cursor, no hover state at all.
+
+  **Four fills now, two per rest state, and they are a table rather than a
+  paragraph:**
+
+  |            | resting            | hover                    |
+  |------------|--------------------|--------------------------|
+  | enabled    | `--bg`             | `--pill-hover`           |
+  | active     | `--pill-on`        | `--pill-on-hover`        |
+  | light      | `#ffffff` / `#eef1f4` | `#f5f7f9` / `#e5eaef` |
+  | dark       | `#06070a` / `#161c24` | `#0f151c` / `#1e2530` |
+
+  **Three things it settled:**
+  - **One hover fill cannot serve two rest states.** In light a resting white
+    pill has to go **darker** on hover, because there is nothing above white; in
+    dark it has to go **lighter**. A single shared token would have moved one of
+    the two the wrong way. Hence the pair, and it is worth the two extra lines
+    per theme.
+  - **`--pill-hover` lands between the resting fill and `--pill-on` in both
+    themes**, on purpose. A hovered chapter previews the selected state without
+    impersonating the one that is actually playing. Measured: light
+    255 -> 245 -> 238, dark 6 -> 15 -> 22.
+  - **`:not([disabled])` on the hover rules, not a later rule cancelling them.**
+    A `soon` pill has no hover state to begin with rather than one that is
+    undone, which is one less thing to get the specificity wrong on. The old
+    `.ch[disabled]:hover` override is gone as dead code. Measured: a hovered
+    `soon` pill's fill and border are identical to its resting ones in both
+    themes.
+
+  **Verified on the rendered page in both themes, eight assertions each, all
+  green:** no dot, pointer on the active pill, default cursor on `soon`, `soon`
+  unchanged on hover, the active pill lifting both fill and border, an enabled
+  non-active pill lifting too (there is no such pill on the page yet, so the
+  check enables one and hovers it), no accent in any of the six colours, and
+  `box-shadow: none`. `demo/out/shot-chapters.mjs` is the throwaway that does
+  it; shots are `demo/out/chapters-{light,dark}{,-hover-active,-hover-soon}.png`.
+
+  **Open on it:** the pill's own transition list is `.2s` for
+  `background-color` and `border-color`, which is what makes the hover feel
+  right, but it also means **these pills cross-fade the theme in .2s while the
+  rest of the page takes .5s**. That predates this change and the shipping
+  checklist's "every colour fades over the same 0.5s" line has been quietly
+  wrong about them since the card shipped. Fixing it properly wants two
+  transition lists, one for theme and one for hover, and was not done.
+
 - **2026-09-10: the active chapter pill lost the green.** `index.html` plus a
   rebuild of `ru/` and `lv/`. Committed, **not pushed**.
 
