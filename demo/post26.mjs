@@ -131,10 +131,24 @@ const argv = process.argv.slice(2);
 const ONLY_ENCODE = argv.includes('--encode-only');
 const VOICE_ONLY = argv.includes('--voice');
 const KEEP = argv.includes('--keep-frames');
-const BLUR = argv.some(a => a.startsWith('--blur'));
-const BLUR_ARG = (argv.find(a => a.startsWith('--blur=')) || '').split('=')[1];
-const SUB = BLUR ? Math.max(2, Math.min(12, Number(BLUR_ARG) || 4)) : 1;
-const SUBSTEP = STEP / SUB;
+/* ---------- the shutter ----------
+   **`--blur` on its own makes the file work the number out**, which is post24's
+   move and it is the only honest way to pick it: what matters is not a taste for
+   how blurred a frame should be, it is how far the quickest thing on the screen
+   travels **between two samples**, and that is a property of this cut rather
+   than of anybody's preference.
+
+   `SUB_STEP_WANT` is post20's landing, which is the house reference: 37.7 css px
+   on the frame it lands, at six subframes, is 6.3 css px a sample. this file
+   solves for the same step off its own fastest move, which it already walks at
+   sixty before a browser is opened — see the fast things below, where the answer
+   is worked out and printed. `--blur=8` still says it outright. */
+const BLUR = argv.some(a => a === '--blur' || a.startsWith('--blur='));
+const BLUR_ARG = Number((argv.find(a => a.startsWith('--blur=')) || '').split('=')[1]) || 0;
+const SUB_STEP_WANT = 6.3;
+const SUB_MAX = 12;
+let SUB = 1;
+let SUBSTEP = STEP;
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -2363,14 +2377,48 @@ console.log(describeMix(sfxReport, {
     const e = Math.max(Math.abs(q.top - p.top), Math.abs((q.top + q.h) - (p.top + p.h)));
     if (e > bx) { bx = e; bxAt = f / 60; }
   }
+  /* and the camera, which is the fourth thing that moves and is often the
+     fastest: it carries the whole frame, so its corner travel is the step every
+     pixel on the screen is subject to. */
+  let cm = 0, cmAt = 0;
+  for (let f = 1; f <= Math.ceil(END.at * 60); f++) {
+    const a = camAt((f - 1) / 60), b = camAt(f / 60);
+    const p = camMap(0, 0, a), q = camMap(0, 0, b);
+    const s = Math.hypot(p.x - q.x, p.y - q.y);
+    if (s > cm) { cm = s; cmAt = f / 60; }
+  }
+
+  /* ---------- and this is where the shutter is decided ----------
+     the fastest of the four, against the step the house wants between two
+     samples. the gaze is not in the set on purpose: it peaks around ten css px
+     a frame **inside a head drawn at 60 per cent**, so it is a third of the
+     slowest thing here once it reaches the frame, and the render loop measures
+     it afterwards anyway. */
+  const FASTEST = Math.max(d, m, bx, cm);
+  if (BLUR) {
+    SUB = BLUR_ARG
+      ? Math.max(2, Math.min(SUB_MAX, Math.round(BLUR_ARG)))
+      : Math.max(2, Math.min(SUB_MAX, Math.ceil(FASTEST / SUB_STEP_WANT)));
+    SUBSTEP = STEP / SUB;
+  }
+
   console.log('\n  the fast things, at sixty');
-  console.log('    the pop peaks at ' + d.toFixed(2) + ' css px a frame at ' + at.toFixed(3)
-    + 's, against a ceiling of ' + STEP_CEIL + ' css px, and lands '
-    + (d / SUB).toFixed(1) + ' css px between samples at ' + SUB + ' subframe'
-    + (SUB === 1 ? '' : 's'));
+  console.log('    the pop peaks at ' + d.toFixed(2) + ' css px a frame at ' + at.toFixed(3) + 's');
   console.log('    the move peaks at ' + m.toFixed(2) + ' css px a frame at ' + mAt.toFixed(3) + 's');
   console.log('    the box\'s own edge peaks at ' + bx.toFixed(2) + ' css px a frame at '
     + bxAt.toFixed(3) + 's');
+  console.log('    the camera peaks at ' + cm.toFixed(2) + ' css px a frame at ' + cmAt.toFixed(3) + 's');
+  console.log('    the fastest is ' + FASTEST.toFixed(2) + ' css px a frame against a ceiling of '
+    + STEP_CEIL);
+  console.log('  the shutter: ' + (BLUR
+    ? SUB + ' subframes' + (BLUR_ARG ? ' because --blur=' + BLUR_ARG + ' said so' : ', solved')
+      + ', which is ' + (FASTEST / SUB).toFixed(2) + ' css px between samples (wanted '
+      + SUB_STEP_WANT + ')'
+    : 'closed'));
+  if (FASTEST > STEP_CEIL) {
+    console.log('  and the fastest move is over ' + STEP_CEIL + ' css px a frame, which is the '
+      + 'ceiling a **closed** shutter carries. it is open, so this is a note rather than a fault.');
+  }
 }
 
 const state = ONLY_ENCODE

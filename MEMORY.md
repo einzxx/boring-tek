@@ -6,6 +6,106 @@ names in here either.
 
 ## Status
 
+- **2026-09-11, SESSION CLOSE. post26 is final at 60fps, `lib/voice.mjs` carries
+  a second elevenlabs voice id, and there is a bug in `lib/mascot.mjs` that has
+  been in every dark clip and was never visible until now.** Everything below is
+  **pushed to `main`**. `demo/` is tooling and none of it is on the site: the
+  site is untouched this session.
+
+  **post26 — the client meeting.** `demo/post26.mjs`, dark only, **25.72s**,
+  1080x1920, 60fps, shutter open at **six subframes solved rather than typed**.
+  One chat box from frame zero to the fault: a panic is typed into it, the
+  mascot pops in above it and asks for one thing in his own voice, the answer is
+  typed and sent, the sent line shrinks and slides to the top right while the
+  same box grows around it, and a six line briefing types inside it as the reply
+  while he reads it from the top third. Out to
+  `demo/out/post26-dark-1080x1920.mp4`. The full write up is **The twenty sixth
+  clip** in `demo/README.md`; what follows is what a later session needs and
+  cannot get from the code.
+
+  - **The film is as long as its read and that is the design.** Nine typed runs,
+    every one cut to a voice at character level. The brief asked for eleven
+    seconds; the words take twenty five. `speed` is capped at **1.05** with the
+    ceiling checked before anything is fetched — the first cut ran 1.14 to hit a
+    beat sheet, and the sheet was what was wrong.
+  - **Two things on screen that nobody says.** `as` in `nordic parts as`, because
+    an american narrator says the english preposition where a Norwegian company
+    suffix belongs; and the briefing's `NORDIC PARTS AS` header, because reading
+    it put the same three words in his mouth twice inside two seconds. Both were
+    review findings, both are guarded.
+  - **The pill is two words and it was measured down to two.** `send me the
+    company name` is five and the module refuses more than four. `send the
+    company name` measured 377.9 css px of cluster against 400 of legal width —
+    impossible **wherever his head stands** — and **it cannot be shrunk out of**:
+    the pill's face is a flat 26px, so the head at 148, 132 and 120 all measure
+    the same. **Word count is the only lever on a pill's width.** Write that down
+    before promising anybody a longer one.
+  - **A clip that scales the frame owes two guards.** The safe area is checked
+    **through the camera** (a page rect is where ink was laid out, not where it
+    landed) and **per side** (140 / 180 / 140 / 220 are four different numbers,
+    and holding all four to the smallest passes a pill 150px inside a 180px top
+    band — which the first preview did).
+  - **`getBoundingClientRect` is the element times the camera.** A 200px box at
+    a scale of 1.0166 reads back as 203.31. Assert layout on `offsetHeight`;
+    keep the rect for clearances.
+  - **Three faults the numbers could not see and the frames could**, all found by
+    running the video-review skill on a 12fps preview: a white smear parked under
+    him for five seconds, one frame with an empty box, and two carets on one
+    frame. The last two were then turned into guards. **The preview-then-review
+    loop earned its cost four times in four rounds.**
+
+  **`lib/voice.mjs` has two elevenlabs voice ids now.** `ELEVEN_IDS` is
+  `{ narrator, mascot }` out of `demo/.env`; a slot names which it wants with
+  `elevenId`; `elevenReady(which)` is per slot and a missing id falls back to
+  edge exactly as a missing key already did. The mascot is the fifth slot,
+  `character: true` so nothing can pick it to narrate, stability 0.35.
+  **`demo/.env` now needs three variables**, and the third is
+  `ELEVENLABS_VOICE_ID_MASCOT`. **Every id is redacted, not just the narrator's**
+  — a second id added without a line in `redact` is a second id that leaks.
+  Reasoning in **The two voices** in `demo/README.md`.
+
+  **THE BUG, and it is open on purpose.** `lib/mascot.mjs` declares
+  `--m-shadow-o:0` under `[data-theme=dark]`, with a comment saying the shadow is
+  off on black because a soft black ellipse on `#06070a` is nothing — **and
+  nothing reads that token.** `.m-shadow` carries a literal `opacity:0` and the
+  runtime overwrites it every frame with `f.shadow.o`, which is `SHADOW.o` 0.20
+  on both themes, painted in `var(--face)` — **which on dark is `#f4f7f5`,
+  white.**
+
+  So every dark clip in this folder has been drawing a white ellipse at a fifth
+  opacity under the mascot, and not one of them could see it, because the shadow
+  sits directly under the head and the head covers it. **post26 is the first dark
+  clip that lifts the head off its own mark**, and the first preview came back
+  with a white smear parked at his old height for the last five seconds.
+
+  post26 declines the shadow in its own `compose()` and **the module was not
+  touched.** Fixing the token is a two character change and it would alter what
+  every other dark clip renders — invisibly, since the head covers it, but not
+  provably so without re-rendering them. That is a decision, not a thing to do
+  while building a clip. **The fix, when somebody takes it:** multiply the
+  runtime's write by the token rather than hardcoding, and re-render post10
+  through post25 to prove nothing moved.
+
+  **Open on post26, none of it blocking:**
+  1. **The sent line and the header are the same three words, stacked** —
+     `nordic parts as` small and grey at the top right, `NORDIC PARTS AS` bright
+     under it. The ear is fixed and the eye is not. It is the one composition in
+     the film that has to be explained rather than seen.
+  2. **The box's lower half is empty from 7.5s to about 15s.** It grows to its
+     full 502css at the send and fills top down. Growing a line at a time is a
+     different and more expensive animation.
+  3. **The bus is quiet**, under the file's own -16 LUFS floor, because the
+     limiter's 5 dB allowance stops the search. Every clip in this house runs
+     quiet; post22 shipped at -21.9.
+  4. **The gaze is subtle at 60 per cent.** What carries it is the head tilt as
+     much as the eyes. `GAZE.max` is 0.45 and post25 measured that 0.60 still
+     reads and 0.90 does not, so there is room.
+
+  **Also still open, from the entries below:** the dark poster, part two of the
+  site video, the untracked hand sheet, the post25 lunge re-render, a pre-push
+  hook for the three language files, the og image being the english wordmark on
+  all three pages, and the chapter pills cross-fading the theme in `.2s`.
+
 - **2026-09-10, SESSION CLOSE. The site is three language pages, the video
   card is live, and the chapter pills are final.** Everything below this line
   from today is **pushed to `main`**, which is the deploy. Four things are open

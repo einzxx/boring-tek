@@ -167,6 +167,17 @@ All headless Chrome, all tooling. The renderers first:
   away; he says `good one` and blinks; the fault takes it and puts the wordmark
   up. **The bug and the eating are post15's, unchanged.** Out to
   `demo/out/post25-dark-1080x1920.mp4`. See The twenty fifth clip.
+- **`post26.mjs`** renders a 25.72 second clip, vertical, dark only, **and it is
+  the first with two people speaking in it and the first whose length is the
+  read's rather than a brief's.** One chat box, on screen from frame zero to the
+  fault: somebody types a panic into it, the mascot pops in above it and asks
+  for one thing in his own voice, the answer types under it, and on the send the
+  message shrinks and slides to the top right as a sent message while the box
+  grows around it and a six line briefing types inside it as the reply. He
+  parks in the top third at 60 per cent and reads it, eyes following the line
+  being typed. Out to `demo/out/post26-dark-1080x1920.mp4`. post22 is the
+  template for the box and the end card, post25 for the gaze. See The twenty
+  sixth clip.
 - **`site-intro.mjs`** renders a 12 second **landscape** clip, 1920x1080,
   **light and then dark**, with the read in the file. It is the first thing in
   this folder that is not a phone and the first that changes theme mid clip: he
@@ -186,8 +197,11 @@ Then the pipeline pieces, which are not clips. `post6.mjs` uses the first three:
 
 - **`lib/captions.mjs`** turns a timestamped word list into a word by word
   animated caption, in four styles. See The library below.
-- **`lib/voice.mjs`** speaks a line in a free microsoft neural voice and hands
-  back the audio with the engine's own word timestamps.
+- **`lib/voice.mjs`** speaks a line and hands back the audio with the engine's
+  own word timestamps. Elevenlabs is the narrator when `demo/.env` carries a
+  key; edge's free neural voices are the fallback and still read the two slots
+  that exist to be a different person. **Since 2026-09-11 it carries two
+  elevenlabs voice ids**: the narrator, and the mascot. See The two voices.
 - **`lib/pictograms.mjs`** draws solid svg pictogram scenes in code and animates
   them per frame against the same timestamps, on a gsap timeline stepped by hand
   one tick to a captured frame, with a soft drop shadow under every shape, a
@@ -6814,6 +6828,248 @@ face inherits it.
 - **-22.4 LUFS**, down from -16.7. A consequence of the silence that was asked
   for: pulling the four crunches took the only mid-level events out of the
   middle two seconds. It will move again when the real sound goes on.
+
+## The twenty sixth clip — one box, two voices, and a film as long as its read
+
+`demo/post26.mjs`, dark only, 25.72 seconds, shipped at 60fps with the shutter
+open at **six subframes a frame, which the file solved rather than was told**.
+A chat box types `i am meeting a client in an hour and know nothing about them.`
+into a black frame while the narrator reads it. The mascot pops in above it under
+a deep white glow and asks for one thing in a voice that is not the narrator's.
+The box types `nordic parts as`, it is sent, and the same box grows in place
+while the sent line shrinks and slides to the top right. A six line briefing
+types inside it as the reply, read line by line, while he parks in the top third
+at 60 per cent and watches the line being written. A caption types under the box
+and the fault takes it.
+
+It went through four rounds and most of what is worth keeping is what each one
+broke.
+
+### There are two people in it, and that needed a second clone
+
+`lib/voice.mjs` had one elevenlabs voice id and four slots. Two of those slots —
+`uk`, an accent, and `aside`, somebody who is not the agency — are held on edge
+for the same stated reason: **we have one cloned voice, and one voice id is one
+person.** This clip needs the narrator and the mascot in the same file, which is
+that objection again, and the answer is the one the objection implies rather than
+a workaround: **a second voice id.**
+
+So the library carries `ELEVEN_IDS` now, a slot names which one it wants with
+`elevenId`, and a slot whose id is missing from `demo/.env` falls back to edge
+exactly the way a missing key already did. `mascot` is the fifth slot, marked
+`character: true` so nothing can pick it to narrate, at stability 0.35 — lower
+than either narrator register, because he is a character with two words and is
+allowed to perform them. **Every id is redacted from anything this file prints
+or throws**, not just the narrator's, and there is a guard in the clip that the
+two takes did not come back on one id.
+
+### The film is as long as the words are
+
+Nine typed runs, of which **nine are cut to a voice at character level**: each
+word's characters are spread across that word's own spoken window, so a line
+types unevenly in exactly the way it is being read. One function does it for all
+of them.
+
+That makes the clock the read's. The first cut ran the narrator at `speed` 1.14
+to hit a beat sheet that assumed 11 seconds; the sheet was wrong rather than the
+read, and 1.14 is leaning on a knob that should be nudged. It is 1.05 now with a
+ceiling checked before anything is fetched, and the film is 25.72s of which
+24.27s is somebody reading out loud. **None of it was chosen.**
+
+### Two things on the screen that nobody says, and both are decisions
+
+**`as`.** It is a Norwegian company suffix and an american narrator handed
+`nordic parts as` says the english word `as` — a preposition arriving where a
+legal form should be. The take stops at `nordic parts` and the two letters type
+into the pause. `charClock` grew a **tail** for it: a run of trailing screen
+words with no word to sit inside, given a window this file draws. It opens at the
+**later** of the last word's own end and the instant the take stops making noise,
+because those are different instants — an alignment's end carries the decay of
+the stop and the gate does not, and typing into a word that is still ringing is
+not typing into a pause.
+
+**The briefing's header.** It reads `NORDIC PARTS AS`, one beat after the user
+sent `nordic parts as`. Reading both put the same three words in the narrator's
+mouth twice inside two seconds. It types in silence now, on the one duration in
+the briefing that was chosen, with its key ticks as its only sound — which is the
+right sound for a machine writing a header nobody dictated.
+
+### The box never leaves and it is never empty
+
+The first cut faded the box out and drew the briefing on the bare frame, and it
+read as two films. There is one box now, on screen from frame zero to the fault,
+and three things made that work:
+
+**The row is anchored to the bottom edge.** The first cut sized one svg to the
+whole box at `viewBox="0 0 w h"`; growing that box would have scaled the plus and
+the send disc with it, which is a box getting bigger rather than a box growing.
+The row is its own fixed 60 css px strip on the bottom edge.
+
+**`getBoundingClientRect` is the box times the camera.** A 200px box at a scale
+of 1.0166 reads back as 203.31, and the first run of the growth guard failed on
+exactly that. `offsetWidth` and `offsetHeight` are layout and no transform
+touches them, so the growth is asserted on those and the clearances are printed
+from the rect.
+
+**The sent message stays.** Over the same window the box grows, the line shrinks
+24.5 to 17css, fades `--fg` to `--muted` and slides to the right hand end of the
+column. It slides *up* for free: the box's top edge climbs 110css underneath it.
+The travel is a `translateX` and that is not a preference — alignment cannot
+tween, so switching it on the send frame moves the line 118css in one frame,
+which is a cut; and it is a transform rather than a padding because a padding
+narrows the column and a line pushed to within a pixel of its own width wraps on
+a rounding error.
+
+### He reads it, on post25's rig
+
+The module's turn is a channel on a mark: a clip says "look this far that way"
+and the state machine gets it there. This clip needs it as a function of **where
+the line being typed is** on every frame of a fourteen second briefing, so the
+turn is written in the file — with `TURN.shift`, `TURN.wrap`, `TURN.farX`,
+`TURN.farY`, `TURN.tilt`, `EYE_CX` and the module's own clamp, so the five moves
+are the module's five moves. `bias: 0` is what makes it safe: no mark sets a turn
+and `neutral` does not author one, so there is nothing for it to fight.
+
+What is this file's rather than post25's is the target. A bug is one moving
+point; a briefing is six blocks of type, four of which wrap, and what a face
+reading them does is sweep right, drop a line and snap back left. **The target is
+the caret**, approximated from the fraction of an entry typed against the visual
+line count the page measured — which is a font, a column and a browser's line
+breaker, and therefore the page's question to answer rather than node's.
+
+`GAZE.max` is 0.45. post25 measured that the channel reads at 0.60 and comes back
+as one dash and a smudge at 0.90; this one is smaller again because he is at 60
+per cent and reading rather than staring.
+
+### And he blinks through it
+
+The third cut's review said he drifted through fourteen seconds with one blink at
+the end, which on the frame is a still. The seed walk carries two constraints
+now: exactly one blink while the caption is up, **and no gap longer than four
+seconds anywhere between the first briefing line and the last**, counted from the
+beat opening and to the beat closing. The idle's own spacing is about two and a
+half seconds, so four is findable and tight. It is a search rather than a number:
+change the copy and the window moves, and the seed moves with it.
+
+### The safe area, through the camera and per side
+
+This is the first clip in the folder that scales the whole frame, and it owes two
+guards no clip before it did.
+
+**Through the camera.** A page rect is where the ink was laid out, not where it
+landed. Every rect is mapped through the frame's own scale and origin on every
+frame, and the worst margin is what is reported.
+
+**Per side.** The first preview held all four bands to the smallest of them, 140,
+and passed a pill sitting 150 device px down inside a top band of 180. The bands
+are not the same size and a guard that pretends they are is a guard that passes
+a thing over the top border. `margin` is per side now, and the pill, the head and
+the box each came down 20 css px to satisfy it.
+
+### Four bugs the guards could not see until a guard was written for them
+
+**A white ellipse under him for five seconds.** `lib/mascot.mjs` declares
+`--m-shadow-o:0` under `[data-theme=dark]` with a comment saying the shadow is
+off on black — **and nothing reads that token.** `.m-shadow` carries a literal
+`opacity:0` and the runtime overwrites it every frame with `f.shadow.o`, 0.20 on
+both themes, in `var(--face)`. Every dark clip has drawn it; none could see it,
+because the head sits on top of it. This is the first dark clip that lifts the
+head off its own mark. `compose()` declines the shadow here and **the module was
+not touched** — see the note in MEMORY.md.
+
+**One frame with an empty box**, at 5.5s, where the question had cleared and the
+answer's first character had not yet landed. Found by the guard written for "the
+box is never empty", which walks every frame between the question's first
+character and the fault. The field swaps on the answer's first character now.
+
+**Two carets on one frame**, at 16.00s. Lines were placed a gap after their
+*sound* stopped, but a take's last word carries the decay of its full stop, so
+the alignment's end runs past the gate and the next line started while the one
+before it was still typing — 0.13s on the worst pair. Lines go after the later of
+the two now, the caret's grace is half the gap, and no two lines may overlap.
+
+**A caption that drove itself to the size floor.** The fit loop compared a
+centred line's width against the column, but the block is the full width of the
+frame with the line centred in it, so its rect is 540css whatever the size is.
+Fitting against that measures nothing. The inline block is the line.
+
+### The shutter, solved
+
+    node post26.mjs                     1080x1920, 60fps, shutter closed
+    DEMO_FPS=12 node post26.mjs         the fast preview pass
+    node post26.mjs --voice             the reads and the clock, no browser
+    node post26.mjs --blur              60fps, the file solves the subframes
+    node post26.mjs --blur=8            or say it outright
+    node post26.mjs --keep-frames       leave the jpegs on disk
+    node post26.mjs --encode-only       re-encode from kept frames
+
+`--blur` on its own works the number out, which is post24's move: what matters is
+how far the quickest thing on the screen travels **between two samples**, and
+that is a property of the cut rather than a taste. The file walks its four fast
+things at sixty before a browser is opened — the pop, the move, the box's own
+edge and the camera — and divides the fastest by post20's reference step of 6.3
+css px. Here that is **36.79 css px a frame, so six subframes, landing at 6.13**.
+
+The gaze is deliberately not in that set: it peaks around ten css px a frame
+*inside a head drawn at 60 per cent*, so it is a third of the slowest thing in
+the set once it reaches the frame, and the render loop measures it afterwards
+anyway.
+
+### Outstanding
+
+- **The sent line and the header are the same three words, stacked.** Small and
+  grey at the top right, bright and bold immediately under it. The ear is fixed;
+  the eye still sees the phrase twice, and the alignment split is doing all the
+  work. It is the one composition in the film that has to be explained rather
+  than seen.
+- **The box's lower half is empty from 7.5s to about 15s.** It grows to its full
+  502css at the send and fills top down over fourteen seconds. Growing a line at
+  a time would fix it and is a different, more expensive animation.
+- **The bus is quiet**, under the file's own -16 LUFS floor: the limiter's 5 dB
+  allowance stops the search, which is what it is for, and a clip whose loudest
+  content is 39 key ticks under a read is going to be quiet.
+- **25.72s is long for a feed** and it is not a number anybody chose.
+- **The gaze is subtle at this head size.** What carries it on the frame is the
+  head tilt as much as the eyes. `GAZE.max` is the knob and there is measured
+  room above it.
+
+## The two voices — a second elevenlabs clone, and why it is a clone
+
+`lib/voice.mjs`, since 2026-09-11.
+
+The file has always been able to read a line in a voice. What it could not do is
+read two lines in two voices, because there was one `ELEVENLABS_VOICE_ID` and the
+four slots were four *registers* of it: `calm` and `dry` are one narrator at two
+stabilities, and `uk` and `aside` are held on edge outright with the reason
+written down — **one voice id is one person, and a slot that exists to be a
+different person cannot be it.**
+
+post26 needs the narrator and the mascot in the same film. That is the same
+objection, and the answer it implies is a second id rather than a fifth register.
+
+**What changed.** `ELEVEN_IDS` is a table of `{ narrator, mascot }` read from
+`demo/.env`. A voice slot names which one it wants with `elevenId`, defaulting to
+`narrator`, which is every slot written before this. `elevenReady(which)` is per
+slot, so a `.env` with a key and one id gets the narrator on elevenlabs and the
+mascot on edge, with one warning naming the missing variable. `elevenOnce` takes
+the id as an argument. The sidecar records `elevenId` by **name** — the id itself
+is a secret and the sidecar is a file.
+
+**The redaction is per id, not per narrator.** Everything this file prints or
+throws on the elevenlabs path goes through `redact`, and it now walks the whole
+table. A second id added without a line there would be a second id that leaks.
+
+**`character: true`** is on the mascot slot for the same reason `comedy: true` is
+on `aside`: `NARRATORS` is every slot that is not marked, and nothing may pick
+either of them to narrate a clip by accident.
+
+**Stability 0.35**, lower than either narrator register. `calm` is 0.5 and `dry`
+is 0.7 because the brand is deadpan and a narrator reading a fact should not
+perform it. The mascot is not the brand talking — he is a character with two
+words over his crown, and he is allowed to lean on them.
+
+    node lib/voice.mjs voices                      the five, and which engine each is on
+    node lib/voice.mjs say "copy" --voice=mascot   the mascot's own clone
 
 ## The site intro — landscape, two themes, and a switch in the middle
 
