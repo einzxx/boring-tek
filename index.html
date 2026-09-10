@@ -47,6 +47,7 @@
   --muted:#767d86;
   --line:#dfe3e7;
   --field:#fbfbfc;
+  --pill-on:#eef1f4;
   --bub:rgba(11,13,16,.55);
   --face:#0b0d10;
   --eye:#ffffff;
@@ -84,6 +85,7 @@ html[data-theme=dark]{
   --muted:#6d7680;
   --line:#1e242d;
   --field:#0b0d12;
+  --pill-on:#161c24;
   --bub:rgba(213,219,216,.5);
   --face:#f4f7f5;
   --eye:#06070a;
@@ -612,7 +614,24 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 }
 .ch:hover{border-color:var(--fg)}
 .ch:active{transform:scale(.96)}
-.ch[aria-current=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+/* the chapter being played is the same pill as its neighbours, lifted rather
+   than coloured in: the card's own border, the label at full ink, and a filled
+   dot in front of it. --pill-on is the one thing that moves, and it moves the
+   only way each theme allows - up off the near-black in dark, and into a soft
+   fill in light, where the resting pill is already pure white and there is no
+   brighter left to go. no accent, no glow: this sits a few px from the play
+   control, and green here made a list item louder than the thing you press.
+   flex-start because the wide layout spaces .ch children apart, and the dot
+   is a child now. */
+.ch[aria-current=true]{
+  background:var(--pill-on); border-color:var(--line); color:var(--fg);
+  justify-content:flex-start;
+}
+.ch[aria-current=true]::before{
+  content:''; flex:0 0 auto;
+  width:5px; height:5px; border-radius:999px;
+  background:currentColor;
+}
 .ch[disabled]{opacity:.5;cursor:default;color:var(--muted)}
 .ch[disabled]:hover{border-color:var(--line)}
 .ch-s{

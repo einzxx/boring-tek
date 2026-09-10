@@ -6,6 +6,40 @@ names in here either.
 
 ## Status
 
+- **2026-09-10: the active chapter pill lost the green.** `index.html` plus a
+  rebuild of `ru/` and `lv/`. Committed, **not pushed**.
+
+  It took `--accent-soft` for the fill, `--accent` for the border and `--accent`
+  for the label since the card shipped this morning. It is now **the same pill
+  as its three neighbours, lifted rather than coloured in**: a brighter fill,
+  the card's own `--line` border, the label at `--fg`, and a `5px` filled dot
+  in `currentColor` in front of it. **No accent, no glow.** The `soon` pills are
+  untouched. Measured on the rendered page in both themes: no green in the fill,
+  the border or the label, and `box-shadow` is `none`.
+
+  **Three things it settled:**
+  - **The accent belongs to the play sign, not to a list item beside it.** The
+    pills sit a few px from the control you actually press, and green on one of
+    four made the list louder than the button. This is now written into the
+    skill as a rule rather than left as a preference.
+  - **"Brighter" is not a thing a light theme can always do.** `--pill-on` is
+    `#161c24` in dark, which lifts off a `#0b0d12` card and `#06070a`
+    neighbours and reads exactly as asked. In light the resting pill is already
+    `#ffffff` on a `#fbfbfc` card, so **there is nothing above it** and the
+    active one goes to a soft fill at `#eef1f4` instead, reading as filled
+    rather than as brighter. One token, each theme moving the only direction it
+    has.
+  - **The label is `--fg`, not literal white.** The ask said white, which is
+    right in dark, where `--fg` is `#d5dbd8`. In light `--fg` is `#0b0d10` and
+    a literally white label on a `#eef1f4` pill is invisible. The token keeps
+    one rule correct in both themes and is what the rest of the page already
+    uses.
+
+  **One thing worth knowing:** the dot is a `::before`, so it is a flex child,
+  and the wide layout gives `.ch` `space-between`. Without
+  `justify-content:flex-start` on the active pill the dot and the label fly to
+  opposite ends of it. That line is load-bearing above 720px only.
+
 - **2026-09-10: the site is three documents now, one per language, and it is the
   first time a crawler can read the russian and latvian copy.** `index.html` is
   still the only file anything is written in; `ru/index.html` and

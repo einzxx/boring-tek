@@ -1737,10 +1737,27 @@ var CHAPTERS = [
 - Each label span is given `data-k`, so `paintKeys()` repaints the whole list on every
   language switch like every other string on the page. The `soon` tags all share one
   key.
-- The active chapter carries `aria-current="true"` and takes `--accent-soft` and
-  `--accent`. Switching one sets `vid.src`, calls `load()`, and plays.
+- The active chapter carries `aria-current="true"`. Switching one sets `vid.src`, calls
+  `load()`, and plays.
 - The pills are the form chip's geometry — `--t-micro`, `10px 15px`, `min-height:40px`,
   `999px`, `1px solid var(--line)` on `var(--bg)`.
+- **The active pill is the same pill, lifted rather than coloured in.** `--pill-on` for
+  the fill, `--line` for the border like every other pill, the label at `--fg`, and a
+  `5px` filled dot in `currentColor` as a `::before`. **No accent and no glow**, which
+  is the rule and not a preference: the list sits a few px from the play control, and
+  green on a list item made it louder than the thing you press. It took
+  `--accent-soft` and `--accent` until 2026-09-10 and it was wrong.
+- `--pill-on` moves the only way each theme allows. Dark lifts off the near-black —
+  `#161c24` against a `#0b0d12` card and `#06070a` neighbours, so it reads as brighter.
+  **Light cannot go brighter**: the resting pill is already `#ffffff` on a `#fbfbfc`
+  card, so it goes to a soft fill at `#eef1f4` and reads as filled instead. Do not try
+  to make light "brighter" — there is nothing above white.
+- **`justify-content:flex-start` on the active pill.** The wide layout gives `.ch`
+  `space-between`, and the dot is a child, so without it the dot and the label fly to
+  opposite ends of the pill.
+- The label is `--fg`, which is near-white in dark and near-black in light. **Not
+  literal white** — white on the light pill is invisible, and the token is what keeps
+  one rule correct in both themes.
 
 **To add a chapter:** one line in `CHAPTERS` with its `src`, and its label in `T.en`,
 `T.ru` and `T.lv` under that key. Nothing else. If adding a chapter needs a markup
@@ -2295,8 +2312,11 @@ The video card:
   names, the `soon` tags and the play label all change, and no pill clips its own text.
   Russian reads entirely in mono.
 - Dark mode: the white poster is a known, accepted glare. Anything else about the card
-  — border, background, chapter pills, the accent on the active one — follows the theme
+  — border, background, chapter pills, the fill on the active one — follows the theme
   with everything else on the 0.5s fade.
+- Put a colour picker on the active chapter pill in both themes: no green in the fill,
+  the border or the label, and `box-shadow` is `none`. It is the one control on the
+  page that sits beside the play sign, and the accent belongs to the sign.
 - Reduced motion: the card is already there on arrival and the sign does not animate,
   but the video still plays on a press.
 
