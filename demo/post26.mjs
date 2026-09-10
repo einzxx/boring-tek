@@ -102,7 +102,7 @@ import { execFileSync } from 'node:child_process';
 import {
   planMascot, mascotFrame, mascotMotion, mascotCues, mascotCss, mascotMarkup,
   mascotRuntime, mascotPagePlan, describeMascot, describeMotion, headRect,
-  STAGE, SAFE, HEAD, GRID, BUBBLE, STATES, HEAD_PX,
+  STAGE, SAFE, HEAD, GRID, BUBBLE, STATES, HEAD_PX, EYE_CX, TURN, headSD,
 } from './lib/mascot.mjs';
 import { brandTokens } from './lib/captions.mjs';
 import { speak, VOICE_OUT, elevenIdOf } from './lib/voice.mjs';
@@ -237,7 +237,18 @@ const HEADER_FOR = 0.40;
 const LINES = [
   { key: 'q', voice: NARRATOR, text: COPY_Q, screen: COPY_Q },
   { key: 'bub', voice: MASCOT_V, text: BUB_TEXT + '.', screen: BUB_TEXT },
-  { key: 'a', voice: NARRATOR, text: COPY_A + '.', screen: COPY_A },
+  /* ---------- and the one line whose last word is not said ----------
+     `as` is a Norwegian company suffix, and an american narrator handed
+     `nordic parts as` says the english word `as` — a preposition arriving where
+     a legal form should be, which is the reading that makes the line sound
+     wrong. so **the take stops at `nordic parts`** and the two letters type
+     into the pause the voice leaves behind them.
+
+     that is not a substitution, which is what every other screen-against-spoken
+     difference in this file is: it is a **tail**, a run of screen words with no
+     word to sit inside. `charClock` places them itself, after the sound stops,
+     and the guard knows to compare only the spoken head. */
+  { key: 'a', voice: NARRATOR, text: 'nordic parts.', screen: COPY_A, tail: 1 },
   ...REPORT.map((e, i) => ({
     key: 'r' + (i + 1), voice: NARRATOR,
     text: (e.say || lineText(e)) + '.', screen: lineText(e), row: i,
@@ -255,6 +266,11 @@ const CARET_AFTER = 0.16;   /* a caret blinks this long after its own last word 
 const POP_LEAD = 0.20;      /* he arrives this far after the question is finished */
 const ANSWER_LEAD = 0.22;   /* the box starts the answer this far after he stops */
 const SEND_LEAD = 0.18;     /* and it is sent this far after the answer lands */
+/* how long the answer's unspoken tail takes to type. it opens the instant the
+   voice stops and it is the whole of the pause the brief asks for: two letters
+   arriving after a sentence has finished, which is what typing a company's
+   legal form after saying its name looks like. */
+const TAIL_FOR = 0.30;
 const GROW_FOR = 0.46;      /* how long the box takes to grow and he to move */
 const RPT_GAP = 0.20;       /* clear air between one briefing line and the next */
 /* the caption starts typing this far after the last briefing line stops
@@ -476,6 +492,7 @@ const EASE = bezier(.16, 1, .3, 1);            /* the site's own --ease */
 const SMOOTH = bezier(.42, 0, .28, 1);         /* and the camera's, which never snaps */
 const span = (t, a, b) => (b <= a ? (t >= b ? 1 : 0) : Math.max(0, Math.min(1, (t - a) / (b - a))));
 const lerp = (a, b, p) => a + (b - a) * p;
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 function prng(seed) {
   let x = seed | 0 || 0x1a2b3c;
@@ -539,22 +556,49 @@ const SENT_TO = rgbOf(DARK_TOKENS, 'muted');
    word. so a line types unevenly in exactly the way it is being read, and eight
    different lines get it from one place rather than from eight copies.
 
-   the screen string and the spoken string may differ — `NORDIC PARTS AS` is sent
-   in lower case, and every spoken line carries a full stop the screen does not —
-   so what is matched here is the **word count**, and the guard at the bottom
-   asserts the words themselves are the same words. */
-function charClock(screen, words, off) {
+   the screen string and the spoken string may differ — every spoken line carries
+   a full stop the screen does not — so what is matched here is the **word
+   count**, and the guard at the bottom asserts the words themselves are the same
+   words.
+
+   `tail` is the exception and there is one of them. it is a run of screen words
+   at the end of the line that **nobody says**, given a window of their own that
+   opens where the sound stops. they are still characters inside a word's own
+   box as far as every guard downstream is concerned; the box is just one this
+   file drew rather than one a voice did. */
+function charClock(screen, words, off, tail) {
   const parts = screen.split(' ');
-  if (parts.length !== words.length) {
-    throw new Error('"' + screen + '" is ' + parts.length + ' words and its read is '
-      + words.length + ' — the typing cannot be cut to it');
+  const tw = tail ? tail.words : 0;
+  if (parts.length - tw !== words.length) {
+    throw new Error('"' + screen + '" is ' + parts.length + ' words, ' + tw
+      + ' of them unspoken, and its read is ' + words.length
+      + ' — the typing cannot be cut to it');
   }
   const chars = [], out = [];
   for (let i = 0; i < words.length; i++) {
     const st = +(words[i].start + off).toFixed(4), en = +(words[i].end + off).toFixed(4);
-    out.push({ word: words[i].word, screen: parts[i], start: st, end: en });
+    out.push({ word: words[i].word, screen: parts[i], start: st, end: en, spoken: true });
     const n = parts[i].length + (i ? 1 : 0);
     for (let k = 0; k < n; k++) chars.push(+(st + (en - st) * ((k + 1) / n)).toFixed(4));
+  }
+  if (tw) {
+    /* the tail opens at the later of the last word's own end and the instant the
+       take stops making noise — the alignment's end carries the decay of the
+       stop and the gate does not, and typing into a word that is still ringing
+       is not typing into a pause. the characters are spread evenly, because
+       there is no voice left to be uneven with. */
+    const from = Math.max(out[out.length - 1].end, tail.at);
+    const rest = parts.slice(words.length);
+    const total = rest.reduce((n, w) => n + w.length + 1, 0);
+    let done = 0;
+    for (const w of rest) {
+      const n = w.length + 1;
+      const st = +(from + tail.for * (done / total)).toFixed(4);
+      const en = +(from + tail.for * ((done + n) / total)).toFixed(4);
+      out.push({ word: w, screen: w, start: st, end: en, spoken: false });
+      for (let k = 0; k < n; k++) chars.push(+(st + (en - st) * ((k + 1) / n)).toFixed(4));
+      done += n;
+    }
   }
   if (chars.length !== screen.length) {
     throw new Error('the character clock for "' + screen + '" is ' + chars.length
@@ -659,8 +703,141 @@ function glowAt(t) {
   return +lerp(GLOW.peak, 1, EASE(span(t, POP_IN, POP_IN + GLOW.for))).toFixed(4);
 }
 
+/* ==========================================================================
+   he reads it
+   ==========================================================================
+   **post25's rig, at post25's numbers where they still hold.** the module's turn
+   is a channel on a mark: a clip says "look this far that way" and the state
+   machine gets it there over an entrance. that is right for a beat and it cannot
+   express this one, which is a gaze that is a function of **where the line being
+   typed is** on every frame of a fourteen second briefing.
+
+   so the turn is written here, with the module's own numbers rather than with a
+   lookalike: `TURN.shift`, `TURN.wrap`, `TURN.farX`, `TURN.farY` and `TURN.tilt`
+   are its five moves, `EYE_CX` and `HEAD` are its geometry, and the clamp is its
+   own `room` — an eye may not sit closer than `TURN.margin` to the edge of the
+   plate, measured at the narrowest point of its own vertical span rather than at
+   its centre. the guard afterwards re-proves it with `headSD`, which is the
+   function the markup clips to, so the two cannot disagree about where the head
+   ends.
+
+   **`bias: 0` is what makes this safe.** no mark sets a turn and `neutral` does
+   not author one, so the module writes nought to the channel on every frame and
+   there is nothing here for this to fight.
+
+   what is post26's rather than post25's is the target. the bug was one moving
+   point; a briefing is six blocks of type, four of which wrap to two lines, and
+   what a face reading them does is sweep right, drop a line, and snap back left.
+   so the target is the **caret**, approximated from the fraction of the entry
+   typed against the visual line count the page measured: `frac * lines` gives
+   the line and the remainder gives the position along it. between two entries
+   the target eases from the end of one to the start of the next, which is what
+   makes the drop to a new line a move rather than a jump. */
+const GAZE = {
+  /* **not a full turn.** post25 measured that the channel at 0.90 foreshortens
+     the far eye to 0.58 of its width and reads as one dash and a smudge; 0.60 is
+     what a face watching something looks like. this one is smaller again,
+     because he is at 60 per cent and reading rather than staring: at 0.45 the
+     move is a few device px on a 166px head, which is the size of the gesture
+     the frame can carry. */
+  max: 0.45,
+  span: 175,        /* page px across the column for a full swing */
+  vy: 2.6,          /* grid units the pair travels down */
+  vspan: 460,       /* page px down for the full vertical */
+  in: 0.30,         /* he takes hold of it over this, as the first line starts */
+  out: 0.35,        /* and lets go over this, so he is facing camera for the caption */
+};
+/* filled from the page: how many visual lines each entry really wrapped to, and
+   what one of those lines is worth in css px. an approximation of a caret built
+   on a guess about wrapping would be a guess about wrapping. */
+let ROW_LINES = [];
+let ROW_LH = 0;
+let EYE_PAGE_Y = 0;
+
+/* where the caret is, in page css px, near enough for a gaze. */
+function rowPoint(i, frac) {
+  const n = Math.max(1, ROW_LINES[i] || 1);
+  const k = Math.min(n - 1, Math.floor(frac * n));
+  const within = clamp(frac * n - k, 0, 1);
+  return {
+    x: BOX.x + RPT.x + within * RPT.w,
+    y: BOX.big.top + RPT.y + i * RPT.pitch + (k + 0.5) * ROW_LH,
+  };
+}
+function caretPoint(t) {
+  if (t <= RP[0].at) return rowPoint(0, 0);
+  for (let i = 0; i < RP.length; i++) {
+    const e = RP[i];
+    if (t <= e.end) return rowPoint(i, span(t, e.at, e.end));
+    const nxt = RP[i + 1];
+    if (!nxt) break;
+    if (t < nxt.at) {
+      const p = SMOOTH(span(t, e.end, nxt.at));
+      const a = rowPoint(i, 1), b = rowPoint(i + 1, 0);
+      return { x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) };
+    }
+  }
+  return rowPoint(RP.length - 1, 1);
+}
+function gazeAt(t) {
+  const live = SMOOTH(span(t, RPT_AT, RPT_AT + GAZE.in))
+    * (1 - SMOOTH(span(t, RPT_END, RPT_END + GAZE.out)));
+  if (live <= 1e-4) return { q: 0, v: 0 };
+  const p = caretPoint(t);
+  return {
+    q: +(clamp((p.x - VW / 2) / GAZE.span, -1, 1) * GAZE.max * live).toFixed(5),
+    v: +(clamp((p.y - EYE_PAGE_Y) / GAZE.vspan, -1, 1) * live).toFixed(5),
+  };
+}
+/* the module's own room, on the module's own constants: how far an eye may sit
+   from the card's centre before it runs off the side. */
+const PL_R = HEAD.plate.s / 2, PL_CX = HEAD.plate.x + PL_R, PL_CY = HEAD.plate.y + PL_R;
+function eyeRoom(ey, halfW, halfH) {
+  const top = HEAD.eye.cy + ey - halfH, bot = HEAD.eye.cy + ey + halfH;
+  const dy = Math.max(Math.abs(top - PL_CY), Math.abs(bot - PL_CY));
+  const half = dy >= PL_R ? 0 : Math.sqrt(PL_R * PL_R - dy * dy);
+  return Math.max(0, half - TURN.margin - halfW);
+}
+/* the five moves, in the module's order: the far eye is the one the turn carries
+   toward the silhouette, so it foreshortens and travels the shorter distance;
+   the near one is full width and travels further, crossing the centre line as
+   the broad side swings in. */
+function applyGaze(mas, g) {
+  if (!g.q && !g.v) return;
+  const aq = Math.abs(g.q), sgn = g.q < 0 ? -1 : 1, far = g.q >= 0 ? 1 : 0;
+  for (let k = 0; k < 2; k++) {
+    const e = mas.eyes[k];
+    if (k === far) { e.sx *= 1 - TURN.farX * aq; e.sy *= 1 - TURN.farY * aq; }
+    const want = e.x + sgn * aq * (k === far ? TURN.shift : TURN.shift + TURN.wrap);
+    const ey = e.y + GAZE.vy * g.v;
+    const from = EYE_CX[k] - PL_CX + want;
+    const lim = eyeRoom(ey, HEAD.eye.w / 2 * Math.abs(e.sx), HEAD.eye.h / 2 * Math.abs(e.sy));
+    e.x = +(want + (clamp(from, -lim, lim) - from)).toFixed(4);
+    e.y = +ey.toFixed(4);
+  }
+  /* the tilt goes with the card, because it is the head leaning. */
+  mas.card.rot = +(mas.card.rot + TURN.tilt * g.q).toFixed(4);
+}
+/* how far outside the silhouette the drawn eye ink would go, in grid units.
+   positive is out, and out is a fault. */
+function eyeOutside(plan, mas) {
+  let worst = -Infinity;
+  for (let k = 0; k < 2; k++) {
+    const e = mas.eyes[k];
+    const hw = HEAD.eye.w / 2 * Math.abs(e.sx), hh = HEAD.eye.h / 2 * Math.abs(e.sy);
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      worst = Math.max(worst, headSD(EYE_CX[k] + e.x + sx * hw, HEAD.eye.cy + e.y + sy * hh, plan));
+    }
+  }
+  return worst;
+}
+
 function compose(plan, t) {
   const f = mascotFrame(plan, t);
+  /* the gaze first, in grid units on the module's own channels, and then this
+     file's card transform on top of it: the two do not interact, because one is
+     inside the card and the other is the card. */
+  applyGaze(f, gazeAt(t));
   const m = moveAt(t);
   const s = +(popScale(t) * m.sc).toFixed(5);
   return {
@@ -785,7 +962,10 @@ function frameAt(t, f) {
      actually being written. */
   const lines = RP.map(e => ({
     n: cut ? 0 : charsAt(e.chars, t),
-    caret: cut ? 0 : caretIn(t, e.at, e.end + 0.10, CARET_R),
+    /* the caret sits on for a beat after its own line finishes, which reads as a
+       line just written. **the grace is shorter than the gap** so no two lines
+       ever hold one at the same time. */
+    caret: cut ? 0 : caretIn(t, e.at, e.end + RPT_GAP * 0.5, CARET_R),
   }));
 
   return {
@@ -1164,13 +1344,18 @@ function scenePage() {
         if (rTall <= P.RPT.pitch - 4) break;
       }
       for (const r of rows) r.el.style.fontSize = rs.toFixed(2) + 'px';
-      const rHeights = [], rBottoms = [];
+      const rHeights = [], rBottoms = [], rLines = [];
+      const rLh = parseFloat(getComputedStyle(rows[0].el).lineHeight) || 1;
       let rWide = 0;
       const boxTop = box.getBoundingClientRect().top;
       for (const r of rows) {
         const bb = r.el.getBoundingClientRect();
         rHeights.push(+bb.height.toFixed(2));
         rBottoms.push(+(bb.bottom - boxTop).toFixed(2));
+        /* **how many visual lines this entry really wrapped to**, which is what
+           the gaze needs and is not something node can work out: it is a font,
+           a column and a browser's line breaker. */
+        rLines.push(Math.max(1, Math.round(bb.height / rLh)));
         /* the row's own overflow, not the sum of its two spans' rects: a span
            that has wrapped reports the union of its line boxes, which on a two
            line entry is very nearly the column width twice over and is not a
@@ -1210,6 +1395,7 @@ function scenePage() {
         report: {
           size: +rs.toFixed(2), capPx: +(rc.cap * P.DSF).toFixed(1), font: rc.font,
           heights: rHeights, tallest: +rTall.toFixed(2), widest: +rWide.toFixed(0),
+          lines: rLines, lh: +rLh.toFixed(2),
           /* the last row's bottom edge in the box's own coordinates, which is
              what has to stay off the row strip. */
           lastBottom: rBottoms[rBottoms.length - 1], slot: P.RPT.pitch,
@@ -1457,6 +1643,10 @@ async function render(plan) {
      lines down. */
   SENT_DX = built.sent.dx;
   BUILT_SIZE = built.box.size;
+  /* and the gaze's target, which is a wrapping question and therefore the
+     page's to answer. */
+  ROW_LINES = built.report.lines;
+  ROW_LH = built.report.lh;
 
   /* the box at both of its sizes, measured where it really drew rather than off
      the numbers that placed it. */
@@ -1513,6 +1703,7 @@ async function render(plan) {
      briefing inside it — and the caption are all mapped through the frame's own
      scale and origin, and the worst margin any of them reaches is reported. */
   let worstHead = null, worstText = null, camPeak = 0, camStep = 0, camStepAt = 0;
+  let eyeOut = -Infinity, eyeOutAt = 0, gazePeak = 0, gazeStep = 0;
   for (let f = 0; f < N; f++) {
     const t = f / FPS;
     if (t >= END.at) break;
@@ -1528,7 +1719,20 @@ async function render(plan) {
       if (d > camStep) { camStep = d; camStepAt = +t.toFixed(3); }
     }
     if (o.mo) {
-      const r = headRect(plan, compose(plan, t));
+      const mf = compose(plan, t);
+      /* **the drawn eye, against the silhouette the markup clips to.** the gaze
+         moves ink the module did not place, so the module's own report cannot
+         see it and this file owes the check. `headSD` is the function the clip
+         path is built from, so the two cannot disagree. */
+      const out = eyeOutside(plan, mf);
+      if (out > eyeOut) { eyeOut = out; eyeOutAt = +t.toFixed(3); }
+      const g = gazeAt(t);
+      gazePeak = Math.max(gazePeak, Math.abs(g.q));
+      if (f) {
+        const p0 = gazeAt((f - 1) / FPS);
+        gazeStep = Math.max(gazeStep, Math.abs(g.q - p0.q) * TURN.shift * plan.unit * SHRINK_TO);
+      }
+      const r = headRect(plan, mf);
       /* headRect works in page space; undo it back to css edges and re-map. */
       const l = r.left / DSF, tp = r.top / DSF;
       const rt = VW - r.right / DSF, bt = VH - r.bottom / DSF;
@@ -1639,6 +1843,9 @@ async function render(plan) {
 
   console.log('  the camera peaks at ' + camPeak.toFixed(4) + ' of a ceiling of ' + CAM.ceil
     + ', moving at most ' + camStep.toFixed(2) + ' css px a frame at ' + camStepAt + 's');
+  console.log('  the gaze peaks at ' + gazePeak.toFixed(3) + ' of a ceiling of ' + GAZE.max
+    + ', an eye moving at most ' + gazeStep.toFixed(2) + ' css px a frame; the drawn eye gets '
+    + eyeOut.toFixed(2) + ' units from the silhouette at ' + eyeOutAt + 's (out is positive)');
   console.log('  the head, through the camera, worst at ' + worstHead.t + 's: ' + worstHead.left
     + ' left / ' + worstHead.top + ' top / ' + worstHead.right + ' right / '
     + worstHead.bottom + ' bottom, ' + worstHead.margin + 'px over the '
@@ -1654,7 +1861,8 @@ async function render(plan) {
 
   const state = {
     built, wm, boxSmall, boxBig, glRules, bubSafe, bubCaps, pillText, bubAt,
-    head: worstHead, text: worstText, camPeak, camStep, camStepAt, sigs, frames: N,
+    head: worstHead, text: worstText, camPeak, camStep, camStepAt,
+    eyeOut, eyeOutAt, gazePeak, gazeStep, sigs, frames: N,
   };
   fs.writeFileSync(path.join(OUT, 'post26.json'), JSON.stringify(state, null, 2));
   return state;
@@ -1794,11 +2002,16 @@ MV_END = soundEnd('bub');
 
 place('a', +(MV_END + ANSWER_LEAD).toFixed(4));
 {
-  const c = charClock(COPY_A, byKey.a.words, byKey.a.off);
+  /* `as` is not spoken, so it types into the pause the voice leaves. */
+  const c = charClock(COPY_A, byKey.a.words, byKey.a.off,
+    { words: 1, at: soundEnd('a'), for: TAIL_FOR });
   A.chars = c.chars; A.words = c.words; A.at = c.at; A.end = c.end;
 }
 
-SEND = +(soundEnd('a') + SEND_LEAD).toFixed(4);
+/* the send follows the **typing**, not the voice: the two letters land after
+   the sound stops, so a send derived from the sound would take the field while
+   `as` was still arriving. */
+SEND = +(A.end + SEND_LEAD).toFixed(4);
 GROWN = +(SEND + GROW_FOR).toFixed(4);
 RPT_AT = GROWN;
 
@@ -1849,7 +2062,13 @@ function evenClock(screen, at, dur) {
       chars: c.chars, words: c.words, ticks,
       at: c.at, end: c.end, cy: rowCy(i),
     });
-    at = +((silent ? c.end : soundEnd(k)) + RPT_GAP).toFixed(4);
+    /* **the later of the two ends, not the sound's.** a take's last word carries
+       the decay of its own full stop, so the alignment's end runs past the gate
+       by a tenth or so — and a next line placed a gap after the *sound* stopped
+       therefore started while the line before it was still typing. the 12fps
+       preview showed it as two carets on the frame at once, which is the only
+       way it was ever going to be visible. */
+    at = +(Math.max(silent ? 0 : soundEnd(k), c.end) + RPT_GAP).toFixed(4);
   }
   RPT_END = RP[RP.length - 1].end;
 }
@@ -1951,13 +2170,39 @@ function planWith(seed) {
     ],
   });
 }
-let plan = null;
-for (let s = 1; s <= 400; s++) {
-  const p = planWith(s);
-  const inCap = p.idle.blinks.filter(b => b.t >= CAP_AT && b.t < END.at);
-  if (inCap.length === 1) { plan = p; SEED = s; break; }
+/* **two constraints now, and the second is the point.** the briefing runs
+   fourteen seconds and the last cut's review said he spent all of it drifting
+   with one blink at the end of it, which on the frame is a still. so the seed is
+   walked for a schedule that also never leaves a gap longer than `BLINK_GAP`
+   anywhere between the first briefing line and the last — counting the gap from
+   the briefing starting to the first blink and from the last blink to the
+   briefing ending, because a blink two tenths before the beat opens is not a
+   blink inside it.
+
+   the idle's own spacing is around two and a half seconds, so four is loose
+   enough to be findable and tight enough that no stretch of the briefing is
+   without one. it is a search rather than a number: change the copy and the
+   window moves, and the seed moves with it. */
+const BLINK_GAP = 4.0;
+function blinksOk(p) {
+  if (p.idle.blinks.filter(b => b.t >= CAP_AT && b.t < END.at).length !== 1) return false;
+  let prev = RPT_AT;
+  for (const b of p.idle.blinks) {
+    if (b.t < RPT_AT || b.t > RPT_END) continue;
+    if (b.t - prev > BLINK_GAP) return false;
+    prev = b.t;
+  }
+  return RPT_END - prev <= BLINK_GAP;
 }
-if (!plan) { plan = planWith(1); SEED = 1; }
+let plan = null;
+for (let s = 1; s <= 900; s++) {
+  const p = planWith(s);
+  if (blinksOk(p)) { plan = p; SEED = s; break; }
+}
+if (!plan) {
+  console.log('  no seed in 900 satisfied both blink constraints — falling back to 1');
+  plan = planWith(1); SEED = 1;
+}
 
 /* his box, placed. `headRect`, `mascotCss` and `mascotPagePlan` all read
    `plan.box` when they are called, so moving it first is the same as having been
@@ -1966,6 +2211,10 @@ if (!plan) { plan = planWith(1); SEED = 1; }
 const halfBox = (GRID / 2) * plan.unit;
 plan.box.left = +(VW / 2 - halfBox - LEFT_OF_CENTRE).toFixed(2);
 plan.box.top = +(MASCOT_CY - halfBox).toFixed(2);
+/* where his eyes actually are on the frame while he is reading: parked in the
+   top third, at 60 per cent, and back on the centre line. the gaze measures
+   everything down from here. */
+EYE_PAGE_Y = +(TOP_CY + (HEAD.eye.cy - GRID / 2) * plan.unit * SHRINK_TO).toFixed(2);
 
 const rep = mascotMotion(plan, FPS, SECONDS);
 const rep60 = FPS === 60 ? rep : mascotMotion(plan, 60, SECONDS);
@@ -2314,13 +2563,68 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
   }
   if (rep60.blinks.repeatsInARow) fail.push(rep60.blinks.repeatsInARow + ' blinks repeat the one before them');
   const inCap = plan.idle.blinks.filter(b => b.t >= CAP_AT && b.t < END.at);
-  console.log('  blinks in the caption window: ' + inCap.length
-    + (inCap.length ? ' at ' + inCap.map(b => b.t.toFixed(2)).join(', ') : ''));
   if (inCap.length !== 1) {
     fail.push('he blinks ' + inCap.length + ' times while the caption is up and the brief asks for one');
   }
   const onScreen = plan.idle.blinks.filter(b => b.t >= POP_IN && b.t < END.at);
   if (!onScreen.length) fail.push('he never blinks while he is on screen — walk the seed');
+  /* ---------- and he is not still through the briefing ----------
+     the last cut's review said he drifted through fourteen seconds with one
+     blink at the end. this walks the gap the same way the seed search does, and
+     it is deliberately the same arithmetic twice: the search picks a seed and
+     this proves the seed that was picked. */
+  {
+    const during = plan.idle.blinks.filter(b => b.t >= RPT_AT && b.t <= RPT_END);
+    let worst = 0, at = RPT_AT, prev = RPT_AT;
+    for (const b of during) {
+      if (b.t - prev > worst) { worst = b.t - prev; at = prev; }
+      prev = b.t;
+    }
+    if (RPT_END - prev > worst) { worst = RPT_END - prev; at = prev; }
+    console.log('  blinks: seed ' + SEED + ', ' + during.length + ' through the briefing at '
+      + during.map(b => b.t.toFixed(1)).join(', ') + '; longest still stretch '
+      + worst.toFixed(2) + 's from ' + at.toFixed(2) + 's (ceiling ' + BLINK_GAP + ')');
+    console.log('    and ' + inCap.length + ' in the caption, at '
+      + inCap.map(b => b.t.toFixed(2)).join(', '));
+    if (worst > BLINK_GAP + 1e-6) {
+      fail.push('he goes ' + worst.toFixed(2) + 's without blinking from ' + at.toFixed(2)
+        + 's, and the ceiling is ' + BLINK_GAP);
+    }
+  }
+}
+
+/* ---------- the gaze ---------- */
+{
+  if (state.gazePeak > GAZE.max + 1e-6) {
+    fail.push('the gaze reached ' + state.gazePeak + ', over its own ceiling of ' + GAZE.max);
+  }
+  /* **it actually swings.** a gaze that never leaves nought is a gaze that was
+     wired up and never connected, and every other guard in this file would pass
+     on it. half the ceiling is the floor. */
+  if (state.gazePeak < GAZE.max * 0.5) {
+    fail.push('the gaze only ever reached ' + state.gazePeak + ' of ' + GAZE.max
+      + ' — he is not following the lines');
+  }
+  /* the drawn eye stays inside the head the markup clips to. */
+  if (state.eyeOut > -0.05) {
+    fail.push('an eye gets ' + state.eyeOut.toFixed(2) + ' units of the silhouette at '
+      + state.eyeOutAt + 's, and the clamp is what should have stopped it');
+  }
+  if (state.gazeStep > STEP_CEIL) {
+    fail.push('an eye moves ' + state.gazeStep.toFixed(1) + ' css px a frame, over ' + STEP_CEIL);
+  }
+  /* he is only reading while there is something to read. */
+  for (const t of [POP_IN + 0.1, BUB_POP, A.at, SEND, END.at - 0.05]) {
+    const g = gazeAt(t);
+    if (Math.abs(g.q) > 1e-4 || Math.abs(g.v) > 1e-4) {
+      fail.push('the gaze is live at ' + t.toFixed(2) + 's, and it should only be up while the '
+        + 'briefing is typing');
+    }
+  }
+  if (ROW_LINES.length !== REPORT.length) {
+    fail.push('the gaze has ' + ROW_LINES.length + ' row line counts and the briefing has '
+      + REPORT.length);
+  }
 }
 
 /* ---------- the reads, and the picture cut to them ---------- */
@@ -2358,13 +2662,37 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
      both are asserted rather than trusted. */
   for (const L of LINES) {
     /* the stop comes off **both** sides before they are compared: the question
-       carries one on the screen and the other six lines do not, and which side
-       it is on is not the thing being asserted. what is being asserted is that
-       the words are the same words, in the same order, allowing only case. */
+       carries one on the screen and the other lines do not, and which side it is
+       on is not the thing being asserted. what is being asserted is that the
+       words are the same words, in the same order, allowing only case — and,
+       where a line declares one, allowing a named tail of trailing screen words
+       that nothing says. */
     const spoken = L.text.replace(/\.$/, '');
-    const shown = L.screen.replace(/\.$/, '');
+    const parts = L.screen.replace(/\.$/, '').split(' ');
+    const shown = (L.tail ? parts.slice(0, -L.tail) : parts).join(' ');
     if (spoken === shown || spoken === shown.toLowerCase()) continue;
     fail.push('"' + L.key + '" is read as "' + L.text + '" and shown as "' + L.screen + '"');
+  }
+  /* **the tail is only ever a tail.** exactly one line declares one, it is one
+     word, and it lands after the take it belongs to has stopped sounding —
+     which is the whole point of it and the one thing a reader would want proved
+     rather than described. */
+  {
+    const tails = LINES.filter(L => L.tail);
+    if (tails.length !== 1 || tails[0].key !== 'a' || tails[0].tail !== 1) {
+      fail.push('the unspoken tails are ' + (tails.map(L => L.key).join(', ') || 'none')
+        + ', wanted one word on the answer and nowhere else');
+    }
+    const last = A.words[A.words.length - 1];
+    if (last.spoken) fail.push('the answer\'s last word is spoken, and `as` should not be');
+    if (last.screen !== 'as') fail.push('the answer\'s tail is "' + last.screen + '", wanted "as"');
+    if (last.start < soundEnd('a') - 1e-6) {
+      fail.push('the tail starts at ' + last.start.toFixed(3) + 's and the answer is still '
+        + 'sounding until ' + soundEnd('a').toFixed(3));
+    }
+    if (A.words.filter(w => !w.spoken).length !== 1) {
+      fail.push('the answer has more than one unspoken word');
+    }
   }
   /* the header's `say` is dead copy now that nothing reads it, and dead copy in
      a table is copy somebody will one day believe. */
@@ -2411,6 +2739,16 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
     if (e.at < GROWN - 1e-6) fail.push('briefing line ' + (e.i + 1) + ' types before the box has grown');
   }
   if (RPT_END > CP.at) fail.push('the caption starts before the briefing has finished');
+  /* **one line types at a time.** the frames are the only place a two frame
+     overlap shows, and they showed one: two carets, at 16.00s, because a line
+     had been placed a gap after the sound stopped rather than after the typing
+     did. now it is asserted rather than looked for. */
+  for (let i = 1; i < RP.length; i++) {
+    if (RP[i].at < RP[i - 1].end - 1e-6) {
+      fail.push('briefing lines ' + i + ' and ' + (i + 1) + ' are typing at the same time, '
+        + (RP[i - 1].end - RP[i].at).toFixed(3) + 's of overlap');
+    }
+  }
   /* **the fault waits for the voice**, which is this round's own claim. */
   if (END.at < CP.end) fail.push('the fault lands while the caption is still being said');
   if (Math.abs((END.at - soundEnd('cap')) - END_BEAT) > 1e-3) {
