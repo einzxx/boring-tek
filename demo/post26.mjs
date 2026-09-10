@@ -194,15 +194,15 @@ const CAPTION = 'ten seconds of homework';
    the first line is the company and the whole of it is bright: it is a name, and
    a name with a muted tail is a name somebody trailed off in the middle of.
 
-   `say` is what the narrator is sent, and it exists for one line only. the
-   screen shows `NORDIC PARTS AS` because it is a company on a record; a
-   synthesiser handed a string in capitals is liable to spell it, so it is sent
-   in lower case. that is post20's `u` / `you` and post24's numerals: **a
-   pronunciation difference, never a different line**, and the guard asserts the
-   two are the same words. every other line is sent exactly as it reads, with a
-   full stop added so the phrase closes rather than clipping. */
+   **the header has no read at all.** it used to be sent to the narrator in
+   lower case, so a synthesiser handed a string in capitals would not spell it —
+   and then the film said `nordic parts as` twice inside two seconds, once as the
+   line the user sent and once as the header confirming it. so the header types
+   in silence now and `HEADER_FOR` is its whole clock. the other five lines are
+   sent exactly as they read, with a full stop added so the phrase closes rather
+   than clipping. */
 const REPORT = [
-  { bright: 'NORDIC PARTS AS', rest: '', say: 'nordic parts as' },
+  { bright: 'NORDIC PARTS AS', rest: '' },
   { bright: 'spare parts', rest: ' for fishing boats, 40 people' },
   { bright: 'the boss', rest: ' posts about ai every monday, he likes it' },
   { bright: 'lost their main supplier', rest: ' in march' },
@@ -224,6 +224,16 @@ const NARRATOR = 'calm';
 const MASCOT_V = 'mascot';
 const SPEED = 1.05;
 const SPEED_CEIL = 1.05;
+/* ---------- and the one line that is typed with nobody reading it ----------
+   the briefing's header is `NORDIC PARTS AS`, and the line the user sent one
+   beat earlier is `nordic parts as`. reading both put the same three words in
+   the narrator's mouth twice, 1.8 seconds apart, which on the frame is a lookup
+   confirming a query and on the ear is a stutter. **so the header types in
+   silence**, on a fixed window rather than on a read, and its key ticks are the
+   only sound under it — which is the right sound for a machine writing a header
+   nobody dictated. it is the one line in the film that is not cut to a voice
+   and `HEADER_FOR` is the one duration in the briefing that was chosen. */
+const HEADER_FOR = 0.40;
 const LINES = [
   { key: 'q', voice: NARRATOR, text: COPY_Q, screen: COPY_Q },
   { key: 'bub', voice: MASCOT_V, text: BUB_TEXT + '.', screen: BUB_TEXT },
@@ -231,7 +241,10 @@ const LINES = [
   ...REPORT.map((e, i) => ({
     key: 'r' + (i + 1), voice: NARRATOR,
     text: (e.say || lineText(e)) + '.', screen: lineText(e), row: i,
-  })),
+  })).filter((_, i) => i > 0),
+  /* the closing line, and it is read like every other thing that types. the
+     fault waits for it: see `END_BEAT`. */
+  { key: 'cap', voice: NARRATOR, text: CAPTION + '.', screen: CAPTION },
 ];
 
 /* ---------- the joins ----------
@@ -244,13 +257,17 @@ const ANSWER_LEAD = 0.22;   /* the box starts the answer this far after he stops
 const SEND_LEAD = 0.18;     /* and it is sent this far after the answer lands */
 const GROW_FOR = 0.46;      /* how long the box takes to grow and he to move */
 const RPT_GAP = 0.20;       /* clear air between one briefing line and the next */
-/* the caption pops this far after the last line stops sounding. it is 0.50
-   rather than 0.38 because it is also the window the camera has to come back to
-   rest in: the last briefing line is pushed in on and the caption is not, and at
-   0.38 the frame's own corner was travelling 39.5 css px between frames against
-   a ceiling of 42. it is a beat and a brake at once. */
+/* the caption starts typing this far after the last briefing line stops
+   sounding. it is 0.50 rather than 0.38 because it is also the window the camera
+   has to come back to rest in: the last briefing line is pushed in on and the
+   caption is not, and at 0.38 the frame's own corner was travelling 39.5 css px
+   between frames against a ceiling of 42. it is a beat and a brake at once. */
 const CAP_LEAD = 0.50;
-const CAP_FOR = 0.85;       /* and holds this long before the fault */
+/* **and the fault waits for the voice.** the caption is read like everything
+   else that types, so the end card cannot be a fixed hold any more: it is this
+   much after the caption stops making noise, and the film is that much longer
+   than the words are. 0.55 is a breath, not a wait. */
+const END_BEAT = 0.55;
 const SILENCE_DB = -42;     /* what counts as the edge of a take */
 const PRE = 0.06, POST = 0.12;
 
@@ -335,6 +352,28 @@ BOX.sendX = BOX.w - BOX.pad - BOX.send.r;
 BOX.small.top = +(BOX.small.cy - BOX.small.h / 2).toFixed(2);
 const CARET = { period: 1.06, on: 0.62 };
 
+/* ---------- the sent line ----------
+   **the message does not vanish when it is sent.** the first cut cleared the
+   field and grew an empty box, and there was a beat of the film where the one
+   thing on the frame was a large empty rectangle. so the line stays: over the
+   same window the box grows, `nordic parts as` shrinks from the compose size to
+   17, fades from `--fg` to `--muted`, and slides across to the right hand end of
+   the column — which is where a message you sent sits in every chat there has
+   ever been. it slides **up** for free, because the box's top edge climbs 110
+   css px underneath it and the line is anchored to it.
+
+   the right hand end is a `translateX` rather than a `text-align`, and that is
+   not a preference. alignment cannot tween: switching it on the send frame
+   moves the line 118 css px in one frame, which is a cut. and it is a transform
+   rather than a padding because a padding narrows the column and a line pushed
+   to within a pixel of its own width wraps on a rounding error. `sentDx` is
+   measured in the page off the real ink at the real size.
+
+   `h` is the strip the line ends up occupying and `gap` is the air under it.
+   both push the briefing's first row down, which is why `RPT.y` is derived
+   rather than typed. */
+const SENT = { size: 17, h: 24, gap: 14 };
+
 /* ---------- the briefing's rows, which live inside the box ----------
    `x` and `y` are in the box's own coordinates, because the rows are its
    children: they move with it and there is nothing to keep in sync. the column
@@ -343,9 +382,13 @@ const CARET = { period: 1.06, on: 0.62 };
 
    the pitch is a slot rather than a line height, because four of the six lines
    wrap to two and a briefing whose rows shift as they wrap is a briefing that
-   never settles. 62 holds two lines of the largest type that fits the column. */
+   never settles. 61 holds two lines of the largest type that still clears the
+   cap floor, and it is one less than the last cut's 62 because the sent line
+   took 38 css px off the top of the column and the box could not grow to cover
+   it without crossing the platform's bottom band. */
 const RPT = {
-  x: BOX.pad, w: BOX.w - BOX.pad * 2, y: BOX.padTop, pitch: 62,
+  x: BOX.pad, w: BOX.w - BOX.pad * 2,
+  y: BOX.padTop + SENT.h + SENT.gap, pitch: 61,
   size: 24, minSize: 15, minCapPx: 30,
 };
 BOX.big.h = +(RPT.y + REPORT.length * RPT.pitch + 14 + BOX.rowH).toFixed(2);
@@ -358,9 +401,21 @@ const CARET_R = { period: 0.44, on: 0.58 };
 
 /* ---------- the caption ----------
    one line, Manrope 800, on its own **under** the box rather than in it: it is
-   the film talking rather than the chat. it pops the way the module's own pill
-   pops, a scale from just under through a small overshoot onto rest. */
-const CAP = { y: 800, size: 34, minCapPx: 40, for: 0.22, from: 0.86, over: 1.045 };
+   the film talking rather than the chat.
+
+   **it types now rather than popping**, because it is read now: every typed
+   thing in this film is cut to a voice and the closing line is not an exception
+   any more. what a pop was doing was announcing a line that arrived whole, and
+   a line that arrives a character at a time announces itself.
+
+   it is centred, and a centred line that types would drift left by half its own
+   width as it grows — a hundred and eighty css px of the words sliding under
+   themselves. so the string is on the frame from the first character: the
+   revealed prefix and the unrevealed tail are two spans inside one inline block,
+   and the tail is drawn at zero opacity. the box is the full line's width the
+   whole time and **no character ever moves**. there is no caret on it: this is
+   the film talking, not somebody typing into a field. */
+const CAP = { y: 800, size: 34, minCapPx: 40 };
 
 /* ---------- the camera ----------
    scale and origin, and nothing else: no pan and no roll. the origin is always
@@ -447,11 +502,35 @@ function phosphor(t, amp, slow, fast, phase) {
 /* ---------- the clock, filled in below ---------- */
 const Q = { chars: [], words: [], at: 0, end: 0 };   /* the question */
 const A = { chars: [], words: [], at: 0, end: 0 };   /* the answer */
+const CP = { chars: [], words: [], at: 0, end: 0 };  /* the closing caption */
 const RP = [];                                       /* the six briefing lines */
 let POP_IN = 0, BUB_IN = 0, BUB_POP = 0, MV_AT = 0, MV_END = 0;
 let SEND = 0, GROWN = 0, RPT_AT = 0, RPT_END = 0, CAP_AT = 0, SECONDS = 0;
 let CAM_KEYS = [];
 let SEED = 0;
+/* what the page measured, filled in once the scene has been built and read back
+   before a single frame is composed. `SENT_DX` is how far the sent line has to
+   travel to sit at the right hand end of the column, and `BUILT_SIZE` is the
+   compose size the fit actually landed on — the shrink starts from what was
+   drawn, not from what was asked for. */
+let SENT_DX = 0;
+let BUILT_SIZE = BOX.size;
+
+/* ---------- the two greys the sent line runs between ----------
+   read out of index.html's own dark block rather than typed, which is the same
+   rule the palette guard enforces at the bottom: this file does not get a second
+   opinion about what `--fg` and `--muted` are. they are lerped in node and
+   written as an rgb triple per frame, because a colour is the one channel css
+   custom properties will not interpolate for us. */
+function rgbOf(block, name) {
+  const m = block.match(new RegExp('--' + name + ':\\s*#([0-9a-f]{6})', 'i'));
+  if (!m) throw new Error('index.html\'s dark block has no --' + name + ' to read');
+  const v = parseInt(m[1], 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+const DARK_TOKENS = brandTokens().dark;
+const SENT_FROM = rgbOf(DARK_TOKENS, 'fg');
+const SENT_TO = rgbOf(DARK_TOKENS, 'muted');
 
 /* ---------- a line of type, cut to the voice that reads it ----------
    **the one function this whole film is built on**, and it is post20's spine
@@ -682,14 +761,25 @@ function frameAt(t, f) {
   const wp = span(t, END.wmIn, END.wmIn + END.wmFor);
   const box = boxAt(t);
 
-  /* the compose line. it holds the question until the answer beat, then clears
-     and holds the answer, and **it clears again on the send** — a message that
-     has gone is not still sitting in the field it was typed into. */
+  /* the compose line. it holds the question until the answer beat and then the
+     answer, and **on the send it becomes the sent line rather than clearing**:
+     same element, same words, shrunk, greyed and slid to the right hand end of
+     the column over the same window the box grows in. the field is never empty
+     and neither is the box.
+
+     the four channels are one `p` on the site's own ease, so the shrink, the
+     fade, the slide and the strip closing up are one move. */
   const sent = f >= Math.round(SEND * FPS);
-  const answering = t >= A.at;
+  /* **the field swaps on the answer's first character, not on the answer's own
+     start.** those are one frame apart and the frame between them is a field
+     holding the question no longer and the answer not yet — an empty box, for a
+     twelfth of a second, in a film whose whole brief is that the box is never
+     empty. the guard at the bottom walks every frame for exactly this and it is
+     what found it. */
+  const answering = t >= A.chars[0] - 1e-9;
   const composeText = answering ? COPY_A : COPY_Q;
-  const composeChars = sent ? 0
-    : (answering ? charsAt(A.chars, t) : charsAt(Q.chars, t));
+  const composeChars = answering ? charsAt(A.chars, t) : charsAt(Q.chars, t);
+  const sp = EASE(span(t, SEND, SEND + GROW_FOR));
 
   /* the briefing, one line at a time, and the caret only on the line that is
      actually being written. */
@@ -698,7 +788,6 @@ function frameAt(t, f) {
     caret: cut ? 0 : caretIn(t, e.at, e.end + 0.10, CARET_R),
   }));
 
-  const cp = span(t, CAP_AT, CAP_AT + CAP.for);
   return {
     t: +t.toFixed(4), f,
     mo: on ? 1 : 0,
@@ -707,6 +796,13 @@ function frameAt(t, f) {
       top: box.top, h: box.h,
       o: cut ? 0 : 1,
       text: composeText, chars: composeChars,
+      /* the compose line on its way to being a sent line. `size` and `strip` are
+         css px, `dx` is css px across, and `col` is an rgb triple because css
+         will not interpolate a colour for us. */
+      size: +lerp(BUILT_SIZE, SENT.size, sp).toFixed(3),
+      strip: +lerp(BOX.textH, SENT.h, sp).toFixed(2),
+      dx: +lerp(0, SENT_DX, sp).toFixed(2),
+      col: SENT_FROM.map((v, i) => Math.round(lerp(v, SENT_TO[i], sp))),
       caret: cut || sent ? 0 : (answering
         ? caretIn(t, A.at - 0.18, A.end + CARET_AFTER, CARET)
         : caretIn(t, 0, Q.end + CARET_AFTER, CARET)),
@@ -717,12 +813,11 @@ function frameAt(t, f) {
       glow: +phosphor(t, 0.30, 2.9, 1.13, 0.4).toFixed(4),
     },
     lines,
-    cap: {
-      o: cut ? 0 : (t < CAP_AT ? 0 : 1),
-      sc: t < CAP_AT ? CAP.from
-        : +(cp < 0.7 ? lerp(CAP.from, CAP.over, EASE(cp / 0.7))
-          : lerp(CAP.over, 1, EASE((cp - 0.7) / 0.3))).toFixed(4),
-    },
+    /* the caption, typed to its own read. `o` is the block's own visibility and
+       `chars` is how much of it has been revealed; the unrevealed tail is on the
+       frame at zero opacity the whole time, which is what stops a centred line
+       drifting under itself as it grows. */
+    cap: { o: cut ? 0 : (t < CP.at ? 0 : 1), chars: cut ? 0 : charsAt(CP.chars, t) },
     sx: g.sx, sy: g.sy,
     wm: {
       o: cut ? 1 : 0,
@@ -809,10 +904,17 @@ ${mascotCss(plan)}
   box-shadow:0 0 calc(var(--bg-glow,0) * 26px) rgba(255,255,255,.07),
     inset 0 0 calc(var(--bg-glow,0) * 18px) rgba(255,255,255,.028);
   will-change:top,height,opacity}
+/* the compose line, which becomes the sent line. four channels are written per
+   frame: its size, the strip it occupies, how far across it has slid, and its
+   colour. overflow hidden is what lets the strip close from three lines to one
+   without the words it no longer holds hanging out of the bottom. */
 .box-text{position:absolute;left:${BOX.pad}px;top:${BOX.padTop}px;
-  width:${BOX.w - BOX.pad * 2}px;height:${BOX.textH}px;
-  color:var(--fg);font-family:var(--body);font-weight:500;line-height:1.26;
-  letter-spacing:-.005em;white-space:pre-wrap;overflow:hidden}
+  width:${BOX.w - BOX.pad * 2}px;height:var(--th,${BOX.textH}px);
+  color:var(--tcol,var(--fg));font-family:var(--body);font-weight:500;
+  font-size:var(--tsz,${BOX.size}px);line-height:1.26;
+  letter-spacing:-.005em;white-space:pre-wrap;overflow:hidden;
+  transform:translate3d(calc(var(--tdx,0) * 1px),0,0);
+  will-change:transform,height,font-size}
 .caret{display:inline-block;width:3px;height:1em;background:var(--fg);
   vertical-align:text-bottom;transform:translateY(.14em);margin-left:2px;
   opacity:var(--co,1)}
@@ -842,13 +944,19 @@ ${mascotCss(plan)}
 .cap{position:absolute;left:0;top:${CAP.y}px;width:${VW}px;
   text-align:center;font-family:var(--body);font-weight:800;
   font-size:var(--cs,${CAP.size}px);line-height:1.2;letter-spacing:-.01em;
-  color:var(--fg);z-index:4;
-  opacity:var(--capo,0);transform:scale(var(--caps,1));will-change:transform,opacity}
+  color:var(--fg);z-index:4;white-space:nowrap;
+  opacity:var(--capo,0);will-change:opacity}
 /* the ink, not the block. the block is the full width of the frame with the line
    centred in it, so its own rect is 540 css wide whatever size the type is —
    fitting against that measures nothing and drives the size to the floor. the
-   inline span is the line, and the line is what has to clear the borders. */
+   inline block is the line, and the line is what has to clear the borders.
+
+   **the unrevealed tail is inside it at zero opacity.** that is what makes this
+   a line being written rather than a line growing: the inline block is the
+   finished string's width from the first character, so the centre never moves
+   and no glyph ever slides. */
 .cap b{display:inline-block;font-weight:800}
+.cap .hid{opacity:0}
 
 /* ---- the wordmark ---- */
 .wm{position:absolute;left:50%;top:${CENTRE_Y}px;
@@ -911,7 +1019,7 @@ ${REPORT.map((e, i) => '    <div class="r" data-r="' + i + '" style="top:'
     </div>
   </div>
 ${mascotMarkup(plan)}
-  <div class="cap" id="cap"><b>${CAPTION}</b></div>
+  <div class="cap" id="cap"><b><span id="cap-on"></span><span class="hid" id="cap-off">${CAPTION}</span></b></div>
   <div class="wm" id="wm">${WM.lines.map(l => '<span>' + l + '</span>').join('')}</div>
 ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' + i
     + '"><div class="tear-in"><div class="wm">'
@@ -922,11 +1030,17 @@ ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' +
 <script>
 window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(plan))};
 window.__P26 = ${JSON.stringify({
-    VW, VH, DSF, WM, RPT, CAP, CENTRE_Y,
+    VW, VH, DSF, WM, RPT, CAP, SENT, CENTRE_Y, CAPTION,
     REPORT: REPORT.map(e => ({ bright: e.bright, rest: e.rest })),
-    /* the box, plus the longer of the two messages it composes: the type is
-       fitted once on that one so both are set at the same size. */
-    BOX: { ...BOX, longest: COPY_Q.length >= COPY_A.length ? COPY_Q : COPY_A },
+    /* the box, plus the longer of the two messages it composes — the type is
+       fitted once on that one so both are set at the same size — and the one it
+       is left holding, which is the string the sent line's travel is measured
+       on. */
+    BOX: {
+      ...BOX,
+      longest: COPY_Q.length >= COPY_A.length ? COPY_Q : COPY_A,
+      sentLine: COPY_A,
+    },
   })};
 ${mascotRuntime()}
 (${scenePage.toString()})();
@@ -963,6 +1077,9 @@ function scenePage() {
   }));
   const cap = document.getElementById('cap');
   const capInk = cap.querySelector('b');
+  const capOn = document.getElementById('cap-on');
+  const capOff = document.getElementById('cap-off');
+  let lastCap = -1;
   const wms = [...document.querySelectorAll('.wm')];
   const tears = [...document.querySelectorAll('.tear')];
   const tearIns = tears.map(t => t.querySelector('.tear-in'));
@@ -1008,13 +1125,24 @@ function scenePage() {
       typed.textContent = P.BOX.longest;
       let size = P.BOX.size, stoppedBy = null;
       for (; size >= 10; size -= 0.5) {
-        boxText.style.fontSize = size + 'px';
+        boxText.style.setProperty('--tsz', size + 'px');
         if (boxText.scrollHeight <= P.BOX.textH + 0.5) { stoppedBy = null; break; }
         stoppedBy = 'height';
       }
-      boxText.style.fontSize = size.toFixed(2) + 'px';
+      boxText.style.setProperty('--tsz', size.toFixed(2) + 'px');
       const lh = parseFloat(getComputedStyle(boxText).lineHeight) || 1;
       const bc = capOf(boxText);
+
+      /* ---------- how far the sent line has to travel ----------
+         measured on the real ink at the size it ends up at, in the face that
+         actually rendered, rather than estimated from a character count. the
+         line lands with its right hand edge on the column's right hand edge,
+         which is where a sent message sits. */
+      const cv = document.createElement('canvas').getContext('2d');
+      const cs0 = getComputedStyle(boxText);
+      cv.font = cs0.fontWeight + ' ' + P.SENT.size + 'px ' + cs0.fontFamily;
+      const sentInk = cv.measureText(P.BOX.sentLine).width;
+      const sentDx = Math.max(0, P.BOX.w - P.BOX.pad * 2 - sentInk);
 
       /* the briefing, fitted on the **whole set at once**, and fitted with the
          box already at the height it will be when the briefing types: the rows
@@ -1054,7 +1182,9 @@ function scenePage() {
 
       /* and the caption, on width: one line, never wrapped, and it has to clear
          the same borders everything else does — so it is held to the box's own
-         column rather than to the frame. */
+         column rather than to the frame. it is measured with the **whole**
+         string in the hidden span, because that is the width the block holds
+         from the first character to the last. */
       const gutter = (P.VW - P.BOX.w) / 2;
       let cs = P.CAP.size;
       for (; cs >= 16; cs -= 0.5) {
@@ -1072,6 +1202,10 @@ function scenePage() {
           capPx: +(bc.cap * P.DSF).toFixed(1), font: bc.font,
           h: +boxText.scrollHeight.toFixed(1),
           lines: Math.round(boxText.scrollHeight / lh),
+        },
+        sent: {
+          size: P.SENT.size, ink: +sentInk.toFixed(2), dx: +sentDx.toFixed(2),
+          right: +(P.BOX.w - P.BOX.pad * 2 - sentDx - sentInk).toFixed(2),
         },
         report: {
           size: +rs.toFixed(2), capPx: +(rc.cap * P.DSF).toFixed(1), font: rc.font,
@@ -1187,6 +1321,12 @@ function scenePage() {
       box.style.setProperty('--bg-glow', o.box.glow.toFixed(4));
       box.style.visibility = o.box.o < 0.004 ? 'hidden' : 'visible';
       caret.style.setProperty('--co', o.box.caret.toFixed(2));
+      /* the compose line on its way to being the sent line. */
+      const bt = boxText.style;
+      bt.setProperty('--tsz', o.box.size.toFixed(2) + 'px');
+      bt.setProperty('--th', o.box.strip.toFixed(2) + 'px');
+      bt.setProperty('--tdx', o.box.dx.toFixed(2));
+      bt.setProperty('--tcol', 'rgb(' + o.box.col.join(',') + ')');
       if (o.box.text !== lastText || o.box.chars !== lastChars) {
         typed.textContent = o.box.text.slice(0, o.box.chars);
         lastText = o.box.text; lastChars = o.box.chars;
@@ -1202,7 +1342,11 @@ function scenePage() {
       }
 
       cap.style.setProperty('--capo', o.cap.o.toFixed(4));
-      cap.style.setProperty('--caps', o.cap.sc.toFixed(4));
+      if (o.cap.chars !== lastCap) {
+        lastCap = o.cap.chars;
+        capOn.textContent = P.CAPTION.slice(0, o.cap.chars);
+        capOff.textContent = P.CAPTION.slice(o.cap.chars);
+      }
 
       for (let i = 0; i < tears.length; i++) {
         const band = o.g.bands[i], st = tears[i].style;
@@ -1307,6 +1451,12 @@ async function render(plan) {
   const built = await page.evaluate(() => window.__built);
   const wm = await page.evaluate(() => window.__p26.measureWm());
   const glRules = await page.evaluate(() => window.__p26.glRules());
+  /* **read back before a single frame is composed.** the sent line's travel and
+     the compose size are both things the page measured, and `frameAt` lerps
+     against them from its very first call — which is the box measurement two
+     lines down. */
+  SENT_DX = built.sent.dx;
+  BUILT_SIZE = built.box.size;
 
   /* the box at both of its sizes, measured where it really drew rather than off
      the numbers that placed it. */
@@ -1467,10 +1617,10 @@ async function render(plan) {
     [A.end, 'g-nordic-parts-as'],
     [SEND + GROW_FOR * 0.5, 'h-the-box-grows'],
     [GROWN + 0.04, 'i-the-panel'],
-    [RP[0].end, 'j-the-first-line'],
+    [RP[0].end, 'j-the-header-typed-silently'],
     [RP[2].end, 'k-three-lines-in'],
     [RPT_END, 'l-the-briefing'],
-    [CAP_AT + CAP.for, 'm-the-caption'],
+    [CP.end, 'm-the-caption'],
     [END.pre[1].t, 'n-the-second-stutter'],
     [END.at + END.hard + END.tail + 0.16, 'o-the-wordmark'],
     [SECONDS - 0.06, 'p-the-last-frame'],
@@ -1652,13 +1802,39 @@ SEND = +(soundEnd('a') + SEND_LEAD).toFixed(4);
 GROWN = +(SEND + GROW_FOR).toFixed(4);
 RPT_AT = GROWN;
 
+/* an even clock for a line nobody reads: the characters are spread across a
+   window this file chose rather than across a word somebody said. it is used
+   once, for the header. */
+function evenClock(screen, at, dur) {
+  const chars = [];
+  for (let k = 0; k < screen.length; k++) chars.push(+(at + dur * ((k + 1) / screen.length)).toFixed(4));
+  const parts = screen.split(' ');
+  const words = [];
+  let j = 0;
+  for (let i = 0; i < parts.length; i++) {
+    const n = parts[i].length + (i ? 1 : 0);
+    words.push({ word: parts[i], screen: parts[i], start: chars[j], end: chars[j + n - 1] });
+    j += n;
+  }
+  return { chars, words, at: +at.toFixed(4), end: +(at + dur).toFixed(4) };
+}
+
 {
   let at = GROWN;
   for (let i = 0; i < REPORT.length; i++) {
     const k = 'r' + (i + 1);
-    place(k, at);
     const screen = lineText(REPORT[i]);
-    const c = charClock(screen, byKey[k].words, byKey[k].off);
+    /* **the header is the one line with no take.** it types on `HEADER_FOR` and
+       the next line starts a gap after it finishes typing rather than a gap
+       after a sound that never happened. */
+    const silent = !byKey[k];
+    let c;
+    if (silent) {
+      c = evenClock(screen, at, HEADER_FOR);
+    } else {
+      place(k, at);
+      c = charClock(screen, byKey[k].words, byKey[k].off);
+    }
     /* a word's tick goes where its first character appears, which is the instant
        a key was pressed. */
     const ticks = [];
@@ -1668,17 +1844,26 @@ RPT_AT = GROWN;
       j += c.words[w].screen.length + (w ? 1 : 0);
     }
     RP.push({
-      i, key: k, text: screen, bright: REPORT[i].bright, rest: REPORT[i].rest,
+      i, key: silent ? null : k, silent, text: screen,
+      bright: REPORT[i].bright, rest: REPORT[i].rest,
       chars: c.chars, words: c.words, ticks,
       at: c.at, end: c.end, cy: rowCy(i),
     });
-    at = +(soundEnd(k) + RPT_GAP).toFixed(4);
+    at = +((silent ? c.end : soundEnd(k)) + RPT_GAP).toFixed(4);
   }
   RPT_END = RP[RP.length - 1].end;
 }
 
+/* the caption, read like everything else that types, and **the fault waits for
+   it**: the end card is no longer a fixed hold after a pop, it is a breath after
+   the last word of the film. */
 CAP_AT = +(soundEnd('r' + REPORT.length) + CAP_LEAD).toFixed(4);
-END.at = +(CAP_AT + CAP_FOR).toFixed(4);
+place('cap', CAP_AT);
+{
+  const c = charClock(CAPTION, byKey.cap.words, byKey.cap.off);
+  CP.chars = c.chars; CP.words = c.words; CP.at = c.at; CP.end = c.end;
+}
+END.at = +(soundEnd('cap') + END_BEAT).toFixed(4);
 END.wmIn = END.at;
 END.pre = [
   { t: +(END.at - 0.38).toFixed(3), for: 0.05, force: 0.34 },
@@ -1701,7 +1886,7 @@ CAM_KEYS = [
   { t: A.at, z: CAM.answer, oy: BOX.small.cy },
   { t: SEND, z: 1.00, oy: BOX.big.cy },
   ...RP.flatMap(e => [{ t: e.at, z: CAM.lo, oy: e.cy }, { t: e.end, z: CAM.hi, oy: e.cy }]),
-  { t: CAP_AT, z: 1.00, oy: BOX.big.cy },
+  { t: CP.at, z: 1.00, oy: BOX.big.cy },
   { t: END.at, z: 1.00, oy: CENTRE_Y },
 ];
 
@@ -1714,18 +1899,23 @@ if (VOICE_ONLY) {
   console.log('    ' + MV_END.toFixed(2).padStart(5) + 's  he stops');
   console.log('    ' + A.at.toFixed(2).padStart(5) + 's  the box types "' + COPY_A
     + '", the narrator reading it');
-  console.log('    ' + SEND.toFixed(2).padStart(5) + 's  sent: the line clears, the box grows '
-    + BOX.small.h + ' to ' + BOX.big.h + ' in place, he goes up and shrinks');
+  console.log('    ' + SEND.toFixed(2).padStart(5) + 's  sent: the line shrinks and slides to '
+    + 'the top right, the box grows ' + BOX.small.h + ' to ' + BOX.big.h
+    + ' in place, he goes up and shrinks');
   console.log('    ' + GROWN.toFixed(2).padStart(5) + 's  the box is the answer panel');
   for (const e of RP) {
     console.log('    ' + e.at.toFixed(2).padStart(5) + 's  line ' + (e.i + 1) + ', '
-      + (e.end - e.at).toFixed(2) + 's read, ' + e.ticks.length + ' ticks: "' + e.text + '"');
+      + (e.end - e.at).toFixed(2) + 's ' + (e.silent ? 'SILENT' : 'read') + ', '
+      + e.ticks.length + ' ticks: "' + e.text + '"');
   }
-  console.log('    ' + CAP_AT.toFixed(2).padStart(5) + 's  the caption: "' + CAPTION + '"');
-  console.log('    ' + END.at.toFixed(2).padStart(5) + 's  the fault');
+  console.log('    ' + CAP_AT.toFixed(2).padStart(5) + 's  the caption types to its own read: "'
+    + CAPTION + '"');
+  console.log('    ' + END.at.toFixed(2).padStart(5) + 's  the fault, ' + END_BEAT.toFixed(2)
+    + 's after the last word of the film');
   console.log('    ' + SECONDS.toFixed(2).padStart(5) + 's  end');
   console.log('\n  the film is ' + SECONDS.toFixed(2) + 's and none of it was chosen: '
-    + (RPT_END - Q.at).toFixed(2) + 's of it is somebody reading out loud.');
+    + (CP.end - Q.at).toFixed(2) + 's of it is somebody reading out loud, and the only '
+    + 'thing that types in silence is the header.');
   process.exit(0);
 }
 
@@ -1820,7 +2010,7 @@ const cues = [
     t, kind: 'key', opts: { seed: 0x2600 + e.i * 131 + k },
     from: 'briefing line ' + (e.i + 1) + ', word ' + (k + 1),
   }))),
-  { t: CAP_AT, kind: 'pop', from: 'the caption arriving' },
+  { t: CP.at, kind: 'pop', from: 'the caption starting to type' },
   { t: END.at, kind: 'glitch', from: 'the cut' },
 ];
 const { buf: sfx, report: sfxReport } = renderSfx(cues, SECONDS, {});
@@ -1875,11 +2065,14 @@ const beats = [
   [BUB_POP, 'the pill pops and the mascot voice says it: "' + BUB_TEXT + '"'],
   [MV_END, 'he stops talking'],
   [A.at, 'the box types "' + COPY_A + '", the narrator reading it as it goes'],
-  [SEND, 'sent. the line clears, the box grows ' + BOX.small.h + ' to ' + BOX.big.h
-    + ' in place, and he goes up to the top third at ' + (SHRINK_TO * 100) + '%'],
+  [SEND, 'sent. the line stays: it shrinks to ' + SENT.size + ' and slides to the right hand '
+    + 'end of the column as a sent message, the box grows ' + BOX.small.h + ' to ' + BOX.big.h
+    + ' in place around it, and he goes up to the top third at ' + (SHRINK_TO * 100) + '%'],
   ...RP.map(e => [e.at, 'briefing line ' + (e.i + 1) + ' types inside the box over '
-    + (e.end - e.at).toFixed(2) + 's of read, ' + e.ticks.length + ' key ticks']),
-  [CAP_AT, 'the caption pops under the box: "' + CAPTION + '"'],
+    + (e.end - e.at).toFixed(2) + 's ' + (e.silent ? 'in silence, no read' : 'of read')
+    + ', ' + e.ticks.length + ' key ticks']),
+  [CP.at, 'the caption types under the box, cut to its own read: "' + CAPTION + '"'],
+  [CP.end, 'the last word of the film'],
   ...END.pre.map((w, i) => [w.t, 'stutter ' + (i + 1) + ' of two, into the fault']),
   [END.at, 'the fault. he, the box and the caption are cut and the wordmark is born'],
   [SECONDS, 'end, after ' + (SECONDS - END.wmIn - END.wmFor).toFixed(2) + 's of the end card'],
@@ -1888,9 +2081,10 @@ for (const [t, what] of beats) console.log('    ' + t.toFixed(2).padStart(5) + '
 
 console.log('\n  the sound');
 console.log(describeMix(sfxReport, {
-  'the narrator': NARRATOR + ' via ' + (byKey.q.provider || '?') + ', **seven takes**: the '
-    + 'question, the answer and all six briefing lines, and every one of them is cut to the '
-    + 'type that types under it',
+  'the narrator': NARRATOR + ' via ' + (byKey.q.provider || '?') + ', **'
+    + (LINES.length - 1) + ' takes**: the question, the answer, five of the six briefing '
+    + 'lines and the closing caption, every one cut to the type it types under. the header '
+    + 'has no take at all: it would have been the same three words the answer just said',
   'the mascot': MASCOT_V + ' via ' + (byKey.bub.provider || '?') + ' on its own voice id, one '
     + 'take, ' + (byKey.bub.edge.end - byKey.bub.edge.start).toFixed(2) + 's at '
     + MV_AT.toFixed(2) + 's, and it is the only line he has',
@@ -2029,6 +2223,30 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
   if (Math.abs(state.boxSmall.wCss - state.boxBig.wCss) > 0.5) {
     fail.push('the box changed width as well as height, and it only grows taller');
   }
+  /* ---------- the sent line, and the box is never empty ----------
+     the round's other claim. the line lands with its right hand edge on the
+     column's, it lands at the size it was told to, and — measured on this
+     file's own channels rather than on a frame — there is no instant between
+     the first character of the question and the fault when the box holds
+     nothing at all. */
+  if (Math.abs(state.built.sent.right) > 1.0) {
+    fail.push('the sent line lands ' + state.built.sent.right
+      + 'css off the right hand end of the column, and it should land on it');
+  }
+  if (state.built.sent.ink > RPT.w + 0.5) {
+    fail.push('the sent line is ' + state.built.sent.ink + 'css wide in a ' + RPT.w + 'css column');
+  }
+  {
+    let empty = 0, at = null;
+    for (let f = 0; f < state.frames; f++) {
+      const t = f / FPS;
+      if (t < Q.chars[0] || t >= END.at) continue;
+      const o = frameAt(t, f);
+      const holds = o.box.chars > 0 || o.lines.some(L => L.n > 0);
+      if (!holds) { empty++; if (at == null) at = +t.toFixed(2); }
+    }
+    if (empty) fail.push(empty + ' frame(s) where the box holds nothing at all, from ' + at + 's');
+  }
   /* and the briefing really fits inside it, clear of the row strip. */
   if (state.built.report.lastBottom > BOX.big.h - BOX.rowH - 2) {
     fail.push('the last briefing line ends ' + state.built.report.lastBottom
@@ -2111,6 +2329,15 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
   if (narr.length !== LINES.length - 1) {
     fail.push('there are ' + narr.length + ' narrator takes, wanted ' + (LINES.length - 1));
   }
+  /* **the header has no take, and nothing else in the film may lose one.**
+     exactly one briefing line types in silence and it is the first. */
+  const silent = RP.filter(e => e.silent);
+  if (silent.length !== 1 || silent[0].i !== 0) {
+    fail.push('the silent briefing lines are ' + (silent.map(e => e.i + 1).join(', ') || 'none')
+      + ', wanted the header and only the header');
+  }
+  if (LINES.some(L => L.key === 'r1')) fail.push('the header still has a take and it would be read twice');
+  if (!byKey.cap) fail.push('the caption has no take, and the brief asks for it to be read');
   if (takes.filter(t => t.voice === MASCOT_V).length !== 1) {
     fail.push('the mascot has more than one line, and the brief gives him the pill only');
   }
@@ -2139,9 +2366,9 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
     if (spoken === shown || spoken === shown.toLowerCase()) continue;
     fail.push('"' + L.key + '" is read as "' + L.text + '" and shown as "' + L.screen + '"');
   }
-  if (byKey.r1.text.replace(/\.$/, '') !== REPORT[0].bright.toLowerCase()) {
-    fail.push('the header line is not read as its own words in lower case');
-  }
+  /* the header's `say` is dead copy now that nothing reads it, and dead copy in
+     a table is copy somebody will one day believe. */
+  if (REPORT[0].say) fail.push('the header still carries a `say`, and nothing reads it any more');
   if (Q.at < 0.10) fail.push('the read starts at ' + Q.at + 's, with no frame to establish the box');
   if (MV_AT < BUB_POP - 1e-6) fail.push('he speaks before his pill is on the screen');
   if (MV_END > END.at) fail.push('he is still speaking when the fault takes him');
@@ -2175,6 +2402,7 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
   };
   check('the question', COPY_Q, Q.chars, Q.words);
   check('the answer', COPY_A, A.chars, A.words);
+  check('the caption', CAPTION, CP.chars, CP.words);
   for (const e of RP) check('briefing line ' + (e.i + 1), e.text, e.chars, e.words);
 
   if (A.at < MV_END) fail.push('the box answers while he is still asking');
@@ -2182,7 +2410,12 @@ if (!p.audio) fail.push('no audio track — the reads did not mux');
   for (const e of RP) {
     if (e.at < GROWN - 1e-6) fail.push('briefing line ' + (e.i + 1) + ' types before the box has grown');
   }
-  if (RPT_END > CAP_AT) fail.push('the caption pops before the briefing has finished');
+  if (RPT_END > CP.at) fail.push('the caption starts before the briefing has finished');
+  /* **the fault waits for the voice**, which is this round's own claim. */
+  if (END.at < CP.end) fail.push('the fault lands while the caption is still being said');
+  if (Math.abs((END.at - soundEnd('cap')) - END_BEAT) > 1e-3) {
+    fail.push('the fault is not END_BEAT after the caption stops sounding');
+  }
   /* the copy on the frame is the copy in this file, character for character. */
   if (REPORT.length !== 6) fail.push('the briefing is ' + REPORT.length + ' lines and the brief asks for six');
   for (const e of REPORT) {
