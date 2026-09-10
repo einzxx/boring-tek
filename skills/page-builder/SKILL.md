@@ -33,10 +33,18 @@ off. Dark is where the identity lives. Light is where the customers are. Both sh
   to our own Cloudflare Worker at the same time. Nothing fetches on load, on scroll, on
   hover or on idle. If a page grows another endpoint, that's a decision, not an
   implementation detail.
+- **One file is the source; three documents ship.** `index.html` is still the only place
+  anything is written. `ru/index.html` and `lv/index.html` are generated out of it by
+  `node tools/build-langs.mjs` and are build output: editing one by hand is editing an
+  artifact and the next run overwrites it. This is not a build step in the shipped
+  sense - nothing is bundled, minified, compiled or fetched, the generated files are the
+  same bytes with the text already painted, and a browser still gets one dependency-free
+  document. See Languages.
 - **The one `<script>` lives in `<head>`, not at the end of `<body>`.** It applies the
-  saved theme and language to `<html>` synchronously as its first act, then defers
-  everything else to `DOMContentLoaded`. Deferring the whole script, or moving it to the
-  body, puts a white flash in front of every dark-mode visitor.
+  saved theme to `<html>` synchronously as its first act, then defers everything else to
+  `DOMContentLoaded`. Deferring the whole script, or moving it to the body, puts a white
+  flash in front of every dark-mode visitor. The language is not applied at all: it is
+  already on the document.
 - **No third webfont.** Michroma and Space Grotesk are the whole list, in one request.
   Anything that is neither — and every russian string, which Space Grotesk cannot set —
   uses the system monospace stack.
@@ -142,17 +150,21 @@ Rules:
 EN, RU and LV, switched by three plain text buttons top left. Active is `--fg` at full
 opacity; the others are `--muted` at `.5`.
 
-- Choice persists in `localStorage` under **`bt-lang`**. Same `try/catch` rule.
-- The head script sets `<html lang>` before paint, alongside the theme.
-- **Which language, in strict priority order:** the url, then a saved choice, then the
-  browser, then English. See below.
+- **The language is the address and nothing else.** `/` is English, `/ru/` is Russian,
+  `/lv/` is Latvian, each is a real document, and each says so in its own `lang`
+  attribute and its own canonical. Nothing sniffs the browser, nothing reads a saved
+  choice, nothing repaints on load. A document that says it is Russian is Russian.
+- The head script reads `<html lang>` rather than setting it. Only the theme is applied
+  before paint now, because only the theme is still a visitor's to carry between pages.
 - **Every visible string lives in one `T` object**, keyed by language then by string
-  key, and nothing is typed into the markup that JS won't overwrite on boot. The markup
-  ships the English strings so the no-JS page still reads; boot rewrites them from `T`
-  as its first act, so a Russian visitor never sees an English flash.
-- A language switch **re-renders the current view in place**: static copy, the subline,
-  the form step being answered, and any bubble line currently held. It never resets
-  progress and never closes the card.
+  key. `tools/build-langs.mjs` reads that same object and paints the two other documents
+  from it at build time, so the markup that ships already carries its own language and
+  a visitor with JS off reads a whole page rather than an English one.
+- A language switch is **three links, so it is a navigation**. The visual behaviour is
+  unchanged - the current one is `--fg` at full opacity, the others `--muted` at `.5` -
+  but the state is `aria-current="true"` rather than `aria-pressed`, because a link that
+  goes somewhere is not a toggle. **Switching mid-form loses the form**, which is the
+  price of a crawlable address and was paid deliberately.
 - All three dictionaries carry **identical key sets**, including array lengths for
   `idle` and `notes`. A missing key falls back to English rather than rendering
   `undefined`, but the fallback is a safety net, not a translation strategy.
@@ -165,56 +177,65 @@ opacity; the others are `--muted` at `.5`.
 
 ### Language urls
 
-`/` is English, `/ru` is Russian, `/lv` is Latvian, and the address bar always names
-the language on screen — so any url a visitor copies opens the way they were reading it.
+`/` is English, `/ru/` is Russian, `/lv/` is Latvian. Three documents, three canonicals,
+one source file.
 
 **The mechanism, because GitHub Pages has no rewrites and the site is one file.**
 
-- `ru/index.html` and `lv/index.html` are stubs, and each is one line of real work:
-  set `documentElement.style.background` from the saved theme, then
-  `location.replace('/#ru')`. Both run in a `<script>` in `<head>`, before the body is
-  parsed, so the stub never paints — and the background guard means that even a slow
-  replace shows the theme the visitor is about to land in rather than a white card.
-- **`index.html` reads the hash in the bootstrap, before first paint**, applies the
-  language, and then `history.replaceState`s the clean path back into the address bar.
-  The `#ru` is gone before anything renders. Measured frame by frame from
-  document-start on a shared `/ru` link: the first sampled frame already says
-  `lang="ru"`, Russian copy, path `/ru`. There is no English frame at any point.
-- **A copy of the site per language is the thing this avoids.** Three documents mean
-  three copies of the form, the mascot and the dictionaries, kept in sync by hand.
-  The stubs are 30 lines that never need touching again.
-- `location.replace`, never `href =`: the stub must not become a back-button stop.
-  Same reason the switch uses `replaceState` and never `pushState` — `history.length`
-  is unchanged after a dozen switches, and back still leaves the site.
-- **The stub degrades to English with JS off**, via `<noscript><meta http-equiv=
-  "refresh" content="0;url=/">` and a plain link. The hash cannot be read without a
-  script, so there is nothing better to degrade to.
-- **No relative urls anywhere in `index.html`.** `replaceState` moves the document's
-  base path to `/ru`, so `assets/x.svg` would start resolving to `/ru/assets/x.svg`.
-  Everything in the page is a data URI or an absolute url, and it has to stay that way.
-- GitHub Pages 301s `/ru` to `/ru/` before serving the stub. It is one invisible hop on
-  a reload and it is why the sitemap and the `hreflang` tags can use either form; they
-  use `/ru`, matching what the address bar shows and what people share.
+- `node tools/build-langs.mjs` reads `index.html`, pulls `T` out of the script it
+  already ships, and writes `ru/index.html`, `lv/index.html` and `sitemap.xml`. Same
+  markup, same stylesheet, same script; `lang`, `title`, `description`, `canonical` and
+  the og tags swapped, and every string painted. `--check` verifies without writing and
+  exits non-zero if the folders are stale.
+- **Run it after any change to `index.html` and commit all three together.** A commit
+  that moves `index.html` alone ships two documents that disagree with it.
+- **Every replacement in the build asserts it matched exactly once.** A rule that stops
+  matching because the markup moved would produce a page that ships in the wrong
+  language and looks perfectly fine, so a silent miss is the one failure mode worth
+  throwing on. This is why the build is 200 lines rather than 40.
+- **The copy problem the stubs used to avoid is now the build's problem, not a
+  person's.** Three documents used to mean three copies of the form, the mascot and the
+  dictionaries kept in step by hand. They are still one copy; the script makes the other
+  two on demand.
+- **Root-relative urls only, never document-relative.** `/assets/video/intro.mp4`, not
+  `assets/video/intro.mp4` — the same file is served from `/ru/` and `/lv/`, where a
+  document-relative path resolves to `/ru/assets/...` and 404s. Data URIs and absolute
+  urls are fine as they always were.
+- **The switch is three `<a>` elements**, so it works with JS off, a crawler can follow
+  it, and middle-click opens a tab. It uses the browser's own navigation, which means it
+  is a back-button stop — unlike the old `replaceState` switch, and that is correct now
+  that the two ends are different documents.
+- **`/#ru` and `/#lv` still work.** Those links sat in the address bar for a while, so
+  the bootstrap keeps two lines for them: a hash naming a language sends the visitor to
+  the real document once, or is cleaned off if they are already on it. It is the one
+  thing left that can move a visitor, and it fires on an explicit ask only.
 
-**Detection, for a first visit with no url and no saved choice.**
-
-- `navigator.languages[0]` (falling back to `navigator.language`), everything before the
-  first `-`: `ru` gets Russian, `lv` gets Latvian, anything else gets English.
-- **Nothing is written to storage.** A detected language is a guess; it must not outlive
-  the visit or shout down a choice made later. Only pressing a language button writes
-  `bt-lang`.
-- **A saved choice beats the browser. The url beats both** — for that visit only, and it
-  does not overwrite what is saved. Someone who chose Latvian and opens a shared `/ru`
-  link reads Russian, and their next visit to `/` is still Latvian.
+**No detection.** The browser is not asked, and nothing is read from storage. A visitor
+whose browser is Russian and who opens `/` reads English and presses RU, which is one
+click and an address they can share. The alternative bounces Googlebot off the page it
+came to crawl, and it was the direct cost of the old design being invisible to search.
+`bt-lang` is gone; `bt-theme` stays, because a theme is not an address.
 
 **SEO.**
 
-- `hreflang` for `en`, `ru`, `lv` and `x-default` in all three documents; the main page's
-  canonical stays `https://theboringtek.com/`, and each stub is canonical to itself.
-- `sitemap.xml` carries all three urls.
-- **The honest limitation:** the stubs redirect, so a crawler sees one page of content in
-  English. This is real multilingual routing for people, not for search engines. Getting
-  the second half needs three real documents, which is the copy problem above.
+- `hreflang` for `en`, `ru`, `lv` and `x-default` in all three documents, absolute urls,
+  the same four lines everywhere: each document names every document including itself,
+  which is what makes the group reciprocal.
+- **Each document is canonical to itself**, and og:url and og:locale follow it.
+- **`title` and `description` per language, written for search rather than for voice** —
+  plain words about ai and automation for businesses, title under 60 signs, description
+  under 155, both measured by the build. og:title and og:description carry the same
+  strings. They live in `tools/build-langs.mjs` beside the thing that writes them, and
+  the English pair is asserted against what `index.html` already carries so the two
+  cannot drift apart quietly.
+- **Trailing slashes everywhere:** `/ru/`, not `/ru`. GitHub Pages 301s the second to
+  the first, and a canonical that points at a redirect is a canonical pointing at the
+  wrong url. The sitemap is generated off the same two constants as the canonicals, so
+  they cannot disagree.
+- `sitemap.xml` carries all three urls, `robots.txt` points at it.
+- **The limitation this closed:** the stubs used to redirect, so a crawler saw one page
+  of content in English and the site was multilingual for people only. It is now
+  multilingual for both.
 
 ## Type
 
@@ -1821,8 +1842,8 @@ The shape a new page starts from:
     @media (prefers-reduced-motion: reduce){ narrow transition-property, kill animation }
   </style>
   <script>
-    apply data-theme, and lang from url > saved > navigator   <- before paint
-    replaceState the clean path for that language
+    apply data-theme from storage                    <- before paint
+    read lang off <html>; the document already knows  <- never guessed
     var T = { en:{}, ru:{}, lv:{} }                  <- every visible string
     boot() on DOMContentLoaded:
       rewrite static copy from T
@@ -2115,14 +2136,18 @@ Theme and language:
 - Pick the light-mode green with a colour picker against white: it must clear 4.5:1.
   So must `--muted`, `--sub` and the red, in both themes.
 - Set dark, reload. **No white flash.** If there is one, the bootstrap is deferred.
-- Open `/ru` in a clean profile with an English browser: Russian, no English frame, and
-  the address bar reads `/ru` with no `#`. Same for `/lv`.
-- Set the browser to Russian, clear site data, open `/`: Russian, url `/ru`, and
-  `localStorage` still empty — a guess is not a choice.
-- Choose Latvian, then open a shared `/ru` link: Russian for that visit, and `bt-lang`
-  is still `lv` afterwards.
-- Switch language three times and check `history.length`: unchanged. Back leaves the
-  site rather than walking the switches.
+- `node tools/build-langs.mjs --check` exits 0. If it does not, `ru/` and `lv/` are
+  stale and the commit would ship three documents that disagree.
+- Open `/ru/` in a clean profile with an English browser: Russian on the first frame,
+  no English flash, and `view-source` is Russian too. Same for `/lv/`.
+- Set the browser to Russian, clear site data, open `/`: English, and it stays English.
+  The language is the address.
+- With JS off, all three pages read whole in their own language, and the switch still
+  works.
+- Every media path in the page starts with `/`. Load `/ru/` and confirm the poster and
+  the mp4 come from `/assets/...` and not `/ru/assets/...`.
+- The canonical on each page points at itself with a trailing slash, and the four
+  `hreflang` lines are identical on all three.
 - Reload in a private window with site data blocked: the page still loads, still
   defaults to light, and nothing throws.
 - Mobile browser chrome matches the theme - `theme-color` is being updated.

@@ -55,14 +55,16 @@ Read like a terminal, not a brochure.
 ```
 boring-tek/
 ├── index.html          # the live site — single file, root, never moves
-├── ru/index.html       # language stub, redirects to /#ru — no copy of the site
-├── lv/index.html       # language stub, redirects to /#lv — no copy of the site
+├── ru/index.html       # GENERATED. the russian page, built from index.html
+├── lv/index.html       # GENERATED. the latvian page, built from index.html
 ├── CNAME               # theboringtek.com — never edit, never move
 ├── robots.txt          # root by convention
 ├── sitemap.xml         # root by convention
 ├── CLAUDE.md           # this file
 ├── MEMORY.md           # decisions + current state, updated every session
 ├── assets/             # the mascot: source svg, png reference, pose variants
+├── tools/
+│   └── build-langs.mjs # writes ru/, lv/ and sitemap.xml out of index.html
 └── skills/
     ├── SKILL.md        # index of available skills
     └── page-builder/
@@ -91,6 +93,12 @@ state or makes a decision.
 
 - **Single file.** All HTML, CSS and JS live in one `.html`. No separate stylesheets,
   no separate scripts.
+  **`ru/index.html` and `lv/index.html` are output, not source.** They are written by
+  `node tools/build-langs.mjs` out of `index.html` and its `T` dictionary: same markup,
+  same script, the text already painted and `lang`, `canonical`, `title`, `description`
+  and og set per language. Editing either by hand is editing a build artifact. Change
+  `index.html`, re-run the script, commit all three. `--check` fails if they are stale.
+  Nothing is bundled, compiled or fetched, so the zero-dependency rule below is intact.
 - **Zero dependencies.** No npm, no package.json, no build step, no bundler, no
   framework, no CSS library, no icon library, no CDN scripts.
   **This rule is about what ships. `demo/` is tooling and is allowed its own

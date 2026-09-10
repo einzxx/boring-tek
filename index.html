@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>THE BORING TEK</title>
-<meta name="description" content="we build custom ai solutions, websites, apps and bots for businesses, plus the backend automation behind them. tell us what you need.">
+<title>ai agents and automation for business | the boring tek</title>
+<meta name="description" content="we build custom ai agents, backend systems and workflow automation for businesses. websites, apps and bots too. tell us what you need.">
 <link rel="canonical" href="https://theboringtek.com/">
 <link rel="alternate" hreflang="en" href="https://theboringtek.com/">
-<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru">
-<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/">
 <link rel="alternate" hreflang="x-default" href="https://theboringtek.com/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://theboringtek.com/">
-<meta property="og:title" content="THE BORING TEK">
-<meta property="og:description" content="we build custom ai solutions, websites, apps and bots for businesses, plus the backend automation behind them. tell us what you need.">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="ai agents and automation for business | the boring tek">
+<meta property="og:description" content="we build custom ai agents, backend systems and workflow automation for businesses. websites, apps and bots too. tell us what you need.">
 <meta property="og:image" content="https://theboringtek.com/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -170,13 +171,12 @@ body{
 .langs,.socials,.theme{pointer-events:auto}
 .langs{display:flex;gap:2px}
 .lang{
-  appearance:none;background:none;border:0;cursor:pointer;
   font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
-  padding:10px 8px;color:var(--muted);opacity:.5;
+  padding:10px 8px;color:var(--muted);opacity:.5;text-decoration:none;
   transition:opacity .22s ease-out,color .5s ease;
 }
 .lang:hover{opacity:.85}
-.lang[aria-pressed=true]{color:var(--fg);opacity:1}
+.lang[aria-current=true]{color:var(--fg);opacity:1}
 
 /* socials. one row of six, in the top bar on a wide screen and in the footer on
    a narrow one - never both, never two rows. the glyphs are tabler icons, MIT,
@@ -675,38 +675,41 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 "use strict";
 var D=document, R=D.documentElement;
 
-/* the address bar always names the language on screen, so whatever url someone
-   copies opens in the language they were looking at. replaceState, never push:
-   a language switch is not a place to press back to. wrapped, because a page
-   opened over file:// throws on any path change. */
+/* the language IS the address and nothing else. three documents are built out
+   of this one file by tools/build-langs.mjs - same markup, same script, the
+   text already painted and lang, canonical and hreflang already set on each. so
+   the script reads the language off the document rather than guessing at it: no
+   browser sniffing, no saved choice, no repaint on load. a document that says
+   it is russian is russian, which is what its canonical claims and what a
+   crawler is served. the switch in the header is three links, so changing
+   language is a navigation and not a repaint. */
 var LANG={en:1,ru:1,lv:1};
-function setPath(l){
-  try{ history.replaceState(null,'',(l==='en'?'/':'/'+l)+location.search); }catch(e){}
-}
+function href(l){ return l==='en' ? '/' : '/'+l+'/'; }
 
-/* ---- bootstrap: theme and language land before first paint ----
-   language, in priority order: the url, then a saved choice, then the browser.
-   /ru and /lv are stub documents that land here as /#ru and /#lv, so the hash
-   is the url arriving; it is read once and the path is rewritten clean.
-   nothing is written to storage here. an autodetected language is a guess, and
-   a guess must not outlive the visit or shout down a choice made later. */
-var theme='light', lang='';
-var h=location.hash.slice(1).toLowerCase();
-if(LANG[h]) lang=h;
+/* ---- bootstrap: the theme lands before first paint. it is the only thing a
+   visitor still carries from page to page, and it is still a choice rather than
+   a guess, so it is still in storage. ---- */
+var lang=R.getAttribute('lang');
+if(!LANG[lang]) lang='en';
+var theme='light';
 try{
-  var ts=localStorage.getItem('bt-theme'), ls=localStorage.getItem('bt-lang');
+  var ts=localStorage.getItem('bt-theme');
   if(ts==='dark'||ts==='light') theme=ts;
-  if(!lang && LANG[ls]) lang=ls;
 }catch(e){}
-if(!lang){
-  var nl=((navigator.languages && navigator.languages[0]) || navigator.language || '')
-         .toLowerCase().split('-')[0];
-  lang = nl==='ru' ? 'ru' : nl==='lv' ? 'lv' : 'en';
-}
 R.setAttribute('data-theme',theme);
-R.setAttribute('lang',lang);
-setPath(lang);
 R.style.colorScheme=theme;
+
+/* /#ru and /#lv sat in the address bar for a while, so those links are out
+   there. a hash that names a language is an explicit ask, which is the one
+   thing still allowed to move a visitor: send them to the real document once,
+   or take the hash off if they are already on it. */
+try{
+  var h=location.hash.slice(1).toLowerCase();
+  if(LANG[h]){
+    if(h!==lang) location.replace(href(h));
+    else history.replaceState(null,'',href(lang)+location.search);
+  }
+}catch(e){}
 
 /* ---- copy. every visible string lives here. ---- */
 var T={
@@ -944,7 +947,6 @@ var cds=D.querySelectorAll('.cd');
 var card=D.querySelector('.card');
 var pad=D.querySelector('.pad');
 var themeBtn=D.querySelector('.theme');
-var langBtns=D.querySelectorAll('.lang');
 var metaColor=D.querySelector('meta[name=theme-color]');
 var i;
 
@@ -1575,27 +1577,6 @@ function goChapter(n){
     (function(b,k){ b.addEventListener('click',function(){ goChapter(k); }); })(chBtns[n],n);
 })();
 
-/* ---------- language ---------- */
-function setLang(v){
-  lang=v;
-  R.setAttribute('lang',v);
-  try{ localStorage.setItem('bt-lang',v); }catch(e){}
-  setPath(v);
-  for(var n=0;n<langBtns.length;n++)
-    langBtns[n].setAttribute('aria-pressed', langBtns[n].getAttribute('data-l')===v ? 'true':'false');
-  setCta(t('cta'));
-  hintEl.textContent=t('hint');
-  paintKeys();
-  themeBtn.setAttribute('aria-label', theme==='dark' ? t('th_light') : t('th_dark'));
-  playSign(!vid.paused);
-  setTag(t('sub'), !typed);
-  if(open){ doneState ? finish() : render(); }
-  else if(bubShow) hush();
-}
-for(i=0;i<langBtns.length;i++){
-  (function(b){ b.addEventListener('click',function(){ setLang(b.getAttribute('data-l')); }); })(langBtns[i]);
-}
-
 /* ---------- one shared rAF loop: blink, eyes, bubble, glitch, decode ---------- */
 var glitchAt=0;
 var heroBlink=blinker(mascot);
@@ -1682,8 +1663,6 @@ setCta(t('cta'));
 hintEl.textContent=t('hint');
 playSign(false);
 paintKeys();
-for(i=0;i<langBtns.length;i++)
-  langBtns[i].setAttribute('aria-pressed', langBtns[i].getAttribute('data-l')===lang ? 'true':'false');
 tagSize.textContent=tagTxt.textContent=t('sub');
 tagEl.classList.toggle('mono',!LATIN.test(t('sub')));
 
@@ -1776,9 +1755,9 @@ else boot();
 
 <header class="bar">
   <nav class="langs" aria-label="language">
-    <button class="lang" type="button" data-l="en" aria-pressed="true">EN</button>
-    <button class="lang" type="button" data-l="ru" aria-pressed="false">RU</button>
-    <button class="lang" type="button" data-l="lv" aria-pressed="false">LV</button>
+    <a class="lang" href="/" aria-current="true">EN</a>
+    <a class="lang" href="/ru/">RU</a>
+    <a class="lang" href="/lv/">LV</a>
   </nav>
   <nav class="socials" aria-label="socials">
     <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
@@ -1847,7 +1826,7 @@ else boot();
     <div class="pv">
       <div class="pv-f">
         <video class="pv-v" preload="none" playsinline
-               poster="assets/video/intro-poster.jpg" src="assets/video/intro.mp4"></video>
+               poster="/assets/video/intro-poster.jpg" src="/assets/video/intro.mp4"></video>
         <button class="pv-b" type="button" aria-label="play">
           <span class="pv-s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.2v13.6L19 12z"/></svg></span>
         </button>

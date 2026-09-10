@@ -6,6 +6,103 @@ names in here either.
 
 ## Status
 
+- **2026-09-10: the site is three documents now, one per language, and it is the
+  first time a crawler can read the russian and latvian copy.** `index.html` is
+  still the only file anything is written in; `ru/index.html` and
+  `lv/index.html` are **generated out of it** and `sitemap.xml` with them.
+  Committed, **not pushed**.
+
+  **The command, and it is the whole workflow:**
+
+  ```
+  node tools/build-langs.mjs          write ru/, lv/ and sitemap.xml
+  node tools/build-langs.mjs --check  verify they match index.html, write nothing
+  ```
+
+  Run it after **any** change to `index.html` and commit all three together. A
+  commit that moves `index.html` on its own ships two documents that disagree
+  with it. `--check` exits non-zero when they are stale, so it is the thing to
+  run before a push.
+
+  **What the script does:** reads `index.html`, pulls the `T` dictionary out of
+  the script the page already ships, and writes the two folders with the same
+  markup, the same stylesheet and the same script, with every string painted and
+  `lang`, `title`, `description`, `canonical`, `og:url`, `og:locale`, `og:title`
+  and `og:description` set per language. **Every replacement asserts it matched
+  exactly once**, which is most of the file's length and the reason for it: a
+  rule that quietly stops matching because the markup moved produces a page that
+  ships in the wrong language and looks perfectly fine.
+
+  **Five things it settled:**
+  - **The language is the address and nothing else.** The old page guessed:
+    url, then `bt-lang`, then `navigator.languages`, then English, and it
+    repainted itself on load. That is invisible to search and it fights its own
+    canonical — a document served as `lang="en"` that turns Russian after the
+    script runs is an English page to a crawler and a Russian page to a person.
+    Now `R.getAttribute('lang')` is read, never written. **`bt-lang` is gone.
+    `bt-theme` stays**, because a theme is not an address. The cost is real and
+    was taken on Einz's word: a Russian browser opening `/` gets English and one
+    click, where it used to get Russian for free.
+  - **The switch is three `<a>` elements, not three buttons.** A crawler can
+    follow it, it works with JS off, middle-click opens a tab, and the state is
+    `aria-current="true"` rather than `aria-pressed` because a link that goes
+    somewhere is not a toggle. The CSS moved one selector and lost the button
+    resets; nothing about it looks different. **Switching mid-form now loses the
+    form**, which is the price of the address being real.
+  - **Document-relative paths could not survive this.** The video card shipped
+    `assets/video/intro.mp4`, which resolves to `/ru/assets/...` from a
+    subfolder and 404s. Both are `/assets/...` now, and the old skill rule that
+    said no relative urls because `replaceState` moved the base path is now true
+    for a plainer reason: the same document is served from three places.
+  - **The head copy is written for search, not for the voice**, and it is the
+    one place on the site where that is allowed. Plain words about ai and
+    automation for businesses, title under 60 signs, description under 155, both
+    measured by the build. The old description said "custom ai solutions" -
+    **"solutions" is on our own banned list** and had been sitting in the meta
+    description since v1. The three titles and descriptions live in
+    `tools/build-langs.mjs`, and the English pair is asserted against what
+    `index.html` carries so the two cannot drift apart quietly.
+  - **Trailing slashes, everywhere.** `/ru/` and not `/ru`. GitHub Pages 301s
+    the second to the first, and a canonical pointing at a redirect is a
+    canonical pointing at the wrong url. The sitemap is generated off the same
+    two constants as the canonicals, so they cannot disagree. `robots.txt`
+    already pointed at the sitemap and did not need touching.
+
+  **Verified in a real browser, all three, both themes.** A throwaway
+  `demo/out/check-langs.mjs` serves the repo root over http, which is how GitHub
+  Pages resolves a root-relative path, and checks each address: `lang`,
+  canonical, the four `hreflang` lines, og, the painted copy, the switch's
+  current mark, title and description lengths, the request list, the video, 404s
+  and console errors. **All green.** Off-origin at load is still one Google Fonts
+  stylesheet and its two woff2 and nothing else, from every one of the three
+  addresses; same-origin at load is still the document and the 24 KB poster; the
+  mp4 still arrives only on the press. Shots are
+  `demo/out/lang-{en,ru,lv}-{light,dark}.png`, which is gitignored.
+
+  **Open on it:**
+  - **The web3forms key and the worker url are now in three tracked files
+    instead of one.** Neither is a secret — the key is a public write-only
+    submission token that is meant to ship in the page — but a rotation is three
+    edits in one file and a re-run, not three hand edits. Nothing else changed
+    about them.
+  - **`/#ru` and `/#lv` still work**, on two lines in the bootstrap: a hash that
+    names a language sends the visitor to the real document once, or is cleaned
+    off if they are already there. It is the only thing left that can move a
+    visitor and it fires on an explicit ask only. It can come out once nobody is
+    sharing those links.
+  - **The three copies have to be committed together and nothing enforces it.**
+    `--check` will say so, but only if somebody runs it. A pre-push hook is the
+    obvious next thing and was not built.
+  - **The build knows one page.** The seven `data-k` elements are matched
+    generically so a card added later is painted for free, but the strings the
+    script measures or types rather than writes - the subline, the cta, the
+    hint, three aria labels - are seven named replacements. A second page in
+    this repo would want the named list to become a table.
+  - **Nothing was said about the og image.** All three documents still point at
+    `/assets/og.png`, which is the English wordmark on white. It is the mascot
+    and the wordmark rather than a sentence, so it reads in any language, but a
+    shared Russian link shows an English card's alt text.
+
 - **2026-09-10: the intro is on the live site, and it is the first binary the
   page has ever fetched.** A fourth card, its own section between the form and
   the three text cards, video on the left and a chapter list on the right.

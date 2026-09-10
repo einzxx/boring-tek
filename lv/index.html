@@ -1,30 +1,1869 @@
 <!doctype html>
-<html lang="lv">
+<html lang="lv" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- the whole page. it runs before anything can paint: the background is set to
-     whichever theme this visitor already chose, so even a slow replace shows the
-     right colour rather than a white card, and then the real page is loaded with
-     the language in the hash. index.html reads it, applies it before first paint
-     and puts /lv back in the address bar. -->
-<script>try{document.documentElement.style.background=localStorage.getItem('bt-theme')==='dark'?'#06070a':'#ffffff';}catch(e){}location.replace('/#lv');</script>
-<title>THE BORING TEK</title>
-<meta name="description" content="we build custom ai solutions, websites, apps and bots for businesses, plus the backend automation behind them. tell us what you need.">
-<link rel="canonical" href="https://theboringtek.com/lv">
+<title>ai aģenti un automatizācija biznesam | the boring tek</title>
+<meta name="description" content="būvējam ai aģentus, backend sistēmas un darba procesu automatizāciju biznesam. mājaslapas, aplikācijas un boti arī. pastāstiet ko jums vajag.">
+<link rel="canonical" href="https://theboringtek.com/lv/">
 <link rel="alternate" hreflang="en" href="https://theboringtek.com/">
-<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru">
-<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/">
 <link rel="alternate" hreflang="x-default" href="https://theboringtek.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theboringtek.com/lv/">
+<meta property="og:locale" content="lv_LV">
+<meta property="og:title" content="ai aģenti un automatizācija biznesam | the boring tek">
+<meta property="og:description" content="būvējam ai aģentus, backend sistēmas un darba procesu automatizāciju biznesam. mājaslapas, aplikācijas un boti arī. pastāstiet ko jums vajag.">
+<meta property="og:image" content="https://theboringtek.com/assets/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="the boring tek mascot above the wordmark, on white">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://theboringtek.com/assets/og.png">
 <meta name="color-scheme" content="light dark">
-<noscript><meta http-equiv="refresh" content="0;url=/"></noscript>
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap">
 <style>
-html{background:#ffffff}
-body{margin:0;min-height:100vh;display:grid;place-items:center;
-  font:400 .8125rem/1.6 ui-monospace,"Cascadia Code","JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
-  color:#767d86;letter-spacing:.06em}
-a{color:inherit}
+@property --ex{syntax:'<number>';inherits:true;initial-value:0}
+@property --ey{syntax:'<number>';inherits:true;initial-value:0}
+@property --blink{syntax:'<number>';inherits:true;initial-value:1}
+@property --wide{syntax:'<number>';inherits:true;initial-value:1}
+@property --beat{syntax:'<number>';inherits:true;initial-value:0}
+@property --units{syntax:'<number>';inherits:true;initial-value:16}
+@property --tu{syntax:'<number>';inherits:true;initial-value:46}
+
+/* light is the default theme. every colour is a token, so the 0.5s cross-fade
+   is one transition rule rather than one per element. paired gradients keep the
+   same stop count and positions in both themes so they interpolate instead of
+   snapping. */
+:root{
+  --bg:#ffffff;
+  --fg:#0b0d10;
+  --sub:#4b5058;
+  --muted:#767d86;
+  --line:#dfe3e7;
+  --field:#fbfbfc;
+  --bub:rgba(11,13,16,.55);
+  --face:#0b0d10;
+  --eye:#ffffff;
+  --accent:#0f8a3c;
+  --accent-soft:rgba(15,138,60,.10);
+  --red:#c62828;
+  --glowon:0;
+  --hero-shadow:
+    0 0 .012em rgba(53,255,106,0),
+    0 0 .045em rgba(53,255,106,0),
+    0 0 .11em rgba(53,255,106,0),
+    0 0 .28em rgba(23,163,79,0);
+  --halo:radial-gradient(circle,
+    rgba(11,13,16,.075) 0%,
+    rgba(11,13,16,.04) 30%,
+    rgba(11,13,16,.018) 52%,
+    rgba(11,13,16,0) 72%);
+  --vig:radial-gradient(140% 120% at 50% 45%,transparent 30%,rgba(11,13,16,.055) 100%);
+  --grain-o:.026;
+
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  --display:"Michroma",var(--mono);
+  --body:"Space Grotesk",var(--mono);
+  --t-micro:clamp(.6875rem,.66rem + .14vw,.75rem);
+  --t-body:clamp(.8125rem,.77rem + .22vw,.9375rem);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:cubic-bezier(.34,1.4,.64,1);
+  --gr:rgba(255,60,60,.85);
+  --gc:rgba(40,215,255,.85);
+}
+html[data-theme=dark]{
+  --bg:#06070a;
+  --fg:#d5dbd8;
+  --sub:#c8c8c8;
+  --muted:#6d7680;
+  --line:#1e242d;
+  --field:#0b0d12;
+  --bub:rgba(213,219,216,.5);
+  --face:#f4f7f5;
+  --eye:#06070a;
+  --accent:#35ff6a;
+  --accent-soft:rgba(53,255,106,.09);
+  --red:#ff5c5c;
+  --glowon:1;
+  --hero-shadow:
+    0 0 .012em rgba(53,255,106,.58),
+    0 0 .045em rgba(53,255,106,.34),
+    0 0 .11em rgba(53,255,106,.20),
+    0 0 .28em rgba(23,163,79,.14);
+  --halo:radial-gradient(circle,
+    rgba(53,255,106,.20) 0%,
+    rgba(53,255,106,.11) 30%,
+    rgba(23,163,79,.055) 52%,
+    rgba(23,163,79,0) 72%);
+  --vig:radial-gradient(140% 120% at 50% 45%,transparent 30%,rgba(3,4,6,.74) 100%);
+  --grain-o:.038;
+}
+
+/* space grotesk ships latin and latin-ext only. latvian is covered, cyrillic
+   is not, so the whole russian page drops to the mono stack rather than
+   falling back per glyph and mixing two faces inside one line. */
+html[lang=ru]{--body:var(--mono)}
+
+*{box-sizing:border-box}
+/* the theme cross-fade. interactive elements re-declare transition below and
+   win on specificity, so hover and press stay fast. */
+*,*::before,*::after{
+  transition:background-color .5s ease,border-color .5s ease,color .5s ease,fill .5s ease;
+}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:var(--bg); color:var(--fg);
+  font:400 var(--t-body)/1.65 var(--body);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* depth layers */
+.vignette,.grain{position:fixed;pointer-events:none}
+.vignette{
+  inset:-10%; z-index:0; background-image:var(--vig);
+  will-change:transform,opacity;
+  animation:breathe 34s cubic-bezier(.45,0,.55,1) infinite alternate;
+  transition:background-image .5s ease;
+}
+@keyframes breathe{
+  from{transform:scale(1) translate3d(0,0,0);opacity:.88}
+  to{transform:scale(1.045) translate3d(0,-1.2%,0);opacity:1}
+}
+.grain{
+  inset:-150px; z-index:1; opacity:var(--grain-o);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  will-change:transform;
+  animation:grainshift 7s steps(1,end) infinite;
+  transition:opacity .5s ease;
+}
+@keyframes grainshift{
+  0%{transform:translate3d(0,0,0)}     14%{transform:translate3d(-3%,-2%,0)}
+  28%{transform:translate3d(2%,-4%,0)} 42%{transform:translate3d(-1%,3%,0)}
+  57%{transform:translate3d(3%,1%,0)}  71%{transform:translate3d(-2%,2%,0)}
+  85%{transform:translate3d(1%,-3%,0)}
+}
+
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+
+/* top bar — languages left, theme right */
+/* a scrim, so anything that scrolls past dissolves under these controls
+   instead of colliding with them. the landing page does not scroll, which
+   makes this invisible today — it is kept because the first section added
+   below the hero needs it, and because --bg fading into --bg costs nothing.
+   not a flat band: that would occlude the vignette and leave a visible seam
+   in dark mode. pointer-events stay off the scrim so it never eats a click. */
+.bar{
+  position:fixed; top:0; left:0; right:0; z-index:5;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:12px 12px 30px;
+  pointer-events:none;
+  background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
+  transition:background-image .5s ease;
+}
+.langs,.socials,.theme{pointer-events:auto}
+.langs{display:flex;gap:2px}
+.lang{
+  font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
+  padding:10px 8px;color:var(--muted);opacity:.5;text-decoration:none;
+  transition:opacity .22s ease-out,color .5s ease;
+}
+.lang:hover{opacity:.85}
+.lang[aria-current=true]{color:var(--fg);opacity:1}
+
+/* socials. one row of six, in the top bar on a wide screen and in the footer on
+   a narrow one - never both, never two rows. the glyphs are tabler icons, MIT,
+   drawn on the same 24 grid as the theme toggle and kept at their own
+   stroke-width 2. rest state is the inactive language button's, exactly: muted
+   at half opacity, no brand colour.
+   the sprite is why there are two rows of markup and one set of paths. */
+.sprite{display:none}
+.socials{display:flex;justify-content:center;gap:6px}
+/* under 560px the bar has no room for a centred row: 270px of icons plus the
+   language block plus the toggle do not fit without the row sliding off centre,
+   and a second bar row lands on the mascot. so the phone gets the footer copy
+   and the bar keeps its two original controls. */
+.bar .socials{display:none}
+.soc{
+  flex:0 0 auto;
+  display:grid;place-items:center;text-decoration:none;
+  width:40px;height:40px;
+  color:var(--muted);opacity:.5;
+  transition:color .5s ease,opacity .22s ease-out,transform .22s ease-out;
+}
+.soc svg{
+  width:22px;height:22px;display:block;
+  fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.soc:hover{color:var(--fg);opacity:1;transform:translateY(-2px)}
+/* the cta's glitch dna, at half the travel and once per hover. drop-shadow,
+   not text-shadow: these are strokes, not glyphs. */
+.soc:hover svg{animation:flick .2s steps(1,end)}
+@keyframes flick{
+  0%{filter:none}
+  26%{filter:drop-shadow(-1px 0 var(--gr)) drop-shadow(1px 0 var(--gc))}
+  56%{filter:drop-shadow(1px 0 var(--gr)) drop-shadow(-1px 0 var(--gc))}
+  80%,100%{filter:none}
+}
+.theme{
+  appearance:none;background:none;border:0;cursor:pointer;
+  width:44px;height:44px;padding:0;display:grid;place-items:center;
+  color:var(--muted);
+  transition:color .22s ease-out,transform .34s var(--spring);
+}
+.theme:hover{color:var(--fg);transform:rotate(-18deg)}
+.theme svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.theme .i-sun{display:none}
+html[data-theme=dark] .theme .i-sun{display:block}
+html[data-theme=dark] .theme .i-moon{display:none}
+
+/* content — one lockup, centred as a group */
+.wrap{
+  position:relative; z-index:2;
+  display:flex; justify-content:center; align-items:center;
+  /* the hero sizes to its content. it used to carry min-height:100dvh and
+     centre the lockup inside it, which put 200-300px of centring slack between
+     the hint and the section below — the thread was never why that gap read
+     long. top padding clears the fixed bar AND reserves room for the speech
+     bubble, which climbs above the mascot. deliberately larger than the bottom. */
+  padding:clamp(84px,11vh,100px) 16px clamp(12px,2vh,18px);
+  text-align:center;
+}
+.lockup{
+  display:flex; flex-direction:column; align-items:center;
+  gap:clamp(12px,2.2vh,22px);
+  width:100%; max-width:560px;
+  /* the cta divides by the lockup, not by 100vw: vw counts the scrollbar and
+     the page scrolls now, which was enough to wrap the button at 375px. */
+  container-type:inline-size;
+}
+
+/* mascot — the halo is a static radial layer on a wrapper, not a filter on the
+   svg: the eyes repaint constantly and a filter would re-raster with them.
+   .m-zone shrinks to the mascot so the bubble's 100% is the head, not the
+   lockup. */
+.m-zone{position:relative;display:block;width:max-content;margin-bottom:clamp(14px,2.6vh,26px)}
+.m-wrap{position:relative;display:block;cursor:pointer;border-radius:50%}
+.m-wrap::before{
+  content:""; position:absolute; left:50%; top:50%;
+  width:210%; height:210%; transform:translate(-50%,-50%);
+  border-radius:50%; pointer-events:none; background-image:var(--halo);
+  transition:background-image .5s ease;
+}
+.mascot{position:relative;display:block;width:clamp(92px,22vw,110px);height:auto}
+.m-face{fill:var(--face)}
+.m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
+/* --blink is driven per frame by the blink engine, so the lid shape is already
+   smooth and a transform transition here would only smear it. the wide-eye
+   reaction rides the same scaleY and snaps, which is what surprise does. */
+.m-eye{
+  fill:var(--eye);
+  transform-box:fill-box; transform-origin:center;
+  transform:scaleY(calc(var(--blink) * var(--wide)));
+  transition:fill .5s ease;
+}
+
+/* speech bubble — three dots climbing off the top right of the head, then a
+   pill. the pill measures itself on show and slides left and up if it would
+   leave the viewport, which is what keeps it readable down to 320px. */
+.bubble{
+  position:absolute; left:calc(100% + 12px); bottom:calc(100% - 18px);
+  display:flex; align-items:flex-end; gap:5px;
+  /* max-content is load-bearing. an absolutely positioned box shrink-to-fits
+     against its containing block, and .m-zone is only as wide as the head, so
+     without this the pill is squeezed to its minimum and wraps a short line
+     onto two even on a 1440px screen. */
+  width:max-content;
+  pointer-events:none; z-index:3;
+}
+.dot{
+  display:block; border-radius:50%;
+  background:var(--bg); border:1px solid var(--bub);
+  opacity:0; transform:scale(.2);
+  transition:opacity .2s ease-out,transform .34s var(--spring),
+             background-color .5s ease,border-color .5s ease;
+}
+.d1{width:5px;height:5px}
+.d2{width:7px;height:7px;margin-bottom:8px}
+.d3{width:10px;height:10px;margin-bottom:18px}
+/* the horizontal shift is a negative margin, not a transform, and that is
+   deliberate. a transform leaves the flex container's box out at the pill's
+   untransformed right edge, which pushes document scrollWidth past the
+   viewport and lets the page scroll sideways — overflow-x on the root does not
+   reliably stop it. a negative margin shrinks the container instead, so the
+   overflow never exists. the vertical lift stays a transform: it costs no
+   layout and nothing measures against it. */
+.pill{
+  margin-bottom:27px; margin-left:var(--pshift,0px);
+  max-width:min(250px,calc(100vw - 28px));
+  padding:7px 13px; border:1px solid var(--bub); border-radius:999px;
+  background:var(--bg); color:var(--fg);
+  font-size:var(--t-micro); line-height:1.4; text-align:left;
+  transform-origin:left bottom; opacity:0;
+  /* translate and scale are set as independent properties, not as one
+     transform, so the transition can spring the entrance without also
+     animating the vertical correction. re-fitting during the card's unfold
+     writes --pshiftY every frame; if that rode the spring too, the pill would
+     visibly lag behind the head all the way up. */
+  translate:0 var(--pshiftY,0px);
+  scale:.7;
+  transition:opacity .2s ease-out,scale .4s var(--spring),
+             background-color .5s ease,border-color .5s ease,color .5s ease;
+}
+.bubble.on .dot,.bubble.on .pill{opacity:1}
+.bubble.on .dot{transform:scale(1)}
+.bubble.on .pill{scale:1}
+.bubble.on .d1{transition-delay:0ms}
+.bubble.on .d2{transition-delay:70ms}
+.bubble.on .d3{transition-delay:140ms}
+.bubble.on .pill{transition-delay:210ms}
+
+/* headline — fit-to-width, capped at 2.75rem. --units comes from measured glyph
+   metrics; --cw is the fixed cell that stops proportional michroma wobbling
+   while it decodes. no caret: the glitching button is the page's one
+   attention-getter now. */
+.hero{
+  display:grid; justify-content:center; margin:0; max-width:100%;
+  font-size:min(2.75rem,calc(min(100vw - 44px,90vw) / var(--units)));
+  line-height:1.04; letter-spacing:0;
+  contain:layout style;
+  --glow:calc(1 + var(--beat) * .7);
+}
+.hero > span{grid-area:1/1;display:block;white-space:pre}
+.ln{display:block;min-height:1.04em}
+.hero:not(.stack) .ln:nth-child(n+2){display:none}
+.stack .layer,.stack .sizer{display:flex;flex-direction:column;gap:.35em}
+.sizer{visibility:hidden}
+.layer{font-family:var(--display);font-weight:400}
+.grid .c{display:inline-block;width:var(--cw);text-align:center}
+.l-core{z-index:3;color:var(--fg);text-shadow:var(--hero-shadow);
+  transition:color .5s ease,text-shadow .5s ease}
+.l-mid{z-index:2;color:var(--accent);filter:blur(.055em);
+  opacity:calc(.42 * var(--glow) * var(--glowon));
+  transition:opacity .5s ease;will-change:opacity}
+.l-wide{z-index:1;color:var(--accent);filter:blur(.2em);
+  opacity:calc(.24 * var(--glow) * var(--glowon));
+  transition:opacity .5s ease;will-change:opacity}
+
+/* subline — michroma while the string is latin, mono when it is not. michroma
+   carries no cyrillic and no latvian diacritics, and a per-glyph fallback mixes
+   two faces inside one word. */
+.tag{
+  display:grid; justify-content:center; margin:0;
+  font-family:var(--display); font-weight:400;
+  color:var(--sub); letter-spacing:.18em; text-transform:uppercase;
+  font-size:min(1rem,calc((100vw - 44px) / var(--tu)));
+}
+.tag.mono{font-family:var(--mono);letter-spacing:.14em}
+.tag > span{grid-area:1/1;white-space:pre}
+.tag-size{visibility:hidden}
+/* the live text is hidden from first paint, by the stylesheet, never by js:
+   the script runs at DOMContentLoaded and a slow parse paints before that,
+   which flashed the whole subline for a frame before the typing blanked it.
+   it is unhidden by the typing itself. reduced motion and a page with no js
+   both override this below - they never type, so they never hide. */
+.tag-live{justify-self:start;display:grid;justify-content:start;visibility:hidden}
+
+/* call to action */
+.cta-zone{
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  margin-top:clamp(8px,1.6vh,16px);
+  transition:opacity .28s ease-out,transform .28s ease-out;
+}
+.cta-zone.gone{opacity:0;transform:translateY(-8px);pointer-events:none}
+.cta-zone.off{display:none}
+.cta{
+  appearance:none;cursor:pointer;
+  font:inherit;font-family:var(--display);
+  /* fit-to-width, the same divide the subline uses. --cu is the cta line
+     measured in em in whichever face renders it, so michroma can never wrap
+     the pill or push it past the viewport. */
+  font-size:min(var(--t-body),calc((100cqi - 60px) / var(--cu,22)));
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:14px 26px; min-height:44px;
+  border:1px solid var(--fg); border-radius:999px;
+  background:transparent; color:var(--fg);
+  transition:background-color .24s ease-out,color .24s ease-out,
+             border-color .5s ease,transform .3s var(--spring);
+}
+.cta:hover{background:var(--fg);color:var(--bg)}
+/* michroma has no cyrillic and no latvian diacritics, so the button follows the
+   subline rule: all one face or none of it. */
+.cta.mono{font-family:var(--body)}
+.cta:active{transform:scale(.97)}
+.cta-t{display:inline-block}
+.cta.shake{animation:shake .34s ease-out}
+.cta.shake .cta-t{animation:split .34s steps(1,end)}
+@keyframes shake{
+  0%,100%{transform:translate3d(0,0,0)}
+  12%{transform:translate3d(-3px,0,0)}  26%{transform:translate3d(3px,0,0)}
+  42%{transform:translate3d(-2px,0,0)}  58%{transform:translate3d(2px,0,0)}
+  76%{transform:translate3d(-1px,0,0)}
+}
+@keyframes split{
+  0%{text-shadow:none}
+  14%{text-shadow:-2px 0 var(--gr),2px 0 var(--gc)}
+  38%{text-shadow:2px 0 var(--gr),-2px 0 var(--gc)}
+  62%{text-shadow:-1px 0 var(--gr),1px 0 var(--gc)}
+  82%,100%{text-shadow:none}
+}
+.hint{margin:0;color:var(--muted);font-size:var(--t-micro)}
+
+/* form card — unfolds under the lockup. rows carry the reveal, the inner block
+   carries the spring, so the overshoot never clips its own content. */
+.card{
+  display:grid; grid-template-rows:0fr; opacity:0; width:100%;
+  transition:grid-template-rows .44s var(--ease),opacity .3s ease-out;
+}
+.card.on{grid-template-rows:1fr;opacity:1}
+.card.off{display:none}
+.cardin{
+  overflow:hidden;
+  transform:translateY(-10px) scale(.97);
+  transition:transform .52s var(--spring);
+}
+.card.on .cardin{transform:none}
+.pad{
+  border:1px solid var(--line); border-radius:18px;
+  background:var(--field);
+  padding:clamp(18px,3.4vw,26px);
+  display:flex; flex-direction:column; gap:16px;
+}
+.dots{display:flex;justify-content:center;gap:6px;min-height:5px}
+.pdot{
+  width:5px;height:5px;border-radius:50%;background:var(--line);
+  transition:background-color .3s ease-out,transform .34s var(--spring);
+}
+.pdot.done{background:var(--muted)}
+.pdot.now{background:var(--accent);transform:scale(1.5)}
+.step{display:flex;flex-direction:column;gap:14px;animation:qin .3s var(--ease) both}
+@keyframes qin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.q{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
+.qs{margin:-8px 0 0;font-size:var(--t-micro);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.chip{
+  appearance:none;cursor:pointer;font:inherit;font-size:var(--t-micro);
+  padding:10px 15px;min-height:40px;
+  border:1px solid var(--line); border-radius:999px;
+  background:var(--bg); color:var(--fg);
+  animation:chipin .4s var(--spring) both;
+  animation-delay:calc(var(--i) * 55ms);
+  transition:border-color .2s ease-out,background-color .2s ease-out,
+             color .2s ease-out,transform .28s var(--spring);
+}
+@keyframes chipin{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
+.chip:hover{border-color:var(--fg)}
+.chip:active{transform:scale(.96)}
+.chip[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent)}
+.fields{display:grid;gap:10px;text-align:left}
+.f label{display:block;font-size:var(--t-micro);color:var(--muted);margin-bottom:5px}
+input,textarea{
+  width:100%;font:inherit;font-size:var(--t-body);color:var(--fg);
+  background:var(--bg);border:1px solid var(--line);border-radius:12px;
+  padding:11px 13px;
+  transition:border-color .2s ease-out,background-color .5s ease,color .5s ease;
+}
+textarea{resize:vertical;min-height:88px;line-height:1.55}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
+.err{margin:0;font-size:var(--t-micro);color:var(--red);text-align:left}
+.chips + .err{text-align:center}
+.nav{display:flex;justify-content:center;gap:8px}
+.btn{
+  appearance:none;cursor:pointer;font:inherit;font-size:var(--t-micro);
+  font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 22px;min-height:44px;
+  border:1px solid var(--fg);border-radius:999px;
+  background:transparent;color:var(--fg);
+  transition:background-color .22s ease-out,color .22s ease-out,
+             border-color .5s ease,transform .28s var(--spring);
+}
+.btn:hover{background:var(--fg);color:var(--bg)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn.ghost:hover{background:transparent;border-color:var(--fg);color:var(--fg)}
+.btn[disabled]{opacity:.5;cursor:default}
+/* loading state: eased and alternating, so it breathes rather than ticks, and
+   it ends when the request does. it never replaces the disabled attribute —
+   the button is genuinely inert while sending. */
+.btn.busy{animation:busy 1.1s cubic-bezier(.45,0,.55,1) infinite alternate}
+@keyframes busy{from{opacity:.42}to{opacity:.74}}
+.tick{display:grid;place-items:center;padding:4px 0}
+.tick svg{width:44px;height:44px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tick circle{stroke:var(--line);stroke-dasharray:126;stroke-dashoffset:126;animation:draw .55s var(--ease) forwards}
+.tick path{stroke-dasharray:34;stroke-dashoffset:34;animation:draw .45s var(--ease) .18s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---- the section below the hero ----
+   a sibling of the lockup, never a child of it, so opening the form cannot
+   move it and it cannot interfere with the card's unfold. the thread is a 1px
+   rule fading out of the border colour, carrying the eye down from the hint. */
+.below{
+  position:relative; z-index:2;
+  width:100%; max-width:860px; margin:0 auto;
+  padding:0 16px clamp(56px,10vh,96px);
+}
+.thread{
+  width:1px; height:22px; margin:0 auto clamp(12px,2vh,18px);
+  background-image:linear-gradient(to bottom,var(--line),transparent);
+  transition:background-image .5s ease;
+}
+.cards{display:grid;gap:12px}
+@media (min-width:720px){
+  .cards{grid-template-columns:1fr 1fr}
+  .cd.wide{grid-column:1 / -1}
+}
+/* 16px is a fourth radius and it belongs to these cards only. */
+.cd{
+  border:1px solid var(--line); border-radius:16px;
+  background:var(--field);
+  padding:clamp(16px,3.6vw,22px);
+  text-align:left;
+  transition:border-color .24s ease-out,background-color .5s ease,
+             transform .38s var(--ease),opacity .38s ease-out;
+}
+/* .reveal is added by JS, so the cards read with no script at all, and it is
+   never added under reduced motion. it sits above the hover rule on purpose —
+   equal specificity, so .cd:hover has to come last to keep the lift. */
+.reveal{opacity:0;transform:translate3d(0,14px,0)}
+.reveal.in{opacity:1;transform:none}
+/* the pair staggers by declaring delays against the transition list above, so
+   the hover lift and the border stay instant. */
+.cards .cd:nth-child(2){transition-delay:0s,0s,70ms,70ms}
+.cards .cd:nth-child(3){transition-delay:0s,0s,140ms,140ms}
+.cd:hover{border-color:var(--muted);transform:translate3d(0,-3px,0)}
+.cl{
+  margin:0 0 8px; font-family:var(--mono);
+  font-size:var(--t-micro); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted);
+}
+.cl::before{content:"// "}
+.ct{margin:0;font-size:var(--t-body);color:var(--sub);max-width:68ch}
+
+/* ---- the video card ----
+   its own section between the form and the cards, so the lockup's unfold
+   cannot move it. the card itself is `.cd`, unchanged and shared with the two
+   text cards under it: same width, same 1px border, same 16px radius, same
+   field background, same padding. only what is inside it is new. */
+.show{
+  position:relative; z-index:2;
+  width:100%; max-width:860px; margin:0 auto;
+  /* the same air under it that the thread carries over it, so the section
+     below reads as the next beat rather than as the same block. */
+  padding:0 16px clamp(12px,2vh,18px);
+}
+/* mobile first on purpose: a 16:9 frame and a list of labels can only share a
+   phone as a stack with a swipe row under it, and the two column split is the
+   exception above 720px — the page's own card breakpoint, not a fourth one. */
+.pv{display:grid;gap:12px}
+.pv-f{
+  position:relative; aspect-ratio:16/9; overflow:hidden;
+  border-radius:16px; background:var(--field);
+}
+.pv-v{display:block;width:100%;height:100%;object-fit:cover;border-radius:16px}
+/* there is no controls bar, so the whole frame is the control and the sign is
+   what says so. it stays after the press, which is what pauses. */
+.pv-b{
+  position:absolute; inset:0; display:grid; place-items:center;
+  appearance:none; padding:0; border:0; background:none; cursor:pointer;
+}
+/* the poster is the light half of the clip, so it is white under both themes
+   and the sign cannot follow the page or it disappears on one of them. --ink
+   and --pap are :root's own light --fg and --bg, written out because they have
+   to stay put when everything around them inverts. */
+.pv-s{
+  --ink:#0b0d10; --pap:#ffffff;
+  width:clamp(46px,13%,62px); aspect-ratio:1; border-radius:999px;
+  display:grid; place-items:center;
+  border:1px solid var(--ink); background:var(--pap);
+  transition:background-color .22s ease-out,opacity .22s ease-out,
+             transform .28s var(--spring);
+}
+.pv-s svg{width:34%;fill:var(--ink);transition:fill .22s ease-out}
+.pv-b:hover .pv-s{background:var(--ink)}
+.pv-b:hover .pv-s svg{fill:var(--pap)}
+.pv-b:active .pv-s{transform:scale(.94)}
+.pv.on .pv-s{opacity:0;transform:scale(.9);pointer-events:none}
+
+.chs{
+  display:flex; gap:8px;
+  overflow-x:auto; scroll-snap-type:x proximity;
+  scrollbar-width:none; padding-bottom:2px;
+}
+.chs::-webkit-scrollbar{display:none}
+.ch{
+  flex:0 0 auto; scroll-snap-align:start;
+  display:flex; align-items:center; gap:10px;
+  appearance:none; cursor:pointer; font:inherit; font-size:var(--t-micro);
+  padding:10px 15px; min-height:40px;
+  border:1px solid var(--line); border-radius:999px;
+  background:var(--bg); color:var(--fg);
+  transition:border-color .2s ease-out,background-color .2s ease-out,
+             color .2s ease-out,transform .28s var(--spring);
+}
+.ch:hover{border-color:var(--fg)}
+.ch:active{transform:scale(.96)}
+.ch[aria-current=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.ch[disabled]{opacity:.5;cursor:default;color:var(--muted)}
+.ch[disabled]:hover{border-color:var(--line)}
+.ch-s{
+  font-family:var(--mono); font-size:.85em;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+}
+@media (min-width:720px){
+  .pv{grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+  .chs{flex-direction:column;overflow:visible;padding-bottom:0}
+  .ch{width:100%;justify-content:space-between}
+}
+
+/* footer - phones only. the top bar's row and this one are the same six links
+   and the same styling; only their place on the page differs. */
+.foot{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  padding:0 16px clamp(32px,6vh,48px);
+}
+.foot-t{
+  margin:0; font-family:var(--mono); font-size:var(--t-micro);
+  letter-spacing:.14em; color:var(--muted); opacity:.75;
+}
+
+/* the swap, and the only place either row is positioned. absolute, so the row
+   is centred on the page rather than in the gap the language block and the
+   toggle happen to leave - those two are different widths, and a flex centre
+   between them is visibly off. */
+@media (min-width:560px){
+  .bar .socials{
+    display:flex; position:absolute; top:12px; left:50%;
+    transform:translateX(-50%);
+  }
+  .foot{display:none}
+  /* the icons are only in the bar on this side of the line, and they sit right
+     above the head. 32px more sky, so the row reads as part of the bar and not
+     as something balanced on the mascot. the phone keeps the original padding:
+     its bar is two controls and the socials are down in the footer. */
+  .wrap{padding-top:clamp(116px,11vh + 32px,132px)}
+  /* and the same 32px comes off the bottom of the page, so the whole landing
+     state still fits one screen at 1440x900 the way it did before the row
+     existed. the air below the cards is the cheapest 32px on the page. */
+  .below{padding-bottom:clamp(32px,10vh - 32px,64px)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation:none!important;
+    transition-property:background-color,border-color,color,fill!important;
+    transition-duration:.5s!important;
+  }
+  /* nothing types here, so there is nothing to hide the line from. */
+  .tag-live{visibility:visible}
+  .soc:hover{transform:none}
+}
 </style>
+<noscript><style>.tag-live{visibility:visible}</style></noscript>
+<script>
+(function(){
+"use strict";
+var D=document, R=D.documentElement;
+
+/* the language IS the address and nothing else. three documents are built out
+   of this one file by tools/build-langs.mjs - same markup, same script, the
+   text already painted and lang, canonical and hreflang already set on each. so
+   the script reads the language off the document rather than guessing at it: no
+   browser sniffing, no saved choice, no repaint on load. a document that says
+   it is russian is russian, which is what its canonical claims and what a
+   crawler is served. the switch in the header is three links, so changing
+   language is a navigation and not a repaint. */
+var LANG={en:1,ru:1,lv:1};
+function href(l){ return l==='en' ? '/' : '/'+l+'/'; }
+
+/* ---- bootstrap: the theme lands before first paint. it is the only thing a
+   visitor still carries from page to page, and it is still a choice rather than
+   a guess, so it is still in storage. ---- */
+var lang=R.getAttribute('lang');
+if(!LANG[lang]) lang='en';
+var theme='light';
+try{
+  var ts=localStorage.getItem('bt-theme');
+  if(ts==='dark'||ts==='light') theme=ts;
+}catch(e){}
+R.setAttribute('data-theme',theme);
+R.style.colorScheme=theme;
+
+/* /#ru and /#lv sat in the address bar for a while, so those links are out
+   there. a hash that names a language is an explicit ask, which is the one
+   thing still allowed to move a visitor: send them to the real document once,
+   or take the hash off if they are already on it. */
+try{
+  var h=location.hash.slice(1).toLowerCase();
+  if(LANG[h]){
+    if(h!==lang) location.replace(href(h));
+    else history.replaceState(null,'',href(lang)+location.search);
+  }
+}catch(e){}
+
+/* ---- copy. every visible string lives here. ---- */
+var T={
+ en:{
+  sub:'building the boring part of the future',
+  cta:'tell us what you need',
+  hint:'few clicks. we look. we reply.',
+  v1l:'the intro',
+  ch1:'hello', ch2:'who we are', ch3:'what we build', ch4:'how it works',
+  soon:'soon', play:'play', pause:'pause',
+  c1l:'who we are',
+  c1t:'we build with ai every day. payments. bots. systems that run alone. you talk to the person who builds it.',
+  c2l:'honest part',
+  c2t:'every business will use ai. the ones that start early win. the ones that wait fall behind. that is just how it goes.',
+  c3l:'so write',
+  c3t:'know what you need, write. no idea what ai can do for you, write. no time to think about it, write. we look and reply with real options. costs nothing to ask.',
+  idle:['boring...','still boring...','waiting...','so quiet...'],
+  open:'oh. a customer.',
+  notes:['mhm.','classic.','ok. noted.'],
+  last:'almost done.',
+  done:'ok. we will look. go do business.',
+  doneq:'got it. we will answer soon.',
+  sent:'sent',
+  again:'start again',
+  back:'back', next:'next', send:'send', sending:'sending',
+  multi:'pick as many as you want',
+  q_intent:'what brings you here',
+  i_check:'check my business',
+  i_problem:'i have a problem to solve',
+  i_unsure:'i am not sure what i need',
+  i_question:'i just have a question',
+  q_want:'what do you want',
+  w_aibiz:'ai for my business',
+  w_aime:'ai for me personally',
+  w_site:'website or app',
+  w_auto:'make my work automatic',
+  w_explain:'i will explain myself',
+  q_explain:'explain in your words',
+  ph_explain:'type here',
+  q_size:'how big is your business',
+  z1:'just me', z2:'2 to 10 people', z3:'11 to 50', z4:'more than 50',
+  q_time:'what eats most of your time',
+  t1:'answering messages', t2:'paperwork and documents', t3:'finding customers',
+  t4:'the same task every day', t5:'something else',
+  q_reach:'how do customers reach you',
+  r1:'whatsapp or telegram', r2:'email', r3:'phone', r4:'social media', r5:'they do not',
+  q_question:'write your question here',
+  ph_question:'type here',
+  q_fields:'last step',
+  f_name:'business or your name', f_reg:'registration number (optional)',
+  f_site:'website (optional)', f_country:'country', f_email:'your email',
+  e_name:'we need a name',
+  e_email:'we need your email to reply',
+  e_pick:'pick at least one',
+  e_question:'write your question first',
+  e_net:'could not send. try again.',
+  th_dark:'dark mode', th_light:'light mode'
+ },
+ ru:{
+  sub:'строим скучную часть будущего',
+  cta:'расскажите что вам нужно',
+  hint:'пару кликов. мы смотрим. мы отвечаем.',
+  v1l:'вступление',
+  ch1:'привет', ch2:'кто мы', ch3:'что мы строим', ch4:'как это работает',
+  soon:'скоро', play:'смотреть', pause:'пауза',
+  c1l:'кто мы',
+  c1t:'мы каждый день строим с ai. платежи. боты. системы которые работают сами. вы говорите с тем кто это строит.',
+  c2l:'честная часть',
+  c2t:'каждый бизнес будет использовать ai. кто начинает раньше, тот выигрывает. кто ждёт, тот отстаёт. так это работает.',
+  c3l:'поэтому пишите',
+  c3t:'знаете что вам нужно, пишите. не знаете что ai может для вас сделать, пишите. нет времени об этом думать, пишите. мы посмотрим и ответим реальными вариантами. спросить ничего не стоит.',
+  idle:['скучно...','всё ещё скучно...','жду...','так тихо...'],
+  open:'о. клиент.',
+  notes:['угу.','классика.','хорошо. записал.'],
+  last:'почти всё.',
+  done:'хорошо. мы посмотрим. идите работать.',
+  doneq:'принято. скоро ответим.',
+  sent:'отправлено',
+  again:'начать заново',
+  back:'назад', next:'дальше', send:'отправить', sending:'отправляю',
+  multi:'можно выбрать несколько',
+  q_intent:'зачем вы здесь',
+  i_check:'проверить мой бизнес',
+  i_problem:'у меня есть проблема',
+  i_unsure:'я не знаю что мне нужно',
+  i_question:'у меня просто вопрос',
+  q_want:'что вам нужно',
+  w_aibiz:'ии для моего бизнеса',
+  w_aime:'ии для меня лично',
+  w_site:'сайт или приложение',
+  w_auto:'сделать мою работу автоматической',
+  w_explain:'я объясню сам',
+  q_explain:'объясните своими словами',
+  ph_explain:'пишите здесь',
+  q_size:'какой у вас бизнес',
+  z1:'только я', z2:'от 2 до 10 человек', z3:'от 11 до 50', z4:'больше 50',
+  q_time:'на что уходит больше всего времени',
+  t1:'ответы на сообщения', t2:'бумаги и документы', t3:'поиск клиентов',
+  t4:'одно и то же каждый день', t5:'что-то другое',
+  q_reach:'как клиенты с вами связываются',
+  r1:'whatsapp или telegram', r2:'почта', r3:'телефон', r4:'соцсети', r5:'никак',
+  q_question:'напишите ваш вопрос',
+  ph_question:'пишите здесь',
+  q_fields:'последний шаг',
+  f_name:'бизнес или ваше имя', f_reg:'регистрационный номер (необязательно)',
+  f_site:'сайт (необязательно)', f_country:'страна', f_email:'ваша почта',
+  e_name:'нужно имя',
+  e_email:'нужна почта чтобы ответить',
+  e_pick:'выберите хотя бы один',
+  e_question:'сначала напишите вопрос',
+  e_net:'не отправилось. попробуйте ещё раз.',
+  th_dark:'тёмная тема', th_light:'светлая тема'
+ },
+ lv:{
+  sub:'būvējam nākotnes garlaicīgo daļu',
+  cta:'pastāstiet ko jums vajag',
+  hint:'daži klikšķi. mēs skatāmies. mēs atbildam.',
+  v1l:'ievads',
+  ch1:'sveiki', ch2:'kas mēs esam', ch3:'ko mēs būvējam', ch4:'kā tas strādā',
+  soon:'drīz', play:'skatīties', pause:'pauze',
+  c1l:'kas mēs esam',
+  c1t:'mēs katru dienu būvējam ar ai. maksājumi. boti. sistēmas kas strādā pašas. jūs runājat ar to kurš tās būvē.',
+  c2l:'godīgā daļa',
+  c2t:'katrs bizness izmantos ai. tie kas sāk agrāk, uzvar. tie kas gaida, atpaliek. tā tas notiek.',
+  c3l:'tāpēc rakstiet',
+  c3t:'zināt ko jums vajag, rakstiet. nezināt ko ai var jums dot, rakstiet. nav laika par to domāt, rakstiet. mēs paskatāmies un atbildam ar reāliem variantiem. pajautāt neko nemaksā.',
+  idle:['garlaicīgi...','joprojām garlaicīgi...','gaidu...','tik klusi...'],
+  open:'o. klients.',
+  notes:['mhm.','klasika.','labi. pierakstīts.'],
+  last:'gandrīz gatavs.',
+  done:'labi. mēs paskatīsimies. ejiet strādāt.',
+  doneq:'sapratu. drīz atbildēsim.',
+  sent:'nosūtīts',
+  again:'sākt no jauna',
+  back:'atpakaļ', next:'tālāk', send:'sūtīt', sending:'sūtu',
+  multi:'var izvēlēties vairākus',
+  q_intent:'kāpēc jūs esat šeit',
+  i_check:'pārbaudīt manu biznesu',
+  i_problem:'man ir problēma',
+  i_unsure:'es nezinu ko man vajag',
+  i_question:'man ir tikai jautājums',
+  q_want:'ko jūs vēlaties',
+  w_aibiz:'ai manam biznesam',
+  w_aime:'ai man personīgi',
+  w_site:'mājaslapu vai aplikāciju',
+  w_auto:'padarīt manu darbu automātisku',
+  w_explain:'es paskaidrošu pats',
+  q_explain:'paskaidrojiet saviem vārdiem',
+  ph_explain:'rakstiet šeit',
+  q_size:'cik liels ir jūsu bizness',
+  z1:'tikai es', z2:'2 līdz 10 cilvēki', z3:'11 līdz 50', z4:'vairāk nekā 50',
+  q_time:'kas aizņem visvairāk laika',
+  t1:'atbildēšana uz ziņām', t2:'papīri un dokumenti', t3:'klientu meklēšana',
+  t4:'viens un tas pats katru dienu', t5:'kaut kas cits',
+  q_reach:'kā klienti ar jums sazinās',
+  r1:'whatsapp vai telegram', r2:'e-pasts', r3:'telefons', r4:'sociālie tīkli', r5:'nekā',
+  q_question:'uzrakstiet savu jautājumu',
+  ph_question:'rakstiet šeit',
+  q_fields:'pēdējais solis',
+  f_name:'bizness vai jūsu vārds', f_reg:'reģistrācijas numurs (nav obligāts)',
+  f_site:'mājaslapa (nav obligāta)', f_country:'valsts', f_email:'jūsu e-pasts',
+  e_name:'mums vajag vārdu',
+  e_email:'mums vajag e-pastu lai atbildētu',
+  e_pick:'izvēlieties vismaz vienu',
+  e_question:'vispirms uzrakstiet jautājumu',
+  e_net:'neizdevās nosūtīt. mēģiniet vēlreiz.',
+  th_dark:'tumšais režīms', th_light:'gaišais režīms'
+ }
+};
+function t(k){ return T[lang][k] !== undefined ? T[lang][k] : T.en[k]; }
+function en(k){ return T.en[k]; }
+
+/* the only requests the page makes at runtime, and only when someone presses
+   send. both get the same readable payload and are fired together; one
+   surviving is a delivered form. the web3forms key is a public write-only
+   submission token and is meant to ship in the page. */
+var W3_URL='https://api.web3forms.com/submit';
+var W3_KEY='b298ab79-7ac7-40d4-ae47-60574e91d152';
+var TG_URL='https://boring-tek-forms.theboringtek.workers.dev';
+
+function boot(){
+var REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var RUN=!REDUCED;
+var fine=matchMedia('(hover: hover) and (pointer: fine)').matches;
+var LATIN=/^[\x20-\x7E]*$/;
+
+var hero=D.querySelector('.hero');
+var tagEl=D.querySelector('.tag');
+var tagSize=D.querySelector('.tag-size');
+var tagTxt=D.querySelector('.tag-txt');
+var tagLive=D.querySelector('.tag-live');
+var mascot=D.querySelector('.mascot');
+var mwrap=D.querySelector('.m-wrap');
+var bubble=D.querySelector('.bubble');
+var pill=D.querySelector('.pill');
+var pillT=D.querySelector('.pill-t');
+var ctaZone=D.querySelector('.cta-zone');
+var cta=D.querySelector('.cta');
+var ctaT=D.querySelector('.cta-t');
+var hintEl=D.querySelector('.hint');
+/* ---------- the video card ----------
+   one entry is one chapter: a key into T for the label, and the file it plays.
+   an entry with no file is not built yet — it renders greyed with a soon tag
+   and does not press. adding a chapter later is one line here and its three
+   strings in T. */
+var CHAPTERS=[
+  {k:'ch1',src:'assets/video/intro.mp4'},
+  {k:'ch2'},
+  {k:'ch3'},
+  {k:'ch4'}
+];
+var pv=D.querySelector('.pv');
+var vid=D.querySelector('.pv-v');
+var playBtn=D.querySelector('.pv-b');
+var chBtns=[];
+(function(){
+  var f=D.createDocumentFragment(),n,c,b,l,g;
+  for(n=0;n<CHAPTERS.length;n++){
+    c=CHAPTERS[n];
+    b=D.createElement('button'); b.type='button'; b.className='ch';
+    l=D.createElement('span'); l.setAttribute('data-k',c.k); b.appendChild(l);
+    if(c.src) b.setAttribute('aria-current', n===0 ? 'true' : 'false');
+    else{
+      b.disabled=true;
+      g=D.createElement('span'); g.className='ch-s'; g.setAttribute('data-k','soon');
+      b.appendChild(g);
+    }
+    f.appendChild(b); chBtns.push(b);
+  }
+  D.querySelector('.chs').appendChild(f);
+})();
+
+var keyed=D.querySelectorAll('[data-k]');
+var cds=D.querySelectorAll('.cd');
+var card=D.querySelector('.card');
+var pad=D.querySelector('.pad');
+var themeBtn=D.querySelector('.theme');
+var metaColor=D.querySelector('meta[name=theme-color]');
+var i;
+
+/* ---------- theme ---------- */
+function setTheme(v){
+  theme=v;
+  R.setAttribute('data-theme',v);
+  R.style.colorScheme=v;
+  metaColor.setAttribute('content', v==='dark' ? '#06070a' : '#ffffff');
+  themeBtn.setAttribute('aria-label', v==='dark' ? t('th_light') : t('th_dark'));
+  try{ localStorage.setItem('bt-theme',v); }catch(e){}
+}
+themeBtn.addEventListener('click',function(){ setTheme(theme==='dark'?'light':'dark'); });
+
+/* ---------- headline decode ----------
+   michroma is proportional, so scrambling raw text would change the string
+   width every frame and wobble the centred line. every glyph gets a fixed cell
+   measured once from the widest glyph in play. */
+var WORD={one:'THE BORING TEK',many:['THE','BORING','TEK']};
+var GLYPHS='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&$*+<>/\\|';
+var DUR=1150, LINES=3;
+var CELLS=WORD.one.length, MAXS=0;
+for(i=0;i<WORD.many.length;i++) if(WORD.many[i].length>MAXS) MAXS=WORD.many[i].length;
+var BLANK=new Array(CELLS+1).join(' ');
+
+var curLines=['','',''], out=['','',''], at=[], fl=[], fc=[];
+var decoding=false, t0=0, beat=0, stacked=false, unitsW=0, unitsS=0;
+var core,mid,wide,sizer;
+
+function metrics(){
+  var cx,set=GLYPHS+WORD.one,w=0,k,n,ch;
+  try{ cx=D.createElement('canvas').getContext('2d'); }catch(e){ cx=null; }
+  if(!cx) return 1;
+  cx.font='400 200px Michroma, ui-monospace, monospace';
+  for(n=0;n<set.length;n++){
+    ch=set.charAt(n);
+    if(ch===' ') continue;
+    k=cx.measureText(ch).width;
+    if(k>w) w=k;
+  }
+  return w ? w/200 : 1;
+}
+
+/* measure the subline as it RENDERS, not as it is written: text-transform makes
+   every glyph wider and canvas measureText knows nothing about css. the .18 is
+   the tracking, one gap per character including the last; .2 is slack. */
+function tagUnits(str,isMono){
+  var cx;
+  try{ cx=D.createElement('canvas').getContext('2d'); }catch(e){ return 0; }
+  if(!cx) return 0;
+  cx.font = isMono
+    ? '400 200px ui-monospace, Consolas, monospace'
+    : '400 200px Michroma, ui-monospace, monospace';
+  return cx.measureText(str.toUpperCase()).width/200 + str.length*(isMono?.14:.18) + .2;
+}
+
+/* the cta carries michroma now, so it gets the subline treatment: measured in
+   the face that will actually render it, and dropped whole to the body face
+   when the string is not plain latin. michroma has no cyrillic and no latvian
+   diacritics, and half a button in one face is worse than all of it in the
+   other. */
+function ctaUnits(str,face){
+  var cx;
+  try{ cx=D.createElement('canvas').getContext('2d'); }catch(e){ return 0; }
+  if(!cx) return 0;
+  cx.font = face==='display' ? '400 200px Michroma, ui-monospace, monospace'
+          : face==='mono'    ? '400 200px ui-monospace, Consolas, monospace'
+          : '400 200px "Space Grotesk", ui-monospace, monospace';
+  return cx.measureText(str.toUpperCase()).width/200 + str.length*.12 + .2;
+}
+function setCta(str){
+  ctaT.textContent=str;
+  var face = (LATIN.test(str) && michromaReady()) ? 'display'
+           : (lang==='ru' ? 'mono' : 'grotesk');
+  cta.classList.toggle('mono',face!=='display');
+  var cu=ctaUnits(str,face);
+  if(cu) cta.style.setProperty('--cu',cu.toFixed(3));
+}
+/* every string in the section below the hero is keyed off the same dictionary
+   as the rest of the page. */
+function paintKeys(){
+  for(var n=0;n<keyed.length;n++) keyed[n].textContent=t(keyed[n].getAttribute('data-k'));
+}
+
+function build(el){
+  var f=D.createDocumentFragment(),s,n;
+  for(n=0;n<CELLS;n++){ s=D.createElement('span'); s.className='c'; f.appendChild(s); }
+  el.textContent='';
+  el.appendChild(f);
+  return el.children;
+}
+function layerOf(sel){
+  var el=hero.querySelector(sel), lns=el.getElementsByClassName('ln');
+  var o={cells:[],prev:[BLANK,BLANK,BLANK]},n;
+  for(n=0;n<LINES;n++) o.cells.push(build(lns[n].getElementsByClassName('t')[0]));
+  return o;
+}
+function paint(cs,str,prev){
+  var n,a,b;
+  for(n=0;n<CELLS;n++){
+    a = n<str.length ? str.charAt(n) : '';
+    b = n<prev.length ? prev.charAt(n) : '';
+    if(a===b) continue;
+    if(a==='') cs[n].style.display='none';
+    else { cs[n].style.display=''; cs[n].textContent=a; }
+  }
+  return str;
+}
+function repaint(o,L){
+  for(var n=0;n<LINES;n++) o.prev[n]=paint(o.cells[n],L[n],o.prev[n]);
+}
+function linesFor(){
+  var L=['','',''],n;
+  if(!stacked) L[0]=WORD.one;
+  else for(n=0;n<WORD.many.length&&n<LINES;n++) L[n]=WORD.many[n];
+  return L;
+}
+/* the easing lives on the reveal schedule, not on progress: dense at the start,
+   gaps widening toward the end so the last glyph lands with the settle beat. */
+function prepare(){
+  fl.length=0; fc.length=0;
+  var li,n,s,order=[],last,k,tmp;
+  for(li=0;li<LINES;li++){
+    s=curLines[li];
+    for(n=0;n<s.length;n++){ fl.push(li); fc.push(s.charAt(n)); }
+  }
+  n=fl.length; last = n>1 ? n-1 : 1;
+  for(k=0;k<n;k++) order.push(k);
+  for(k=n-1;k>0;k--){ tmp=(Math.random()*(k+1))|0; s=order[k]; order[k]=order[tmp]; order[tmp]=s; }
+  at=new Array(n);
+  for(k=0;k<n;k++) at[order[k]]=Math.pow(k/last,1.75)*.88 + Math.random()*.12;
+}
+
+var mqS=matchMedia('(max-width: 639px)');
+function applyMode(){
+  stacked=mqS.matches;
+  hero.className = stacked ? 'hero grid stack' : 'hero grid';
+  hero.style.setProperty('--units',(stacked?unitsS:unitsW).toFixed(3));
+  var p=new Array((stacked?MAXS:CELLS)+1).join('M');
+  repaint(sizer, stacked ? [p,p,p] : [p,'','']);
+  curLines=linesFor();
+  repaint(wide,curLines);
+  repaint(core,curLines);
+  repaint(mid,curLines);
+  if(decoding){ prepare(); t0=0; }
+  if(fine) remeasure();
+}
+
+/* ---------- subline ---------- */
+var TAG='', TN=0, tat=[], typing=false, typed=false, ty0=0, tk=-1;
+/* michroma has to actually be loaded before its metrics mean anything. measure
+   it while the mono fallback is still rendering and --tu comes out short,
+   which sizes the line up rather than down and overflows every narrow screen. */
+function michromaReady(){
+  try{ return !!(D.fonts && D.fonts.check && D.fonts.check('400 1em Michroma')); }
+  catch(e){ return false; }
+}
+function setTag(str,animate){
+  TAG=str; TN=str.length;
+  /* mono when the string cannot be michroma, and also when michroma never
+     arrived — either way the face that renders is the face that gets measured */
+  var isMono=!LATIN.test(str)||!michromaReady();
+  tagEl.classList.toggle('mono',isMono);
+  tagSize.textContent=str;
+  var tu=tagUnits(str,isMono);
+  if(tu) tagEl.style.setProperty('--tu',tu.toFixed(3));
+  if(animate && RUN){
+    var last = TN>1 ? TN-1 : 1, n;
+    tat=new Array(TN);
+    for(n=0;n<TN;n++) tat[n]=Math.pow(n/last,1.06)*.93 + Math.random()*.07;
+    tagTxt.textContent='';
+    /* unhidden empty: the line becomes readable one character at a time and
+       never before. the stylesheet holds it hidden until this runs. */
+    tagLive.style.visibility='visible';
+    typing=true; ty0=0; tk=-1;
+  }else{
+    typing=false;
+    tagTxt.textContent=str;
+    /* a static set only shows the line if the typing is not owed: reduced
+       motion, or a language switch after it has already run. the setTag that
+       start() fires before the decode falls through here and must stay
+       hidden, or the full string sits on screen for the whole decode. */
+    if(!RUN||typed) tagLive.style.visibility='visible';
+  }
+}
+
+/* ---------- mascot ----------
+   travel is capped at EX/EY user units by construction: a unit vector times a
+   factor that never exceeds 1. at full deflection the worst eye corner sits
+   26.2 units from the face centre, inside the r=30 face with 3.8 to spare.
+   never raise the caps without redoing that arithmetic. */
+var mrect=null, EX=6, EY=3.8, REACH=90, EASE=.22;
+var ex=0, ey=0, aimX=0, aimY=0, lastEx=-9, lastEy=-9;
+function remeasure(){ mrect=mascot.getBoundingClientRect(); }
+function eyesWide(on){ mascot.style.setProperty('--wide', on ? '2.2' : '1'); }
+
+/* ---------- blink ----------
+   a human lid: eases shut, holds a beat shut, eases back open, and now and
+   then goes twice. it is driven per frame rather than by a css transition
+   because the shape of the close is the whole point — a linear squash reads
+   mechanical. --blink is only written while a blink is actually running, so
+   the idle cost between blinks is one comparison. */
+var LID=.06, CLOSE=95, HOLD=45, OPEN=140;
+function blinker(el){ return {el:el,at:0,phase:0,t0:0,again:false,last:-1}; }
+function put(b,v){
+  if(v===b.last) return;
+  b.last=v;
+  b.el.style.setProperty('--blink',v.toFixed(3));
+}
+function blinkStep(b,now){
+  if(!b.at) b.at=now+800+Math.random()*1600;
+  if(b.phase===0){
+    if(now<b.at) return;
+    b.phase=1; b.t0=now;
+    b.again=Math.random()<.22;
+  }
+  var d=now-b.t0;
+  if(b.phase===1){                                  /* closing, ease in */
+    if(d>=CLOSE){ b.phase=2; b.t0=now; put(b,LID); }
+    else { var p=d/CLOSE; put(b,1-(1-LID)*p*p); }
+  }else if(b.phase===2){                            /* held shut */
+    if(d>=HOLD){ b.phase=3; b.t0=now; }
+    put(b,LID);
+  }else{                                            /* opening, ease out */
+    if(d>=OPEN){
+      b.phase=0; put(b,1);
+      /* a double blink comes back almost immediately; a single one waits */
+      b.at = b.again ? (b.again=false, now+90+Math.random()*70)
+                     : now+3000+Math.random()*2000;
+    }else{ var q=d/OPEN; put(b,LID+(1-LID)*(1-(1-q)*(1-q))); }
+  }
+}
+
+/* ---------- speech bubble ---------- */
+var bubShow=false, bubHideAt=0, idleAt=0;
+/* the fixed bar's controls, measured, plus a little air. the socials row is
+   absolute and shorter than the toggle when it is in the bar at all, so the
+   toggle is the lowest thing up there - but measure it rather than write the
+   number down again, because the last constant outlived its layout. */
+function barBottom(){
+  return themeBtn.getBoundingClientRect().bottom + 8;
+}
+function say(text,permanent){
+  pillT.textContent=text;
+  bubble.classList.add('on');
+  bubShow=true;
+  bubHideAt = permanent ? -1 : 0;
+  fitPill();
+}
+function hush(){ bubble.classList.remove('on'); bubShow=false; bubHideAt=-1; }
+/* one layout read per shown line, never inside the frame loop. offsetLeft and
+   offsetWidth ignore the pill's entrance transform, which getBoundingClientRect
+   would not. */
+function fitPill(){
+  pill.style.setProperty('--pshift','0px');
+  pill.style.setProperty('--pshiftY','0px');
+  var br=bubble.getBoundingClientRect(), sx=0, sy=0;
+  /* clientWidth, not innerWidth: the page scrolls now that there is a section
+     below the hero, and innerWidth counts the scrollbar the pill cannot use. */
+  var over=(br.left + pill.offsetLeft + pill.offsetWidth) - (R.clientWidth - 12);
+  if(over>0){ sx=-Math.round(over); sy=-26; }
+  /* and never let it climb into the top bar. with the card open the lockup is
+     tall enough that the head sits high and the bubble runs out of sky before
+     it runs out of room to the right — at which point the pill would cover the
+     theme toggle. a live control beats bubble placement, so the pill comes
+     down to meet the dots instead.
+
+     the clamp is anchored to the head, not to the viewport: it applies only
+     while the bubble still reaches below the bar. scrolled past the hero,
+     br.top goes deeply negative, and the unguarded clamp shoved the pill
+     hundreds of px down the page, unglued from the mascot — the one thing a
+     speech bubble may never do. off screen there is no bar to avoid. */
+  var top=br.top + pill.offsetTop + sy, BAR=barBottom();
+  if(top<BAR && br.bottom>BAR) sy+=Math.round(BAR-top);
+  pill.style.setProperty('--pshift',sx+'px');
+  pill.style.setProperty('--pshiftY',sy+'px');
+}
+
+/* ---------- form ---------- */
+var S={intent:'',want:[],explain:'',size:'',time:'',reach:'',question:'',
+        name:'',reg:'',site:'',country:'',email:''};
+var open=false, idx=0, doneState=false, sending=false, netErr=false, noteN=0;
+
+function path(){
+  if(S.intent==='i_question') return 'C';
+  if(S.intent==='i_unsure') return 'B';
+  return 'A';
+}
+function steps(){
+  if(!S.intent) return ['intent'];
+  if(path()==='C') return ['intent','question'];
+  if(path()==='B') return ['intent','time','reach','size','fields'];
+  var a=['intent','want'];
+  if(S.want.indexOf('w_explain')>-1) a.push('explain');
+  return a.concat(['size','fields']);
+}
+/* a class added in the same frame that display:none came off has no "before"
+   style to transition from, and the change lands instantly. one rAF is not
+   enough of a gap; two is. */
+function nextPaint(fn){
+  requestAnimationFrame(function(){ requestAnimationFrame(fn); });
+}
+function el(tag,cls,txt){
+  var n=D.createElement(tag);
+  if(cls) n.className=cls;
+  if(txt!==undefined) n.textContent=txt;
+  return n;
+}
+function chips(opts,multi,key){
+  var box=el('div','chips');
+  for(var n=0;n<opts.length;n++){
+    (function(k,ix){
+      var b=el('button','chip',t(k));
+      b.type='button';
+      b.style.setProperty('--i',ix);
+      b.setAttribute('aria-pressed', (multi ? S[key].indexOf(k)>-1 : S[key]===k) ? 'true':'false');
+      b.addEventListener('click',function(){
+        clearErr();
+        if(multi){
+          var p=S[key].indexOf(k);
+          if(p>-1) S[key].splice(p,1); else S[key].push(k);
+          b.setAttribute('aria-pressed', S[key].indexOf(k)>-1 ? 'true':'false');
+        }else{
+          S[key]=k;
+          var sib=box.getElementsByClassName('chip');
+          for(var q=0;q<sib.length;q++)
+            sib[q].setAttribute('aria-pressed', sib[q]===b ? 'true':'false');
+          setTimeout(advance,240);
+        }
+      });
+      box.appendChild(b);
+    })(opts[n],n);
+  }
+  return box;
+}
+function field(key,labelKey,type){
+  var w=el('div','f'), id='f-'+key;
+  var l=el('label','',t(labelKey));
+  l.setAttribute('for',id);
+  var inp=D.createElement('input');
+  inp.type=type||'text'; inp.id=id; inp.value=S[key];
+  inp.autocomplete = key==='email' ? 'email' : (key==='country' ? 'country-name' : 'off');
+  inp.addEventListener('input',function(){ S[key]=inp.value; });
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ e.preventDefault(); advance(); }
+  });
+  w.appendChild(l); w.appendChild(inp);
+  return w;
+}
+function area(key,phKey){
+  var ta=D.createElement('textarea');
+  ta.value=S[key]; ta.placeholder=t(phKey); ta.rows=4;
+  ta.addEventListener('input',function(){ S[key]=ta.value; });
+  return ta;
+}
+function clearErr(){
+  var e=pad.querySelector('.err');
+  while(e){ e.parentNode.removeChild(e); e=pad.querySelector('.err'); }
+}
+function showErr(key,after){
+  clearErr();
+  var e=el('p','err',t(key));
+  if(after && after.parentNode) after.parentNode.insertBefore(e,after.nextSibling);
+  else pad.querySelector('.step').appendChild(e);
+}
+/* on step one the number of steps is genuinely unknown — it depends on the
+   answer. one lone dot claims "one step total", which is false, so the row
+   renders empty and keeps its height instead. */
+function progress(){
+  var box=el('div','dots'), list=steps(), n, d;
+  if(list.length<2) return box;
+  for(n=0;n<list.length;n++){
+    d=el('span','pdot');
+    if(n<idx) d.className='pdot done';
+    if(n===idx) d.className='pdot now';
+    box.appendChild(d);
+  }
+  return box;
+}
+
+function render(){
+  var list=steps(), key=list[idx], s=el('div','step'), body;
+  pad.textContent='';
+  pad.appendChild(progress());
+
+  if(key==='intent'){
+    s.appendChild(el('p','q',t('q_intent')));
+    s.appendChild(chips(['i_check','i_problem','i_unsure','i_question'],false,'intent'));
+  }else if(key==='want'){
+    s.appendChild(el('p','q',t('q_want')));
+    s.appendChild(el('p','qs',t('multi')));
+    s.appendChild(chips(['w_aibiz','w_aime','w_site','w_auto','w_explain'],true,'want'));
+  }else if(key==='explain'){
+    s.appendChild(el('p','q',t('q_explain')));
+    s.appendChild(area('explain','ph_explain'));
+  }else if(key==='size'){
+    s.appendChild(el('p','q',t('q_size')));
+    s.appendChild(chips(['z1','z2','z3','z4'],false,'size'));
+  }else if(key==='time'){
+    s.appendChild(el('p','q',t('q_time')));
+    s.appendChild(chips(['t1','t2','t3','t4','t5'],false,'time'));
+  }else if(key==='reach'){
+    s.appendChild(el('p','q',t('q_reach')));
+    s.appendChild(chips(['r1','r2','r3','r4','r5'],false,'reach'));
+  }else if(key==='question'){
+    s.appendChild(el('p','q',t('q_question')));
+    s.appendChild(area('question','ph_question'));
+    body=el('div','fields');
+    body.appendChild(field('email','f_email','email'));
+    s.appendChild(body);
+  }else{
+    s.appendChild(el('p','q',t('q_fields')));
+    body=el('div','fields');
+    body.appendChild(field('name','f_name'));
+    body.appendChild(field('reg','f_reg'));
+    body.appendChild(field('site','f_site','url'));
+    body.appendChild(field('country','f_country'));
+    body.appendChild(field('email','f_email','email'));
+    s.appendChild(body);
+  }
+  pad.appendChild(s);
+
+  /* single-pick steps advance themselves, so they carry no forward button */
+  var lastStep = idx===list.length-1;
+  var auto = key==='intent'||key==='size'||key==='time'||key==='reach';
+  var nav=el('div','nav'), b;
+  if(idx>0){
+    b=el('button','btn ghost',t('back'));
+    b.type='button';
+    b.addEventListener('click',back);
+    nav.appendChild(b);
+  }
+  if(!auto){
+    b=el('button', sending ? 'btn busy' : 'btn',
+         sending ? t('sending') : (lastStep ? t('send') : t('next')));
+    b.type='button';
+    if(sending) b.disabled=true;
+    b.addEventListener('click',advance);
+    nav.appendChild(b);
+  }
+  if(nav.children.length) pad.appendChild(nav);
+  if(netErr) pad.appendChild(el('p','err',t('e_net')));
+}
+
+function okMail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); }
+function valid(){
+  var key=steps()[idx];
+  if(key==='want' && !S.want.length){
+    showErr('e_pick', pad.querySelector('.chips')); return false;
+  }
+  if(key==='explain' && !S.explain.trim()){
+    showErr('e_question', pad.querySelector('textarea')); return false;
+  }
+  if(key==='question'){
+    if(!S.question.trim()){ showErr('e_question', pad.querySelector('textarea')); return false; }
+    if(!okMail(S.email)){ showErr('e_email', pad.querySelector('.fields')); return false; }
+  }
+  if(key==='fields'){
+    if(!S.name.trim()){ showErr('e_name', pad.querySelector('.fields')); return false; }
+    if(!okMail(S.email)){ showErr('e_email', pad.querySelector('.fields')); return false; }
+  }
+  return true;
+}
+
+function advance(){
+  if(sending||doneState) return;
+  clearErr();
+  if(!valid()) return;
+  if(idx===steps().length-1){ submit(); return; }
+  idx++; netErr=false;
+  render();
+  if(idx===steps().length-1) say(t('last'));
+  else { say(t('notes')[noteN % t('notes').length]); noteN++; }
+}
+function back(){
+  if(idx===0||sending) return;
+  clearErr();
+  idx--; netErr=false;
+  render();
+}
+
+/* key order is the field order in the web3forms email, so it reads top to
+   bottom the way the visitor answered. language goes last, as a footnote. */
+function payload(){
+  var p={};
+  p.path=en(S.intent);
+  if(path()==='A'){
+    p.what=S.want.map(function(k){ return en(k); }).join(', ');
+    if(S.explain.trim()) p.explained=S.explain.trim();
+    p.business_size=S.size ? en(S.size) : '';
+  }else if(path()==='B'){
+    p.time_sink=S.time ? en(S.time) : '';
+    p.customers_reach=S.reach ? en(S.reach) : '';
+    p.business_size=S.size ? en(S.size) : '';
+  }else{
+    p.question=S.question.trim();
+  }
+  if(path()!=='C'){
+    p.name=S.name.trim();
+    p.registration_number=S.reg.trim();
+    p.website=S.site.trim();
+    p.country=S.country.trim();
+  }
+  p.email=S.email.trim();
+  p.language=lang;
+  return p;
+}
+
+/* a fetch that resolves with a 4xx still counts as fulfilled, so the status
+   check has to throw or allSettled would read a rejection as a delivery. */
+function post(url,body){
+  return fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(!r.ok) throw new Error('rejected');
+    return true;
+  });
+}
+
+function submit(){
+  sending=true; netErr=false; render();
+  var fields=payload();
+  var mail={access_key:W3_KEY, subject:'new form, the boring tek'};
+  for(var k in fields) if(Object.prototype.hasOwnProperty.call(fields,k)) mail[k]=fields[k];
+  /* two independent destinations, fired together. one arriving is enough —
+     the visitor should not retype anything because a mail relay was down. */
+  Promise.allSettled([post(W3_URL,mail), post(TG_URL,fields)]).then(function(rs){
+    sending=false;
+    var landed=false, n;
+    for(n=0;n<rs.length;n++) if(rs[n].status==='fulfilled') landed=true;
+    if(landed) finish();
+    else { netErr=true; render(); }
+  });
+}
+
+function finish(){
+  doneState=true;
+  pad.textContent='';
+  var s=el('div','step'), tick=el('div','tick');
+  tick.innerHTML='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><path d="M15 24.5 21.5 31 33 18"/></svg>';
+  s.appendChild(tick);
+  s.appendChild(el('p','q',t('sent')));
+  pad.appendChild(s);
+  var nav=el('div','nav'), b=el('button','btn ghost',t('again'));
+  b.type='button';
+  b.addEventListener('click',reset);
+  nav.appendChild(b);
+  pad.appendChild(nav);
+  say(path()==='C' ? t('doneq') : t('done'), true);
+}
+
+function openForm(){
+  if(open) return;
+  open=true; idx=0; doneState=false; netErr=false; noteN=0;
+  /* tracking stops while the form is open, so centre the eyes rather than
+     leaving them staring wherever the pointer last was */
+  ex=ey=aimX=aimY=0; lastEx=lastEy=-9;
+  mascot.style.setProperty('--ex','0');
+  mascot.style.setProperty('--ey','0');
+  eyesWide(true);
+  say(t('open'));
+  ctaZone.classList.add('gone');
+  setTimeout(function(){
+    ctaZone.classList.add('off');
+    card.classList.remove('off');
+    render();
+    nextPaint(function(){ card.classList.add('on'); });
+  },260);
+}
+function reset(){
+  open=false; doneState=false; sending=false; netErr=false; idx=0; noteN=0;
+  S.intent=''; S.want=[]; S.explain=''; S.size=''; S.time=''; S.reach='';
+  S.question=''; S.name=''; S.reg=''; S.site=''; S.country=''; S.email='';
+  eyesWide(false);
+  hush();
+  idleAt=0;
+  card.classList.remove('on');
+  setTimeout(function(){
+    card.classList.add('off');
+    pad.textContent='';
+    ctaZone.classList.remove('off');
+    nextPaint(function(){ ctaZone.classList.remove('gone'); });
+  },320);
+}
+
+cta.addEventListener('click',openForm);
+mwrap.addEventListener('click',openForm);
+mwrap.addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openForm(); }
+});
+cta.addEventListener('animationend',function(e){
+  if(e.target===cta) cta.classList.remove('shake');
+});
+
+/* ---------- video ----------
+   no controls bar, no autoplay and nothing muted: the read is most of the copy,
+   so a press means sound. the whole frame is the button, so a second press on
+   the picture pauses it. nothing here is fetched until that first press. */
+function playSign(on){
+  pv.classList.toggle('on',on);
+  playBtn.setAttribute('aria-label', on ? t('pause') : t('play'));
+}
+playBtn.addEventListener('click',function(){
+  if(vid.paused){ vid.muted=false; vid.play(); } else vid.pause();
+});
+vid.addEventListener('play',function(){ playSign(true); });
+vid.addEventListener('pause',function(){ playSign(false); });
+/* load() rather than currentTime=0: only load() puts the poster back, and by
+   the time a clip has ended the file is in the cache, so it is not a request. */
+vid.addEventListener('ended',function(){ playSign(false); vid.load(); });
+
+var chAt=0;
+function goChapter(n){
+  var c=CHAPTERS[n],m;
+  if(!c||!c.src) return;
+  if(n!==chAt){
+    chAt=n;
+    for(m=0;m<chBtns.length;m++)
+      if(CHAPTERS[m].src) chBtns[m].setAttribute('aria-current', m===n ? 'true' : 'false');
+    vid.src=c.src; vid.load();
+  }
+  vid.muted=false; vid.play();
+}
+(function(){
+  for(var n=0;n<chBtns.length;n++)
+    (function(b,k){ b.addEventListener('click',function(){ goChapter(k); }); })(chBtns[n],n);
+})();
+
+/* ---------- one shared rAF loop: blink, eyes, bubble, glitch, decode ---------- */
+var glitchAt=0;
+var heroBlink=blinker(mascot);
+function frame(now){
+  if(!t0) t0=now;
+
+  /* the blink runs in every mode, reduced motion included. it is the one
+     deliberate exception on this site — small, local, non-vestibular — and it
+     is what keeps the mascot from reading as a sticker. only the eye tracking
+     stops. */
+  blinkStep(heroBlink,now);
+
+  if(fine && RUN && !open){
+    ex+=(aimX-ex)*EASE; ey+=(aimY-ey)*EASE;
+    if(Math.abs(ex-lastEx)>.02||Math.abs(ey-lastEy)>.02){
+      lastEx=ex; lastEy=ey;
+      mascot.style.setProperty('--ex',ex.toFixed(2));
+      mascot.style.setProperty('--ey',ey.toFixed(2));
+    }
+  }
+
+  if(!RUN){ requestAnimationFrame(frame); return; }
+
+  /* bubble: a timed line fades out, then idle chatter while the form is shut */
+  if(bubShow && bubHideAt===0) bubHideAt=now+2800;
+  else if(bubShow && bubHideAt>0 && now>=bubHideAt){ hush(); idleAt=0; }
+  if(!open && !bubShow){
+    if(!idleAt) idleAt=now+8000+Math.random()*6000;
+    else if(now>=idleAt){
+      var lines=t('idle');
+      say(lines[(Math.random()*lines.length)|0]);
+    }
+  }
+
+  /* the button asks for attention: a short shake with an rgb split on the text */
+  if(!open){
+    if(!glitchAt) glitchAt=now+3000+Math.random()*2000;
+    else if(now>=glitchAt){
+      cta.classList.add('shake');
+      glitchAt=now+3000+Math.random()*2000;
+    }
+  }
+
+  if(beat>0){
+    beat*=.90;
+    if(beat<.004) beat=0;
+    hero.style.setProperty('--beat',beat.toFixed(4));
+  }
+
+  if(typing){
+    if(!ty0) ty0=now;
+    var tp=Math.min((now-ty0)/1150,1), k=0;
+    while(k<TN && tp>=tat[k]) k++;
+    if(k!==tk){ tk=k; tagTxt.textContent=TAG.slice(0,k); }
+    if(tp>=1){ tagTxt.textContent=TAG; typing=false; typed=true; }
+  }
+
+  if(decoding){
+    var p=Math.min((now-t0)/DUR,1), n, c;
+    out[0]=out[1]=out[2]='';
+    for(n=0;n<fl.length;n++){
+      c=fc[n];
+      out[fl[n]] += (c===' '||p>=at[n]) ? c : GLYPHS.charAt((Math.random()*GLYPHS.length)|0);
+    }
+    repaint(core,out);
+    repaint(mid,out);
+    if(p>=1){
+      repaint(core,curLines);
+      repaint(mid,curLines);
+      decoding=false;
+      beat=1;
+      setTag(t('sub'),true);
+      hero.querySelector('.l-mid').style.willChange='auto';
+      hero.querySelector('.l-wide').style.willChange='auto';
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+/* ---------- start ---------- */
+setTheme(theme);
+setCta(t('cta'));
+hintEl.textContent=t('hint');
+playSign(false);
+paintKeys();
+tagSize.textContent=tagTxt.textContent=t('sub');
+tagEl.classList.toggle('mono',!LATIN.test(t('sub')));
+
+/* the cards below the hero arrive once, on scroll. the class is added here and
+   not in the stylesheet, so a page with no script still shows them — and under
+   reduced motion it is never added at all: they are simply already there. */
+if(RUN && window.IntersectionObserver){
+  var io=new IntersectionObserver(function(es){
+    for(var n=0;n<es.length;n++) if(es[n].isIntersecting){
+      es[n].target.classList.add('in');
+      io.unobserve(es[n].target);
+    }
+  },{rootMargin:'0px 0px -10% 0px'});
+  for(i=0;i<cds.length;i++){ cds[i].classList.add('reveal'); io.observe(cds[i]); }
+}
+
+var started=false;
+function start(){
+  if(started) return;
+  started=true;
+
+  var cw=metrics();
+  unitsW=CELLS*cw+.4;
+  unitsS=MAXS*cw+.4;
+  hero.style.setProperty('--cw',cw.toFixed(4)+'em');
+  core=layerOf('.l-core'); mid=layerOf('.l-mid');
+  wide=layerOf('.l-wide'); sizer=layerOf('.sizer');
+  decoding=RUN;
+  applyMode();
+  setTag(t('sub'), false);
+  setCta(t('cta'));
+
+  if(mqS.addEventListener) mqS.addEventListener('change',applyMode);
+  addEventListener('resize',function(){
+    if(fine) remeasure();
+    if(bubShow) fitPill();
+  },{passive:true});
+
+  /* the card growing changes the lockup's height, which moves the mascot — and
+     the bubble with it. say() runs before the unfold, so a fit computed then is
+     stale by the time the card has opened and the head has risen. re-fit
+     whenever the card resizes, but only while a line is actually showing. */
+  if(window.ResizeObserver){
+    new ResizeObserver(function(){ if(bubShow) fitPill(); }).observe(card);
+  }
+  if(fine){
+    addEventListener('scroll',remeasure,{passive:true});
+    R.addEventListener('pointerleave',function(){ aimX=0; aimY=0; },{passive:true});
+    addEventListener('pointermove',function(e){
+      if(!mrect||open) return;
+      var ecx=mrect.left+mrect.width/2, ecy=mrect.top+mrect.height/2;
+      var edx=e.clientX-ecx, edy=e.clientY-ecy;
+      var ed=Math.hypot(edx,edy)||1;
+      var g=Math.min(1,ed/REACH);
+      aimX=(edx/ed)*g*EX;
+      aimY=(edy/ed)*g*EY;
+    },{passive:true});
+  }
+  requestAnimationFrame(frame);
+}
+
+/* wait for both faces in every mode, reduced motion included. the markup
+   already holds the real text, so nothing is hidden while we wait — and
+   starting early only means measuring michroma before it exists. */
+if(D.fonts && D.fonts.load) Promise.all([
+  D.fonts.load('400 1em Michroma'),
+  D.fonts.load('400 1em "Space Grotesk"'),
+  D.fonts.load('500 1em "Space Grotesk"')
+]).then(start,start);
+else start();
+setTimeout(start,2500);
+}
+
+if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',boot);
+else boot();
+})();
+</script>
 </head>
-<body><a href="/">theboringtek.com</a></body>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></symbol>
+  <symbol id="i-youtube" viewBox="0 0 24 24"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M16.5 7.5v.01"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"/></symbol>
+</defs></svg>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <nav class="langs" aria-label="language">
+    <a class="lang" href="/">EN</a>
+    <a class="lang" href="/ru/">RU</a>
+    <a class="lang" href="/lv/" aria-current="true">LV</a>
+  </nav>
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+  <button class="theme" type="button" aria-label="tumšais režīms">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg>
+  </button>
+</header>
+
+<main class="wrap">
+ <div class="lockup">
+
+  <div class="m-zone">
+    <div class="m-wrap" role="button" tabindex="0" aria-label="pastāstiet ko jums vajag">
+      <svg class="mascot" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
+        <circle class="m-face" cx="32" cy="32" r="30"/>
+        <g class="m-eyes">
+          <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
+          <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
+        </g>
+      </svg>
+    </div>
+    <div class="bubble" aria-hidden="true">
+      <span class="dot d1"></span>
+      <span class="dot d2"></span>
+      <span class="dot d3"></span>
+      <span class="pill"><span class="pill-t"></span></span>
+    </div>
+  </div>
+
+  <h1 class="hero">
+    <span class="sr">the boring tek</span>
+    <span class="sizer" aria-hidden="true"><span class="ln"><span class="t">THE BORING TEK</span></span><span class="ln"><span class="t"></span></span><span class="ln"><span class="t"></span></span></span>
+    <span class="layer l-wide" aria-hidden="true"><span class="ln"><span class="t">THE BORING TEK</span></span><span class="ln"><span class="t"></span></span><span class="ln"><span class="t"></span></span></span>
+    <span class="layer l-mid" aria-hidden="true"><span class="ln"><span class="t">THE BORING TEK</span></span><span class="ln"><span class="t"></span></span><span class="ln"><span class="t"></span></span></span>
+    <span class="layer l-core" aria-hidden="true"><span class="ln"><span class="t">THE BORING TEK</span></span><span class="ln"><span class="t"></span></span><span class="ln"><span class="t"></span></span></span>
+  </h1>
+
+  <p class="tag">
+    <span class="tag-size" aria-hidden="true">būvējam nākotnes garlaicīgo daļu</span>
+    <span class="tag-live"><span class="tag-txt">būvējam nākotnes garlaicīgo daļu</span></span>
+  </p>
+
+  <div class="cta-zone">
+    <button class="cta" type="button"><span class="cta-t">pastāstiet ko jums vajag</span></button>
+    <p class="hint">daži klikšķi. mēs skatāmies. mēs atbildam.</p>
+  </div>
+
+  <section class="card off" aria-label="contact">
+    <div class="cardin"><div class="pad"></div></div>
+  </section>
+
+ </div>
+</main>
+
+<section class="show" aria-label="intro">
+  <div class="thread" aria-hidden="true"></div>
+  <article class="cd">
+    <p class="cl" data-k="v1l">ievads</p>
+    <div class="pv">
+      <div class="pv-f">
+        <video class="pv-v" preload="none" playsinline
+               poster="/assets/video/intro-poster.jpg" src="/assets/video/intro.mp4"></video>
+        <button class="pv-b" type="button" aria-label="skatīties">
+          <span class="pv-s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.2v13.6L19 12z"/></svg></span>
+        </button>
+      </div>
+      <div class="chs"></div>
+    </div>
+  </article>
+</section>
+
+<section class="below" aria-label="about">
+  <div class="thread" aria-hidden="true"></div>
+  <div class="cards">
+    <article class="cd">
+      <p class="cl" data-k="c1l">kas mēs esam</p>
+      <p class="ct" data-k="c1t">mēs katru dienu būvējam ar ai. maksājumi. boti. sistēmas kas strādā pašas. jūs runājat ar to kurš tās būvē.</p>
+    </article>
+    <article class="cd">
+      <p class="cl" data-k="c2l">godīgā daļa</p>
+      <p class="ct" data-k="c2t">katrs bizness izmantos ai. tie kas sāk agrāk, uzvar. tie kas gaida, atpaliek. tā tas notiek.</p>
+    </article>
+    <article class="cd wide">
+      <p class="cl" data-k="c3l">tāpēc rakstiet</p>
+      <p class="ct" data-k="c3t">zināt ko jums vajag, rakstiet. nezināt ko ai var jums dot, rakstiet. nav laika par to domāt, rakstiet. mēs paskatāmies un atbildam ar reāliem variantiem. pajautāt neko nemaksā.</p>
+    </article>
+  </div>
+</section>
+
+<footer class="foot">
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+  <p class="foot-t">theboringtek 2026</p>
+</footer>
+</body>
 </html>
