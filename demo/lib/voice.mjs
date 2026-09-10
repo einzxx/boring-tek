@@ -42,7 +42,8 @@
 
      node lib/voice.mjs test                 a sample line, and its duration
      node lib/voice.mjs test "some copy"     the same for your own line
-     node lib/voice.mjs voices               the four we picked, and why
+     node lib/voice.mjs voices               the five we picked, and why
+     node lib/voice.mjs say "copy" --voice=mascot    the mascot's own clone
      node lib/voice.mjs say "copy" --voice=dry --format=wav --name=post6
      node lib/voice.mjs say "copy" --out=out/voice-test.mp3
      node lib/voice.mjs say "copy" --stability=0.7 --speed=0.9
@@ -69,8 +70,9 @@ const DEMO = path.resolve(HERE, '..');
 export const VOICE_OUT = path.join(DEMO, 'out', 'voice');
 
 /* ---------- demo/.env ----------
-   two keys live here and neither is ever printed: ELEVENLABS_API_KEY and
-   ELEVENLABS_VOICE_ID. the file is covered by the root `.gitignore`'s bare
+   three keys live here and none of them is ever printed: ELEVENLABS_API_KEY,
+   ELEVENLABS_VOICE_ID and ELEVENLABS_VOICE_ID_MASCOT. the file is covered by
+   the root `.gitignore`'s bare
    `.env` line, which matches at any depth, so demo/.env needs no rule of its
    own — `git check-ignore -v demo/.env` says so.
 
@@ -96,28 +98,48 @@ function readEnv() {
 }
 const ENV = readEnv();
 const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || ENV.ELEVENLABS_API_KEY || '';
-const ELEVEN_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || ENV.ELEVENLABS_VOICE_ID || '';
+/* ---------- two voice ids, one key ----------
+   the narrator is the agency talking and has been the only elevenlabs voice
+   since 2026-09-08. the second one is **the mascot**, and it is a second id
+   rather than a second register because it is a different person: the whole
+   argument `uk` and `aside` are held off elevenlabs on is that one cloned voice
+   is one person, and the answer to "we want two people" is a second clone, not
+   a stability number.
+
+   a voice slot names which id it wants with `elevenId`, and a slot whose id is
+   missing from demo/.env falls back to edge exactly the way a missing key
+   already did. so a fresh clone with no .env still renders every clip. */
+const ELEVEN_IDS = {
+  narrator: process.env.ELEVENLABS_VOICE_ID || ENV.ELEVENLABS_VOICE_ID || '',
+  mascot: process.env.ELEVENLABS_VOICE_ID_MASCOT || ENV.ELEVENLABS_VOICE_ID_MASCOT || '',
+};
 
 /* the key must not reach a terminal, a sidecar or a stack trace. an http error
    body can echo a header back, so every string this file prints or throws on
-   the elevenlabs path goes through here first. */
+   the elevenlabs path goes through here first. **every id is redacted, not
+   just the narrator's** — a second id added without a line here is a second id
+   that leaks. */
 const redact = s => {
   let t = String(s);
   if (ELEVEN_KEY) t = t.split(ELEVEN_KEY).join('<elevenlabs key>');
-  if (ELEVEN_VOICE_ID) t = t.split(ELEVEN_VOICE_ID).join('<voice id>');
+  for (const [k, v] of Object.entries(ELEVEN_IDS)) {
+    if (v) t = t.split(v).join('<' + k + ' voice id>');
+  }
   return t;
 };
 
-/* both halves or neither. a .env with a key and no voice id is a half filled
-   file rather than a decision to use edge, so it says so once and then stops:
-   speak() is called per line and a warning per line is noise. */
-let warnedHalf = false;
-export function elevenReady() {
-  if (ELEVEN_KEY && ELEVEN_VOICE_ID) return true;
-  if ((ELEVEN_KEY || ELEVEN_VOICE_ID) && !warnedHalf) {
-    warnedHalf = true;
-    console.error('  demo/.env carries only half of elevenlabs — '
-      + (ELEVEN_KEY ? 'ELEVENLABS_VOICE_ID' : 'ELEVENLABS_API_KEY')
+/* both halves or neither, per slot. a .env with a key and no voice id is a half
+   filled file rather than a decision to use edge, so it says so once per slot
+   and then stops: speak() is called per line and a warning per line is noise. */
+const warnedHalf = new Set();
+export function elevenReady(which = 'narrator') {
+  const id = ELEVEN_IDS[which] || '';
+  if (ELEVEN_KEY && id) return true;
+  if ((ELEVEN_KEY || id) && !warnedHalf.has(which)) {
+    warnedHalf.add(which);
+    console.error('  demo/.env carries only half of elevenlabs\' ' + which + ' — '
+      + (ELEVEN_KEY ? (which === 'mascot' ? 'ELEVENLABS_VOICE_ID_MASCOT' : 'ELEVENLABS_VOICE_ID')
+        : 'ELEVENLABS_API_KEY')
       + ' is empty. reading with edge instead.');
   }
   return false;
@@ -212,11 +234,45 @@ export const VOICES = {
       + 'agency speaking: for a line a person in the film is thinking. light '
       + 'and warm, never played for the joke.',
   },
+  /* the fifth, added 2026-09-10, and it is the only slot in the table with a
+     voice id of its own. the four above are one narrator and one comedy aside;
+     this one is **the mascot**, the character in the films rather than anybody
+     reading over them, and post26 is the first clip where the two speak in the
+     same file: the narrator reads what is typed into the chat box and this one
+     reads what is in the bubble over his crown.
+
+     it is a second clone rather than a second register, and that is the whole
+     of it. `dry` is `calm` held flatter because they are one person in two
+     moods; a mascot is not the narrator in a mood. `elevenId: 'mascot'` is how
+     it asks for the other id, and if that id is not in demo/.env the slot falls
+     back to edge like every other half configured slot.
+
+     stability is low for the table, at 0.35: he is a character with two words
+     to say and he is allowed to perform them a little, which is the one place
+     in this house where "expressive" is not the wrong answer. style stays 0 —
+     the brand is still deadpan and style is the knob that adds a reading of a
+     line rather than a delivery of it. rate is 0% because the bubble is on
+     screen for its own fixed life and a read that is a shade fast or a shade
+     slow inside it is a read that does not match the picture.
+
+     `character: true` keeps it out of `NARRATORS` for the same reason
+     `comedy: true` keeps `aside` out: nothing may pick it to narrate a clip. */
+  mascot: {
+    id: 'en-US-AndrewMultilingualNeural', rate: '0%', pitch: '+4Hz', character: true,
+    elevenId: 'mascot',
+    eleven: { stability: 0.35, similarity: 0.8, style: 0, speakerBoost: true },
+    note: 'the mascot, and the only slot with a voice id of its own. he is a '
+      + 'character in the film rather than somebody reading over it, so he is a '
+      + 'second clone rather than the narrator in a different mood.',
+  },
 };
 export const DEFAULT_VOICE = 'calm';
-/* the narrators, which is every voice that is not marked as comedy. a clip
-   picking a read voice picks from this. */
-export const NARRATORS = Object.keys(VOICES).filter(k => !VOICES[k].comedy);
+/* which elevenlabs id a slot wants. everything without one is the narrator,
+   which is every slot that existed before the mascot. */
+export const elevenIdOf = key => (VOICES[key] && VOICES[key].elevenId) || 'narrator';
+/* the narrators, which is every voice that is not marked as somebody else — the
+   comedy aside and the mascot. a clip picking a read voice picks from this. */
+export const NARRATORS = Object.keys(VOICES).filter(k => !VOICES[k].comedy && !VOICES[k].character);
 
 /* ---------- the drm token ----------
    windows file time is seconds since 1601 in 100ns ticks. rounded down to five
@@ -692,7 +748,7 @@ function elevenStyleFor(voice, opts, rate) {
 
 /* one request. json in, json out, and the audio arrives base64 inside it
    because the timestamps have to arrive with it. */
-async function elevenOnce(text, style, previous, allowSpeed = true) {
+async function elevenOnce(text, style, previous, voiceId, allowSpeed = true) {
   const settings = {
     stability: style.stability,
     similarity_boost: style.similarity,
@@ -705,7 +761,7 @@ async function elevenOnce(text, style, previous, allowSpeed = true) {
 
   let res;
   try {
-    res = await fetch(ELEVEN_URL + '/' + encodeURIComponent(ELEVEN_VOICE_ID)
+    res = await fetch(ELEVEN_URL + '/' + encodeURIComponent(voiceId)
       + '/with-timestamps?output_format=' + ELEVEN_FORMAT, {
       method: 'POST',
       headers: {
@@ -727,7 +783,7 @@ async function elevenOnce(text, style, previous, allowSpeed = true) {
        path's one retry against a 403. */
     if (res.status === 422 && allowSpeed && settings.speed !== undefined) {
       console.error('  elevenlabs refused voice_settings.speed — retrying without it');
-      return elevenOnce(text, style, previous, false);
+      return elevenOnce(text, style, previous, voiceId, false);
     }
     const err = new Error('elevenlabs answered ' + res.status + ' ' + res.statusText
       + (detail ? ': ' + detail : ''));
@@ -789,23 +845,28 @@ function wordsFromAlignment(a) {
    `dry` are two registers of one narrator, which is exactly what stability and
    speed express, so they are the same elevenlabs voice read two ways.
 
-   an explicit `{ provider: 'elevenlabs' }` on one of those two slots falls back
-   rather than throwing, so `node lib/voice.mjs test` can still walk all four. */
+   **`mascot` is the third answer to the same question**, and it is the right
+   one: it is a different person, so it gets a different voice id. that is why
+   it is on elevenlabs and the other two are not — the objection was never the
+   provider, it was cloning one throat and asking it to be two people.
+
+   an explicit `{ provider: 'elevenlabs' }` on an edge only slot falls back
+   rather than throwing, so `node lib/voice.mjs test` can still walk them all. */
 export const DEFAULT_PROVIDER = 'elevenlabs';
-let warnedSlot = false;
+const warnedSlot = new Set();
 function pickProvider(key, opts) {
   const want = opts.provider || DEFAULT_PROVIDER;
   if (want === 'edge') return 'edge';
   const voice = VOICES[key];
   if (!voice.eleven) {
-    if (opts.provider && !warnedSlot) {
-      warnedSlot = true;
+    if (opts.provider && !warnedSlot.has(key)) {
+      warnedSlot.add(key);
       console.error('  "' + key + '" is an edge only slot — ' + voice.whyEdge
         + '. reading it with edge.');
     }
     return 'edge';
   }
-  return elevenReady() ? 'eleven' : 'edge';
+  return elevenReady(elevenIdOf(key)) ? 'eleven' : 'edge';
 }
 
 /* ---------- the one call worth knowing ----------
@@ -828,11 +889,12 @@ export async function speak(text, opts = {}) {
   let words = [];
   let carried = 0;                       /* seconds of audio already written */
 
+  const elevenId = ELEVEN_IDS[elevenIdOf(key)];
   if (provider === 'eleven') {
     const style = elevenStyleFor(voice, opts, v.rate);
     let previous = '';
     for (const chunk of chunks) {
-      const got = await elevenOnce(chunk, style, previous);
+      const got = await elevenOnce(chunk, style, previous, elevenId);
       /* the alignment restarts at zero every request, so a chunk after the
          first is pushed along by the audio the chunks before it really
          produced. constant bitrate, so that is exact arithmetic on the byte
@@ -917,7 +979,11 @@ export async function speak(text, opts = {}) {
   if (!words.length) words = estimate(text, seconds);
   const result = {
     text: String(text).replace(/\s+/g, ' ').trim(),
-    voice: key, voiceId: provider === 'eleven' ? ELEVEN_VOICE_ID : v.id,
+    voice: key, voiceId: provider === 'eleven' ? elevenId : v.id,
+    /* which of the two clones read it, by name rather than by id. the id is a
+       secret and the sidecar is written into demo/out/, so the name is the only
+       half of that fact a later session may look at. */
+    elevenId: provider === 'eleven' ? elevenIdOf(key) : null,
     /* which engine read it, and under what. a line rendered before the .env
        existed and a line rendered after it are different takes, and the sidecar
        is the only place that says which one a file is. */
@@ -952,16 +1018,19 @@ async function cli(argv) {
   const cmd = rest[0] || 'test';
 
   if (cmd === 'voices') {
-    const live = elevenReady();
-    console.log('the boring tek — the four voices we picked\n');
+    const live = elevenReady('narrator');
+    console.log('the boring tek — the ' + Object.keys(VOICES).length + ' voices we picked\n');
     console.log('  narrator: ' + (live ? 'elevenlabs, ' + ELEVEN_MODEL
-      : 'edge — demo/.env has no elevenlabs key, so edge is reading everything') + '\n');
+      : 'edge — demo/.env has no elevenlabs key, so edge is reading everything'));
+    console.log('  mascot:   ' + (elevenReady('mascot') ? 'elevenlabs, its own voice id'
+      : 'edge — demo/.env has no ELEVENLABS_VOICE_ID_MASCOT') + '\n');
     for (const [k, v] of Object.entries(VOICES)) {
-      const engine = v.eleven && live ? 'elevenlabs' : 'edge';
-      console.log('  ' + k.padEnd(6) + engine.padEnd(12)
+      const engine = v.eleven && elevenReady(elevenIdOf(k)) ? 'elevenlabs' : 'edge';
+      console.log('  ' + k.padEnd(7) + engine.padEnd(12)
         + (engine === 'edge' ? v.id + '   rate ' + v.rate + ', pitch ' + v.pitch
           : 'stability ' + v.eleven.stability + ', speed ' + rateToSpeed(v.rate))
-        + (k === DEFAULT_VOICE ? '   [default]' : '') + (v.comedy ? '   [comedy]' : ''));
+        + (k === DEFAULT_VOICE ? '   [default]' : '') + (v.comedy ? '   [comedy]' : '')
+        + (v.character ? '   [character]' : ''));
       console.log('         ' + v.note);
       if (!v.eleven) console.log('         edge only: ' + v.whyEdge + '.');
       console.log('');
