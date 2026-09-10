@@ -157,6 +157,16 @@ All headless Chrome, all tooling. The renderers first:
   was made and none should be.** It is kept because three things in it outlive
   it: the `cheer` pose, the three svg assets and the spin. Out to
   `demo/out/post23-dark-1080x1920.mp4`. See The twenty third clip.
+- **`post25.mjs`** renders a 7.87 second clip, vertical, dark only, **no voice
+  and no music, and it is the first one that walks post15's bug along a curve
+  and the first that drives the mascot's turn as a function of where something
+  else is.** He sits still in the middle of a black frame; a bug comes in over
+  the top edge dead centre, curves left around him, down the left lane and along
+  the floor to a stop underneath him while he watches it come; he drops on it
+  and eats it in silence; a green cloud comes out from under him and drifts
+  away; he says `good one` and blinks; the fault takes it and puts the wordmark
+  up. **The bug and the eating are post15's, unchanged.** Out to
+  `demo/out/post25-dark-1080x1920.mp4`. See The twenty fifth clip.
 - **`og.mjs`** renders `assets/og.png`, the 1200x630 card a shared link shows.
   See The og card at the bottom.
 
@@ -6553,6 +6563,245 @@ mix.
   times its average under `OUTC` and he is still moving as he enters the frame.
 - **`demo/out/verify-post24/` is empty** until the next render: `--check` cleared
   it on its way in before that was fixed.
+
+## The twenty fifth clip — bug 2, a curve around him, and a gaze that follows
+
+```
+cd demo
+DEMO_FPS=12 node post25.mjs      # the preview pass
+node post25.mjs --blur           # the 60fps final, shutter open
+node post25.mjs --blur=12        # say the subframe count rather than solving for it
+node post25.mjs --check          # build the page, run the guards, render nothing
+node post25.mjs --encode-only    # re-encode from kept frames
+```
+
+**7.87 seconds, dark only, one output path, overwritten every run:**
+`demo/out/post25-dark-1080x1920.mp4`. 60fps, **472 frames blended from 2832
+subframes at 6 a frame**, 695 KB. Thirteen beat stills land in
+`demo/out/verify-post25/` and the page's own measurements in
+`demo/out/post25-built.json`.
+
+He sits still in the middle of a black frame. A bug comes in over the top edge
+dead centre, curves left around him, down the left side and along the floor to a
+stop underneath him, and he watches it the whole way. He drops on it and eats
+it. He holds still with his eyes a little wide. Then a green cloud comes out
+from under him and drifts away, he says `good one`, and blinks. The fault takes
+it and puts the wordmark up.
+
+**No voice and no music.** 21 cues: eighteen footsteps read off the walk, the
+sputter, the bubble's pop and the glitch.
+
+### The bug and the eating are post15's, and that is most of the file
+
+The same top view, the same table, the same alternating tripod driven by
+distance rather than by time, the same seeded antenna schedule. The rise, the
+lunge, the contact, the three chews and the bob are post15's numbers on post15's
+one transform on `#m-zone`, which `lib/mascot.mjs` writes nothing to. What this
+clip added is a curve under the walk, a gaze on top of the face, and a green
+cloud. Nothing in `lib/` was touched.
+
+### A curved lane costs post15's gait nothing, and that is not luck
+
+post15's whole no sliding argument is that a foot is planted at a position
+worked out from **the distance the body had covered** when the stance began.
+That argument does not care whether the lane is straight: it cares that a plant
+is a function of arclength and of nothing else.
+
+So the lane became a curve and `legFoot` is the only thing that changed. It asks
+`PATH` where the body was at arclength `xs` and which way it was pointing, and
+puts the foot down in that frame:
+
+```js
+function planted(xs, rest) {
+  return place(pathPoint(xs), rest.x + BUG_INK.sweep, rest.y);
+}
+```
+
+Everything above it — the tripod, the duty cycle, the swing, the pull, the
+knees, the antennae, the sway, the yaw and the settle — is post15's, untouched,
+and the guard still measures **0 px** of planted foot movement over the whole
+walk, by construction rather than by tuning.
+
+post15's wobble rides on top as a **normal offset** rather than as a y: the same
+two sines on wavelengths that do not divide each other, read against the curve
+instead of against a horizontal, with their slope added to the heading exactly
+as post15 added it.
+
+### The path is six segments and every number in it is derived
+
+Three straight and three arcs, tangent at every join, so the heading is
+continuous and the bug turns rather than snaps. Arcs rather than a bezier for
+one reason: **a bezier's parameter is not its arclength**, and every line in the
+gait is a function of how far the body has actually travelled. An arc's is,
+exactly.
+
+```
+straight    178.7 px   in over the top edge, dead centre
+arc r265    208.2 px   the wide arc left, around him
+arc r265    208.2 px   and back to vertical, out on the left lane
+straight     20.0 px   down the left side
+arc r84     131.9 px   the quarter turn onto the floor
+straight     71.3 px   along the floor, to a stop under him
+```
+
+The left lane is the safe line plus the bug's own half width plus a margin; the
+two turn radii fall out of how far left that is, because an S of two equal arcs
+of `turn` degrees moves `2R(1 - cos turn)` sideways and nothing else about it is
+free; the floor run is what is left between the bottom arc and his centre line;
+the top of the S is worked back from the floor. Change his size or the bug's
+scale and all six move.
+
+The heading guard walks the path a page px at a time and fails on any jump over
+1.2 degrees, which is a radius of 57 against a tightest arc of 84.
+
+### The first cut of this walked the bug through his head, and the arithmetic is why
+
+The brief before this one had the bug come straight down the middle. He stands
+in the middle of the frame and the bug's stop is underneath him, so anything
+entering over the top edge has to cross the band his head is in.
+
+**A sidestep does not fit.** The bug is level with his head for **214 page px**
+of travel and needs its full lateral clearance for every one of them, which
+leaves **32 px** to move 115 px sideways in — a seventy degree turn inside three
+quarters of a stride. That is a skid, not a walk, and the gait is driven by
+forward distance so the feet would slide through it.
+
+The cut that shipped before this one let it pass **behind** him instead, at z 2
+against his z 4. It worked and it was not good: two rear legs over his crown and
+two antennae under his chin read as him sprouting rather than as a bug behind
+him. The curve is what replaced it, and it goes **around** him — fully drawn on
+every frame, closest approach **26.32 px**, which is the lane's own clearance at
+the stop. The closest it ever gets is where it is designed to stop.
+
+### The clearance test is his ellipse against the bug's points, not two boxes
+
+The first version of the guard compared `headRect`'s box to the bug's box and
+reported 5.55 px on the bottom arc. That is not where the ink is: the bug is
+diagonal there and its box is 108 px wide for 60 px of ink, and **two boxes
+cannot see that the corner between a diagonal bug and a round head is empty on
+both sides.** The head is a circle at the shipped radius, so the exact test is
+the one the bite already uses, and the same `headInk` answers both.
+
+### The turn is written per frame, and `bias: 0` is what makes that safe
+
+The module's turn is a channel on a mark: a clip says "look this far that way"
+and the state machine gets it there over an entrance. That is right for a beat
+and it cannot express this one, which is a gaze that is a **function of where
+the bug is** on every frame of a two second walk.
+
+So the turn is written in the clip — with the module's own numbers rather than a
+lookalike. `TURN.shift`, `TURN.wrap`, `TURN.farX`, `TURN.farY` and `TURN.tilt`
+are its five moves; `EYE_CX` and `HEAD` are its geometry; the clamp is its own
+`room`, measured at the narrowest point of the eye's vertical span rather than
+at its centre; and the guard is `headSD`, which is the function the markup clips
+to, so a turn this file wrote and a silhouette the module drew cannot disagree
+about where the head ends.
+
+**`bias: 0` is the thing that makes it composable.** No mark sets a turn and
+`neutral` does not author one, so the module writes nought to the channel on
+every frame and there is nothing here for the clip to fight.
+
+**It is capped at 0.60, and a rendered frame is why.** Mapped straight, the
+bug's own excursion put the channel at **0.90**, and a frame at 1.25s came back
+as one dash and a smudge: at that much turn the far eye is foreshortened to 0.58
+of its width, wrapped most of the way round the head and sitting on the module's
+own clamp. That is what the channel is for at a full turn and it is not what a
+face watching something looks like. 0.60 is post15's `curious` turn to within a
+hundredth, and that one reads.
+
+He lets go over 0.14s on the anticipation, so he is level by the time he moves:
+a head still tracking while it winds up to lunge is two moves at once and
+neither of them reads.
+
+### A bite depth wants the middle of its range, not the first that works plus a margin
+
+post15 walks the lunge down until the head's drawn ellipse contains every corner
+of the bug's drawn ink, then adds five px. That is right when the admissible
+range is wide. It is not wide here.
+
+The bug arrives along the floor **heading right**, so its ink sits about 14 px
+to the right of where `fwd` leans his head, and that offset eats most of the
+horizontal room. What is left vertically is a **3.5 px window** — and a flat 5
+px margin walks straight past the far side of it, which the containment guard
+caught at 1.022. So the derivation scans the whole admissible range and takes
+its middle, and reports the margin it actually has:
+
+```
+the lunge works from 114.5 to 117px and it goes 115.75, 1.25px either side,
+containment 0.9886
+```
+
+**And the squash on the frame the bug goes is not the peak.** The contact's own
+curve is a sine over 0.10s and the switch lands wherever the render's grid puts
+it inside that — at twelve, a fifteenth of the way in. The first cut solved
+against the peak, which is a wider ellipse than the one that is actually drawn.
+The derivation now reads the squash off the same sine `biteZone` draws, at the
+same instant.
+
+### The eating is silent, and it is post15's decision for post15's reason
+
+The bite and the three chews had `crunch` on them — one recipe at two settings,
+the bite lower, grittier and longer — and they are out. Einz is putting his own
+sound on that stretch and a synthesised placeholder under a real one is two
+takes of the same beat fighting each other. **The recipe stays in
+`lib/sfx.mjs`.** Between the last footstep and the sputter there is nothing at
+all, and a guard walks the cue list and fails on anything that lands in there.
+
+### The cloud is an effect and it is the only colour
+
+Six soft radial fields in index.html's own dark green, seeded, blurred, screen
+blended, growing and drifting up and out and gone inside a second. No pictogram
+and no drawn puff: a radial gradient is a puff and an outline would be a
+pictogram. A guard walks the film at the render's own step and fails if any
+green is up outside its own window.
+
+### The shutter is open, and it found something about the shutter
+
+`--blur` with no number solves the subframe count off the file's own fastest
+move against post20's 6.3 css px a sample. It landed on **6 subframes, 5.57 css
+px a sample, 11.1 device px — finer than the reference** — and **the lunge still
+bands into six countable copies** at 2.58..2.66. The head is six ghost arcs
+rather than one smear and the two eye slabs are combed into six stacked bars.
+
+The reason is the eyes. **post20's constant is the wrong criterion when the
+moving ink has a small feature in it**: an eye slab is 8.8 css px tall, so
+consecutive copies of it barely overlap and the average reads as a comb. The
+step has to be under the **smallest moving feature**, not under a number tuned
+against a large soft shape. An 8.8 px eye wants about 4 px, which is 9
+subframes; `--blur=12` is inside the file's own `SUB_MAX`.
+
+This is not local to post25. Every clip in `demo/` that opens its shutter over a
+face inherits it.
+
+### Outstanding
+
+- **The lunge bands at 6 subframes.** Above. `--blur=12` halves the step to 2.8
+  css px. It is the one thing here worth a re-render.
+- **The gait is 6.5 frames a cycle at sixty, against post15's 8.1, and the open
+  shutter is what made it visible.** The curve is 818 page px where a straight
+  lane was 659 and the walk kept its 2.20s, so there are 18.5 strides where
+  there were 14.9. The bug's fastest ink moves **26.8 css px a frame at sixty**,
+  so its legs are a haze for the whole walk and the read only comes back on the
+  frame it stops, at 2.25s. The 12fps preview hid this behind strobing. Half a
+  second more walk — `WALK.t1` 2.20 to 2.70 — puts it back exactly and nothing
+  else would have to move; it shifts the whole clock, which is why it was left.
+- **`fastestMove()` only measures him, not the bug.** It walks the mascot's card
+  and zone and nothing else, so the subframe count is solved against 33.4 when
+  the second fastest thing on the frame is 26.8. It is right here because the
+  head wins, but by luck rather than by construction.
+- **The empty frame at 7.00 is five frames at sixty**, carrying nothing but the
+  centre bloom. post24's outstanding note in a second file, and the same one
+  number: `END.wmFor` to 0.
+- **The eyes-wider beat does not read** — 1.20x on a 4.4 unit slab is about five
+  device px.
+- **The tiny shake does not read** — 1.5 css px at 11 Hz, and the shutter smears
+  what little there was.
+- **The cloud sits beside him rather than under him and is dim** on the first
+  and last third of its life. Its origin is the card's bottom, which is above
+  his ink's bottom because the plate is inset.
+- **-22.4 LUFS**, down from -16.7. A consequence of the silence that was asked
+  for: pulling the four crunches took the only mid-level events out of the
+  middle two seconds. It will move again when the real sound goes on.
 
 ## The og card
 

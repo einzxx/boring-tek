@@ -6,11 +6,12 @@ names in here either.
 
 ## Status
 
-- **2026-09-10: post25 exists as a 12fps preview and is waiting on Einz's sound
-  and a 60fps final.** `demo/post25.mjs` → `demo/out/post25-dark-1080x1920.mp4`,
-  **7.83s, 1080x1920, 12fps, dark only, 335 KB**, shutter closed. Guards all
-  green. Review in `demo/out/review-post25-dark-1080x1920.md`. Committed, **not
-  pushed**.
+- **2026-09-10: post25 is rendered as a 60fps final and is the current clip.**
+  `demo/post25.mjs` → `demo/out/post25-dark-1080x1920.mp4`, **7.87s, 1080x1920,
+  60fps, dark only, 695 KB**, 472 frames blended from **2832 subframes at 6 a
+  frame**, shutter open. Guards all green. Review in
+  `demo/out/review-post25-dark-1080x1920.md`. **It is waiting on Einz's own
+  sound for the eating, and on one re-render at a finer shutter — see below.**
 
   The clip: he sits still in the middle of a black frame; a bug comes in over
   the top edge dead centre, curves left around him, down the left lane and along
@@ -52,23 +53,43 @@ names in here either.
     not the peak**, so the derivation reads it off the same sine `biteZone`
     draws rather than assuming full squash.
 
-  **Open on it, and none of it is a blocker:**
-  - **The gait is 6.5 frames a cycle at sixty, against post15's 8.1.** The curve
-    is 818 page px where a straight lane was 659 and the walk kept its 2.20s, so
-    there are 18.5 strides where there were 14.9. Half a second more walk puts
-    it back exactly and nothing else would move; it was left alone because it
-    shifts the whole clock.
+  **And a fourth thing the 60fps final settled, which is about the shutter
+  rather than about this clip:**
+  - **post20's 6.3 css px a sample is the wrong criterion when the moving ink
+    has a small feature in it.** The file solved 6 subframes off its own fastest
+    move and landed at **5.57 css px a sample — finer than the reference — and
+    the lunge still bands into six countable copies** at 2.58..2.66. The reason
+    is the eyes: an eye slab is **8.8 css px tall**, so consecutive copies of it
+    barely overlap and the average is a comb rather than a blur. **The step has
+    to be under the smallest moving feature, not under a constant tuned against
+    a large soft shape.** An 8.8 px eye wants about 4 px, which is 9 subframes.
+    Every clip in `demo/` that opens its shutter over a face inherits this.
+
+  **Open on it, and only the first is worth a re-render:**
+  - **The lunge bands at 6 subframes.** Above. `--blur=12` is inside the file's
+    own `SUB_MAX` and halves the step to 2.8 css px. About eleven minutes.
+  - **The gait is 6.5 frames a cycle at sixty, against post15's 8.1, and the
+    open shutter is what made it visible.** The curve is 818 page px where a
+    straight lane was 659 and the walk kept its 2.20s, so there are 18.5 strides
+    where there were 14.9. The bug's fastest ink moves **26.8 css px a frame at
+    sixty**, so its legs are a haze for the whole walk and the read only comes
+    back on the frame it stops. The 12fps preview hid this behind strobing.
+    Half a second more walk puts it back exactly and nothing else would move; it
+    was left alone because it shifts the whole clock.
+  - **`fastestMove()` only measures him, not the bug.** It walks the mascot's
+    card and zone and nothing else, so the subframe count is solved against 33.4
+    when the second fastest thing on the frame is 26.8. It is right here because
+    the head wins, but by luck rather than by construction.
+  - **The empty frame at 7.00 is five frames at sixty**, carrying nothing but
+    the centre bloom. Same one number as post24's outstanding note: `END.wmFor`
+    to 0.
   - **The eyes-wider beat and the tiny shake do not read** — 1.20x on a 4.4 unit
     slab is about five device px, and 1.5 css px at 11 Hz is under a frame.
   - **The cloud sits beside him rather than under him and is dim** on the first
     and last third of its life.
-  - **There is one empty frame at 7.00** between the cut and the wordmark.
   - **The mix is -22.4 LUFS**, down from -16.7, because pulling the crunches
     took the only mid-level events out of the middle two seconds. It will move
     again when Einz's sound goes on that stretch.
-  - **The final wants `--blur`.** The lunge is 33.4 css px on its fastest frame
-    at sixty against a closed-shutter ceiling of 42; the file solves the
-    subframe count itself.
 
 - **2026-09-09: post24 is rendered as a 60fps final and is the previous clip.**
   `demo/post24.mjs` → `demo/out/post24-dark-1080x1920.mp4`, **12.82s, 1080x1920,
