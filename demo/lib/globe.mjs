@@ -69,6 +69,71 @@ export const GLOBE_DEFAULTS = {
     max: 5, minZ: 0.35, seed: 20260908, label: 'ai',
     font: { family: 'Manrope', weight: 700, size: 12 },
     ink: '255,255,255', maxLum: 12, clear: 3,
+    /* ---------- where a ping is allowed to be born, as a window ----------
+       the rule has always been the **rendered colour under the point**, and on
+       the globe this file was written for the ground is white and the sea is
+       black, so "dark" and "the sea" were the same sentence and one ceiling
+       said both.
+
+       invert the ink — dark continents on a light ball — and they come apart:
+       the ground is still the dark half but it is no longer black, and the
+       ceiling that meant "sea" now means "land". so the test is a band rather
+       than a maximum, and a caller that wants the white half asks for the top
+       of the range instead of the bottom.
+
+       `null` is the default and it reads `[0, maxLum]`, which is the ceiling
+       this file always had, so nothing that does not ask for a window can tell
+       this exists. */
+    lum: null,
+    /* ---------- and the geometry, as a second opinion ----------
+       the colour rule reads the picture, which is its whole strength: it cannot
+       disagree with what ships. it is also the only test, and a picture can be
+       right about a colour and wrong about a place — an antialiased coastline,
+       a lake drawn in the land's own ink, a limb angle that pulls a shallow sea
+       into the window.
+
+       with this on, a candidate is also tested **against the land polygons
+       themselves**, by ray casting in lon/lat against the same geojson the mask
+       is built from, under the same even-odd rule the mask is filled with, so a
+       hole in the data is a hole in both. the two tests share no code and no
+       intermediate: one reads a rendered byte and the other reads a coordinate.
+       a point has to pass both.
+
+       off by default, so a caller that does not ask for it renders exactly what
+       it always did. */
+    inLand: false,
+  },
+  /* ---------- the mirror ball, off unless a caller asks ----------
+     the same sphere with the land swapped for tiles. it is here rather than in
+     a second file for the reason the globe itself is here: a disco ball is an
+     orthographic sphere with a limb on it and a coverage-antialiased rim, and
+     that is every line above this one. what changes is one branch in the
+     subsample loop — the land mask and the graticule become a row/column
+     lookup and a grout line — and nothing else in the file moves.
+
+     `on: false` is the promise. with it off the draw loop takes the branch it
+     always took, so an existing caller renders the same pixels it rendered
+     before; the only difference is a few unread constants in the emitted
+     script.
+
+     the rows are bands of latitude and the columns are counted per row off
+     cos(lat), which is what keeps a tile square all the way to the pole and is
+     why a real ball's top rows are wide. the grout is the graticule's own band
+     maths at this row's own two steps, so it is TILES.gap across on the screen
+     wherever it falls and fades out where the tiles get too dense to draw —
+     which is the limb, and a blurred edge is what a mirror ball's limb does. */
+  tiles: {
+    on: false,
+    rows: 22,                   /* bands of latitude, pole to pole */
+    gap: 1.4,                   /* device px of grout between two tiles */
+    curve: 1.6,                 /* how the random runs from base to top */
+    base: [138, 142, 148],      /* the dullest mirror */
+    top: [242, 244, 247],       /* the brightest ordinary one */
+    hot: 0.07,                  /* the share that catch the light outright */
+    hotInk: [255, 255, 255],
+    grout: [9, 10, 13],
+    fadeLo: 2.5, fadeHi: 6,
+    seed: 20260910,
   },
 };
 
@@ -78,6 +143,7 @@ const merge = (o = {}) => ({
   ink: { ...GLOBE_DEFAULTS.ink, ...(o.ink || {}) },
   grid: { ...GLOBE_DEFAULTS.grid, ...(o.grid || {}) },
   ping: { ...GLOBE_DEFAULTS.ping, ...(o.ping || {}), font: { ...GLOBE_DEFAULTS.ping.font, ...((o.ping || {}).font || {}) } },
+  tiles: { ...GLOBE_DEFAULTS.tiles, ...(o.tiles || {}) },
 });
 
 /* the one external request the globe needs, and it is the house's own: Manrope,
@@ -103,14 +169,25 @@ export function globeCss(opts = {}) {
 /* the land data rides inline in a json script tag rather than being fetched: it
    is 138KB, and a fetch under a paused virtual time policy is one more thing
    that can hang a render on frame one. */
-export function globeMarkup(geojson) {
+/* ---------- two globes on one page ----------
+   `ns` suffixes every id this markup owns and the global the script hangs off,
+   so a clip can carry a second instance with different ink. it is ids only: the
+   css is the zone's geometry and the glow's blurs, both of which are the same
+   for two globes at the same place and the same size, so `globeCss` is emitted
+   once and shared rather than duplicated under a second selector.
+
+   the default is no suffix, which is the markup this file always wrote. */
+const nsOf = o => (o && o.ns ? '-' + o.ns : '');
+
+export function globeMarkup(geojson, opts = {}) {
+  const S = nsOf(opts);
   return `<div class="g-zone">
-    <canvas class="g-glow g-glow-wide" id="g-wide"></canvas>
-    <canvas class="g-glow g-glow-mid" id="g-mid"></canvas>
-    <canvas id="g-sharp"></canvas>
-    <canvas id="g-ping"></canvas>
+    <canvas class="g-glow g-glow-wide" id="g-wide${S}"></canvas>
+    <canvas class="g-glow g-glow-mid" id="g-mid${S}"></canvas>
+    <canvas id="g-sharp${S}"></canvas>
+    <canvas id="g-ping${S}"></canvas>
   </div>
-<script type="application/json" id="land">${geojson.replace(/</g, '\\u003c')}<\/script>`;
+<script type="application/json" id="land${S}">${geojson.replace(/</g, '\\u003c')}<\/script>`;
 }
 
 export function globeScript(opts = {}) {
@@ -118,7 +195,8 @@ export function globeScript(opts = {}) {
   /* the body below is globe-test.mjs's, moved rather than rewritten, so the
      names it interpolates are bound here exactly as they were there. */
   const GLOBE = { d: o.d }, DSF = o.dsf, SS = o.ss, MASK = o.mask;
-  const LIMB = o.limb, GRID = o.grid, PING = o.ping, INK = o.ink;
+  const S = nsOf(o);
+  const LIMB = o.limb, GRID = o.grid, PING = o.ping, INK = o.ink, TILES = o.tiles;
   const TILT = o.tilt, SPIN0 = o.spin0, TURN_RATE = o.rate, SECONDS = o.seconds;
   return `
 (function(){
@@ -267,13 +345,13 @@ export function globeScript(opts = {}) {
     return ((a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy) / 255;
   }
 
-  const fc = JSON.parse(document.getElementById('land').textContent);
+  const fc = JSON.parse(document.getElementById('land${S}').textContent);
   const mask = buildMask(fc);
   const P = project();
 
-  const sharp = document.getElementById('g-sharp');
-  const mid = document.getElementById('g-mid');
-  const wide = document.getElementById('g-wide');
+  const sharp = document.getElementById('g-sharp${S}');
+  const mid = document.getElementById('g-mid${S}');
+  const wide = document.getElementById('g-wide${S}');
   for (const c of [sharp, mid, wide]){ c.width = N; c.height = N; }
   const gs = sharp.getContext('2d');
   const gm = mid.getContext('2d');
@@ -305,11 +383,75 @@ export function globeScript(opts = {}) {
   const LAND = [${INK.land}], OCEAN = [${INK.ocean}];
   const GRID = ${JSON.stringify(GRID)};
 
+  /* ---------- the mirror ball ----------
+     one lookup a subsample, and it writes into three outer variables rather
+     than returning an array: a 460px disc at four subsamples a pixel asks this
+     about eight hundred thousand times a frame, and eight hundred thousand
+     three-element arrays is the whole cost of the picture. (no backticks in
+     this comment on purpose: it lives inside a template literal.) */
+  const TILES = ${JSON.stringify(TILES)};
+  const ROW_DEG = 180 / TILES.rows;
+  let TI_R = 0, TI_G = 0, TI_B = 0;
+
+  /* the same lcg the pings and lib/mascot.mjs's idle use, hashed on the pair
+     rather than walked, so a tile's brightness is a fact about that tile and
+     not about the order the loop happened to reach it in. */
+  function tileRnd(row, col){
+    let h = (Math.imul(row, 374761393) + Math.imul(col, 668265263) + TILES.seed) >>> 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+
+  /* the graticule's own band, at a step handed in rather than read off GRID,
+     because a tile's two steps are different from each other and the column one
+     changes with the row. */
+  function grout(d, g, stepDeg){
+    if (!(g > 0)) return 0;
+    const spacing = stepDeg / g;
+    if (spacing <= TILES.fadeLo) return 0;
+    const cov = Math.max(0, Math.min(1, TILES.gap / 2 + 0.5 - Math.abs(d) / g));
+    if (cov <= 0) return 0;
+    const fade = Math.min(1, (spacing - TILES.fadeLo) / (TILES.fadeHi - TILES.fadeLo));
+    return cov * fade;
+  }
+
+  function tileInk(lon, lat, gl, gt){
+    let row = Math.floor((lat + 90) / ROW_DEG);
+    if (row < 0) row = 0;
+    if (row > TILES.rows - 1) row = TILES.rows - 1;
+    const latC = -90 + (row + 0.5) * ROW_DEG;
+    /* cos(lat) many columns, so a tile is as wide as it is tall wherever it
+       sits. the floor of four keeps the two polar rows from collapsing to one
+       tile with no grout in it at all. */
+    const cols = Math.max(4, Math.round(360 * Math.cos(latC * Math.PI / 180) / ROW_DEG));
+    const colDeg = 360 / cols;
+    const x = lon + 180;
+    let col = Math.floor(x / colDeg) % cols;
+    if (col < 0) col += cols;
+    const u = tileRnd(row, col);
+    if (u > 1 - TILES.hot){
+      TI_R = TILES.hotInk[0]; TI_G = TILES.hotInk[1]; TI_B = TILES.hotInk[2];
+    } else {
+      const k = Math.pow(u / (1 - TILES.hot), TILES.curve);
+      TI_R = TILES.base[0] + (TILES.top[0] - TILES.base[0]) * k;
+      TI_G = TILES.base[1] + (TILES.top[1] - TILES.base[1]) * k;
+      TI_B = TILES.base[2] + (TILES.top[2] - TILES.base[2]) * k;
+    }
+    const dLat = lat + 90 - Math.round((lat + 90) / ROW_DEG) * ROW_DEG;
+    const dLon = x - Math.round(x / colDeg) * colDeg;
+    const a = Math.max(grout(dLat, gt, ROW_DEG), grout(dLon, gl, colDeg));
+    if (a > 0){
+      TI_R += (TILES.grout[0] - TI_R) * a;
+      TI_G += (TILES.grout[1] - TI_G) * a;
+      TI_B += (TILES.grout[2] - TI_B) * a;
+    }
+  }
+
   function draw(spinDeg){
     const d = imgSharp.data, S = P.S, n = SS * SS;
     for (let j = 0; j < N; j++){
       for (let i = 0; i < N; i++){
-        let cov = 0, land = 0, shade = 0, grid = 0;
+        let cov = 0, land = 0, shade = 0, grid = 0, tr = 0, tg = 0, tb = 0;
         for (let sj = 0; sj < SS; sj++){
           const row = (j * SS + sj) * S + i * SS;
           for (let si = 0; si < SS; si++){
@@ -318,12 +460,17 @@ export function globeScript(opts = {}) {
             cov++;
             let lon = P.lam[k] - spinDeg;
             lon = lon - 360 * Math.floor((lon + 180) / 360);
+            if (TILES.on){
+              tileInk(lon, P.lat[k], P.gLon[k], P.gLat[k]);
+              tr += TI_R; tg += TI_G; tb += TI_B;
+            } else {
             const ls = sample(mask, (lon + 180) / 360 * MW, (90 - P.lat[k]) / 180 * MH);
             land += ls;
             /* masked to the white areas by multiplying by the land coverage of
                this very subsample, so the grid stops at a coastline with the
                same antialiased edge the coastline itself has. */
             if (GRID.on && ls > 0) grid += ls * line(lon, P.lat[k], P.gLon[k], P.gLat[k]);
+            }
             /* the limb, computed on the subsample so it is smooth across the
                pixel like everything else here. */
             const x = ((i * SS + si + 0.5) / SS - R) / R;
@@ -336,9 +483,16 @@ export function globeScript(opts = {}) {
         const k = (j * N + i) * 4;
         if (!cov){ d[k + 3] = 0; continue; }
         const L = land / cov, sh = shade / cov;
-        let r = OCEAN[0] + (LAND[0] - OCEAN[0]) * L;
-        let g = OCEAN[1] + (LAND[1] - OCEAN[1]) * L;
-        let b = OCEAN[2] + (LAND[2] - OCEAN[2]) * L;
+        let r, g, b;
+        if (TILES.on){
+          /* the grout is already in these three, for the same reason the
+             graticule below goes on before the limb: a mirror at the edge of
+             the ball dims with the ball, grout and all. */
+          r = tr / cov; g = tg / cov; b = tb / cov;
+        } else {
+        r = OCEAN[0] + (LAND[0] - OCEAN[0]) * L;
+        g = OCEAN[1] + (LAND[1] - OCEAN[1]) * L;
+        b = OCEAN[2] + (LAND[2] - OCEAN[2]) * L;
         /* the grid goes on before the limb shading, not after, so a line at the
            edge of the sphere dims with the ground it is drawn on. a graticule
            composited over the top would stay at full strength into the dark
@@ -349,6 +503,7 @@ export function globeScript(opts = {}) {
           r += (GRID.ink[0] - r) * a;
           g += (GRID.ink[1] - g) * a;
           b += (GRID.ink[2] - b) * a;
+        }
         }
         r *= sh; g *= sh; b *= sh;
         d[k] = r; d[k + 1] = g; d[k + 2] = b;
@@ -368,7 +523,7 @@ export function globeScript(opts = {}) {
     return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
   }
 
-  const ping = document.getElementById('g-ping');
+  const ping = document.getElementById('g-ping${S}');
   ping.width = N; ping.height = N;
   const gp = ping.getContext('2d');
   const DEG = Math.PI / 180;
@@ -390,12 +545,70 @@ export function globeScript(opts = {}) {
      screenshot. alpha under 250 means the point is off the disc or on its
      antialiased rim, and neither is inside the globe. (no backticks in this
      comment on purpose: it lives inside a template literal.) */
+  var LUM = PING.lum || [0, PING.maxLum];
+
+  /* ---------- the land polygons, flattened once ----------
+     one entry per polygon, its rings as flat coordinate pairs and its own
+     lon/lat box in front of them. the box is the whole of why this is fast
+     enough to sit inside a spawn loop: 127 features and about ten thousand
+     points, and a candidate is tested against the two or three polygons whose
+     box it is even inside. */
+  var LAND_POLYS = (function(){
+    var out = [];
+    for (var i = 0; i < fc.features.length; i++){
+      var geom = fc.features[i].geometry;
+      var polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+      for (var p = 0; p < polys.length; p++){
+        var rings = [], box = [180, 90, -180, -90];
+        for (var r = 0; r < polys[p].length; r++){
+          var ring = polys[p][r], pts = new Float64Array(ring.length * 2);
+          for (var k = 0; k < ring.length; k++){
+            var x = ring[k][0], y = ring[k][1];
+            pts[k * 2] = x; pts[k * 2 + 1] = y;
+            if (x < box[0]) box[0] = x;
+            if (y < box[1]) box[1] = y;
+            if (x > box[2]) box[2] = x;
+            if (y > box[3]) box[3] = y;
+          }
+          rings.push(pts);
+        }
+        out.push({ rings: rings, box: box });
+      }
+    }
+    return out;
+  })();
+
+  /* ray casting, and the crossings are counted across **every ring of a
+     polygon together** rather than per ring. that is even-odd, which is the
+     rule buildMask fills with, so the one hole in this file is a hole to both
+     tests and an island inside a lake would be land to both. natural earth
+     splits its rings at the antimeridian, so nothing here wraps and a
+     horizontal ray needs no special case. */
+  function inLand(lon, lat){
+    for (var i = 0; i < LAND_POLYS.length; i++){
+      var P2 = LAND_POLYS[i], b = P2.box;
+      if (lon < b[0] || lon > b[2] || lat < b[1] || lat > b[3]) continue;
+      var cross = 0;
+      for (var r = 0; r < P2.rings.length; r++){
+        var pts = P2.rings[r], n = pts.length / 2;
+        for (var a = 0, c = n - 1; a < n; c = a++){
+          var yi = pts[a * 2 + 1], yj = pts[c * 2 + 1];
+          if ((yi > lat) === (yj > lat)) continue;
+          var xi = pts[a * 2], xj = pts[c * 2];
+          if (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) cross++;
+        }
+      }
+      if (cross % 2 === 1) return true;
+    }
+    return false;
+  }
   function darkHere(x, y){
     const xi = Math.round(x), yi = Math.round(y);
     if (xi < 0 || yi < 0 || xi >= N || yi >= N) return false;
     const d = imgSharp.data, k = (yi * N + xi) * 4;
     if (d[k + 3] < 250) return false;
-    return (d[k] * 0.299 + d[k + 1] * 0.587 + d[k + 2] * 0.114) <= PING.maxLum;
+    const y2 = d[k] * 0.299 + d[k + 1] * 0.587 + d[k + 2] * 0.114;
+    return y2 >= LUM[0] && y2 <= LUM[1];
   }
 
   /* a place to be born: area correct, **facing the camera**, and **black on the
@@ -499,7 +712,7 @@ export function globeScript(opts = {}) {
     return drawn;
   }
 
-  window.__globe = {
+  window.__globe${o.ns ? '_' + o.ns : ''} = {
     ready: true,
     n: N,
     pings: sched.length,
@@ -510,6 +723,9 @@ export function globeScript(opts = {}) {
        check that shares no code with the thing it is checking. */
     schedule: sched,
     seen(){ return seen.size; },
+    /* the geometry test, handed out so a run can re-check its own schedule from
+       outside this page with the points it was given. */
+    inLand: inLand,
     apply(t, spin){ draw(spin); return drawPings(t, spin); },
     /* what got built, for the run's own log. a render that reports nothing
        cannot be argued with afterwards. */
