@@ -105,6 +105,24 @@ for (const l of LANGS) {
   if (SEO[l].desc.length >= 155) throw new Error(`SEO.${l}.desc is ${SEO[l].desc.length} signs, needs under 155`);
 }
 
+/* the same document is served from /, /ru/ and /lv/, so a document-relative url
+   resolves against whichever folder the visitor is in and 404s from two of the
+   three. this is the rule that is easy to break months later, in a line of JS
+   rather than in the markup, and impossible to notice from the english page -
+   which is exactly what happened to CHAPTERS on the day this was written. */
+{
+  const rel = [];
+  for (const m of src.matchAll(/(?:src|href|poster)\s*[=:]\s*["']([^"'/][^"']*)["']/g)) {
+    const u = m[1];
+    if (/^(https?:|data:|mailto:|tel:|#)/.test(u)) continue;
+    rel.push(u);
+  }
+  if (rel.length) {
+    throw new Error('document-relative url(s) in index.html, which 404 from /ru/ and /lv/:\n  '
+      + rel.join('\n  ') + '\nmake them root-relative (a leading /).');
+  }
+}
+
 /* english is written by hand in index.html and by this file for the other two.
    assert they are the same sentence, so changing one without the other stops
    the build instead of shipping two different english pages. */

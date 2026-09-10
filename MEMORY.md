@@ -6,6 +6,87 @@ names in here either.
 
 ## Status
 
+- **2026-09-10, SESSION CLOSE. The site is three language pages, the video
+  card is live, and the chapter pills are final.** Everything below this line
+  from today is **pushed to `main`**, which is the deploy. Four things are open
+  and they are named at the bottom of this entry.
+
+  **Where the site stands, in one place:**
+  - **Three documents, one per language.** `/` english, `/ru/` russian, `/lv/`
+    latvian. `index.html` is still the only file anything is written in;
+    `ru/` and `lv/` are generated from it by `node tools/build-langs.mjs`,
+    which also writes `sitemap.xml`. **Run it after any change to
+    `index.html` and commit all three together**; `--check` exits non-zero
+    when they are stale. The language is the address and nothing else: no
+    browser sniffing, no saved choice, no repaint on load. The switch is three
+    links.
+  - **Per language:** `lang`, `title`, `description`, `canonical`, `og:url`,
+    `og:locale`, `og:title`, `og:description`. `hreflang` en / ru / lv /
+    x-default, absolute, identical on all three. Trailing slashes everywhere.
+  - **The video card is live** and is the first binary the page ever fetched:
+    `assets/video/intro.mp4` (2302 KB, 1920x1080, 60fps, 12.01s, music and
+    burned-in subtitles) behind `assets/video/intro-poster.jpg` (24 KB). The
+    poster is the only same-origin request at load; the mp4 arrives on the
+    press and not before.
+  - **The chapter pills are final.** The active one is the same pill as its
+    neighbours, lifted rather than coloured in: `--pill-on` fill, `--line`
+    border, `--fg` label, **no accent, no glow, no dot**. A pill with a file
+    lifts its fill and takes a `--muted` border on hover; a `soon` pill does
+    not move and keeps the default cursor. Four fills, two per rest state, one
+    pair per theme.
+  - **The external budget is untouched by all of it:** one Google Fonts
+    stylesheet and its two woff2, from every one of the three addresses, and
+    nothing else off this origin.
+
+  **One bug found at session close and fixed before the push.** `CHAPTERS` in
+  the script still carried `src:'assets/video/intro.mp4'` — document-relative,
+  so from `/ru/` it resolves to `/ru/assets/video/intro.mp4` and 404s. It was
+  **latent**: `goChapter` only assigns `vid.src` when the chapter actually
+  changes, and there is one playable chapter, so nothing could reach it yet. It
+  would have broken on the day part two shipped, in russian and latvian only.
+  The markup's own `src` and `poster` were made root-relative when the language
+  pages were built; this one was in a line of JS and was missed. **There is now
+  a guard in `tools/build-langs.mjs`** that throws on any document-relative
+  `src`, `href` or `poster` in `index.html`, proved to fire on the bad value
+  and pass on the good one. The lesson is the general one: the english page
+  cannot show you this class of bug, because from `/` a relative path and a
+  root-relative path resolve to the same file.
+
+  **The open list. Four things, none of them blocking:**
+  1. **The dark poster.** `intro-poster.jpg` is cut from the light half of the
+     clip, so in dark mode the card holds a bright 2:1 white slab, and it stays
+     white for the first 4.7 seconds of playback because that is when the film's
+     own theme flips. It is honest and it is the loudest thing on a dark page.
+     The fix is **a second poster cut from the dark half, swapped by the theme
+     toggle**, for about another 24 KB and one more tracked file. **Do not**
+     "fix" it by tinting, dimming or overlaying the poster.
+  2. **Part two of the site video.** Three of the four chapters are `soon` —
+     `ch2` who we are, `ch3` what we build, `ch4` how it works — and only
+     `ch1` hello has a file. Adding one is **one line in `CHAPTERS` with its
+     `src` and its label in `T.en`, `T.ru` and `T.lv`**, nothing else; if it
+     needs a markup change the list has been bypassed and that is the bug. The
+     `src` must start with `/`, and the build now enforces that.
+  3. **The hand sheet.** `demo/assets/hands/clap-left.svg` and
+     `clap-right.svg` are on disk and **untracked**, and nothing uses them. They
+     came out of the clap that was built for the site intro and cut whole;
+     `lib/mascot.mjs` is byte-identical with it removed. They are drawings
+     rather than output, which is why they were not deleted, and
+     `.gitignore` already negates `demo/assets/hands/` so they are commitable
+     the moment something wants them. Decide: track them with the rest of the
+     sheet, or delete them.
+  4. **The post25 lunge re-render.** `demo/post25.mjs` solved 6 subframes off
+     its own fastest move and landed at 5.57 css px a sample — finer than the
+     reference — and **the lunge still bands into six countable copies** at
+     2.58..2.66, because an eye slab is 8.8 css px tall and consecutive copies
+     barely overlap. `--blur=12` is inside the file's own `SUB_MAX` and halves
+     the step to 2.8 css px. **About eleven minutes.** The clip is also still
+     waiting on Einz's own sound for the eating.
+
+  **Also still open, from the entries below:** a pre-push hook so the three
+  language files cannot be committed apart, the og image being the english
+  wordmark on all three pages, and the chapter pills cross-fading the theme in
+  `.2s` where the rest of the page takes `.5s`.
+
 - **2026-09-10: the chapter pills lost the dot and gained a hover.**
   `index.html` plus a rebuild of `ru/` and `lv/`. Committed and **pushed**.
 
@@ -61,7 +142,7 @@ names in here either.
   transition lists, one for theme and one for hover, and was not done.
 
 - **2026-09-10: the active chapter pill lost the green.** `index.html` plus a
-  rebuild of `ru/` and `lv/`. Committed, **not pushed**.
+  rebuild of `ru/` and `lv/`. Committed and **pushed**.
 
   It took `--accent-soft` for the fill, `--accent` for the border and `--accent`
   for the label since the card shipped this morning. It is now **the same pill
@@ -98,7 +179,7 @@ names in here either.
   first time a crawler can read the russian and latvian copy.** `index.html` is
   still the only file anything is written in; `ru/index.html` and
   `lv/index.html` are **generated out of it** and `sitemap.xml` with them.
-  Committed, **not pushed**.
+  Committed and **pushed**.
 
   **The command, and it is the whole workflow:**
 
@@ -3011,14 +3092,20 @@ names in here either.
     Hover darkens to `--fg`, lifts 2px and flicks the CTA's rgb split once. **Above
     560px it is absolutely centred in the top bar; below, it moves to a footer** with
     a `theboringtek 2026` line under it, and the bar goes back to two controls.
-  - **Language urls.** `/` english, `/ru` russian, `/lv` latvian, served by two stub
-    documents that redirect to `/#ru` and `/#lv`; the bootstrap reads the hash before
-    first paint and `replaceState`s the clean path back. The address bar always names
-    the language on screen. First visit with no url and no saved choice reads
-    `navigator.language` and saves nothing.
-  - **Three languages.** EN / RU / LV as plain text buttons top left, saved under
-    `bt-lang`. Every visible string lives in one `T` object; switching re-renders the
-    current view in place without losing form progress.
+  - **Language urls — three real documents since 2026-09-10.** `/` english,
+    `/ru/` russian, `/lv/` latvian, each with its own `lang`, canonical, title,
+    description and og tags, and the copy already painted in the html that ships.
+    They are **generated from `index.html`** by `node tools/build-langs.mjs`; the
+    stubs that used to redirect to `/#ru` are gone. **The language is the address
+    and nothing else** — no browser sniffing, no saved choice, no repaint on load.
+    `/#ru` and `/#lv` still land, on two lines in the bootstrap.
+  - **Three languages.** EN / RU / LV top left, and they are **three links** now, so
+    switching is a navigation and a crawler can follow it. `aria-current` marks the
+    one you are on; nothing about it looks different from the buttons they replaced.
+    Every visible string lives in one `T` object, and the build paints the other two
+    documents from that same object. **`bt-lang` is gone**; `bt-theme` stays.
+    **Switching mid-form loses the form**, which is the price of the address being
+    real.
   - Mascot at ~110px, eyes tracking the cursor, blinking on its own, soft halo behind
     him. He is also a button — pressing him opens the form.
   - **Speech bubble** off his top right: three dots climbing diagonally, then a pill.
@@ -3051,17 +3138,29 @@ names in here either.
   / og:url / og:type, and since 2026-08-24 a real card: `og:image` at
   `https://theboringtek.com/assets/og.png` with `og:image:width` 1200,
   `og:image:height` 630, `og:image:type` and `og:image:alt`, `twitter:card` now
-  `summary_large_image`, and `twitter:image` pointing at the same file. The description
-  is keyword-carrying and shared by all three pages. `color-scheme` is `light dark` and
+  `summary_large_image`, and `twitter:image` pointing at the same file. **Since
+  2026-09-10 the title and description are per language and written for search** —
+  plain words about ai and automation for businesses, title under 60 signs,
+  description under 155, both measured by the build, and og:title / og:description
+  carrying the same strings. Each document is canonical to itself and og:locale
+  follows. The og **image** is still one file for all three. `color-scheme` is `light dark` and
   `theme-color` is updated by JS on every theme switch — those two are part of the theme
   system, not the SEO block.
 - **`assets/og.png`** — the share card. 1200x630, light theme, 61KB. Built by
   `demo/og.mjs`, which is tracked.
 - **`robots.txt`** (root) — allows everything, points at the sitemap.
-- **`sitemap.xml`** (root) — three urls now, `/`, `/ru` and `/lv`. No `lastmod`.
-- **`ru/index.html`, `lv/index.html`** — the two language stubs. They hold no content and
-  no copy of the site; see Decisions before touching them.
-- **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked.
+- **`sitemap.xml`** (root) — three urls, `/`, `/ru/` and `/lv/`, with trailing
+  slashes. No `lastmod`. **Generated** by `tools/build-langs.mjs` off the same two
+  constants as the canonicals, so the two cannot disagree.
+- **`ru/index.html`, `lv/index.html`** — the russian and latvian pages. **They are
+  build output, not source.** Editing either by hand is editing an artifact and the
+  next run overwrites it. Change `index.html`, re-run the build, commit all three.
+- **`tools/build-langs.mjs`** — writes those two and the sitemap. Tooling, never
+  ships, no dependencies. Every replacement asserts it matched exactly once, and it
+  refuses to build if `index.html` holds a document-relative `src`, `href` or
+  `poster` — those resolve against `/ru/` and 404, and the english page cannot show
+  you that.
+- **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/, tools/ — all tracked.
 
 #### The website card — the video, and the chapters beside it
 
@@ -8974,12 +9073,18 @@ of them.
    card validators once: both cache hard, and any link that was fetched before the image
    existed keeps showing the old small card until it is re-scraped. **Not run yet,
    confirmed 2026-08-25.**
-2. **Translate the description into RU and LV.** Both stubs are carrying the english
-   string as a holding position. Watch the dash rule: RU and LV both reach for the em
-   dash where english uses a comma.
-3. **Recheck the sitemap in Search Console.** `sitemap.xml` carries `/`, `/ru` and
-   `/lv`. Confirm the property exists, the sitemap is submitted, and all three urls are
-   actually indexed rather than merely accepted. **`/demo/` is now live and fetchable**
+2. ~~**Translate the description into RU and LV.**~~ **DONE 2026-09-10.** The stubs are
+   gone; each of the three documents carries its own title and description, written for
+   search rather than for the voice, under 60 and under 155 signs, and og:title and
+   og:description carry the same strings. They live in `tools/build-langs.mjs` and the
+   dash rule is enforced by the build rather than watched for.
+3. **Recheck the sitemap in Search Console.** `sitemap.xml` carries `/`, `/ru/` and
+   `/lv/`, with trailing slashes since 2026-09-10. Confirm the property exists, the
+   sitemap is submitted, and all three urls are actually indexed rather than merely
+   accepted. **This is worth doing now in a way it was not before:** until 2026-09-10
+   `/ru` and `/lv` were stubs that redirected, so there was nothing in either language
+   for a crawler to index. There is now. Run the live url inspector on all three and
+   confirm the `hreflang` group is seen as reciprocal. **`/demo/` is now live and fetchable**
    since `2bcfb62` — check whether it turns up in coverage, and if it does, add
    `Disallow: /demo/` to `robots.txt`.
 4. **Upload the yellow profile picture on Telegram.** The other platforms already carry
