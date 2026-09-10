@@ -6,6 +6,76 @@ names in here either.
 
 ## Status
 
+- **2026-09-10: the intro is on the live site, and it is the first binary the
+  page has ever fetched.** A fourth card, its own section between the form and
+  the three text cards, video on the left and a chapter list on the right.
+  `index.html` only. Committed and **pushed to `main`**, which is the deploy.
+
+  **Two files ship with it and neither comes out of `demo/out/`:**
+  - **`assets/video/intro.mp4`** — 1920x1080, 60fps, 12.01s, **2302 KB**,
+    h264 high·4.2, `+faststart`, moov ahead of mdat. **It is the cut with the
+    music on it**, handed over as a 3840x2160 master (8.96 MB, moov behind mdat)
+    and recompressed in place: two pass at 1250k video, `scale=1920:1080` on
+    lanczos, and the master's own **stereo 253k aac copied, not re-encoded** —
+    same bitrate, same 565 packets. 4K never shipped; level 4.2 does not allow
+    it and the card is 570 css px wide at its widest. Integrated **-16.1 LUFS**,
+    peak -1.4 dBFS, so the bed is on it and it is not near clipping. Subtitles
+    are burned in, so the page carries no track and needs none.
+  - **`assets/video/intro-poster.jpg`** — the frame at **1.60s**, 1280x720,
+    **24 KB**. He is mid wave on white with the globe beside him and `hello.`
+    under them.
+
+  **The one request rule survives, and the honest accounting is this:** the
+  external budget is untouched — one Google Fonts stylesheet, two woff2, and
+  nothing else off this origin. What is new at load is **one same origin
+  request, the 24 KB poster**. The mp4 is `preload="none"` and is not touched
+  until someone presses play; a request trace confirms `/assets/video/intro.mp4`
+  appears only after the press.
+
+  **Four things it settled:**
+  - **The chapter list is data, not markup.** `CHAPTERS` in the script is four
+    objects; an entry with a `src` plays, an entry without one renders greyed
+    with a `soon` tag and carries `disabled`. The buttons are built from it at
+    boot with `data-k` on their labels, so `paintKeys()` repaints them on every
+    language switch like every other string. Adding a chapter is one line there
+    and three strings in `T`.
+  - **The play sign cannot follow the theme.** The poster is the light half of
+    the clip, so it is white under both. `.pv-s` pins `--ink:#0b0d10` and
+    `--pap:#ffffff` locally — :root's own light `--fg` and `--bg`, written out
+    rather than invented — because a sign in `--fg` vanishes on white the moment
+    the page inverts. Everything else in the card follows the theme normally.
+  - **The frame is the control.** No controls bar, no autoplay, nothing muted:
+    the read is most of the copy. `.pv-b` covers the picture, a press plays with
+    sound, a second press pauses, and `.pv.on` takes the sign away while it
+    runs. On `ended` it is `vid.load()` rather than `currentTime=0` — only
+    `load()` puts the poster back, and by then the file is cached.
+  - **720px, not 700px.** The ask said under 700; the page has exactly three
+    width breakpoints and a fourth is a decision. The card grid's own 720 does
+    the same job, so the split above it and the stack with the swipe row below
+    it hang off the breakpoint the section under them already uses.
+
+  **One thing this changed that `.gitignore` still describes the old way:**
+  `demo/music/` is ignored because the pixabay beds are "ours to hold, not ours
+  to redistribute out of a public repo". A bed is now **inside a tracked file**
+  — mixed into `assets/video/intro.mp4`, which GitHub Pages serves and git keeps
+  forever. That was raised before the push and shipped on Einz's word. The mp3s
+  themselves are still ignored and still never pushed; what ships is the mix.
+
+  **Open on it, and the first one is real:**
+  - **The white poster glares in dark mode.** A 2:1 white slab inside a
+    near-black card, and it stays white for the first 4.7 seconds of playback
+    because that is when the clip's own theme flips. It is honest — that is
+    what the film looks like — but a second poster cut from the dark half and
+    swapped by the theme toggle would fix it for the cost of another 24 KB.
+  - **`skills/page-builder/SKILL.md` does not know this card exists.** Its
+    radius list still says 16px belongs to the text cards "and nothing else",
+    and the `.pv-s` pinned pair is a pattern the file has no entry for.
+  - **The `.cd` hover lift applies to it**, so a 3px rise happens under the
+    pointer on the way to the play sign. It is consistent with its neighbours
+    and it may still be wrong on a card you press.
+  - **There is a second thread now**, one over the video card and one over the
+    text cards. It reads, but it is decoration that has doubled.
+
 - **2026-09-10: the site intro is rendered as a 60fps final and it is the first
   thing here that is not for a feed.** `demo/site-intro.mjs` →
   `demo/out/site-intro-1920x1080.mp4`, **12.00s, 1920x1080 landscape, 60fps,
@@ -2778,6 +2848,9 @@ names in here either.
   - CRT grain and radial vignette in both themes, at different weights.
   - The fixed top bar carries a scrim, which the section below the hero now needs:
     without it the headline scrolls up into the language and theme controls.
+  - **The video card** — a fourth card between the form and the three below, the
+    intro on the left and the chapter list on the right. Poster and a play sign;
+    nothing is fetched until the press. See the subsection under this list.
   - **The section below the hero** — a 1px thread down from the hint, then three
     cards: two side by side above 720px, one full width under them, all stacked below
     it. Mono // label, body copy in Space Grotesk, EN/RU/LV like everything else.
@@ -2800,38 +2873,41 @@ names in here either.
   no copy of the site; see Decisions before touching them.
 - **Project files:** CLAUDE.md, MEMORY.md, skills/, assets/ — all tracked.
 
-#### The website card — the video, and chapter buttons beside it
+#### The website card — the video, and the chapters beside it
 
-**Planned, not built.** The site intro is rendered and the card that will carry
-it on `index.html` is agreed in shape:
+**Built and live in `index.html` as of 2026-09-10.** Its own
+`<section class="show">` between `main.wrap` and `.below`, so the form's unfold
+cannot move it, holding one `.cd` — the same card class as the three text cards,
+same 860px column, same 1px `--line` border, same 16px radius, same `--field`
+background, same padding, same one-shot scroll reveal. Only the contents are new.
 
-- **A single card, video left and chapter buttons right.** The video is the wide
-  half; the buttons are a vertical stack down the right, one a chapter, each one
-  seeking the video rather than loading anything.
-- **On phone the two halves stack**, video on top and the chapter list under it,
-  which is the only arrangement a 16:9 clip and a column of buttons can share
-  under about 700px.
-- The clip is landscape 1920x1080 because of this card. Everything else in
-  `demo/` is a phone and is for a feed; this one is for the page.
-
-Nothing about it is written yet — no markup, no styles, no player. The open
-questions before it can be:
-
-- **Autoplay, muted, loop, or a poster and a play button.** The clip has a read
-  in it, so autoplay with sound is out; muted autoplay costs the read entirely
-  and the read is most of the copy. A poster frame plus a press is the honest
-  default and it is a decision.
-- **Where the file lives.** `demo/out/` is gitignored and the mp4 is 4.4 MB. It
-  cannot ship from `out/`, and putting a 4.4 MB binary in a public repo that
-  GitHub Pages serves is a decision rather than a detail — the build constraints
-  say no image files unless discussed first, and a video is that argument with
-  another zero on it.
-- **What the chapters are.** The clip is 12 seconds and has four beats. Chapter
-  buttons want a longer clip, or they want to point at more than one.
-- **The single external request budget.** A `<video>` is not a font, but it is
-  another request at load unless it waits for a press. Whatever the answer is, it
-  has to be said out loud against the one-request rule rather than assumed past
-  it.
+- **`// the intro`**, then a two column split above 720px: the video at `2fr`,
+  the chapters at `1fr`. Below 720 it stacks, video full width on top and the
+  chapters a horizontal swipe row under it (`overflow-x:auto`,
+  `scroll-snap-type:x proximity`, no visible scrollbar). Mobile first in the
+  stylesheet: the stack is the default and the split is the media query.
+- **The video** is a native `<video>` with `preload="none"`, `playsinline`, the
+  poster, and no `controls`. `.pv-b` covers the whole frame and is the only
+  control: press to play with sound, press again to pause. `.pv.on` hides the
+  sign while it runs; `ended` calls `load()` to bring the poster back.
+- **The play sign** is a 46–62px circle, `--pap` fill and a 1px `--ink` border
+  with a triangle in `--ink`, filling solid on hover exactly like the cta. Those
+  two are pinned to the light values inside `.pv-s` and do not follow the theme,
+  because the poster is white under both.
+- **The chapters** come from `CHAPTERS` in the script. Today: `hello` →
+  `assets/video/intro.mp4`, lit and `aria-current`; then `who we are`,
+  `what we build` and `how it works`, greyed, `disabled`, each with a mono
+  `soon` tag. Pills on the chip's own geometry; the active one takes
+  `--accent-soft` and `--accent`. All labels and the `soon` tag are `data-k`,
+  so a language switch repaints them.
+- **EN / RU / LV** for the card label, all four chapter names, the tag and the
+  play and pause aria labels. No dashes in any of them.
+- **The files:** `assets/video/intro.mp4` (2302 KB, faststart, with music) and
+  `assets/video/intro-poster.jpg` (24 KB, the frame at 1.60s). Both tracked and
+  committed; `demo/out/` stays ignored and is not what the page serves.
+- **The request budget:** external is unchanged at one Google Fonts stylesheet.
+  The poster is one new same origin request at load; the mp4 is fetched only on
+  the press.
 
 ### Socials
 

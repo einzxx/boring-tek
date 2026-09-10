@@ -549,6 +549,82 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
 .cl::before{content:"// "}
 .ct{margin:0;font-size:var(--t-body);color:var(--sub);max-width:68ch}
 
+/* ---- the video card ----
+   its own section between the form and the cards, so the lockup's unfold
+   cannot move it. the card itself is `.cd`, unchanged and shared with the two
+   text cards under it: same width, same 1px border, same 16px radius, same
+   field background, same padding. only what is inside it is new. */
+.show{
+  position:relative; z-index:2;
+  width:100%; max-width:860px; margin:0 auto;
+  /* the same air under it that the thread carries over it, so the section
+     below reads as the next beat rather than as the same block. */
+  padding:0 16px clamp(12px,2vh,18px);
+}
+/* mobile first on purpose: a 16:9 frame and a list of labels can only share a
+   phone as a stack with a swipe row under it, and the two column split is the
+   exception above 720px — the page's own card breakpoint, not a fourth one. */
+.pv{display:grid;gap:12px}
+.pv-f{
+  position:relative; aspect-ratio:16/9; overflow:hidden;
+  border-radius:16px; background:var(--field);
+}
+.pv-v{display:block;width:100%;height:100%;object-fit:cover;border-radius:16px}
+/* there is no controls bar, so the whole frame is the control and the sign is
+   what says so. it stays after the press, which is what pauses. */
+.pv-b{
+  position:absolute; inset:0; display:grid; place-items:center;
+  appearance:none; padding:0; border:0; background:none; cursor:pointer;
+}
+/* the poster is the light half of the clip, so it is white under both themes
+   and the sign cannot follow the page or it disappears on one of them. --ink
+   and --pap are :root's own light --fg and --bg, written out because they have
+   to stay put when everything around them inverts. */
+.pv-s{
+  --ink:#0b0d10; --pap:#ffffff;
+  width:clamp(46px,13%,62px); aspect-ratio:1; border-radius:999px;
+  display:grid; place-items:center;
+  border:1px solid var(--ink); background:var(--pap);
+  transition:background-color .22s ease-out,opacity .22s ease-out,
+             transform .28s var(--spring);
+}
+.pv-s svg{width:34%;fill:var(--ink);transition:fill .22s ease-out}
+.pv-b:hover .pv-s{background:var(--ink)}
+.pv-b:hover .pv-s svg{fill:var(--pap)}
+.pv-b:active .pv-s{transform:scale(.94)}
+.pv.on .pv-s{opacity:0;transform:scale(.9);pointer-events:none}
+
+.chs{
+  display:flex; gap:8px;
+  overflow-x:auto; scroll-snap-type:x proximity;
+  scrollbar-width:none; padding-bottom:2px;
+}
+.chs::-webkit-scrollbar{display:none}
+.ch{
+  flex:0 0 auto; scroll-snap-align:start;
+  display:flex; align-items:center; gap:10px;
+  appearance:none; cursor:pointer; font:inherit; font-size:var(--t-micro);
+  padding:10px 15px; min-height:40px;
+  border:1px solid var(--line); border-radius:999px;
+  background:var(--bg); color:var(--fg);
+  transition:border-color .2s ease-out,background-color .2s ease-out,
+             color .2s ease-out,transform .28s var(--spring);
+}
+.ch:hover{border-color:var(--fg)}
+.ch:active{transform:scale(.96)}
+.ch[aria-current=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.ch[disabled]{opacity:.5;cursor:default;color:var(--muted)}
+.ch[disabled]:hover{border-color:var(--line)}
+.ch-s{
+  font-family:var(--mono); font-size:.85em;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+}
+@media (min-width:720px){
+  .pv{grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+  .chs{flex-direction:column;overflow:visible;padding-bottom:0}
+  .ch{width:100%;justify-content:space-between}
+}
+
 /* footer - phones only. the top bar's row and this one are the same six links
    and the same styling; only their place on the page differs. */
 .foot{
@@ -638,6 +714,9 @@ var T={
   sub:'building the boring part of the future',
   cta:'tell us what you need',
   hint:'few clicks. we look. we reply.',
+  v1l:'the intro',
+  ch1:'hello', ch2:'who we are', ch3:'what we build', ch4:'how it works',
+  soon:'soon', play:'play', pause:'pause',
   c1l:'who we are',
   c1t:'we build with ai every day. payments. bots. systems that run alone. you talk to the person who builds it.',
   c2l:'honest part',
@@ -690,6 +769,9 @@ var T={
   sub:'строим скучную часть будущего',
   cta:'расскажите что вам нужно',
   hint:'пару кликов. мы смотрим. мы отвечаем.',
+  v1l:'вступление',
+  ch1:'привет', ch2:'кто мы', ch3:'что мы строим', ch4:'как это работает',
+  soon:'скоро', play:'смотреть', pause:'пауза',
   c1l:'кто мы',
   c1t:'мы каждый день строим с ai. платежи. боты. системы которые работают сами. вы говорите с тем кто это строит.',
   c2l:'честная часть',
@@ -742,6 +824,9 @@ var T={
   sub:'būvējam nākotnes garlaicīgo daļu',
   cta:'pastāstiet ko jums vajag',
   hint:'daži klikšķi. mēs skatāmies. mēs atbildam.',
+  v1l:'ievads',
+  ch1:'sveiki', ch2:'kas mēs esam', ch3:'ko mēs būvējam', ch4:'kā tas strādā',
+  soon:'drīz', play:'skatīties', pause:'pauze',
   c1l:'kas mēs esam',
   c1t:'mēs katru dienu būvējam ar ai. maksājumi. boti. sistēmas kas strādā pašas. jūs runājat ar to kurš tās būvē.',
   c2l:'godīgā daļa',
@@ -822,6 +907,38 @@ var ctaZone=D.querySelector('.cta-zone');
 var cta=D.querySelector('.cta');
 var ctaT=D.querySelector('.cta-t');
 var hintEl=D.querySelector('.hint');
+/* ---------- the video card ----------
+   one entry is one chapter: a key into T for the label, and the file it plays.
+   an entry with no file is not built yet — it renders greyed with a soon tag
+   and does not press. adding a chapter later is one line here and its three
+   strings in T. */
+var CHAPTERS=[
+  {k:'ch1',src:'assets/video/intro.mp4'},
+  {k:'ch2'},
+  {k:'ch3'},
+  {k:'ch4'}
+];
+var pv=D.querySelector('.pv');
+var vid=D.querySelector('.pv-v');
+var playBtn=D.querySelector('.pv-b');
+var chBtns=[];
+(function(){
+  var f=D.createDocumentFragment(),n,c,b,l,g;
+  for(n=0;n<CHAPTERS.length;n++){
+    c=CHAPTERS[n];
+    b=D.createElement('button'); b.type='button'; b.className='ch';
+    l=D.createElement('span'); l.setAttribute('data-k',c.k); b.appendChild(l);
+    if(c.src) b.setAttribute('aria-current', n===0 ? 'true' : 'false');
+    else{
+      b.disabled=true;
+      g=D.createElement('span'); g.className='ch-s'; g.setAttribute('data-k','soon');
+      b.appendChild(g);
+    }
+    f.appendChild(b); chBtns.push(b);
+  }
+  D.querySelector('.chs').appendChild(f);
+})();
+
 var keyed=D.querySelectorAll('[data-k]');
 var cds=D.querySelectorAll('.cd');
 var card=D.querySelector('.card');
@@ -1424,6 +1541,40 @@ cta.addEventListener('animationend',function(e){
   if(e.target===cta) cta.classList.remove('shake');
 });
 
+/* ---------- video ----------
+   no controls bar, no autoplay and nothing muted: the read is most of the copy,
+   so a press means sound. the whole frame is the button, so a second press on
+   the picture pauses it. nothing here is fetched until that first press. */
+function playSign(on){
+  pv.classList.toggle('on',on);
+  playBtn.setAttribute('aria-label', on ? t('pause') : t('play'));
+}
+playBtn.addEventListener('click',function(){
+  if(vid.paused){ vid.muted=false; vid.play(); } else vid.pause();
+});
+vid.addEventListener('play',function(){ playSign(true); });
+vid.addEventListener('pause',function(){ playSign(false); });
+/* load() rather than currentTime=0: only load() puts the poster back, and by
+   the time a clip has ended the file is in the cache, so it is not a request. */
+vid.addEventListener('ended',function(){ playSign(false); vid.load(); });
+
+var chAt=0;
+function goChapter(n){
+  var c=CHAPTERS[n],m;
+  if(!c||!c.src) return;
+  if(n!==chAt){
+    chAt=n;
+    for(m=0;m<chBtns.length;m++)
+      if(CHAPTERS[m].src) chBtns[m].setAttribute('aria-current', m===n ? 'true' : 'false');
+    vid.src=c.src; vid.load();
+  }
+  vid.muted=false; vid.play();
+}
+(function(){
+  for(var n=0;n<chBtns.length;n++)
+    (function(b,k){ b.addEventListener('click',function(){ goChapter(k); }); })(chBtns[n],n);
+})();
+
 /* ---------- language ---------- */
 function setLang(v){
   lang=v;
@@ -1436,6 +1587,7 @@ function setLang(v){
   hintEl.textContent=t('hint');
   paintKeys();
   themeBtn.setAttribute('aria-label', theme==='dark' ? t('th_light') : t('th_dark'));
+  playSign(!vid.paused);
   setTag(t('sub'), !typed);
   if(open){ doneState ? finish() : render(); }
   else if(bubShow) hush();
@@ -1528,6 +1680,7 @@ function frame(now){
 setTheme(theme);
 setCta(t('cta'));
 hintEl.textContent=t('hint');
+playSign(false);
 paintKeys();
 for(i=0;i<langBtns.length;i++)
   langBtns[i].setAttribute('aria-pressed', langBtns[i].getAttribute('data-l')===lang ? 'true':'false');
@@ -1686,6 +1839,23 @@ else boot();
 
  </div>
 </main>
+
+<section class="show" aria-label="intro">
+  <div class="thread" aria-hidden="true"></div>
+  <article class="cd">
+    <p class="cl" data-k="v1l">the intro</p>
+    <div class="pv">
+      <div class="pv-f">
+        <video class="pv-v" preload="none" playsinline
+               poster="assets/video/intro-poster.jpg" src="assets/video/intro.mp4"></video>
+        <button class="pv-b" type="button" aria-label="play">
+          <span class="pv-s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.2v13.6L19 12z"/></svg></span>
+        </button>
+      </div>
+      <div class="chs"></div>
+    </div>
+  </article>
+</section>
 
 <section class="below" aria-label="about">
   <div class="thread" aria-hidden="true"></div>
