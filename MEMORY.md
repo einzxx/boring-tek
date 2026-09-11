@@ -22,8 +22,12 @@ names in here either.
   Left alone on purpose: it is a shipped clip and repointing it is a decision.
 
   One still, `demo/out/dance-still.png`, out of `demo/out/dance-still.mjs`
-  (ignored, beside its output): post23's placement and boots with the film taken
-  out, the shadow declined as post26 declines it. The clap drawings and the
+  (ignored, beside its output): the head in the middle of the frame, no boots,
+  no legs, the shadow declined as post26 declines it. **The still is made
+  exactly symmetric in the script, not in the module:** the head's idle is
+  zeroed and the screen left glove is the screen right one reflected, so the
+  two fists are a mirror pair to the half pixel. The module's own frame is a
+  mirror pair only to within the per hand idle and the pump phase, on purpose. The clap drawings and the
   video-review skill edits in the working tree are not part of this and were left
   unstaged.
 
