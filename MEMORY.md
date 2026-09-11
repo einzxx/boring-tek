@@ -6,6 +6,27 @@ names in here either.
 
 ## Status
 
+- **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in
+  its place.** Committed, **not pushed**. Two drawings,
+  `demo/assets/hands/dance-fist-left.svg` and `dance-fist-right.svg`, 400 unit
+  frames like the sheet's own, registered as one pair pose `dance` with the same
+  placement the cheer had (68.0 across, 26.0 down, 8 degrees) and neither hand
+  flipped. The wrist is the middle of the cuff, the chord between its two
+  corners, read off each drawing: 222.1, 343.8 and 177.9, 343.8. The creases are
+  the file's own 1.3 unit strokes carried as slivers under `even`, the way the
+  cheer's were. `cheering-fists.svg` is deleted. The rig checks pass and
+  `mascot-test.mjs`'s hands cut names `dance` now.
+
+  **`demo/post23.mjs` still asks for `cheer` and will throw on its plan** until
+  somebody points it at `dance` or decides the clip is finished as rendered.
+  Left alone on purpose: it is a shipped clip and repointing it is a decision.
+
+  One still, `demo/out/dance-still.png`, out of `demo/out/dance-still.mjs`
+  (ignored, beside its output): post23's placement and boots with the film taken
+  out, the shadow declined as post26 declines it. The clap drawings and the
+  video-review skill edits in the working tree are not part of this and were left
+  unstaged.
+
 - **2026-09-11, SESSION CLOSE. post26 is final at 60fps, `lib/voice.mjs` carries
   a second elevenlabs voice id, and there is a bug in `lib/mascot.mjs` that has
   been in every dark clip and was never visible until now.** Everything below is

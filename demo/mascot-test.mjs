@@ -193,12 +193,12 @@ const HANDS_CUT = [
   ['shrug', 'thinking', 'both', 2.60],
   ['point', 'agreeing', 'left', 2.50],
   ['panic', 'surprised', 'both', 2.90],
-  /* the cheer, and it goes straight after `panic` because those two are the
+  /* the dance, and it goes straight after `panic` because those two are the
      pair this chapter has to be able to tell apart: both take both hands the
      whole height of the head and stop at the crown, and the only thing that
      separates them is the drawing and where the fist points. `delighted` under
-     it, because that is the face a cheer has. */
-  ['cheer', 'delighted', 'both', 2.80],
+     it, because that is the face a dance has. */
+  ['dance', 'delighted', 'both', 2.80],
   /* the laugh asks for the right hand outright, which is also what it gets when
      a mark says nothing: `pos` is `bottom-left` here and by default, and the
      acting hand is derived from it — he stands in a corner and gestures into
