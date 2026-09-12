@@ -6,25 +6,39 @@ names in here either.
 
 ## Status
 
-- **2026-09-12, later. post28 is built and green at 60fps, the dance, and it is
-  committed, not pushed.** `demo/post28.mjs`, dark only, 11.05s, **silent by
-  design** (no audio stream; the music goes on outside), shutter open at two
-  subframes solved. The picture is two Kling clips of him dancing,
-  `demo/music/kling-dance-1.mp4` and `-2.mp4`, gitignored, 720x1280 at 24fps,
-  121 frames each: each played full length filling the frame, a 5 per cent
-  glide push over each, the house fault between and after, the wordmark. The
-  mascot module draws nothing. Out to `demo/out/post28-dark-1080x1920.mp4`,
-  review at `demo/out/review-post28-dark-1080x1920.md`. Write up is **The
-  twenty eighth clip** in `demo/README.md`. The skills/ working tree changes
-  and the untracked clap svgs are still not part of any commit.
+- **2026-09-12, later still. post28 round two is green and committed, not
+  pushed.** `demo/post28.mjs`, dark only, **5.55s**, silent, shutter closed
+  (solved: the camera's fastest move is 0.91 css px a frame). The order is
+  measured off motion: `kling-dance-2` (0.99 a pixel a frame) is the slow
+  groove and goes first, `kling-dance-1` (2.48) is the fast one, second and
+  mirrored. Each take is the busiest 55 frames of its clip (0..54 and
+  58..112), 2.30s each, hits at 2.30 and 4.60, card 0.95. The push is 1.0 to
+  1.12 over each clip and snaps back to 1.0 on the cut in one frame; the snap
+  channel is gone. **The zoom is checked on the frames**: the ink's box on the
+  captured last frame against its source frame reads 1.121 and 1.118. **The
+  mark is taken out with delogo**, box mean 7.6 on a floor of 7.7, and the
+  rectangle the first review saw is gone. Review at
+  `demo/out/review-post28-dark-1080x1920.md`; write up is **The second
+  round** under The twenty eighth clip in `demo/README.md`. Open: the slow
+  take starts on the clip's first frame where its floor is still rising (7 to
+  9 over three frames), the flash lands on his face both hits, the pulldown.
+  The skills/ working tree changes and the clap svgs are still uncommitted.
+
+- **2026-09-12, later. post28 round one, superseded by the entry above.**
+  `demo/post28.mjs` as first built: 11.05s, both clips full length, a 5 per
+  cent push and a derived snap, the mark covered pure black. The picture is
+  two Kling clips of him dancing, `demo/music/kling-dance-1.mp4` and
+  `-2.mp4`, gitignored, 720x1280 at 24fps, 121 frames each. The mascot module
+  draws nothing. Write up is **The twenty eighth clip** in `demo/README.md`.
 
   **What a later session needs and cannot get from the code:**
   - **The mark's box is `x 566..691, y 1233..1258`** in the clips' own pixels,
     measured as the per pixel minimum over every frame on the corner alone;
-    identical in both clips. The cover is **pure black as asked, and the
-    clips' floor is luma 7 to 8, the site's own `#06070a`**, so the rectangle
-    is visible on every frame and plainly so on the fault frames. `COVER` in
-    the file is the one line. **Einz decides**; nobody else changes it.
+    identical in both clips. **Round one covered it pure black and the clips'
+    floor is luma 7 to 8, the site's own `#06070a`, so the rectangle showed on
+    every frame.** Round two uses delogo and the problem is gone. If a clip
+    ever needs a solid cover on this material, it is the floor's colour, not
+    black.
   - **`--run-all-compositor-stages-before-draw` is mandatory for any clip that
     paints a bitmap** (canvas or img) under virtual time. Without it
     `Page.captureScreenshot` hangs after one to ninety frames, on gpu or
@@ -34,11 +48,12 @@ names in here either.
   - **A camera reset on a cut must be shorter than a subframe.** A one frame
     leg is a tween and the open shutter smears it over the clip's last frame.
     `RESET` = 0.0001s, the cut pair is left out of the shutter solve.
-  - **Snap `by` is derived off the pop's measured overshoot** so the dip
-    bottoms at exactly z 1.0, because the picture is the stage's size and any
-    z under 1 shows its edge. Drift is off for the same reason. The snap is
-    therefore 3.2 per cent of travel and reads as a settle, not a knock; a
-    bigger snap needs a picture bigger than the frame.
+  - **A snap out under z 1.0 shows the picture's edge** when the picture is
+    the stage's size, so round one derived `by` off the pop's measured
+    overshoot to bottom at exactly 1.0, and the result was 3.2 per cent of
+    travel that read as a settle. Round two dropped the snap channel: the cut
+    itself is the snap back (1.12 to 1.0 in one frame) and the push is what
+    the eye sees. Drift stays off for the same edge reason.
   - **A frame's liveness signature must sum its subframes** when the shutter
     is open. post27's first-subframe signature reported a false identical
     pair on the end card's glow peak. post28 has the corrected guard; the

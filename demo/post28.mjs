@@ -1,17 +1,18 @@
 /* the boring tek — post28. the dance.
 
    dark only, 1080x1920, silent. two clips of him dancing, made outside this
-   folder, cut together with the house fault between them and the house
-   end card after them. the clips are the picture; nothing is drawn over them.
+   folder, cut to their best 2.3 seconds each, the slow groove first and the
+   fast one second, with the house fault between them and the house end card
+   after them. the clips are the picture; nothing is drawn over them.
 
-     0.00  clip one, full length, filling the frame exactly. the camera pushes
-           in five per cent over it.
-     5.05  the fault: two stutters into it, the hit, and clip two is on the
-           frame of the hit. the camera snaps out on that frame.
-     5.05  clip two, full length, the same push.
-    10.10  the fault again, and the wordmark stacked three lines is born on
-           the hit's own frame; the camera snaps out onto it.
-    11.05  end.
+     0.00  the slow clip, 2.30s of it, filling the frame exactly. the camera
+           pushes in twelve per cent over it.
+     2.30  the fault: two stutters into it, the hit, and the fast clip is on
+           the frame of the hit, mirrored, at zoom 1.0: the camera snaps back
+           to nothing in one frame and pushes again.
+     4.60  the fault again, and the wordmark stacked three lines is born on
+           the hit's own frame, at zoom 1.0.
+     5.55  end.
 
      node post28.mjs                     1080x1920, 60fps, the shutter solved
      DEMO_FPS=12 node post28.mjs         the fast preview pass
@@ -29,51 +30,55 @@
 
    `demo/music/kling-dance-1.mp4` and `kling-dance-2.mp4`, gitignored, 720x1280
    at 24fps, 121 frames each, a black background and a `KlingAI 3.0` mark in
-   the bottom right corner. the mark's box was measured rather than eyeballed:
-   the per pixel minimum over every frame of each clip, on the corner alone,
-   which leaves only what never moves. it is the same box in both, on every
-   frame, and nothing else ever enters that corner. `WATERMARK` below is that
-   measurement, in the clip's own pixels.
+   the bottom right corner.
 
-   the clips are read once each by ffmpeg: scaled to fill 1080x1920 exactly
-   (they are 9:16, so 1.5 on both axes), the mark covered with a filled
-   rectangle, and written out as png frames. **the cover is pure black, as
-   asked, and the clip's own floor is not:** the background sits at luma 7,
-   which is index.html's own dark `--bg`, so the rectangle is seven levels
-   under what surrounds it. `COVER` is the colour and it is one line.
+   **the order is measured, not assumed.** each clip's motion is the mean
+   absolute difference between consecutive frames, and the file refuses to run
+   with the busier clip first: kling-dance-1 carries two and a half times the
+   motion of kling-dance-2, so 2 is the slow groove and goes first, 1 is the
+   fast one and goes second, mirrored. **the cut is measured the same way:**
+   each clip's `TAKE` frames are the window with the most motion in it, which
+   is the dance rather than the settling into it.
 
-   **24 into 60 is a three, two, three, two cadence.** every source frame is
-   drawn on two or three output frames, in order, none skipped and none
-   blended, which is what "full length" means at 60fps without inventing
-   frames. the source frame is chosen by the output frame's index rather than
-   by the subframe's time, so an open shutter blurs the camera and never the
-   picture: the clips carry their own blur.
+   the mark's box was measured rather than eyeballed: the per pixel minimum
+   over every frame of each clip, on the corner alone, which leaves only what
+   never moves. it is the same box in both, on every frame, and nothing else
+   ever enters that corner. `WATERMARK` below is that measurement, in the
+   clip's own pixels. the clips are read once each by ffmpeg: scaled to fill
+   1080x1920 exactly (they are 9:16, so 1.5 on both axes), the mark taken out
+   with `delogo`, which paints the box from the pixels around it rather than
+   with a colour, the second clip flipped, and written out as png frames. the
+   check reads the box back off the frames: its mean must sit on the floor
+   around it, and nothing in it may be brighter than the floor's own noise.
+
+   **24 into 60 is a three, two, three, two cadence.** every source frame of
+   the take is drawn on two or three output frames, in order, none skipped
+   and none blended. the source frame is chosen by the output frame's index
+   rather than by the subframe's time, so an open shutter blurs the camera
+   and never the picture: the clips carry their own blur.
 
    ---------- the camera ----------
 
-   `lib/camera.mjs`, free mode, and the plan is a push, a reset and a snap,
-   twice.
+   `lib/camera.mjs`, free mode, and the plan is a push and a reset, twice.
 
-   the push is a glide from 1.0 to 1.05 over each clip's length. the snap is
-   the module's own, with post16's negative anticipation: a push in of 3.5 per
-   cent over the last 0.18s of the clip as the wind-up, then the pop out over
-   0.22s starting on the hit's own frame. the reset is a leg a tenth of a
-   millisecond long ending on the hit, taking the leg zoom from 1.05 back to
-   1.0 between the last frame of one clip and the first of the next, because
-   a camera cut on a picture cut is a cut and not a move. it is that short so
-   that no subframe can land inside it: a one frame leg is still a tween, and
-   an open shutter would smear the clip's last frame with it.
+   the push is a glide from 1.0 to 1.12 over each clip's 2.3 seconds. the
+   reset is a leg a tenth of a millisecond long ending on the hit, taking the
+   zoom from 1.12 back to 1.0 between the last frame of one picture and the
+   first of the next: the snap back is the cut itself, one frame, no curve,
+   because a camera cut on a picture cut is a cut and not a move. it is that
+   short so that no subframe can land inside it: a one frame leg is still a
+   tween, and an open shutter would smear the clip's last frame with it.
 
-   **`by` is derived, not chosen.** the picture is exactly the stage's size, so
-   any zoom under 1.0 brings its edge into shot, and `btk.pop` overshoots its
-   mark. the overshoot is read off the curve at 240Hz and `by` is solved so
-   the pop bottoms at exactly 1.0. the resting zoom after a snap is a third of
-   a per cent over 1, which is the price of the overshoot never showing an
-   edge, and the guard walks it at 60 and at 240.
+   **the zoom is checked on the frames, not only on the plan.** the last
+   frame of each clip is captured and the ink on it, everything over a luma
+   threshold, is boxed and compared with the same box on the source frame it
+   was drawn from: the ratio is the zoom the picture actually got, and it has
+   to read 1.12 on the last frame of a clip and 1.00 on the first.
 
    the drift is off. a drift's z channel dips under 1.0 and its y channel
-   moves the picture off the frame; and no frame here is a still frame,
-   because the picture is a film.
+   moves the picture off the frame, and the picture is exactly the stage's
+   size so any zoom under 1.0 brings its edge into shot; and no frame here is
+   a still frame, because the picture is a film.
 
    ---------- the fault and the end ----------
 
@@ -82,8 +87,8 @@
    it happens twice. on the first hit the bands tear the picture, drawn into
    the canvas as displaced strips; on the second the picture is cut and the
    bands carry the wordmark, which is post27's markup exactly. the split
-   reaches the wordmark and nothing else. the wordmark has no scale pop of
-   its own here: the camera's snap out is its birth.
+   reaches the wordmark and nothing else. the wordmark is born at zoom 1.0
+   and has no scale pop of its own.
 
    the glitch's shake is written against the frame index and the camera
    against time, which is the split lib/camera.mjs's header argues for. the
@@ -155,14 +160,14 @@ const CHROME = [
 
 /* ---------- the clips ---------- */
 const CLIPS = [
-  { name: 'one', file: path.join(HERE, 'music', 'kling-dance-1.mp4') },
-  { name: 'two', file: path.join(HERE, 'music', 'kling-dance-2.mp4') },
+  { name: 'slow', file: path.join(HERE, 'music', 'kling-dance-2.mp4'), mirror: false },
+  { name: 'fast', file: path.join(HERE, 'music', 'kling-dance-1.mp4'), mirror: true },
 ];
+const TAKE_S = 2.3;          /* seconds of each clip, the brief's number */
 /* the mark's box, measured: the per pixel minimum over every frame, corner
    only, pixels over luma 12 (the floor is 7). inclusive, in the clip's own
    720x1280 pixels, and identical in both clips. */
 const WATERMARK = { x0: 566, y0: 1233, x1: 691, y1: 1258 };
-const COVER = 'black';       /* the brief's word. the floor is #06070a, see the header */
 const COVER_PAD = 4;         /* device px around the box, for the scaler's own bleed */
 
 /* ---------- the end card, post27's ---------- */
@@ -176,10 +181,10 @@ const GL = {
 };
 
 /* ---------- the camera's numbers ---------- */
-const PUSH = 1.05;
-const ANT = { by: 0.035, for: 0.18 };   /* the wind-up: a push in, post16's */
-const SNAP_FOR = 0.22;
+const PUSH = 1.12;
 const RESET = 0.0001;                   /* the reset's length: a jump, see the header */
+const INK = 128;                        /* luma over which a pixel is ink, for the zoom check */
+const ZOOM_TOL = 0.015;                 /* how far the measured zoom may sit off the plan's */
 
 const CRF = 17;
 const STEP_CEIL = 42;
@@ -225,6 +230,33 @@ function countFrames(file) {
   if (!m) throw new Error('could not count the frames of ' + file);
   return +m[m.length - 1].replace(/\D/g, '');
 }
+/* how much a clip moves: the mean absolute difference between consecutive
+   frames, per frame, off the clip's own grey pixels, every fourth one. what
+   comes back is the list, so the order and the cut are both read off it. */
+function motionOf(file, w, h) {
+  const r = spawnSync(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-i', file, '-map', '0:v', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 30 });
+  const buf = r.stdout, n = w * h, N = Math.floor(buf.length / n);
+  if (N < 2) throw new Error('could not read the frames of ' + file);
+  const d = [];
+  for (let f = 1; f < N; f++) {
+    let sum = 0;
+    const a = (f - 1) * n, b = f * n;
+    for (let i = 0; i < n; i += 4) sum += Math.abs(buf[b + i] - buf[a + i]);
+    d.push(sum / (n / 4));
+  }
+  return d;
+}
+/* the window of `take` frames with the most motion in it */
+function busiest(d, take) {
+  let best = { at: 0, e: -1 };
+  for (let s0 = 0; s0 + take <= d.length + 1; s0++) {
+    let e = 0;
+    for (let i = s0; i < s0 + take - 1; i++) e += d[i];
+    e /= take - 1;
+    if (e > best.e) best = { at: s0, e: +e.toFixed(3) };
+  }
+  return best;
+}
 
 /* ---------- the clock ----------
    the clips are measured before anything is planned: their length in frames
@@ -240,8 +272,20 @@ for (const c of CLIPS) {
 }
 const SRC_FPS = CLIPS[0].fps;
 if (CLIPS.some(c => c.fps !== SRC_FPS)) throw new Error('the two clips run at different rates');
+const TAKE = Math.round(TAKE_S * SRC_FPS);
+/* the order and the cut, off the motion: see the header */
+for (const c of CLIPS) {
+  const d = motionOf(c.file, c.w, c.h);
+  c.motion = +(d.reduce((a, b) => a + b, 0) / d.length).toFixed(3);
+  if (TAKE > c.frames) throw new Error(c.name + ' has ' + c.frames + ' frames and the take wants ' + TAKE);
+  const b = busiest(d, TAKE);
+  c.in = b.at; c.take = TAKE; c.takeMotion = b.e;
+}
+if (CLIPS[0].motion >= CLIPS[1].motion) {
+  throw new Error('the slow clip goes first and ' + CLIPS[0].name + ' moves ' + CLIPS[0].motion + ' against ' + CLIPS[1].name + '\'s ' + CLIPS[1].motion + ': swap them');
+}
 /* output frames per clip, at sixty and at the working rate */
-for (const c of CLIPS) c.out60 = Math.ceil(c.frames * 60 / SRC_FPS);
+for (const c of CLIPS) c.out60 = Math.ceil(c.take * 60 / SRC_FPS);
 const H1 = +(CLIPS[0].out60 / 60).toFixed(4);
 const H2 = +((CLIPS[0].out60 + CLIPS[1].out60) / 60).toFixed(4);
 const HITS = [H1, H2];
@@ -256,44 +300,30 @@ function picAt(f) {
   if (f >= FRAME.hit2) return null;
   const c = f < FRAME.hit1 ? 0 : 1;
   const clip = CLIPS[c];
-  const src = Math.min(clip.frames - 1, Math.floor((f - clip.start) * SRC_FPS / FPS));
+  const src = clip.in + Math.min(clip.take - 1, Math.floor((f - clip.start) * SRC_FPS / FPS));
   return { clip: c, src };
 }
 
 /* ---------- the camera ---------- */
 const SHOT = { cx: VW / 2, cy: VH / 2 };
-function planFor(by) {
-  const legs = [], snaps = [];
+const cam = (() => {
+  const legs = [];
   let from = 0;
   for (let i = 0; i < 2; i++) {
     const hit = HITS[i];
     const resetAt = +(hit - RESET).toFixed(4);
     legs.push({ at: from, for: +(resetAt - from).toFixed(4), to: { ...SHOT, z: PUSH }, ease: 'glide',
-      why: 'the push over clip ' + CLIPS[i].name });
+      why: 'the push over the ' + CLIPS[i].name + ' clip' });
     legs.push({ at: resetAt, for: +(hit - resetAt).toFixed(4), to: { ...SHOT, z: 1 }, ease: 'glide',
-      why: 'the reset, a jump between two frames, on the cut' });
-    snaps.push({ at: +(hit - ANT.for).toFixed(4), by, anticipate: -ANT.by, anticipateFor: ANT.for, for: SNAP_FOR, back: false,
-      why: 'the snap out on hit ' + (i + 1) + ', and the wind-up is a push in' });
+      why: 'the snap back to 1.0, one frame, on the cut' });
     from = hit;
   }
   return planCamera({
     mode: 'free', stage: { w: VW, h: VH, dsf: DSF }, seconds: SECONDS,
     zoom: { min: 1, max: 1.5 }, drift: false,
-    start: { ...SHOT, z: 1 }, legs, snaps,
+    start: { ...SHOT, z: 1 }, legs,
   });
-}
-/* the pop's overshoot, read off the curve rather than typed: with `by` at 1
-   the snap goes from 1 + ANT.by to 1 and dips OVER times ANT.by under. */
-const OVER = (() => {
-  const trial = planFor(1);
-  let m = Infinity;
-  for (let f = Math.floor(H1 * 240); f <= Math.ceil((H1 + SNAP_FOR + 0.10) * 240); f++) m = Math.min(m, cameraFrame(trial, f / 240).snap);
-  return +((1 - m) / ANT.by).toFixed(5);
 })();
-/* solved so the pop bottoms at exactly 1.0: min = by - OVER * (A - by) = 1 */
-const A = 1 + ANT.by;
-const BY = +((1 + OVER * A) / (1 + OVER)).toFixed(6);
-const cam = planFor(BY);
 
 /* ---------- the glitch, post23's, twice ---------- */
 function heatAt(p) {
@@ -438,7 +468,7 @@ ${Array.from({ length: GL.bands }, (_, i) => '  <div class="tear" data-tear="' +
 <script>
 window.__P28 = ${JSON.stringify({
     VW, VH, DSF, WM, BG: (brand.dark.match(/--bg:\s*(#[0-9a-fA-F]{6})/) || [])[1] || '#000',
-    clips: CLIPS.map(c => ({ name: c.name, frames: c.frames })),
+    clips: CLIPS.map(c => ({ name: c.name, in: c.in, take: c.take })),
   })};
 ${cameraRuntime()}
 (${scenePage.toString()})();
@@ -479,14 +509,14 @@ function scenePage() {
     preload() {
       const all = [];
       P.clips.forEach((c, k) => {
-        for (let i = 0; i < c.frames; i++) {
+        for (let i = c.in; i < c.in + c.take; i++) {
           const im = new Image();
           all.push(new Promise((res, rej) => {
             im.onload = () => res();
             im.onerror = () => rej(new Error('frame ' + i + ' of clip ' + c.name + ' did not load'));
           }));
           im.src = '/src/' + c.name + '/f' + String(i).padStart(5, '0') + '.png';
-          imgs[k].push(im);
+          imgs[k][i] = im;
         }
       });
       return Promise.all(all).then(() => all.length);
@@ -498,8 +528,9 @@ function scenePage() {
       for (const sp of probe.querySelectorAll('span')) widest = Math.max(widest, sp.getBoundingClientRect().width);
       const ws = 100 * P.WM.w / widest;
       for (const el of wms) el.style.fontSize = ws.toFixed(2) + 'px';
-      return { wm: +ws.toFixed(2), frames: imgs.reduce((a, b) => a + b.length, 0),
-        loaded: imgs.reduce((a, b) => a + b.filter(i => i.complete && i.naturalWidth === P.VW * P.DSF).length, 0) };
+      const held = imgs.flatMap(a => a.filter(Boolean));
+      return { wm: +ws.toFixed(2), frames: held.length,
+        loaded: held.filter(i => i.complete && i.naturalWidth === P.VW * P.DSF).length };
     },
     /* the wordmark as it lands on the screen, which is the element times the
        camera, per side against the frame in device px */
@@ -574,7 +605,7 @@ function serve(html) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(html);
     }
-    const m = /^\/src\/(one|two)\/(f\d{5}\.png)$/.exec(p);
+    const m = /^\/src\/(slow|fast)\/(f\d{5}\.png)$/.exec(p);
     if (m) {
       const file = path.join(SRC, m[1], m[2]);
       if (fs.existsSync(file)) {
@@ -628,31 +659,39 @@ function extractClips() {
     const dir = path.join(SRC, c.name);
     fs.mkdirSync(dir, { recursive: true });
     const wall = Date.now();
+    /* the whole clip is read and only the take is written, numbered by its
+       source frame so the page and the checks speak the clip's own numbers.
+       delogo before the flip, because the box is where the mark is. */
     ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', c.file, '-map', '0:v',
-      '-vf', 'scale=' + VW * DSF + ':' + VH * DSF + ':flags=lanczos,drawbox=x=' + box.x + ':y=' + box.y + ':w=' + box.w + ':h=' + box.h + ':color=' + COVER + ':t=fill',
-      '-fps_mode', 'passthrough', '-start_number', '0', path.join(dir, 'f%05d.png')]);
-    const n = fs.readdirSync(dir).filter(f => /^f\d{5}\.png$/.test(f)).length;
-    console.log('  ' + c.name + ': ' + c.frames + ' frames of ' + c.w + 'x' + c.h + ' at ' + c.fps + 'fps read, ' + n
-      + ' pngs of ' + VW * DSF + 'x' + VH * DSF + ' written in ' + ((Date.now() - wall) / 1000).toFixed(0) + 's');
-    if (n !== c.frames) throw new Error(c.name + ' wrote ' + n + ' frames and has ' + c.frames);
-    report.clips.push({ name: c.name, written: n });
+      '-vf', 'select=between(n\\,' + c.in + '\\,' + (c.in + c.take - 1) + '),scale=' + VW * DSF + ':' + VH * DSF + ':flags=lanczos'
+        + ',delogo=x=' + box.x + ':y=' + box.y + ':w=' + box.w + ':h=' + box.h + (c.mirror ? ',hflip' : ''),
+      '-fps_mode', 'passthrough', '-start_number', String(c.in), path.join(dir, 'f%05d.png')]);
+    const names = fs.readdirSync(dir).filter(f => /^f\d{5}\.png$/.test(f)).sort();
+    const n = names.length;
+    console.log('  ' + c.name + ': ' + c.frames + ' frames of ' + c.w + 'x' + c.h + ' at ' + c.fps + 'fps read, frames ' + c.in + '..' + (c.in + c.take - 1)
+      + ' written as ' + n + ' pngs of ' + VW * DSF + 'x' + VH * DSF + (c.mirror ? ', mirrored' : '') + ' in ' + ((Date.now() - wall) / 1000).toFixed(0) + 's');
+    if (n !== c.take || names[0] !== 'f' + String(c.in).padStart(5, '0') + '.png') throw new Error(c.name + ' wrote ' + n + ' frames from ' + names[0] + ' and the take is ' + c.take + ' from ' + c.in);
+    report.clips.push({ name: c.name, written: n, first: names[0] });
   }
   return report;
 }
 
 /* the cover, checked on the frames the picture is drawn from: the luma of
    every pixel inside the measured box on the first, the middle and the last
-   frame of each clip, and the floor in a ring around it, so the seven levels
-   between the cover and the clip's own black are a number and not a guess.
-   the corner is also written out as a png, before and after, for the eye. */
-function checkCover(inner) {
+   frame of each take, and the floor in a ring around it. delogo paints the
+   box from its surroundings, so the box's mean has to sit on the ring's and
+   nothing in it may be brighter than the ring's own noise. on the mirrored
+   clip the box is on the other side, so the window is mirrored with it. the
+   corner is also written out as a png, before and after, for the eye. */
+function checkCover(inner0) {
   fs.mkdirSync(VERIFY, { recursive: true });
   const FW = VW * DSF, FH = VH * DSF;
+  const mirrored = b => ({ ...b, x: FW - b.x - b.w });
   /* a window around the box, held inside the frame: ffmpeg's crop clamps an
      offset that runs past the edge without saying so, and the box sits 31
      device px off the bottom, so the window is clamped here and everything
      is read relative to where it actually is. */
-  const around = (pad) => {
+  const around = (inner, pad) => {
     const x0 = Math.max(0, inner.x - pad), y0 = Math.max(0, inner.y - pad);
     const x1 = Math.min(FW, inner.x + inner.w + pad), y1 = Math.min(FH, inner.y + inner.h + pad);
     return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
@@ -662,12 +701,13 @@ function checkCover(inner) {
       '-vf', 'crop=' + crop.w + ':' + crop.h + ':' + crop.x + ':' + crop.y + ':exact=1', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 26 });
     return r.stdout;
   };
-  const ring = around(40);
-  const bx = inner.x - ring.x, by = inner.y - ring.y;
   const out = [];
   for (const c of CLIPS) {
-    const picks = [0, Math.floor(c.frames / 2), c.frames - 1];
-    let boxMax = 0, floorSum = 0, floorN = 0, floorMax = 0;
+    const inner = c.mirror ? mirrored(inner0) : inner0;
+    const ring = around(inner, 40);
+    const bx = inner.x - ring.x, by = inner.y - ring.y;
+    const picks = [c.in, c.in + Math.floor(c.take / 2), c.in + c.take - 1];
+    let boxMax = 0, boxSum = 0, boxN = 0, floorSum = 0, floorN = 0, floorMax = 0;
     for (const i of picks) {
       const file = path.join(SRC, c.name, 'f' + String(i).padStart(5, '0') + '.png');
       const buf = gray(file, [], ring);
@@ -676,23 +716,38 @@ function checkCover(inner) {
         const v = buf[y * ring.w + x];
         const inBox = x >= bx && x < bx + inner.w && y >= by && y < by + inner.h;
         const inPad = x >= bx - COVER_PAD - 2 && x < bx + inner.w + COVER_PAD + 2 && y >= by - COVER_PAD - 2 && y < by + inner.h + COVER_PAD + 2;
-        if (inBox) boxMax = Math.max(boxMax, v);
+        if (inBox) { boxMax = Math.max(boxMax, v); boxSum += v; boxN++; }
         else if (!inPad) { floorSum += v; floorN++; floorMax = Math.max(floorMax, v); }
       }
     }
-    const corner = around(100);
+    const corner = around(inner, 100);
     ff(['-y', '-hide_banner', '-loglevel', 'error', '-ss', String(picks[1] / c.fps), '-i', c.file, '-frames:v', '1',
-      '-vf', 'scale=' + FW + ':' + FH + ':flags=lanczos,crop=' + corner.w + ':' + corner.h + ':' + corner.x + ':' + corner.y + ':exact=1',
+      '-vf', 'scale=' + FW + ':' + FH + ':flags=lanczos' + (c.mirror ? ',hflip' : '') + ',crop=' + corner.w + ':' + corner.h + ':' + corner.x + ':' + corner.y + ':exact=1',
       path.join(VERIFY, 'cover-' + c.name + '-before.png')]);
     ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', path.join(SRC, c.name, 'f' + String(picks[1]).padStart(5, '0') + '.png'), '-frames:v', '1',
       '-vf', 'crop=' + corner.w + ':' + corner.h + ':' + corner.x + ':' + corner.y + ':exact=1',
       path.join(VERIFY, 'cover-' + c.name + '-after.png')]);
-    const r = { name: c.name, frames: picks, boxMax, floorMean: +(floorSum / floorN).toFixed(2), floorMax, ring, corner };
+    const r = { name: c.name, frames: picks, boxMax, boxMean: +(boxSum / boxN).toFixed(2), floorMean: +(floorSum / floorN).toFixed(2), floorMax, ring, corner };
     out.push(r);
-    console.log('  the cover on ' + c.name + ': box luma max ' + boxMax + ' over frames ' + picks.join(', ')
+    console.log('  the mark on ' + c.name + ': after delogo the box averages luma ' + r.boxMean + ' (max ' + boxMax + ') over frames ' + picks.join(', ')
       + '; the floor around it averages ' + r.floorMean + ' (max ' + floorMax + ')');
   }
   return out;
+}
+
+/* the box of the ink on a png: every pixel over INK, off the whole frame as
+   grey through ffmpeg. the head and the fists are white on black, so this
+   is their box, and a box scales with the zoom. */
+function inkBox(file) {
+  const r = spawnSync(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-i', file, '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 26 });
+  const buf = r.stdout, W = VW * DSF, H = VH * DSF;
+  if (!buf || buf.length !== W * H) throw new Error('could not read ' + file + ' as grey');
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (buf[y * W + x] > INK) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  if (x1 < 0) throw new Error('no ink over ' + INK + ' in ' + file);
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
 /* ---------- render ---------- */
@@ -750,7 +805,7 @@ async function render() {
   const built = await page.evaluate(() => window.__built);
   if (!built) throw new Error('the scene never became ready');
   if (!await page.evaluate(() => document.fonts.check('400 40px "Michroma"'))) throw new Error('Michroma did not load, and the wordmark would be judged in the fallback');
-  const total = CLIPS.reduce((a, c) => a + c.frames, 0);
+  const total = CLIPS.reduce((a, c) => a + c.take, 0);
   if (built.loaded !== total) throw new Error('the page holds ' + built.loaded + ' decoded source frames of ' + total);
   console.log('  built: ' + built.loaded + ' source frames in the page, the wordmark at ' + built.wm + 'css px');
 
@@ -761,8 +816,8 @@ async function render() {
     return o;
   };
 
-  /* the wordmark through the camera: on the hit's frame, where the card is
-     largest, and on the last frame, where it rests */
+  /* the wordmark through the camera: on the hit's frame, where it is born,
+     and on the last frame, where it rests. both at 1.0 by design */
   await put(FRAME.hit2 / FPS, FRAME.hit2);
   const wmHit = await page.evaluate(() => window.__p28.measureWm());
   await put((N - 1) / FPS, N - 1);
@@ -777,6 +832,25 @@ async function render() {
   const edges = await page.evaluate((vw, vh, d) => window.__cam.edges(vw, vh, d), VW, VH, DSF);
   const picBox = await page.evaluate(() => window.__p28.measurePic());
   console.log('  the picture at its lowest zoom, ' + lowest.z.toFixed(5) + ' at frame ' + lowest.f + ': the rig sits ' + edges.left + ' / ' + edges.top + ' / ' + edges.right + ' / ' + edges.bottom + ' device px outside the frame; the canvas is ' + picBox.w + 'x' + picBox.h);
+
+  /* the zoom, read off the frames: the ink's box on the first and the last
+     frame of each clip against the same box on the source frame each was
+     drawn from. the ratio is what the picture actually got. */
+  const zoomCheck = [];
+  for (const [f, what] of [[0, 'first frame of ' + CLIPS[0].name], [FRAME.hit1 - 1, 'last frame of ' + CLIPS[0].name],
+    [FRAME.hit1, 'first frame of ' + CLIPS[1].name], [FRAME.hit2 - 1, 'last frame of ' + CLIPS[1].name]]) {
+    const o = await put(f / FPS, f);
+    const shot = await cdp.send('Page.captureScreenshot', {
+      format: 'png', captureBeyondViewport: false, clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF },
+    });
+    const file = path.join(VERIFY, 'zoom-' + String(f).padStart(4, '0') + '.png');
+    fs.writeFileSync(file, Buffer.from(shot.data, 'base64'));
+    const got = inkBox(file), src = inkBox(path.join(SRC, CLIPS[o.pic.clip].name, 'f' + String(o.pic.src).padStart(5, '0') + '.png'));
+    const ratio = +(got.h / src.h).toFixed(4), ratioW = +(got.w / src.w).toFixed(4);
+    zoomCheck.push({ f, what, planned: o.cam.z, ratio, ratioW, got, src });
+    console.log('  the zoom on the ' + what + ' (frame ' + f + '): the ink is ' + got.w + 'x' + got.h + ' against ' + src.w + 'x' + src.h
+      + ' on the source, ' + ratio + ' tall and ' + ratioW + ' wide; the plan says ' + o.cam.z.toFixed(4));
+  }
 
   const sigs = [];
   const wall = Date.now();
@@ -816,12 +890,13 @@ async function render() {
 
   const stills = [
     [0.02, 'a-the-first-frame'],
-    [H1 * 0.5, 'b-clip-one-halfway'],
-    [H1 - 0.02, 'c-clip-one-wound-up'],
+    [H1 * 0.5, 'b-the-slow-clip-halfway'],
+    [H1 - 0.02, 'c-the-slow-clip-pushed-in'],
     [H1, 'd-the-first-hit'],
     [H1 + 0.08, 'e-the-first-hit-torn'],
-    [H1 + SNAP_FOR + 0.10, 'f-clip-two-landed'],
-    [H1 + (H2 - H1) * 0.5, 'g-clip-two-halfway'],
+    [H1 + 0.36, 'f-the-fast-clip-calm'],
+    [H1 + (H2 - H1) * 0.5, 'g-the-fast-clip-halfway'],
+    [H2 - 0.02, 'g2-the-fast-clip-pushed-in'],
     [H2 - 0.18, 'h-the-second-stutter'],
     [H2, 'i-the-second-hit'],
     [H2 + FAULT.hard + FAULT.tail + 0.16, 'j-the-wordmark'],
@@ -839,7 +914,7 @@ async function render() {
   await browser.close();
   srv.close();
   if (SUB > 1) blend(N);
-  const state = { built, extract, cover, wmHit, wmRest, lowest, edges, picBox, sigs, frames: N };
+  const state = { built, extract, cover, wmHit, wmRest, lowest, edges, picBox, zoomCheck, sigs, frames: N };
   fs.writeFileSync(path.join(OUT, 'post28.json'), JSON.stringify(state, null, 2));
   return state;
 }
@@ -869,28 +944,26 @@ console.log('post28 — the dance, dark, ' + VW * DSF + 'x' + VH * DSF + ' at ' 
 console.log('\n  the clips');
 for (const c of CLIPS) {
   console.log('    ' + c.name + ': ' + path.relative(ROOT, c.file) + ', ' + c.w + 'x' + c.h + ' at ' + c.fps + 'fps, ' + c.frames + ' frames, '
-    + c.seconds.toFixed(2) + 's; ' + c.out60 + ' frames at sixty, ' + c.outFrames + ' at ' + FPS);
+    + c.seconds.toFixed(2) + 's, motion ' + c.motion + '; the take is frames ' + c.in + '..' + (c.in + c.take - 1) + ' (' + (c.in / c.fps).toFixed(2) + 's to '
+    + ((c.in + c.take) / c.fps).toFixed(2) + 's, motion ' + c.takeMotion + ')' + (c.mirror ? ', mirrored' : '') + '; ' + c.out60 + ' frames at sixty, ' + c.outFrames + ' at ' + FPS);
 }
+console.log('    the order: ' + CLIPS[0].name + ' moves ' + CLIPS[0].motion + ' a pixel a frame and ' + CLIPS[1].name + ' ' + CLIPS[1].motion + ', so ' + CLIPS[0].name + ' is first');
 console.log('    the mark: x ' + WATERMARK.x0 + '..' + WATERMARK.x1 + ', y ' + WATERMARK.y0 + '..' + WATERMARK.y1
-  + ' in the clip\'s own pixels, ' + (WATERMARK.x1 - WATERMARK.x0 + 1) + 'x' + (WATERMARK.y1 - WATERMARK.y0 + 1) + ', covered ' + COVER + ' with ' + COVER_PAD + ' device px around it');
+  + ' in the clip\'s own pixels, ' + (WATERMARK.x1 - WATERMARK.x0 + 1) + 'x' + (WATERMARK.y1 - WATERMARK.y0 + 1) + ', delogo with ' + COVER_PAD + ' device px around it');
 
 console.log('\n  the beats');
 const beats = [
-  [0, 'clip one, from its first frame, filling the frame at zoom 1.0; the push begins'],
-  [H1 - ANT.for, 'the wind-up: a push in of ' + (ANT.by * 100).toFixed(1) + ' per cent over ' + ANT.for + 's'],
+  [0, 'the ' + CLIPS[0].name + ' clip, from frame ' + CLIPS[0].in + ' of it, filling the frame at zoom 1.0; the push to ' + PUSH + ' begins'],
   ...FAULT.pre.map((w, i) => [H1 - w.before, 'stutter ' + (i + 1) + ' of two, into the first fault']),
-  [H1, 'the first hit: clip two is on this frame, the reset lands the leg zoom on 1.0, the snap out begins'],
-  [H1 + SNAP_FOR, 'the snap lands, zoom ' + BY + '; the push over clip two is under way'],
-  [H2 - ANT.for, 'the wind-up again'],
+  [H1, 'the first hit: the ' + CLIPS[1].name + ' clip is on this frame, mirrored, the zoom snaps back to 1.0 on it, the push begins again'],
   ...FAULT.pre.map((w, i) => [H2 - w.before, 'stutter ' + (i + 1) + ' of two, into the second fault']),
-  [H2, 'the second hit: the picture is cut, the wordmark is born on this frame, the snap out is its birth'],
+  [H2, 'the second hit: the picture is cut, the wordmark is born on this frame at zoom 1.0'],
   [SECONDS, 'end, after ' + CARD.toFixed(2) + 's of the end card'],
 ].sort((a, b) => a[0] - b[0]);
 for (const [t, what] of beats) console.log('    ' + t.toFixed(2).padStart(5) + 's  ' + what);
 
 console.log('\n  the camera');
 console.log(describeCamera(cam).split('\n').map(l => '  ' + l).join('\n'));
-console.log('    the pop overshoots its mark by ' + (OVER * 100).toFixed(2) + ' per cent of the travel, read off the curve at 240; by is ' + BY + ' so the dip bottoms at 1.0');
 const camMo60 = cameraMotion(cam, 60);
 const camMo240 = cameraMotion(cam, 240);
 console.log('    zoom ' + camMo60.z.min + ' to ' + camMo60.z.max + ' at sixty, ' + camMo240.z.min + ' to ' + camMo240.z.max + ' at 240; the floor is ' + camMo60.z.floor
@@ -957,33 +1030,42 @@ if (Math.abs(p.seconds - SECONDS) > 0.15) fail.push('the file runs ' + p.seconds
 if (p.audio) fail.push('the file has an audio stream, and this clip is silent');
 if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.frames + ' frames');
 
-/* ---------- the cover ---------- */
+/* ---------- the mark is gone, and the box is the floor ---------- */
 for (const c of state.cover) {
-  if (c.boxMax > 0) fail.push('the mark\'s box on ' + c.name + ' reads luma ' + c.boxMax + ' after the cover');
+  if (Math.abs(c.boxMean - c.floorMean) > 3) fail.push('the mark\'s box on ' + c.name + ' averages luma ' + c.boxMean + ' against a floor of ' + c.floorMean);
+  if (c.boxMax > c.floorMax + 8) fail.push('something brighter than the floor is left in the mark\'s box on ' + c.name + ': luma ' + c.boxMax + ' against ' + c.floorMax);
   if (c.floorMax > 40) fail.push('something other than the floor is in the ring around the mark on ' + c.name + ': luma ' + c.floorMax);
 }
 for (const c of state.extract.clips) {
   const clip = CLIPS.find(x => x.name === c.name);
-  if (c.written !== clip.frames) fail.push(c.name + ' wrote ' + c.written + ' frames of ' + clip.frames);
+  if (c.written !== clip.take) fail.push(c.name + ' wrote ' + c.written + ' frames of a take of ' + clip.take);
+}
+/* the order and the length are the brief's */
+if (CLIPS[0].motion >= CLIPS[1].motion) fail.push('the faster clip is first');
+if (!CLIPS[1].mirror || CLIPS[0].mirror) fail.push('the second clip is not the mirrored one');
+if (SECONDS >= 6) fail.push('the film is ' + SECONDS + 's, not under six');
+for (const c of CLIPS) {
+  if (Math.abs(c.take / SRC_FPS - TAKE_S) > 0.5 / SRC_FPS) fail.push(c.name + '\'s take is ' + (c.take / SRC_FPS).toFixed(3) + 's, not ' + TAKE_S);
+  if (c.in < 0 || c.in + c.take > c.frames) fail.push(c.name + '\'s take runs outside the clip');
 }
 
 /* ---------- the cut: every source frame, in order, none skipped ---------- */
 {
   for (let k = 0; k < 2; k++) {
     const clip = CLIPS[k];
-    const seen = new Array(clip.frames).fill(0);
-    let last = -1;
+    const seen = new Array(clip.take).fill(0);
+    let last = clip.in - 1;
     for (let f = clip.start; f < clip.start + clip.outFrames; f++) {
       const pic = picAt(f);
       if (!pic || pic.clip !== k) { fail.push('frame ' + f + ' is not clip ' + clip.name); break; }
       if (pic.src < last) { fail.push('clip ' + clip.name + ' runs backwards at frame ' + f); break; }
       if (pic.src > last + 1) { fail.push('clip ' + clip.name + ' skips source frame ' + (last + 1) + ' at output frame ' + f); break; }
-      seen[pic.src]++; last = pic.src;
+      seen[pic.src - clip.in]++; last = pic.src;
     }
     const missing = seen.map((n, i) => (n ? null : i)).filter(i => i != null);
-    if (missing.length) fail.push('clip ' + clip.name + ' never shows source frames ' + missing.slice(0, 6).join(', '));
-    if (picAt(clip.start).src !== 0) fail.push('clip ' + clip.name + ' does not start on its first frame');
-    if (picAt(clip.start + clip.outFrames - 1).src !== clip.frames - 1) fail.push('clip ' + clip.name + ' does not end on its last frame');
+    if (missing.length) fail.push('clip ' + clip.name + ' never shows take frames ' + missing.slice(0, 6).join(', '));
+    if (picAt(clip.start).src !== clip.in) fail.push('clip ' + clip.name + ' does not start on the take\'s first frame');
+    if (picAt(clip.start + clip.outFrames - 1).src !== clip.in + clip.take - 1) fail.push('clip ' + clip.name + ' does not end on the take\'s last frame');
     const copies = seen.reduce((a, b) => Math.min(a, b), Infinity);
     if (FPS === 60 && copies < Math.floor(60 / SRC_FPS)) fail.push('a source frame of ' + clip.name + ' is shown ' + copies + ' time(s) at sixty');
   }
@@ -1003,20 +1085,22 @@ for (const c of state.extract.clips) {
   const e = state.edges;
   if (e.left < -0.5 || e.top < -0.5 || e.right < -0.5 || e.bottom < -0.5) fail.push('a border of the picture came into shot at its lowest zoom: ' + JSON.stringify(e));
   if (Math.abs(state.picBox.w - VW * DSF * state.lowest.z) > 2) fail.push('the canvas on the screen is ' + state.picBox.w + ' device px wide at zoom ' + state.lowest.z);
-  /* the push lands, the reset is on the cut, the snap lands where it was aimed */
+  /* the push lands on the clip's last frame and the snap back is on the cut */
   for (let i = 0; i < 2; i++) {
     const hit = HITS[i];
-    const before = cameraFrame(cam, hit - 1 / 60), on = cameraFrame(cam, hit), landed = cameraFrame(cam, hit + SNAP_FOR + 0.01);
-    if (Math.abs(before.legZ - PUSH) > 2e-4) fail.push('the push over clip ' + CLIPS[i].name + ' ends at ' + before.legZ + ', not ' + PUSH);
-    if (Math.abs(on.legZ - 1) > 1e-6) fail.push('the leg zoom on hit ' + (i + 1) + ' is ' + on.legZ + ', not reset to 1');
-    if (Math.abs(on.snap - A) > 2e-4) fail.push('the wind-up is at ' + on.snap + ' on hit ' + (i + 1) + ', not ' + A);
-    if (Math.abs(landed.snap - BY) > 1e-4) fail.push('the snap on hit ' + (i + 1) + ' lands at ' + landed.snap + ', not ' + BY);
-    if (on.z <= landed.z) fail.push('the snap on hit ' + (i + 1) + ' is not a zoom out: ' + on.z + ' to ' + landed.z);
-    /* and the dip bottoms at 1.0 rather than somewhere above it: the overshoot is used, not avoided */
-    let m = Infinity;
-    for (let f = Math.floor(hit * 240); f <= Math.ceil((hit + SNAP_FOR + 0.1) * 240); f++) m = Math.min(m, cameraFrame(cam, f / 240).z);
-    if (Math.abs(m - 1) > 5e-4) fail.push('the snap on hit ' + (i + 1) + ' bottoms at ' + m.toFixed(5) + ', not at 1.0');
+    const before = cameraFrame(cam, hit - 1 / 60), on = cameraFrame(cam, hit);
+    if (Math.abs(before.z - PUSH) > 2e-4) fail.push('the push over the ' + CLIPS[i].name + ' clip ends at ' + before.z + ', not ' + PUSH);
+    if (Math.abs(on.z - 1) > 1e-6) fail.push('the zoom on hit ' + (i + 1) + ' is ' + on.z + ', not snapped back to 1');
+    if (Math.abs(on.snap - 1) > 1e-9) fail.push('a snap channel is live on hit ' + (i + 1) + ' and this plan has none');
   }
+  /* and the zoom really changed, on the frames */
+  for (const z of state.zoomCheck) {
+    if (Math.abs(z.ratio - z.planned) > ZOOM_TOL || Math.abs(z.ratioW - z.planned) > ZOOM_TOL) {
+      fail.push('the ' + z.what + ' measures ' + z.ratio + ' tall and ' + z.ratioW + ' wide against its source, and the plan says ' + z.planned.toFixed(4));
+    }
+  }
+  const zc = state.zoomCheck;
+  if (zc.length === 4 && !(zc[1].ratio > zc[0].ratio + 0.10 && zc[3].ratio > zc[2].ratio + 0.10)) fail.push('the picture does not grow by a tenth over a clip on the frames');
   if (Math.abs(cameraFrame(cam, 0).z - 1) > 1e-9) fail.push('the first frame is at zoom ' + cameraFrame(cam, 0).z);
   if (FAST.d > STEP_CEIL) fail.push('the camera moves ' + FAST.d + ' css px on one frame');
   /* the reset is a jump and no subframe lands inside it, at the widest shutter */
@@ -1034,7 +1118,7 @@ for (const [what, w] of [['on the hit', state.wmHit], ['at rest', state.wmRest]]
   if (!/Michroma/.test(w.font)) fail.push('the wordmark is not in Michroma: ' + w.font);
 }
 if (state.wmRest.capPx < WM.minCapPx) fail.push('the wordmark caps are ' + state.wmRest.capPx + ' device px at rest, under ' + WM.minCapPx);
-if (Math.abs(state.wmHit.z - A) > 1e-3) fail.push('the wordmark is born at zoom ' + state.wmHit.z + ', not at the wind-up\'s ' + A);
+if (Math.abs(state.wmHit.z - 1) > 1e-3) fail.push('the wordmark is born at zoom ' + state.wmHit.z + ', not at 1.0');
 
 /* ---------- no green, and nothing painted but the picture and the card ---------- */
 {
@@ -1080,8 +1164,8 @@ if (Math.abs(state.wmHit.z - A) > 1e-3) fail.push('the wordmark is born at zoom 
 }
 
 console.log('\n  outstanding');
-console.log('    the cover is ' + COVER + ' and the clip\'s floor is about luma ' + (state.cover[0] ? state.cover[0].floorMean : '?')
-  + ': the rectangle is that many levels under its surroundings. one line to paint it the floor\'s own colour');
+console.log('    the mark\'s box is painted by delogo from its surroundings: it averages luma ' + (state.cover[0] ? state.cover[0].boxMean : '?')
+  + ' on a floor of ' + (state.cover[0] ? state.cover[0].floorMean : '?') + ', and the eye has the corner pngs in ' + path.relative(ROOT, VERIFY));
 console.log('    24 into 60 is a three, two cadence and it is left as it is: no frame is invented and none is blended');
 console.log('    the shutter is ' + (SUB > 1 ? 'open at ' + SUB : 'closed') + ' because the camera is the only thing this file moves and it moves slowly; the clips carry their own blur');
 

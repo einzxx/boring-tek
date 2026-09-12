@@ -178,14 +178,15 @@ All headless Chrome, all tooling. The renderers first:
   being typed. Out to `demo/out/post26-dark-1080x1920.mp4`. post22 is the
   template for the box and the end card, post25 for the gaze. See The twenty
   sixth clip.
-- **`post28.mjs`** renders an 11.05 second clip, vertical, dark only, **silent,
+- **`post28.mjs`** renders a 5.55 second clip, vertical, dark only, **silent,
   and it is the first one whose picture is video made outside this folder.**
   Two clips of him dancing, made in Kling from the still and kept in
-  `demo/music/` (gitignored), their mark covered, each played full length
-  filling the frame, with a slow push over each, the house fault between them
-  and after them, and the wordmark. The mascot module draws nothing; the
-  camera is `lib/camera.mjs`. Out to `demo/out/post28-dark-1080x1920.mp4`.
-  See The twenty eighth clip.
+  `demo/music/` (gitignored), their mark taken out with delogo, the best 2.3
+  seconds of each, the slow groove first and the fast one second, mirrored,
+  filling the frame with a twelve per cent push over each that snaps back to
+  nothing on the cut, the house fault between them and after them, and the
+  wordmark. The mascot module draws nothing; the camera is `lib/camera.mjs`.
+  Out to `demo/out/post28-dark-1080x1920.mp4`. See The twenty eighth clip.
 - **`site-intro.mjs`** renders a 12 second **landscape** clip, 1920x1080,
   **light and then dark**, with the read in the file. It is the first thing in
   this folder that is not a phone and the first that changes theme mid clip: he
@@ -7274,6 +7275,50 @@ The snap reads as the picture settling rather than as a knock: 3.2 per cent of
 travel is small, and the blur is small because the move is small. It is the
 number the edge floor allows without the drift; a bigger snap needs the
 picture to be bigger than the frame, which is a decision about the clips.
+
+### The second round: order, length, a zoom you can see, and delogo
+
+One round of notes, one render, green. Four things changed and every one of
+them is measured rather than typed.
+
+**The order is measured.** Each clip's motion is the mean absolute difference
+between consecutive frames of its own grey pixels: `kling-dance-1` moves 2.475
+a pixel a frame and `kling-dance-2` 0.987, so 2 is the slow groove and goes
+first, 1 is the fast one and goes second, and the file throws if the busier
+clip is first. The second clip is mirrored with `hflip`.
+
+**The cut is measured.** `TAKE_S` is 2.3, which is 55 frames at 24, and each
+clip's take is its busiest 55 frame window: frames 0..54 of the slow clip and
+58..112 of the fast one. A take is 138 output frames at sixty, so the hits are
+at 2.30 and 4.60 and the file is 5.55, under the six the brief set. The take
+is what is extracted, numbered by its source frame so the page and the checks
+speak the clip's own numbers, and the guard walks it the same way as before:
+every take frame shown, in order, two or three times.
+
+**The zoom is twelve per cent and it is checked on the frames.** A glide from
+1.0 to 1.12 over each clip, and the reset leg (still a tenth of a millisecond,
+still a jump) takes it back to 1.0 on the cut: the snap back is the cut, one
+frame, no curve. The snap channel is gone. The check that answers "does the
+scale really change" reads the ink's box, every pixel over luma 128, on the
+first and last frame of each clip as captured, against the same box on the
+source frame each was drawn from: 1.000 and 1.121 on the slow clip, 1.007 and
+1.118 on the fast, against a plan of 1.0 and 1.12, and a guard holds each to
+1.5 per cent and asks for a tenth of growth over a clip. The shutter solved to
+closed this time: the fastest thing the camera does is 0.91 css px a frame.
+
+**The mark is taken out with delogo.** ffmpeg's `delogo` paints the box from
+the pixels around it instead of with a colour, so the black rectangle the
+first review could see is gone. The check changed with it: the box's mean
+must sit within three levels of the floor's around it and nothing in the box
+may be brighter than the floor's own noise plus eight. It reads 7.61 on a
+floor of 7.69 for the slow clip and 8.91 on 8.81 for the fast, whose box is
+mirrored with the picture, and the corner pngs show nothing. `COVER` is gone.
+
+The review this round found the slow take starting on the clip's own first
+frame, where the ai clip's floor is still brightening (luma 7 to 9 over three
+frames), the fault's flash landing on his face both times because the flash
+and the head share the safe band's middle, and the pulldown. Nothing a guard
+could see and nothing that moved a number.
 
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
