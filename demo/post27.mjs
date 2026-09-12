@@ -5,8 +5,8 @@
    pops in beside his head with one finger up. then the fault.
 
      0.0  he is on the frame, idle, the module's own white glow. a caption
-          types in just above his head, in plex mono like a readout, a key
-          tick a character:
+          types in above his head, its middle at 22 per cent of the frame,
+          in nunito, a key tick a character:
           `attention.` / `we are scanning your face`.
      2.0  his eyes go the site's own red on one frame, with post22's own lamp
           on each: the hot core and the flare, in red. the scan begins.
@@ -16,8 +16,8 @@
      4.5  one beep. beams, line, lamps all gone on the frame, the iris back to
           the module's own, the caption swapped to `scan complete`.
      5.5  the hand pops in beside his head, on his left: `assets/finger-sample.png`
-          as it is but mirrored, an image layer with the head's own glow
-          scaled onto it, a small scale pop and a pop on the bus.
+          as it is, the way it was drawn, an image layer with the head's own
+          glow scaled onto it, a small scale pop and a pop on the bus.
      6.0  one slow blink.
      7.0  the fault, and the wordmark stacked three lines: post23's ending.
 
@@ -114,8 +114,8 @@ const CAP = {
   lines: ['attention.', 'we are scanning your face'],
   done: 'scan complete',
   from: 0.15, to: 1.85,         /* the typing's first and last character */
-  size: 22, above: 30,          /* css px, and the block's foot sits this far above the plate */
-  track: 0.06,                  /* em of letter spacing: a readout, not a sentence */
+  size: 26, centre: 0.22,       /* css px, and the block's middle as a fraction of the frame's height */
+  track: 0,                     /* em of letter spacing: normal */
   gap: 0.047, jitter: 0.40, stop: 0.22,   /* seconds a character, its spread, the pause after a full stop */
   caretHz: 2.4,
 };
@@ -151,10 +151,10 @@ const LASER = {
    ink's middle is put at grid (81, 28): beside the plate, its cuff just clear
    of the silhouette, its knuckles level with the crown. */
 const PNG = { file: 'finger-sample.png', px: 636, ink: { x0: 112, y0: 42, x1: 516, y1: 581 } };
-/* 56 units tall, on his left, **mirrored** so the hand faces the head the way
-   the png's does from the right, its ink's middle at grid (-22, 28): the cuff
-   three units clear of the plate, the knuckles level with the crown. */
-const FINGER = { units: 56, at: { x: -22, y: 28 }, mirror: true };
+/* 36 units tall, on his left, the png as drawn and not mirrored, its ink's
+   middle at grid (-17, 28): the cuff a few units clear of the plate, the
+   knuckles level with the crown. */
+const FINGER = { units: 36, at: { x: -17, y: 28 }, mirror: false };
 
 const CRF = 17;
 const TARGET_LUFS = -14;
@@ -390,8 +390,8 @@ function sceneHtml(plan, fingerPlace) {
      thing wearing it is against the plate. */
   const plate = HEAD.plate.s * plan.unit;
   const handH = FINGER.units * plan.unit;
-  /* the caption block: two lines at 1.3, its foot CAP.above over the plate's top */
-  const capTop = +(plan.box.top + HEAD.plate.y * plan.unit - CAP.above - CAP.size * 1.3 * 2).toFixed(2);
+  /* the caption block: two lines at 1.3, its middle at CAP.centre of the frame */
+  const capTop = +(VH * CAP.centre - CAP.size * 1.3).toFixed(2);
   const glow = {
     mid: +(GLOW.mid.blur * handH / plate).toFixed(2),
     wide: +(GLOW.wide.blur * handH / plate).toFixed(2),
@@ -402,7 +402,7 @@ function sceneHtml(plan, fingerPlace) {
 <meta charset="utf-8">
 <title>post27</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Nunito:wght@600&display=swap">
 <style>
 :root{
 ${brand.light}
@@ -414,7 +414,7 @@ ${brand.dark}
 :root{
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
   --display:"Michroma",var(--mono);
-  --body:"IBM Plex Mono",var(--mono);
+  --body:"Nunito",var(--mono);
   --split-r:rgba(255,120,120,.55); --split-c:rgba(120,220,255,.55);
   /* the laser, which is index.html's own dark --red as components. */
   --laser:${RED.join(',')};
@@ -444,11 +444,10 @@ ${mascotCss(plan)}
 #m-zone .m-iris{fill:var(--iris,var(--eye))}
 
 /* ---- the caption ----
-   one zone for the whole film: two lines whose foot sits just above the
-   plate, in the upper third. plex mono at medium, tracked a little wide, so
-   it reads as a readout rather than as a sentence. */
+   one zone for the whole film: two lines whose middle sits at CAP.centre of
+   the frame's height, above the head. nunito at semibold, normal tracking. */
 .cap{position:absolute;left:${SAFE_CSS.left}px;right:${SAFE_CSS.right}px;top:${capTop}px;
-  text-align:center;font-family:var(--body);font-weight:500;font-size:${CAP.size}px;
+  text-align:center;font-family:var(--body);font-weight:600;font-size:${CAP.size}px;
   line-height:1.3;letter-spacing:${CAP.track}em;color:var(--fg);white-space:pre;
   opacity:var(--cap-o,1);transform:scale(var(--cap-s,1));transform-origin:50% 100%;z-index:6}
 .cap .ln{display:block;min-height:1.3em}
@@ -561,7 +560,7 @@ window.__MAS_PLAN = ${JSON.stringify(mascotPagePlan(plan))};
 window.__P27 = ${JSON.stringify({ VW, VH, DSF, WM, CAP })};
 ${mascotRuntime()}
 (${scenePage.toString()})();
-Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 ${CAP.size}px "IBM Plex Mono"')])
+Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('600 ${CAP.size}px Nunito')])
   .then(function () { return document.fonts.ready; })
   .then(function () {
     window.__built = Object.assign({}, window.__p27.fit(), { mas: window.__mas.build() });
@@ -786,7 +785,7 @@ async function render(plan, fingerPlace) {
     await advance(STEP);
   }
   if (!await page.evaluate(() => !!window.__built)) throw new Error('the scene never became ready');
-  for (const [f, what] of [['400 40px "Michroma"', 'the wordmark'], ['500 ' + CAP.size + 'px "IBM Plex Mono"', 'the caption']]) {
+  for (const [f, what] of [['400 40px "Michroma"', 'the wordmark'], ['600 ' + CAP.size + 'px "Nunito"', 'the caption']]) {
     if (!await page.evaluate(q => document.fonts.check(q), f)) throw new Error(f + ' did not load, and ' + what + ' would be judged in the fallback');
   }
 
@@ -1171,16 +1170,17 @@ if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.fr
 
 /* ---------- the caption, the hand and the wordmark clear the safe area ---------- */
 {
-  /* the caption's foot is above the plate's crown, and the block is in the
-     upper third: its top under a third of the frame down and past the band */
+  /* the caption block's middle is at CAP.centre of the frame, within a
+     fiftieth, and its foot is above the plate's crown */
   const plateTop = (plan.box.top + HEAD.plate.y * plan.unit) * DSF;
   for (const [what, b] of [['the typed caption', state.capBox], ['the swapped caption', state.doneBox]]) {
-    if (!/IBM Plex Mono/.test(b.font)) fail.push(what + ' is not set in IBM Plex Mono: ' + b.font);
+    if (!/Nunito/.test(b.font)) fail.push(what + ' is not set in Nunito: ' + b.font);
     if (b.left < SAFE.left || b.right < SAFE.right) fail.push(what + ' is inside the side margins: ' + b.left + ' / ' + b.right);
     if (b.top < SAFE.top) fail.push(what + ' sits ' + b.top + ' device px from the top, inside the 180 band');
-    if (b.top > VH * DSF / 3) fail.push(what + ' starts ' + b.top + ' device px down, below the upper third');
     if (VH * DSF - b.bottom > plateTop - 8) fail.push(what + '\'s foot is on the head');
   }
+  const capMid = (state.capBox.top + (VH * DSF - state.capBox.bottom)) / 2 / (VH * DSF);
+  if (Math.abs(capMid - CAP.centre) > 0.02) fail.push('the caption\'s middle is at ' + (capMid * 100).toFixed(1) + '% of the height, not ' + CAP.centre * 100);
   const h = state.handBox;
   if (h.left < SAFE.left) fail.push('the hand\'s ink is ' + h.left + ' device px from the left edge, inside the 140 band');
   if (h.top < SAFE.top) fail.push('the hand\'s ink is ' + h.top + ' device px from the top');

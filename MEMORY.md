@@ -26,11 +26,18 @@ names in here either.
   from this clip. The beams are clamped 100 degrees off straight down so they
   clear the caption.
 
+  **Round three, same day:** the captions' middle is at **22 per cent** of
+  the frame's height, both in **Nunito 600** at 26 css px, normal tracking
+  (asked for as "the same font as the site subtitles"; the site itself sets
+  Michroma and Space Grotesk and has no Nunito, so this is the clip's own
+  face). The hand is on his left, **not mirrored**, at 36 grid units, which is
+  the first size less a tenth, its ink's middle at grid (-17, 28).
+
   **What the review found, none of it fixed:** the scan line crosses the
-  caption for a fifth of a second at about 2.9s because the caption now sits
-  in its path; the irises go red one tenth before the lamps fade in; the hand's
-  cuff is three grid units off the plate and looks close. **The 60fps render
-  has not been run.** No finger svg exists any more: every draft was deleted from
+  caption for a fifth of a second at about 2.5s because the caption sits in
+  its path; the irises go red one tenth before the lamps fade in; the hand is
+  small (166 device px of ink against a 278 plate). **The 60fps render has
+  not been run.** No finger svg exists any more: every draft was deleted from
   `demo/assets/hands/` on instruction, and the png is the hand.
 
 - **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in
