@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **2026-09-12, SESSION CLOSE. post28 is final and pushed: the dance, 5.55s,
+  silent.** `demo/post28.mjs`, dark only, 60fps, shutter closed (solved).
+  Everything below in this entry is on `main`. The skills/ working tree
+  changes (video-review) and the two untracked clap svgs were **left exactly
+  as they were, uncommitted, on instruction.** Write up is **The twenty eighth
+  clip** in `demo/README.md`, its opening paragraph the final state and the
+  rest the history. Review at `demo/out/review-post28-dark-1080x1920.md`.
+
+  **The four decisions that make the clip, all measured:**
+  - **Delogo instead of a cover.** The mark's box (`x 566..691, y 1233..1258`
+    in the clips' own pixels, the per pixel minimum over every frame on the
+    corner alone) is painted from its surroundings by ffmpeg's `delogo`. A
+    black cover was round one and it showed on every frame, because the
+    clips' floor is luma 7 to 8, the site's own `#06070a`. Never cover on
+    this material; if a solid cover is ever needed it is the floor's colour.
+  - **Clip order by measured motion.** Mean absolute frame difference:
+    `kling-dance-2` 0.99 a pixel a frame is the slow groove and goes first,
+    `kling-dance-1` 2.48 is the fast one, second and mirrored. The file
+    throws if the busier clip is first. Each take is the busiest 55 frames
+    of its clip (0..54 and 58..112).
+  - **The six second limit.** Two takes of 2.30s and a 0.95s card is 5.55s,
+    and a guard fails the film at six or over. The push is 1.0 to 1.12 over
+    each take and the cut is the snap back, one frame, no curve, no snap
+    channel; the zoom is read off the captured frames against their source
+    frames (1.121 and 1.118 on the last frame of each clip).
+  - **The Chrome flag.** `--run-all-compositor-stages-before-draw` is on the
+    launch line and is mandatory for any clip that paints a bitmap (canvas or
+    img) under virtual time: without it `Page.captureScreenshot` hangs after
+    one to ninety frames, on gpu or swiftshader, and the bisect ruled out
+    everything else. The other clips never needed it because none paint a
+    bitmap. Put it on first, before building any clip with a picture in it.
+
+  **Also learned this session and kept:** a camera reset on a cut must be
+  shorter than a subframe (`RESET` 0.0001s) or the open shutter smears the
+  clip's last frame; a frame's liveness signature must sum its subframes
+  when the shutter is open (post28 has the corrected guard, the older files
+  do not); ffmpeg `crop` clamps an offset that runs off the frame without
+  saying so, so any pixel check near an edge clamps its own window; 24 into
+  60 is a 3,2 pulldown and is left as is.
+
+  **Open on post28, none of it blocking:** the slow take starts on the clip's
+  own first frame where its floor is still rising (luma 7 to 9 over three
+  frames; a take from frame 3 loses it); the fault's flash lands on his face
+  on both hits because the flash and the head share the safe band's middle;
+  the pulldown's faint judder. The music goes on outside.
+
 - **2026-09-12, later still. post28 round two is green and committed, not
   pushed.** `demo/post28.mjs`, dark only, **5.55s**, silent, shutter closed
   (solved: the camera's fastest move is 0.91 css px a frame). The order is

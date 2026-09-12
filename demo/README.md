@@ -7133,14 +7133,27 @@ fault is silent. Full notes in `out/review-post27-dark-1080x1920.md`.
 
 ## The twenty eighth clip — the dance, and a picture that is somebody else's video
 
-`demo/post28.mjs`, dark only, 11.05 seconds, silent, 60fps with the shutter
-open at two subframes, solved. Two clips of him dancing, generated outside this
-folder from the still and dropped into `demo/music/` as `kling-dance-1.mp4` and
-`kling-dance-2.mp4`, 720x1280 at 24fps, 121 frames each, gitignored. Each plays
-full length filling the frame exactly, a slow push in over it, and the house
-fault between them and after them, the second one putting the wordmark up. No
-sound at all: the music is added later, outside, and the file carries no audio
-stream. `lib/mascot.mjs` draws nothing here and is read for two constants.
+**Where it stands, final.** `demo/post28.mjs`, dark only, **5.55 seconds**,
+silent, 60fps, the shutter solved to closed. Two clips of him dancing,
+generated outside this folder from the still and dropped into `demo/music/` as
+`kling-dance-1.mp4` and `kling-dance-2.mp4`, 720x1280 at 24fps, 121 frames
+each, gitignored. **The order is by measured motion**: 2 is the slow groove
+(0.99 a pixel a frame) and goes first, 1 is the fast one (2.48) and goes
+second, mirrored, and the file refuses the busier clip first. **Each take is
+the busiest 55 frames of its clip**, 2.30s, so the film is under the six
+seconds the brief set. A twelve per cent push over each clip that snaps back
+to 1.0 on the cut, checked on the captured frames against their source frames.
+**The mark is taken out with `delogo`**, not covered. The house fault between
+the takes and after them, the wordmark on the second hit. No sound at all: the
+music is added later, outside, and the file carries no audio stream.
+`lib/mascot.mjs` draws nothing here and is read for two constants. **Chrome
+runs with `--run-all-compositor-stages-before-draw`**, which any clip that
+paints a bitmap under virtual time needs; see below.
+
+The sections that follow are the history: round one as it was built, with the
+full clips, a five per cent push, a derived snap and a black cover, and then
+the round of notes that made it what it is.
+
 
 ### The mark was measured, not eyeballed
 
