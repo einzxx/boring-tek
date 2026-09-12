@@ -151,10 +151,10 @@ const LASER = {
    ink's middle is put at grid (81, 28): beside the plate, its cuff just clear
    of the silhouette, its knuckles level with the crown. */
 const PNG = { file: 'finger-sample.png', px: 636, ink: { x0: 112, y0: 42, x1: 516, y1: 581 } };
-/* 36 units tall, on his left, the png as drawn and not mirrored, its ink's
-   middle at grid (-17, 28): the cuff a few units clear of the plate, the
-   knuckles level with the crown. */
-const FINGER = { units: 36, at: { x: -17, y: 28 }, mirror: false };
+/* 27 units tall, on his left, the png as drawn and not mirrored, turned 25
+   degrees anticlockwise about its ink's middle so the finger tilts away from
+   the head and the cuff sits lower left, the ink's middle at grid (-17, 28). */
+const FINGER = { units: 27, at: { x: -17, y: 28 }, mirror: false, rot: -25 };
 
 const CRF = 17;
 const TARGET_LUFS = -14;
@@ -501,7 +501,7 @@ ${mascotCss(plan)}
   width:${fingerPlace.size}px;height:${fingerPlace.size}px;z-index:3;pointer-events:none}
 .hand img{position:absolute;left:0;top:0;width:100%;height:100%;display:block;
   mix-blend-mode:screen;transform-origin:${fingerPlace.ox}px ${fingerPlace.oy}px;
-  transform:scale(calc(var(--hs,1) * ${FINGER.mirror ? -1 : 1}),var(--hs,1));will-change:transform,opacity}
+  transform:rotate(${FINGER.rot}deg) scale(calc(var(--hs,1) * ${FINGER.mirror ? -1 : 1}),var(--hs,1));will-change:transform,opacity}
 .hand .ink{opacity:var(--ho,0)}
 .hand .g1{filter:blur(${glow.mid}px);opacity:calc(var(--ho,0) * var(--hg,1) * ${GLOW.mid.o})}
 .hand .g2{filter:blur(${glow.wide}px);opacity:calc(var(--ho,0) * var(--hg,1) * ${GLOW.wide.o})}
@@ -639,18 +639,29 @@ function scenePage() {
     },
     /* the hand's ink box on the frame, off the png's own ink numbers through
        the element's box and its scale. */
-    measureHand(ink, px, mirror) {
-      const el = hand.querySelector('.ink'), r = el.getBoundingClientRect(), d = P.DSF;
-      const s = r.width / px;
-      /* the ink box is read off the png's own numbers through the element; a
-         mirrored element carries its ink reflected about the ink's own
-         middle, which is the origin the css mirrors on. */
-      const mid = (ink.x0 + ink.x1) / 2;
-      const x0 = mirror ? 2 * mid - ink.x1 : ink.x0;
-      const x1 = mirror ? 2 * mid - ink.x0 : ink.x1;
-      return { left: +((r.left + x0 * s) * d).toFixed(1), top: +((r.top + ink.y0 * s) * d).toFixed(1),
-        right: +((P.VW - (r.left + x1 * s)) * d).toFixed(1), bottom: +((P.VH - (r.top + ink.y1 * s)) * d).toFixed(1),
-        w: +((x1 - x0) * s * d).toFixed(1), h: +((ink.y1 - ink.y0) * s * d).toFixed(1) };
+    measureHand(ink, px, mirror, rot) {
+      /* the ink box is the png's own numbers through the element's own
+         transform, which is what the browser actually did with it: the four
+         corners of the ink, mirrored, turned and scaled about the ink's
+         middle, then the box of those. a turned box is bigger than the ink,
+         which is the conservative side for a margin. */
+      const el = hand.querySelector('.ink'), d = P.DSF;
+      const cs = getComputedStyle(el);
+      const m = new DOMMatrix(cs.transform);
+      const o = cs.transformOrigin.split(' ').map(parseFloat);
+      const s = parseFloat(cs.width) / px;
+      /* the element's own untransformed page position: the stage is not
+         shaking on the frame this is read on */
+      const lx0 = hand.offsetLeft + el.offsetLeft, ly0 = hand.offsetTop + el.offsetTop;
+      const corners = [[ink.x0, ink.y0], [ink.x1, ink.y0], [ink.x0, ink.y1], [ink.x1, ink.y1]].map(([x, y]) => {
+        const p = m.transformPoint(new DOMPoint(x * s - o[0], y * s - o[1]));
+        return [p.x + o[0] + lx0, p.y + o[1] + ly0];
+      });
+      const xs = corners.map(c => c[0]), ys = corners.map(c => c[1]);
+      const left = Math.min(...xs), right = Math.max(...xs), top = Math.min(...ys), bottom = Math.max(...ys);
+      return { left: +(left * d).toFixed(1), top: +(top * d).toFixed(1),
+        right: +((P.VW - right) * d).toFixed(1), bottom: +((P.VH - bottom) * d).toFixed(1),
+        w: +((right - left) * d).toFixed(1), h: +((bottom - top) * d).toFixed(1), rot: rot, mirror: mirror };
     },
     apply(o) {
       const s = stage.style;
@@ -811,11 +822,11 @@ async function render(plan, fingerPlace) {
   const doneBox = await page.evaluate(() => window.__p27.measureCap());
   const handF = Math.round((HAND.at + HAND.pop + 0.20) * FPS);
   await put(handF / FPS, handF);
-  const handBox = await page.evaluate((ink, px, m) => window.__p27.measureHand(ink, px, m), PNG.ink, PNG.px, FINGER.mirror);
+  const handBox = await page.evaluate((ink, px, m, r) => window.__p27.measureHand(ink, px, m, r), PNG.ink, PNG.px, FINGER.mirror, FINGER.rot);
   console.log('  the caption: ' + capBox.font + ', caps ' + capBox.capPx + ' device px, widest '
     + capBox.widthPx + ', clear ' + capBox.left + ' left / ' + capBox.top + ' top / ' + capBox.right + ' right');
   console.log('  the hand: ' + handBox.w + 'x' + handBox.h + ' device px of ink, clear ' + handBox.left
-    + ' left / ' + handBox.top + ' top' + (FINGER.mirror ? ', mirrored' : ''));
+    + ' left / ' + handBox.top + ' top' + (FINGER.mirror ? ', mirrored' : '') + (FINGER.rot ? ', turned ' + FINGER.rot + ' degrees' : ''));
 
   let worst = null;
   for (let f = 0; f < Math.round(END.at * FPS); f++) {

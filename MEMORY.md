@@ -33,11 +33,17 @@ names in here either.
   face). The hand is on his left, **not mirrored**, at 36 grid units, which is
   the first size less a tenth, its ink's middle at grid (-17, 28).
 
+  **Round four, same day:** the hand is **27 grid units** (a quarter off
+  36) and **turned 25 degrees anticlockwise** about its ink's middle, same
+  place on his left, so the finger leans away from him and the cuff sits
+  lower left. `measureHand` now reads the ink's four corners through the
+  element's own computed transform, so the margin guard sees the turned box.
+
   **What the review found, none of it fixed:** the scan line crosses the
   caption for a fifth of a second at about 2.5s because the caption sits in
   its path; the irises go red one tenth before the lamps fade in; the hand is
-  small (166 device px of ink against a 278 plate). **The 60fps render has
-  not been run.** No finger svg exists any more: every draft was deleted from
+  small (a turned box of 138 by 153 device px against a 278 plate). **The
+  60fps render has not been run.** No finger svg exists any more: every draft was deleted from
   `demo/assets/hands/` on instruction, and the png is the hand.
 
 - **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in
