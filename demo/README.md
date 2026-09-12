@@ -178,6 +178,14 @@ All headless Chrome, all tooling. The renderers first:
   being typed. Out to `demo/out/post26-dark-1080x1920.mp4`. post22 is the
   template for the box and the end card, post25 for the gaze. See The twenty
   sixth clip.
+- **`post28.mjs`** renders an 11.05 second clip, vertical, dark only, **silent,
+  and it is the first one whose picture is video made outside this folder.**
+  Two clips of him dancing, made in Kling from the still and kept in
+  `demo/music/` (gitignored), their mark covered, each played full length
+  filling the frame, with a slow push over each, the house fault between them
+  and after them, and the wordmark. The mascot module draws nothing; the
+  camera is `lib/camera.mjs`. Out to `demo/out/post28-dark-1080x1920.mp4`.
+  See The twenty eighth clip.
 - **`site-intro.mjs`** renders a 12 second **landscape** clip, 1920x1080,
   **light and then dark**, with the read in the file. It is the first thing in
   this folder that is not a phone and the first that changes theme mid clip: he
@@ -7121,6 +7129,151 @@ because the caption sits in its path. The irises go red a tenth before the
 lamps fade in. The hand is small, a turned box of 138 by 153 device px against
 a 278 plate. The typing smears on keystroke frames with the shutter open. The
 fault is silent. Full notes in `out/review-post27-dark-1080x1920.md`.
+
+## The twenty eighth clip — the dance, and a picture that is somebody else's video
+
+`demo/post28.mjs`, dark only, 11.05 seconds, silent, 60fps with the shutter
+open at two subframes, solved. Two clips of him dancing, generated outside this
+folder from the still and dropped into `demo/music/` as `kling-dance-1.mp4` and
+`kling-dance-2.mp4`, 720x1280 at 24fps, 121 frames each, gitignored. Each plays
+full length filling the frame exactly, a slow push in over it, and the house
+fault between them and after them, the second one putting the wordmark up. No
+sound at all: the music is added later, outside, and the file carries no audio
+stream. `lib/mascot.mjs` draws nothing here and is read for two constants.
+
+### The mark was measured, not eyeballed
+
+Both clips carry `KlingAI 3.0` in the bottom right. Its box is the per pixel
+minimum over every frame of each clip, taken on the corner alone so the head,
+which also never moves, does not join it: what survives a minimum over 121
+frames is only what is on all of them. It is `x 566..691, y 1233..1258` in the
+clip's own pixels, 126 by 26, the same in both, at every threshold from 10 to
+40, and nothing else ever enters that corner, so a fixed rectangle is the right
+tool. `WATERMARK` in the file is that number.
+
+The clips are read once each by ffmpeg, lanczos scaled by exactly 1.5, the box
+covered with `drawbox` plus 4 device px around it for the scaler's bleed, and
+written out as png frames. The check reads the box back off the first, middle
+and last frame of each clip through a window that is **clamped to the frame**,
+because ffmpeg's `crop` silently moves an offset that runs past an edge and the
+box sits 31 device px off the bottom: the first version of the check read a
+window nine rows up and reported luma 10 inside a box that was 0. Box luma is
+0 on all six frames; the floor around it averages 7.5.
+
+**The cover is pure black, as the brief said, and the clip's floor is not.**
+The background sits at luma 7 to 8, which is index.html's own dark `--bg`, so
+the rectangle is that many levels under everything around it, and the review
+can see it on every frame: a faint patch at rest, a plain black rectangle on
+the fault frames where the noise lifts the floor and not the box. `COVER` is
+one line. Painting it `#06070a` is the fix, and it is Einz's call.
+
+### 24 into 60 is a cadence
+
+A 24fps frame is two and a half output frames at sixty, so the picture is a
+three, two, three, two pulldown: every source frame is drawn on two or three
+output frames, by index, in order, none skipped and none blended. That is what
+"full length" means at 60fps without inventing frames, and the guard walks it:
+every source frame seen, first on the clip's first output frame, last on its
+last, monotone. A clip is 303 output frames, so the hits are at 5.05 and 10.10
+and the file is 11.05 with post27's 0.95 of card.
+
+The source frame is chosen by the **output frame's index**, never by the
+subframe's time, so an open shutter blurs the camera and never the picture.
+The clips carry their own blur.
+
+### The camera is a push, a reset and a snap, twice
+
+`lib/camera.mjs`, free mode, drift off. A glide from 1.0 to 1.05 over each
+clip. The snap is the module's own with post16's negative anticipation, a push
+in of 3.5 per cent over the last 0.18s of the clip as the wind-up, then the pop
+out over 0.22s starting on the hit's own frame, `back: false`. Between them a
+reset leg takes the leg zoom from 1.05 to 1.0 on the cut.
+
+Two things in that are worth the paragraph.
+
+**The reset is a tenth of a millisecond long.** A one frame leg is still a
+tween, and with the shutter open its subframes land inside it: the first
+version smeared clip one's last frame with a zoom blur and the shutter solve
+read 28 css px a frame off it. The leg is now `RESET` = 0.0001s ending on the
+hit, no subframe can land inside it at any shutter up to twelve, a guard
+checks the last subframe before each hit still carries 1.05, and the cut pair
+is left out of the shutter solve because a cut is not a move. The solve then
+reads the pop's own peak, 6.71 css px a frame, and opens the shutter at two.
+
+**`by` is derived.** The picture is exactly the stage's size, so any zoom under
+1.0 brings its edge into shot, and `btk.pop` overshoots its mark. A trial plan
+with `by` at 1 is walked at 240Hz to read the overshoot off the curve (10.00
+per cent of the travel), and `by` is solved so the pop bottoms at exactly 1.0:
+`(1 + o*A) / (1 + o)` with `A` the wind-up's 1.035, which comes out 1.003182.
+The resting zoom after a snap is a third of a per cent over 1, which is the
+price of the overshoot never showing an edge, and the guard walks the plan at
+60 and at 240 and asks the page for the rig's edges on the lowest frame.
+
+The drift is off on purpose: its z channel dips under 1.0 and its y channel
+moves the picture off the frame, and no frame here is still because the
+picture is a film.
+
+### The fault, twice, and where the bands are drawn
+
+post23's ending as post27 carries it, twice: two stutters into the hit, the hit
+with its bands, noise and flash, calm by 86 per cent of its window. On the
+first hit the picture is still up, so the bands tear the picture: the canvas
+redraws the frame and then, per band, fills the strip with the page's black
+and draws the same strip of the source frame shifted by the band's `dx`. On
+the second hit the picture is cut and the bands are post27's dom tears carrying
+the wordmark, and a guard checks the two are never on together. The split
+reaches the wordmark and nothing else. The wordmark has no scale pop of its
+own here: the camera's snap out is its birth, from 1.035 to 1.0032 over the
+pop, which is post27's 1.085 to 1 in shape.
+
+### The picture is a canvas, and the capture needed a flag
+
+Each output frame draws its source png into one 1080x1920 canvas inside the
+rig with `drawImage`, which is synchronous off a loaded image; every frame of
+both clips is fetched once at load. The camera moves the canvas and does not
+repaint it; a redraw happens only when the source frame or the bands change.
+
+**`--run-all-compositor-stages-before-draw` is on the launch line and it is not
+optional.** The first render hung on its first `Page.captureScreenshot` for
+the whole 180s protocol timeout, with every measurement before it fine. It was
+bisected on the real page: not the 242 held images, not `will-change`, not the
+noise, the tears, the fonts or the wordmark's filter; the same page captured
+one to ninety frames and then hung, on the gpu, on swiftshader, with a canvas
+and with an `<img>` swapped per frame, with the pngs served whole and with the
+virtual time policy pinned to pause between frames. A page that paints a
+bitmap hands the compositor a decode to finish after the first frame, and
+under a paused virtual clock the frame that would carry it is never driven.
+With the flag every forced frame runs every compositor stage to the end before
+it draws, and the same page captured every frame of both clips twice over.
+The other clips never needed it because none of them paint a bitmap.
+
+### The liveness guard learned about the shutter
+
+The first green-but-for-one run failed on one identical pair at frame 628, on
+the end card, the glow phosphor sitting on a peak of its own curve at four
+decimals. The finished frames differed by 536 pixels: each is the blend of two
+subframes and only the first was in the signature. A frame's signature is now
+the sum over its subframes, weighted so their order matters, and the run is
+green: smallest change between frames 2.84e-2, no identical pairs.
+
+### The review
+
+`demo/out/review-post28-dark-1080x1920.md`, off 23 frames at half a second and
+25 more at a twentieth across the two faults. Three things, none of them a
+guard could see:
+
+1. **The cover is visible**, every frame the picture is up, and plainly a
+   rectangle on the fault frames. One line, see above.
+2. **The two takes are the same shot.** Same dancer, same size, same place, and
+   the fault is the only thing that says a cut happened. A property of the
+   clips, not of this file.
+3. **The pulldown** has a faint judder on a 60Hz screen. Honest, and the cost
+   of a 60fps master off 24fps material.
+
+The snap reads as the picture settling rather than as a knock: 3.2 per cent of
+travel is small, and the blur is small because the move is small. It is the
+number the edge floor allows without the drift; a bigger snap needs the
+picture to be bigger than the frame, which is a decision about the clips.
 
 ## The two voices — a second elevenlabs clone, and why it is a clone
 

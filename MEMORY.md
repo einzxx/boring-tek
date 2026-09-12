@@ -6,6 +6,52 @@ names in here either.
 
 ## Status
 
+- **2026-09-12, later. post28 is built and green at 60fps, the dance, and it is
+  committed, not pushed.** `demo/post28.mjs`, dark only, 11.05s, **silent by
+  design** (no audio stream; the music goes on outside), shutter open at two
+  subframes solved. The picture is two Kling clips of him dancing,
+  `demo/music/kling-dance-1.mp4` and `-2.mp4`, gitignored, 720x1280 at 24fps,
+  121 frames each: each played full length filling the frame, a 5 per cent
+  glide push over each, the house fault between and after, the wordmark. The
+  mascot module draws nothing. Out to `demo/out/post28-dark-1080x1920.mp4`,
+  review at `demo/out/review-post28-dark-1080x1920.md`. Write up is **The
+  twenty eighth clip** in `demo/README.md`. The skills/ working tree changes
+  and the untracked clap svgs are still not part of any commit.
+
+  **What a later session needs and cannot get from the code:**
+  - **The mark's box is `x 566..691, y 1233..1258`** in the clips' own pixels,
+    measured as the per pixel minimum over every frame on the corner alone;
+    identical in both clips. The cover is **pure black as asked, and the
+    clips' floor is luma 7 to 8, the site's own `#06070a`**, so the rectangle
+    is visible on every frame and plainly so on the fault frames. `COVER` in
+    the file is the one line. **Einz decides**; nobody else changes it.
+  - **`--run-all-compositor-stages-before-draw` is mandatory for any clip that
+    paints a bitmap** (canvas or img) under virtual time. Without it
+    `Page.captureScreenshot` hangs after one to ninety frames, on gpu or
+    swiftshader, and the bisect ruled out everything else. The other clips
+    never needed it because none paint a bitmap. If a future clip puts a
+    png or a video frame on the page, put the flag on the launch line first.
+  - **A camera reset on a cut must be shorter than a subframe.** A one frame
+    leg is a tween and the open shutter smears it over the clip's last frame.
+    `RESET` = 0.0001s, the cut pair is left out of the shutter solve.
+  - **Snap `by` is derived off the pop's measured overshoot** so the dip
+    bottoms at exactly z 1.0, because the picture is the stage's size and any
+    z under 1 shows its edge. Drift is off for the same reason. The snap is
+    therefore 3.2 per cent of travel and reads as a settle, not a knock; a
+    bigger snap needs a picture bigger than the frame.
+  - **A frame's liveness signature must sum its subframes** when the shutter
+    is open. post27's first-subframe signature reported a false identical
+    pair on the end card's glow peak. post28 has the corrected guard; the
+    older files still carry the old one.
+  - **ffmpeg `crop` clamps an offset that runs off the frame without saying
+    so.** Any pixel check near an edge must clamp its own window.
+  - **24 into 60 is a 3,2 pulldown** and it is left as is: no frame invented,
+    none blended. Every source frame is guarded to appear, in order.
+
+  **Open on post28:** the cover colour (above); the two takes read as one shot
+  because they are the same dancer in the same place, which is the clips and
+  not the file; the faint pulldown judder.
+
 - **2026-09-12, SESSION CLOSE. post27 is final at 60fps, shutter open at three
   subframes solved, and pushed.** Everything in this entry is on `main`. The
   skills/ working tree changes (video-review) are **not** part of it and were
