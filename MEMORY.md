@@ -49,6 +49,12 @@ names in here either.
   reader, because chrome's raster moves one pixel by one level when a layer
   beside the text changes and byte equality is too strict).
 
+  **Round six, same day:** the first line is `attention` with no full stop
+  (the typing's pause moved from the dot to the line break, so the rhythm is
+  the same), and **the lids are held open from 2.0 to 4.5**: `compose` writes
+  lid 0 over the module's idle for the whole scan, and a guard walks it at
+  sixty. The red eyes never blink.
+
   **What the review found, none of it fixed:** the scan line crosses the
   caption for a fifth of a second at about 2.5s because the caption sits in
   its path; the irises go red one tenth before the lamps fade in; the hand is

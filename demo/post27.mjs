@@ -7,7 +7,7 @@
      0.0  he is on the frame, idle, the module's own white glow. a caption
           types in above his head, its middle at 22 per cent of the frame,
           in nunito, silently:
-          `attention.` / `we are scanning your face`.
+          `attention` / `we are scanning your face`.
      2.0  his eyes go the site's own red on one frame, with post22's own lamp
           on each: the hot core and the flare, in red. the scan begins.
      2.0  two red beams out of the eyes, aimed at a thin red scan line that
@@ -114,12 +114,12 @@ const SIZE = 148;
 
 /* ---------- the beats ---------- */
 const CAP = {
-  lines: ['attention.', 'we are scanning your face'],
+  lines: ['attention', 'we are scanning your face'],
   done: 'scan complete',
   from: 0.15, to: 1.85,         /* the typing's first and last character */
   size: 26, centre: 0.22,       /* css px, and the block's middle as a fraction of the frame's height */
   track: 0,                     /* em of letter spacing: normal */
-  gap: 0.047, jitter: 0.40, stop: 0.22,   /* seconds a character, its spread, the pause after a full stop */
+  gap: 0.047, jitter: 0.40, stop: 0.22,   /* seconds a character, its spread, the pause at the line break */
   caretHz: 2.4,
 };
 const SCAN = { at: 2.0, to: 4.5 };
@@ -248,8 +248,8 @@ function phosphor(t, amp, slow, fast, phase) {
 }
 
 /* ---------- the typing ----------
-   a character at a time on an uneven clock, seeded, with a longer pause after
-   the full stop. the schedule is scaled so the last character lands on
+   a character at a time on an uneven clock, seeded, with a longer pause at
+   the line break. the schedule is scaled so the last character lands on
    `CAP.to` exactly, whatever the jitter did. a key tick per character that is
    not a space. */
 const COPY = CAP.lines.join('\n');
@@ -260,8 +260,7 @@ const TYPED = (() => {
   for (let i = 0; i < COPY.length; i++) {
     at.push(t);
     let gap = CAP.gap * (1 + (r() * 2 - 1) * CAP.jitter);
-    if (COPY[i] === '.') gap += CAP.stop;
-    if (COPY[i] === '\n') gap = 0.02;
+    if (COPY[i] === '\n') gap = 0.02 + CAP.stop;
     t += gap;
   }
   const scale = (CAP.to - CAP.from) / at[at.length - 1];
@@ -319,14 +318,18 @@ const eyeSpots = (plan, fr) =>
 /* ---------- the mascot's frame, composed ----------
    the module's own frame with three things written over it: the shadow
    declined (post26's finding, the module paints it in the face colour on
-   both themes), the slow blink on the lids, and nothing else. */
+   both themes), the slow blink on the lids, and **no blink at all while the
+   eyes are red**: from the scan's first frame to its last the lids are held
+   open whatever the module's idle wanted, so a red eye never shuts. */
 function compose(plan, t) {
   const f = mascotFrame(plan, t);
   const lid = blinkLid(t);
+  const red = t >= SCAN.at && t < SCAN.to;
   return {
     ...f,
     shadow: { ...f.shadow, o: 0 },
-    eyes: lid > 0 ? f.eyes.map(e => ({ ...e, lid: Math.max(e.lid, +lid.toFixed(4)) })) : f.eyes,
+    eyes: red ? f.eyes.map(e => ({ ...e, lid: 0 }))
+      : lid > 0 ? f.eyes.map(e => ({ ...e, lid: Math.max(e.lid, +lid.toFixed(4)) })) : f.eyes,
   };
 }
 
@@ -1138,7 +1141,7 @@ const beats = [
   [0, 'he is on the frame, idle, the module\'s own white glow'],
   [CAP.from, 'the caption types: ' + CAP.lines.join(' / ') + ', silently'],
   [CAP.to, 'the last character, and the caret goes with it'],
-  [SCAN.at, 'the eyes go red on this frame, the lamps come up, the beams and the scan line start at the top'],
+  [SCAN.at, 'the eyes go red on this frame and do not blink until the beep frame, the lamps come up, the beams and the scan line start at the top'],
   [SCAN.to, 'beams, line and lamps gone, the iris back, the caption swaps to ' + CAP.done + '. silent'],
   [HAND.at, 'the hand pops in beside his head, silently'],
   [BLINK.at, 'one slow blink, ' + (BLINK.close + BLINK.hold + BLINK.open).toFixed(2) + 's'],
@@ -1214,7 +1217,12 @@ if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.fr
   if (!(CAP.from >= 0 && CAP.to <= 2.0)) fail.push('the typing runs ' + CAP.from + ' to ' + CAP.to + ', outside 0 to 2');
   if (!(BLINK.at >= HAND.at && BLINK.at + BLINK.close + BLINK.hold + BLINK.open <= END.at)) fail.push('the blink is not inside the hand\'s beat');
   if (CAP.done !== 'scan complete') fail.push('the swapped caption reads "' + CAP.done + '"');
-  if (CAP.lines.join(' ') !== 'attention. we are scanning your face') fail.push('the typed caption reads "' + CAP.lines.join(' ') + '"');
+  if (CAP.lines.join(' ') !== 'attention we are scanning your face') fail.push('the typed caption reads "' + CAP.lines.join(' ') + '"');
+  /* the lids are open on every frame the eyes are red, at sixty */
+  for (let f = Math.round(SCAN.at * 60); f < Math.round(SCAN.to * 60); f++) {
+    const e = compose(plan, f / 60).eyes;
+    if (e[0].lid > 0 || e[1].lid > 0) { fail.push('a lid moves at ' + (f / 60).toFixed(3) + 's while the eyes are red'); break; }
+  }
   /* every exchange is one frame: the frame before it has none of it and the
      frame of it has all of it */
   const at = f => { const t = f / FPS; const mf = compose(plan, t); return frameAt(plan, t, f, mf); };
