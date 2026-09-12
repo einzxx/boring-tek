@@ -6,6 +6,26 @@ names in here either.
 
 ## Status
 
+- **2026-09-12. post27 exists as a 12fps preview, not final.** `demo/post27.mjs`,
+  dark only, 7.95s, no voice: a caption types at the top (`attention.` /
+  `we are scanning your face`, a key tick a character), the eyes go the site's
+  red at 2.0 with post22's core, flare and beams, the beams are **aimed at a
+  red scan line** that runs the frame top to bottom 2.0 to 4.5 under a hum,
+  one beep at 4.5 and everything red is gone on that frame, the caption swaps
+  to `scan complete`, at 5.5 **the hand is a png**, `demo/assets/finger-sample.png`
+  drawn as it is beside the head, screen blended over the page with the head's
+  own glow scaled onto it, a small scale pop and a pop on the bus, one slow
+  blink at 6.0 written over the module's lids, then post23's ending at 7.0.
+  Preview at `demo/out/post27-dark-1080x1920.mp4`, review at
+  `demo/out/review-post27-dark-1080x1920.md`. Committed, **not pushed**.
+
+  **What the review found, none of it fixed:** the scan line crosses the
+  caption for a fifth of a second at 2.2s because it starts at the top of the
+  frame; the hand reads small (185 device px of ink against a 278 plate); the
+  irises go red one tenth before the lamps fade in. **The 60fps render has not
+  been run.** No finger svg exists any more: every draft was deleted from
+  `demo/assets/hands/` on instruction, and the png is the hand.
+
 - **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in
   its place.** Committed, **not pushed**. Two drawings,
   `demo/assets/hands/dance-fist-left.svg` and `dance-fist-right.svg`, 400 unit
