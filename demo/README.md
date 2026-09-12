@@ -7033,6 +7033,95 @@ anyway.
   head tilt as much as the eyes. `GAZE.max` is the knob and there is measured
   room above it.
 
+## The twenty seventh clip — the scan, and a hand that is a png
+
+`demo/post27.mjs`, dark only, 7.95 seconds, no voice, shipped at 60fps with the
+shutter open at **three subframes a frame, solved off the fastest thing in the
+cut**, which is a beam turning about an eye. A caption types itself in above
+his head, `attention` and then `we are scanning your face`, his eyes go the
+site's red and two beams sweep a scan line down the whole frame under a hum,
+the line and the beams and the red go on one frame and the caption swaps to
+`scan complete`, a hand pops in on his left with one finger up, he blinks
+once, slowly, and post23's fault takes it all. It went through six rounds of
+notes before the final and every one of them moved something by a number.
+
+### The red is post22's and the beams are aimed
+
+The iris override, the hot core, the flare and the beam are post22's three
+layers at post22's numbers, in index.html's own dark `--red`, read out of the
+site and guarded. The one new thing is that the beams turn: post22 held them
+twelve degrees apart and pointing at the lens, and here each is aimed at the
+scan line, a little outward of its own eye, so the pair pitches from the top
+of the frame to the bottom as the line does. **The pitch is clamped a hundred
+degrees off straight down**, which is ten degrees above the horizontal, and the
+reason is the caption: a beam aimed at a line that is still above the frame
+would point straight through the sentence.
+
+**The lids are held open for the whole scan.** `compose` writes lid nought
+over the module's idle from the scan's first frame to its last, and a guard
+walks it at sixty. A red eye that shuts is a different creature, and the idle
+is seeded, so the seed is also walked to keep the module's own blinks a beat
+clear of both ends of the scan and of the hand's beat, where this file writes
+the one slow blink it wants.
+
+### The hand is an image, not a glove
+
+`demo/assets/finger-sample.png` is drawn as it is. It was traced, redrawn,
+traced again with potrace and redrawn geometrically over three sessions, and
+every svg was deleted on instruction: the png is the hand. It is an `img`
+three times over, the ink and two blurred copies behind it carrying the head's
+own glow at the module's two radii and two opacities, scaled by the hand's
+height against the plate, exactly the way post23 puts the glow on the boots.
+The png is white on black, so **every copy is screen blended and transformed on
+its own**: a wrapper with a transform or an opacity on it isolates the blend
+and the png's black comes back as a black square, which the first cut showed.
+
+Where it stands was moved five times: right of the head, then left and
+mirrored and forty per cent bigger, then unmirrored at the first size less a
+tenth, then a quarter smaller again and turned twenty five degrees
+anticlockwise so the finger leans away from him, then sixty device px lower
+to eye height. `measureHand` reads the png's own ink corners through the
+element's computed transform, so the margin guard sees the turned box rather
+than the drawing's.
+
+### The caption is a sentence that holds
+
+The two lines sit with their middle at 22 per cent of the frame's height, in
+Nunito at semibold, which is not a face the site uses and was asked for by
+name. The typing is a character at a time on a seeded uneven clock with a
+longer pause at the line break, silent. The caret goes with the last character.
+From then to the swap at 4.5 the sentence must not move, and that is measured
+rather than promised: the render captures the caption's own box on every frame
+between the two, skips the ones the scan line crosses it on, and compares the
+rest pixel by pixel through `readPng`, a forty line png reader in the file.
+Byte equality was too strict — chrome moves one pixel by one level when a
+layer beside the text changes — and the reader is what tells noise from a
+flicker.
+
+**The open shutter found the thing the preview could not.** The line is
+centred, so each character re-centres it by half a glyph, and a 60fps frame
+that a character lands in averages the line at two positions: `we are` at
+1.00s is a double image. The 12fps preview with the shutter closed was crisp
+on every one of those frames. It is in the review as the first thing wrong
+and it is not fixed: a left anchored line, or a line pinned at its final width,
+is the change, and it is a decision about how the caption types rather than
+a number.
+
+### The bus is one sound
+
+A hum from 2.0 to 4.5 and nothing else. The key ticks, the beep, the pop and
+the fault's own glitches were all on the first cut and all taken off on
+instruction, and a guard counts every sample outside the hum's window. The
+fault therefore lands silent, which the review names as a thing to feel.
+
+### Open
+
+The scan line crosses the caption for a fifth of a second at about 2.5s
+because the caption sits in its path. The irises go red a tenth before the
+lamps fade in. The hand is small, a turned box of 138 by 153 device px against
+a 278 plate. The typing smears on keystroke frames with the shutter open. The
+fault is silent. Full notes in `out/review-post27-dark-1080x1920.md`.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

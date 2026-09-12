@@ -6,7 +6,17 @@ names in here either.
 
 ## Status
 
-- **2026-09-12. post27 exists as a 12fps preview, not final.** `demo/post27.mjs`,
+- **2026-09-12, SESSION CLOSE. post27 is final at 60fps, shutter open at three
+  subframes solved, and pushed.** Everything in this entry is on `main`. The
+  skills/ working tree changes (video-review) are **not** part of it and were
+  left uncommitted on instruction. The write up is **The twenty seventh clip**
+  in `demo/README.md`. The one thing the final showed that no preview did:
+  **the centred typing smears on keystroke frames with the shutter open**, a
+  double image of the line on the frame a character lands in, because each
+  character re-centres the line. Not fixed; a left anchored or width pinned
+  line is the change. The rounds below are the history.
+
+- **2026-09-12. post27 as it was built, round by round.** `demo/post27.mjs`,
   dark only, 7.95s, no voice: a caption types at the top (`attention.` /
   `we are scanning your face`, a key tick a character), the eyes go the site's
   red at 2.0 with post22's core, flare and beams, the beams are **aimed at a
@@ -59,7 +69,7 @@ names in here either.
   caption for a fifth of a second at about 2.5s because the caption sits in
   its path; the irises go red one tenth before the lamps fade in; the hand is
   small (a turned box of 138 by 153 device px against a 278 plate); the fault
-  lands silent. **The 60fps render has not been run.** No finger svg exists any more: every draft was deleted from
+  lands silent. No finger svg exists any more: every draft was deleted from
   `demo/assets/hands/` on instruction, and the png is the hand.
 
 - **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in

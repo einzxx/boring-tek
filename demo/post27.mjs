@@ -24,7 +24,9 @@
 
      node post27.mjs                     1080x1920, 60fps, shutter closed
      DEMO_FPS=12 node post27.mjs         the fast preview pass
-     node post27.mjs --blur=6            60fps with the shutter open
+     node post27.mjs --blur              60fps with the shutter open, the
+                                         subframes solved off the fastest move
+     node post27.mjs --blur=6            the same with the count said outright
      node post27.mjs --keep-frames       leave the jpegs on disk
      node post27.mjs --encode-only       re-encode from kept frames
      node post27.mjs --clock             the clock only, no browser
@@ -93,10 +95,19 @@ const argv = process.argv.slice(2);
 const ONLY_ENCODE = argv.includes('--encode-only');
 const CLOCK_ONLY = argv.includes('--clock');
 const KEEP = argv.includes('--keep-frames');
-const BLUR = argv.some(a => a.startsWith('--blur'));
-const BLUR_ARG = (argv.find(a => a.startsWith('--blur=')) || '').split('=')[1];
-const SUB = BLUR ? Math.max(2, Math.min(12, Number(BLUR_ARG) || 4)) : 1;
-const SUBSTEP = STEP / SUB;
+/* ---------- the shutter, and it is solved ----------
+   post26's rule: how many samples a frame is averaged over is a property of
+   the cut, not a taste. what matters is how far the quickest thing on the
+   screen travels between two samples, and `SUB_STEP_WANT` is post20's landing,
+   the house reference, at 6.3 css px a sample. this file solves for that
+   step off its own fastest move, which it walks at sixty before a browser is
+   opened, see the fast things below. `--blur=8` still says it outright. */
+const BLUR = argv.some(a => a === '--blur' || a.startsWith('--blur='));
+const BLUR_ARG = Number((argv.find(a => a.startsWith('--blur=')) || '').split('=')[1]) || 0;
+const SUB_STEP_WANT = 6.3;
+const SUB_MAX = 12;
+let SUB = 1;
+let SUBSTEP = STEP;
 
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -1173,8 +1184,42 @@ const fastest = (fn, a, b) => {
 };
 const scanStep = fastest(scanY, SCAN.at, SCAN.to);
 const handStep = fastest(t => handScale(t) * (PNG.ink.y1 - PNG.ink.y0) * fingerPlace.size / PNG.px / 2, HAND.at, HAND.at + HAND.pop);
-console.log('  the scan line moves ' + scanStep.d + ' css px a frame at sixty; the hand\'s edge moves at most '
-  + handStep.d + ' css px a frame in its pop (ceiling ' + STEP_CEIL + ')');
+/* the beam turns about the eye, so the quickest thing on it is its far end.
+   the far end that is on the screen is the one that counts: the beam is a
+   thousand css px long and the frame is 540 wide, so it is walked at 300 css
+   px out, which is about where its halo leaves the frame at the horizontal. */
+const BEAM_REACH = 300;
+const beamPoint = t => {
+  const f = Math.round(t * 60);
+  const o = frameAt(plan, t, f, compose(plan, t));
+  const L = o.lamps[1], th = L.rot * Math.PI / 180;
+  return { x: L.x - Math.sin(th) * BEAM_REACH, y: L.y + Math.cos(th) * BEAM_REACH };
+};
+const beamStep = (() => {
+  let d = 0, at = SCAN.at;
+  for (let f = Math.floor(SCAN.at * 60); f < Math.ceil(SCAN.to * 60) - 1; f++) {
+    const a = beamPoint(f / 60), b = beamPoint((f + 1) / 60);
+    const s = Math.hypot(b.x - a.x, b.y - a.y);
+    if (s > d) { d = s; at = f / 60; }
+  }
+  return { d: +d.toFixed(2), at: +at.toFixed(3) };
+})();
+const FASTEST = Math.max(scanStep.d, handStep.d, beamStep.d);
+if (BLUR) {
+  SUB = BLUR_ARG
+    ? Math.max(2, Math.min(SUB_MAX, Math.round(BLUR_ARG)))
+    : Math.max(2, Math.min(SUB_MAX, Math.ceil(FASTEST / SUB_STEP_WANT)));
+  SUBSTEP = STEP / SUB;
+}
+console.log('\n  the fast things, at sixty');
+console.log('    the scan line moves ' + scanStep.d + ' css px a frame');
+console.log('    the hand\'s edge moves at most ' + handStep.d + ' css px a frame in its pop, at ' + handStep.at + 's');
+console.log('    a beam, ' + BEAM_REACH + ' css px out of the eye, moves at most ' + beamStep.d + ' css px a frame, at ' + beamStep.at + 's');
+console.log('    the fastest is ' + FASTEST.toFixed(2) + ' css px a frame against a ceiling of ' + STEP_CEIL);
+console.log('  the shutter: ' + (BLUR
+  ? SUB + ' subframes' + (BLUR_ARG ? ' because --blur=' + BLUR_ARG + ' said so' : ', solved')
+    + ', which is ' + (FASTEST / SUB).toFixed(2) + ' css px between samples (wanted ' + SUB_STEP_WANT + ')'
+  : 'closed'));
 
 if (CLOCK_ONLY) process.exit(0);
 
@@ -1333,6 +1378,8 @@ if (peak.reduction > MAX_REDUCTION + 1e-6) fail.push('the limiter took ' + peak.
 /* ---------- the fast things ---------- */
 if (scanStep.d > STEP_CEIL) fail.push('the scan line moves ' + scanStep.d + ' css px on one frame at 60');
 if (handStep.d > STEP_CEIL) fail.push('the hand\'s edge moves ' + handStep.d + ' css px on one frame in its pop');
+if (beamStep.d > STEP_CEIL) fail.push('a beam moves ' + beamStep.d + ' css px on one frame at 60, ' + BEAM_REACH + ' px out of the eye');
+if (BLUR && !BLUR_ARG && FASTEST / SUB > SUB_STEP_WANT + 1e-6) fail.push('the solved shutter leaves ' + (FASTEST / SUB).toFixed(2) + ' css px between samples');
 
 /* ---------- the ending glitches on a minority of its own frames ---------- */
 {
