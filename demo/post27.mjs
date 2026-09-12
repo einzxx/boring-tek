@@ -6,18 +6,19 @@
 
      0.0  he is on the frame, idle, the module's own white glow. a caption
           types in above his head, its middle at 22 per cent of the frame,
-          in nunito, a key tick a character:
+          in nunito, silently:
           `attention.` / `we are scanning your face`.
      2.0  his eyes go the site's own red on one frame, with post22's own lamp
           on each: the hot core and the flare, in red. the scan begins.
      2.0  two red beams out of the eyes, aimed at a thin red scan line that
    -4.5  runs down the whole frame, so the beams pitch from the top of the
-          frame to the bottom as the line does. a hum under it.
-     4.5  one beep. beams, line, lamps all gone on the frame, the iris back to
-          the module's own, the caption swapped to `scan complete`.
+          frame to the bottom as the line does. a hum under it, **and the hum
+          is the only sound in the film.**
+     4.5  beams, line, lamps all gone on the frame, the iris back to the
+          module's own, the caption swapped to `scan complete`.
      5.5  the hand pops in beside his head, on his left: `assets/finger-sample.png`
           as it is, the way it was drawn, an image layer with the head's own
-          glow scaled onto it, a small scale pop and a pop on the bus.
+          glow scaled onto it, a small scale pop.
      6.0  one slow blink.
      7.0  the fault, and the wordmark stacked three lines: post23's ending.
 
@@ -62,6 +63,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import zlib from 'node:zlib';
 import {
   planMascot, mascotFrame, mascotMotion, mascotCss, mascotMarkup, mascotRuntime,
   mascotPagePlan, describeMascot, describeMotion, headRect,
@@ -76,6 +78,7 @@ const OUT = path.join(HERE, 'out');
 const FRAMES = path.join(OUT, 'frames-post27');
 const SUBS = path.join(OUT, 'subframes-post27');
 const VERIFY = path.join(OUT, 'verify-post27');
+const HOLD = path.join(OUT, 'verify-post27-hold');
 
 const FPS = Number(process.env.DEMO_FPS || 60);
 const STEP = 1000 / FPS;
@@ -153,8 +156,9 @@ const LASER = {
 const PNG = { file: 'finger-sample.png', px: 636, ink: { x0: 112, y0: 42, x1: 516, y1: 581 } };
 /* 27 units tall, on his left, the png as drawn and not mirrored, turned 25
    degrees anticlockwise about its ink's middle so the finger tilts away from
-   the head and the cuff sits lower left, the ink's middle at grid (-17, 28). */
-const FINGER = { units: 27, at: { x: -17, y: 28 }, mirror: false, rot: -25 };
+   the head and the cuff sits lower left, the ink's middle at grid (-17, 41):
+   thirteen units under the crown line it stood on, which is eye height. */
+const FINGER = { units: 27, at: { x: -17, y: 41 }, mirror: false, rot: -25 };
 
 const CRF = 17;
 const TARGET_LUFS = -14;
@@ -162,6 +166,46 @@ const SAMPLE_CEILING = -1.8;
 const PEAK_CEILING = -1.0;
 const MAX_REDUCTION = 5.0;
 const STEP_CEIL = 42;
+
+/* ---------- a png, read for its pixels ----------
+   chrome's screenshot is an 8 bit rgb or rgba png with one idat stream, which
+   is the one shape this reads: the chunks are walked, the idat inflated, and
+   the five scanline filters undone. it exists so two captures of the held
+   sentence can be compared pixel by pixel rather than byte by byte. */
+function readPng(buf) {
+  let p = 8, w = 0, h = 0, ch = 0, idat = [];
+  while (p < buf.length) {
+    const len = buf.readUInt32BE(p), type = buf.toString('ascii', p + 4, p + 8);
+    const data = buf.subarray(p + 8, p + 8 + len);
+    if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); const ct = data[9]; ch = ct === 6 ? 4 : ct === 2 ? 3 : ct === 4 ? 2 : 1; if (data[8] !== 8) throw new Error('png is not 8 bit'); }
+    else if (type === 'IDAT') idat.push(data);
+    p += 12 + len;
+  }
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const stride = w * ch, out = Buffer.alloc(stride * h);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)], src = y * (stride + 1) + 1, dst = y * stride, prev = (y - 1) * stride;
+    for (let i = 0; i < stride; i++) {
+      const a = i >= ch ? out[dst + i - ch] : 0, b = y > 0 ? out[prev + i] : 0, c = (y > 0 && i >= ch) ? out[prev + i - ch] : 0;
+      let v = raw[src + i];
+      if (f === 1) v += a; else if (f === 2) v += b; else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) { const q = a + b - c, pa = Math.abs(q - a), pb = Math.abs(q - b), pc = Math.abs(q - c); v += (pa <= pb && pa <= pc) ? a : (pb <= pc ? b : c); }
+      out[dst + i] = v & 255;
+    }
+  }
+  return { w, h, ch, data: out };
+}
+function pixelDiff(pa, pb) {
+  const A = readPng(pa), B = readPng(pb);
+  if (A.w !== B.w || A.h !== B.h || A.ch !== B.ch) return { max: 255, n: A.w * A.h };
+  let max = 0, n = 0;
+  for (let i = 0; i < A.data.length; i += A.ch) {
+    let d = 0;
+    for (let k = 0; k < Math.min(3, A.ch); k++) d = Math.max(d, Math.abs(A.data[i + k] - B.data[i + k]));
+    if (d) { n++; if (d > max) max = d; }
+  }
+  return { max, n };
+}
 
 /* ---------- the small maths ---------- */
 function bezier(x1, y1, x2, y2) {
@@ -224,7 +268,9 @@ const TYPED = (() => {
   return at.map(v => +(CAP.from + v * scale).toFixed(4));
 })();
 const charsAt = t => TYPED.filter(v => v <= t).length;
-const KEYS = TYPED.map((t, i) => ({ t, ch: COPY[i] })).filter(k => k.ch !== ' ' && k.ch !== '\n');
+/* the caret lives only while the typing does: from the first character to
+   the last, and then it is gone and the sentence holds perfectly still. */
+const CARET_TO = CAP.to;
 
 /* ---------- the scan ---------- */
 const scanY = t => lerp(-12, VH + 12, span(t, SCAN.at, SCAN.to));
@@ -361,7 +407,7 @@ function frameAt(plan, t, f, mf) {
     cap: {
       chars: cut ? 0 : charsAt(t),
       done: done ? 1 : 0,
-      caret: !cut && !done && (Math.floor(t * CAP.caretHz * 2) % 2 === 0) ? 1 : 0,
+      caret: !cut && !done && t < CARET_TO && (Math.floor(t * CAP.caretHz * 2) % 2 === 0) ? 1 : 0,
       /* the swap pops the way a caption card does, off the site's ease. */
       sc: done ? +(1 + (1 - EASE(span(t, BEEP, BEEP + 0.16))) * 0.06).toFixed(4) : 1,
       o: cut ? 0 : 1,
@@ -817,6 +863,8 @@ async function render(plan, fingerPlace) {
   const capF = Math.round((CAP.to + 0.10) * FPS);
   await put(capF / FPS, capF);
   const capBox = await page.evaluate(() => window.__p27.measureCap());
+  const state0Cap = { leftCss: capBox.left / DSF, topCss: capBox.top / DSF, wCss: capBox.widthPx / DSF,
+    hCss: (VH * DSF - capBox.bottom - capBox.top) / DSF };
   const doneF = Math.round((BEEP + 0.30) * FPS);
   await put(doneF / FPS, doneF);
   const doneBox = await page.evaluate(() => window.__p27.measureCap());
@@ -876,6 +924,54 @@ async function render(plan, fingerPlace) {
     }
   }
 
+  /* the sentence holds still: every frame from the last character to the
+     swap is captured over the caption's own box and compared byte for byte
+     with the one before it. the scan line crosses that box on its way down,
+     so the frames where it is inside the box, with its glow, are left out of
+     the comparison and counted. */
+  const capCss = { x: state0Cap.leftCss - 4, y: state0Cap.topCss - 4, w: state0Cap.wCss + 8, h: state0Cap.hCss + 8 };
+  const holdFrom = Math.ceil((CAP.to + 1 / FPS) * FPS), holdTo = Math.round(BEEP * FPS);
+  let holdPrev = null, holdChanges = 0, holdSkipped = 0, holdCompared = 0, holdFirstChange = null, holdNoise = 0;
+  fs.rmSync(HOLD, { recursive: true, force: true });
+  for (let f = holdFrom; f < holdTo; f++) {
+    const t = f / FPS;
+    const sy = scanY(t);
+    if (sy > capCss.y - 70 && sy < capCss.y + capCss.h + 70) { holdSkipped++; holdPrev = null; continue; }
+    await put(t, f);
+    const shot = await cdp.send('Page.captureScreenshot', {
+      format: 'png', captureBeyondViewport: false,
+      clip: { x: capCss.x, y: capCss.y, width: capCss.w, height: capCss.h, scale: DSF },
+    });
+    if (holdPrev != null) {
+      holdCompared++;
+      /* byte for byte is the first test and it is nearly always enough. when
+         it is not, the two are decoded and read pixel by pixel: the raster
+         is allowed a couple of levels on a handful of pixels, which is what
+         chrome's own compositing does when a layer beside the text changes,
+         and which no eye can see. anything more is a change. */
+      let moved = shot.data !== holdPrev;
+      if (moved) {
+        const px = pixelDiff(Buffer.from(holdPrev, 'base64'), Buffer.from(shot.data, 'base64'));
+        moved = px.max > 3 || px.n > 8;
+        if (!moved) holdNoise++;
+      }
+      if (moved) {
+        holdChanges++;
+        if (holdFirstChange == null) holdFirstChange = +t.toFixed(3);
+        /* the pair is written out so the change can be looked at */
+        fs.mkdirSync(HOLD, { recursive: true });
+        fs.writeFileSync(path.join(HOLD, 'f' + String(f - 1).padStart(4, '0') + '-before.png'), Buffer.from(holdPrev, 'base64'));
+        fs.writeFileSync(path.join(HOLD, 'f' + String(f).padStart(4, '0') + '-after.png'), Buffer.from(shot.data, 'base64'));
+        console.log('    the sentence changed at ' + t.toFixed(3) + 's (frame ' + f + ')');
+      }
+    }
+    holdPrev = shot.data;
+  }
+  const hold = { from: +(holdFrom / FPS).toFixed(3), to: +(holdTo / FPS).toFixed(3), compared: holdCompared, skipped: holdSkipped, changes: holdChanges, firstChange: holdFirstChange, noise: holdNoise };
+  console.log('  the sentence between the last character and the swap: ' + holdCompared + ' frame pairs compared over its box, '
+    + (holdCompared - holdChanges) + ' still' + (holdNoise ? ' (' + holdNoise + ' within raster noise)' : '')
+    + (holdChanges ? ', ' + holdChanges + ' CHANGED, the first at ' + holdFirstChange + 's' : '') + ', ' + holdSkipped + ' frames skipped for the scan line');
+
   fs.rmSync(VERIFY, { recursive: true, force: true });
   fs.mkdirSync(VERIFY, { recursive: true });
   const stills = [
@@ -908,7 +1004,7 @@ async function render(plan, fingerPlace) {
   await browser.close();
   srv.close();
   if (SUB > 1) blend(N);
-  const state = { built, wm, capBox, doneBox, handBox, head: worst, sigs, frames: N };
+  const state = { built, wm, capBox, doneBox, handBox, head: worst, sigs, frames: N, hold };
   fs.writeFileSync(path.join(OUT, 'post27.json'), JSON.stringify(state, null, 2));
   return state;
 }
@@ -997,28 +1093,13 @@ console.log(describeMascot(plan));
 console.log(describeMotion(rep));
 
 /* ---------- the sound ----------
-   no voice, no music, no bed. key ticks under the typing, the hum under the
-   scan, one beep, one pop and post23's five glitches. */
+   no voice, no music, no bed, and no effect but one: the hum under the scan.
+   the typing is silent, the swap is silent, the hand is silent and the fault
+   is silent. */
 const cues = [
-  ...KEYS.map((k, i) => ({ t: k.t, kind: 'key', opts: { seed: 0x2700 + i * 131 }, from: 'typing "' + k.ch + '"' })),
-  { t: SCAN.at, kind: 'hum', opts: { len: SCAN.to - SCAN.at }, from: 'the scan' },
-  { t: BEEP, kind: 'ding', opts: { f: 880, tau: 0.09, len: 0.30 }, from: 'the beep, scan complete' },
-  { t: HAND.at, kind: 'pop', from: 'the hand' },
-  { t: END.at, kind: 'glitch', from: 'the cut' },
+  { t: SCAN.at, kind: 'hum', opts: { len: SCAN.to - SCAN.at }, from: 'the scan, and the only sound' },
 ];
 const { buf: sfx, report: sfxReport } = renderSfx(cues, SECONDS, {});
-const PRE_DB = [-32, -27];
-for (let i = 0; i < END.pre.length; i++) {
-  const g = GL_WINDOWS.find(x => x.kind === 'stutter' && Math.abs(x.t0 - Math.round(END.pre[i].t * FPS) / FPS) < 1e-9);
-  const one = renderSfx([{
-    t: g ? g.t0 : END.pre[i].t, kind: 'glitch',
-    opts: { len: 0.05 + i * 0.014, burst: 0.004, crush: 3800, f0: 210, f1: 120, seed: 0x51a0 + i * 977 },
-    from: 'stutter ' + (i + 1) + ' of two, into the fault',
-  }], SECONDS, { gains: { glitch: PRE_DB[i] } });
-  for (let j = 0; j < sfx.length; j++) sfx[j] += one.buf[j];
-  sfxReport.push(...one.report);
-}
-sfxReport.sort((a, b) => a.t - b.t);
 
 /* ---------- the mix, post23's rig ---------- */
 const WAV = path.join(OUT, 'post27-mix.wav');
@@ -1055,22 +1136,22 @@ fs.rmSync(RAW, { force: true });
 console.log('\n  the beats');
 const beats = [
   [0, 'he is on the frame, idle, the module\'s own white glow'],
-  [CAP.from, 'the caption types: ' + CAP.lines.join(' / ') + ', a key tick a character'],
-  [CAP.to, 'the last character'],
+  [CAP.from, 'the caption types: ' + CAP.lines.join(' / ') + ', silently'],
+  [CAP.to, 'the last character, and the caret goes with it'],
   [SCAN.at, 'the eyes go red on this frame, the lamps come up, the beams and the scan line start at the top'],
-  [SCAN.to, 'the beep. beams, line and lamps gone, the iris back, the caption swaps to ' + CAP.done],
-  [HAND.at, 'the hand pops in beside his head, a pop on the bus'],
+  [SCAN.to, 'beams, line and lamps gone, the iris back, the caption swaps to ' + CAP.done + '. silent'],
+  [HAND.at, 'the hand pops in beside his head, silently'],
   [BLINK.at, 'one slow blink, ' + (BLINK.close + BLINK.hold + BLINK.open).toFixed(2) + 's'],
   ...END.pre.map((w, i) => [w.t, 'stutter ' + (i + 1) + ' of two, into the fault']),
   [END.at, 'the fault. he, the caption and the hand are cut and the wordmark is born on that frame'],
   [SECONDS, 'end, after ' + (SECONDS - END.wmIn - END.wmFor).toFixed(2) + 's of the end card'],
 ].sort((a, b) => a[0] - b[0]);
 for (const [t, what] of beats) console.log('    ' + t.toFixed(2).padStart(5) + 's  ' + what);
-console.log('  the typing: ' + KEYS.length + ' key ticks from ' + TYPED[0].toFixed(2) + 's to ' + TYPED[TYPED.length - 1].toFixed(2) + 's');
+console.log('  the typing: ' + COPY.replace(/\n/g, ' / ').length + ' characters from ' + TYPED[0].toFixed(2) + 's to ' + TYPED[TYPED.length - 1].toFixed(2) + 's, no sound');
 
 console.log('\n  the sound');
 console.log(describeMix(sfxReport, {
-  'the voice': 'there is none, and there is no music and no bed either',
+  'the voice': 'there is none, and there is no music, no bed and no other effect: the hum is the film\'s whole sound',
   'the lift': 'off the bus at ' + (zero.lufs == null ? '?' : zero.lufs) + ' LUFS, ' + TARGET_LUFS
     + ' wanted ' + wantLift.toFixed(2) + ' dB, took ' + best.lift.toFixed(2) + ' in ' + tries + ' pass' + (tries === 1 ? '' : 'es'),
   'the bus': (after.lufs == null ? '?' : after.lufs) + ' LUFS, peak ' + peak.peak
@@ -1137,6 +1218,14 @@ if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.fr
   /* every exchange is one frame: the frame before it has none of it and the
      frame of it has all of it */
   const at = f => { const t = f / FPS; const mf = compose(plan, t); return frameAt(plan, t, f, mf); };
+  /* the caret is gone with the last character and the sentence holds */
+  for (let f = Math.ceil(CAP.to * FPS) + 1; f < Math.round(BEEP * FPS); f++) {
+    const o = at(f);
+    if (o.cap.caret) { fail.push('the caret is on at ' + (f / FPS).toFixed(3) + 's, after the typing'); break; }
+    if (o.cap.chars !== COPY.length) { fail.push('the sentence is ' + o.cap.chars + ' characters at ' + (f / FPS).toFixed(3) + 's'); break; }
+  }
+  if (!state.hold || state.hold.changes) fail.push('the sentence changed on ' + (state.hold ? state.hold.changes : '?') + ' frame(s) between the last character and the swap' + (state.hold && state.hold.firstChange != null ? ', the first at ' + state.hold.firstChange + 's' : ''));
+  if (state.hold && state.hold.compared < 4) fail.push('only ' + state.hold.compared + ' frame pairs of the held sentence were compared');
   const fs0 = Math.round(SCAN.at * FPS), fe = Math.round(SCAN.to * FPS), fh = Math.round(HAND.at * FPS), fc = Math.round(END.at * FPS);
   if (at(fs0 - 1).iris !== null || at(fs0).iris === null) fail.push('the iris does not go red on the scan\'s own frame');
   if (at(fs0 - 1).scan.o !== 0 || at(fs0).scan.o !== 1) fail.push('the scan line is not born on the scan\'s own frame');
@@ -1218,17 +1307,14 @@ if (rep60.frozenFrames) fail.push(rep60.frozenFrames + ' frames where the face i
     if (r.cut) fail.push('the ' + r.kind + ' cue at ' + r.t + 's was cut off by the end of the clip');
     if (r.t < 0 || r.t > SECONDS) fail.push('the ' + r.kind + ' cue at ' + r.t + 's is outside the clip');
   }
-  const allowed = ['key', 'hum', 'ding', 'pop', 'glitch'];
-  const strays = sfxReport.filter(r => !allowed.includes(r.kind));
-  if (strays.length) fail.push('the bus carries ' + [...new Set(strays.map(r => r.kind))].join(', '));
-  const keys = sfxReport.filter(r => r.kind === 'key');
-  if (keys.length !== KEYS.length) fail.push('there are ' + keys.length + ' key ticks and ' + KEYS.length + ' typed characters');
-  if (keys.some(r => r.t < CAP.from - 1e-6 || r.t > CAP.to + 1e-6)) fail.push('a key tick sounds outside the typing');
-  if (sfxReport.filter(r => r.kind === 'hum').length !== 1) fail.push('the scan has no hum, or more than one');
-  if (sfxReport.filter(r => r.kind === 'ding').length !== 1) fail.push('there is not exactly one beep');
-  if (sfxReport.filter(r => r.kind === 'pop').length !== 1) fail.push('there is not exactly one pop');
-  if (sfxReport.filter(r => r.kind === 'glitch').length !== 3) fail.push('the ending is not two stutters and a hit');
-  console.log('  the bus: ' + sfxReport.length + ' cues, ' + keys.length + ' key ticks, one hum, one beep, one pop, three glitches. no voice, no music');
+  if (sfxReport.length !== 1 || sfxReport[0].kind !== 'hum') fail.push('the bus carries ' + sfxReport.map(r => r.kind).join(', ') + ', and this film has one hum and nothing else');
+  if (sfxReport[0] && Math.abs(sfxReport[0].t - SCAN.at) > 1e-6) fail.push('the hum starts at ' + sfxReport[0].t + 's, not with the scan');
+  /* and the bus is silent everywhere the hum is not */
+  let outside = 0;
+  const humEnd = SCAN.at + (SCAN.to - SCAN.at) + 0.05;
+  for (let i = 0; i < best.buf.length; i++) { const t = i / 48000; if ((t < SCAN.at || t > humEnd) && Math.abs(best.buf[i]) > 1e-6) outside++; }
+  if (outside) fail.push(outside + ' samples of sound outside the hum');
+  console.log('  the bus: one hum under the scan, silence everywhere else. no voice, no music');
 }
 if (lu && lu.ok) {
   if (lu.truePeak > PEAK_CEILING) fail.push('the true peak is ' + lu.truePeak + ' dBFS, over the ' + PEAK_CEILING + ' ceiling');

@@ -39,11 +39,21 @@ names in here either.
   lower left. `measureHand` now reads the ink's four corners through the
   element's own computed transform, so the margin guard sees the turned box.
 
+  **Round five, same day:** the hand's middle is at grid (-17, 41), eye
+  height, 60 device px under where it was. **The bus is one hum and nothing
+  else:** no key ticks, no beep, no pop, no glitch, and a guard counts every
+  sample outside the hum. The caret goes with the last character and the
+  sentence holds until the swap; the render captures the caption's box on
+  every frame between the two, skips the frames the scan line crosses it on,
+  and compares the rest pixel by pixel (`readPng` in the file, a small png
+  reader, because chrome's raster moves one pixel by one level when a layer
+  beside the text changes and byte equality is too strict).
+
   **What the review found, none of it fixed:** the scan line crosses the
   caption for a fifth of a second at about 2.5s because the caption sits in
   its path; the irises go red one tenth before the lamps fade in; the hand is
-  small (a turned box of 138 by 153 device px against a 278 plate). **The
-  60fps render has not been run.** No finger svg exists any more: every draft was deleted from
+  small (a turned box of 138 by 153 device px against a 278 plate); the fault
+  lands silent. **The 60fps render has not been run.** No finger svg exists any more: every draft was deleted from
   `demo/assets/hands/` on instruction, and the png is the hand.
 
 - **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in
