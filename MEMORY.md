@@ -19,11 +19,18 @@ names in here either.
   Preview at `demo/out/post27-dark-1080x1920.mp4`, review at
   `demo/out/review-post27-dark-1080x1920.md`. Committed, **not pushed**.
 
+  **Round two, same day:** the hand is on his **left**, mirrored, 56 grid
+  units tall (259 device px against a 278 plate); both captions sit just above
+  the head in the upper third, in **IBM Plex Mono 500 tracked .06em** at 22
+  css px, loaded with Michroma in the one Google Fonts link. Manrope is gone
+  from this clip. The beams are clamped 100 degrees off straight down so they
+  clear the caption.
+
   **What the review found, none of it fixed:** the scan line crosses the
-  caption for a fifth of a second at 2.2s because it starts at the top of the
-  frame; the hand reads small (185 device px of ink against a 278 plate); the
-  irises go red one tenth before the lamps fade in. **The 60fps render has not
-  been run.** No finger svg exists any more: every draft was deleted from
+  caption for a fifth of a second at about 2.9s because the caption now sits
+  in its path; the irises go red one tenth before the lamps fade in; the hand's
+  cuff is three grid units off the plate and looks close. **The 60fps render
+  has not been run.** No finger svg exists any more: every draft was deleted from
   `demo/assets/hands/` on instruction, and the png is the hand.
 
 - **2026-09-11, later. `cheer` is gone from `lib/mascot.mjs` and `dance` is in
