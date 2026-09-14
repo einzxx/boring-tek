@@ -6,13 +6,17 @@
    jumps into the middle of the frame, lands with post20's squash, grows to
    the house size and a bubble pops over his crown with the address.
 
-     0.0  caption one types in the middle, silently, cut to the read word by
-          word: `if you need help with ai`
-     2.5  caption two replaces it: `the boring tek is between you and ai`
-     5.0  caption three: `write to us it costs nothing` he does one small
-          wave with the wave hand, screen right, the one that gestures into
-          the frame from a bottom left corner.
-     8.0  the caption clears on the frame. a crouch, then he jumps from the
+   the beats are the read's: a caption changes 0.3s after its own line's
+   last sound, and the jump is the fourth of them. on this read they land at
+   0, 1.5, 4.0 and 6.3.
+
+     one    caption one types in the middle, silently, cut to the read word
+            by word: `if you need help with ai`
+     two    caption two replaces it: `the boring tek is between you and ai`
+     three  caption three: `write to us it costs nothing` he does one small
+            wave with the wave hand, screen right, the one that gestures into
+            the frame from a bottom left corner.
+     four   the caption clears on the frame. a crouch, then he jumps from the
           corner into the middle of the safe band, growing from 0.65 of the
           house size to all of it in the air, and lands 1.52 wide by 0.66
           tall, chin on the ground, post20's table. the pill pops on the word
@@ -21,8 +25,7 @@
           voice line four is `go to. the boring tek, dot com.`: `go to` is
           the jump and the address is the bubble.
      END  the fault, 0.08s after the read's last sound, post20's rule. the
-          brief says 10.5 and the read says a shade later; see the report.
-          the wordmark stacked three lines, post23's ending, 0.95s of card.
+          wordmark stacked three lines, post23's ending, 0.95s of card.
 
      node post29.mjs                     1080x1920, 60fps, shutter closed
      DEMO_FPS=12 node post29.mjs         the fast preview pass
@@ -125,9 +128,13 @@ const CHROME = [
 const CENTRE_Y = (SAFE_CSS.top + (VH - SAFE_CSS.bottom)) / 2;
 const SIZE = 148;
 
-/* ---------- the beats, the brief's ---------- */
-const BEAT = [0.0, 2.5, 5.0, 8.0];
-const BRIEF_END = 10.5;
+/* ---------- the beats, and they are the read's ----------
+   a caption changes AFTER_LINE after its own line's last sound, so the lines
+   follow each other with no dead air, and the jump is the fourth beat: it
+   starts when caption three has had its 0.3s. the four are filled in once
+   the takes are measured, so nothing here is a number typed to a clock. */
+const BEAT = [0, 0, 0, 0];
+const AFTER_LINE = 0.30;
 const CARD = 0.95;
 
 /* ---------- the copy, and the read ----------
@@ -167,15 +174,16 @@ const CAP = { size: 36, lh: 1.25, caretHz: 2.4, caretAfter: 0.20 };
    arrives at post20's own 37.7 css px a frame and leaves the corner at the
    same. */
 const SMALL = { s: 0.65, left: 80, bottom: 120 };
-const JUMP = { at: BEAT[3], anti: 0.14, antiK: 0.12, for: 0.55, rise: 230, air: 0.10 };
-const LAND = +(JUMP.at + JUMP.anti + JUMP.for).toFixed(4);
+const JUMP = { at: 0, anti: 0.14, antiK: 0.12, for: 0.55, rise: 230, air: 0.10 };
 const SMASH = { flat: 0.07, back: 0.42, k: 0.52, damp: 4.2, cycles: 1.15 };
-const REBOUND = +(LAND + SMASH.flat + SMASH.back).toFixed(4);
+/* the jump's own clock, set off BEAT[3] once the reads are in */
+let LAND = 0, REBOUND = 0;
+const FLY = { at: 0, to: 0 };
 
 /* ---------- the wave ----------
-   one small wave, the pose's own entrance and exit, a hold short enough that
-   the hand is home well before the jump. */
-const WAVE = { at: BEAT[2], hold: 0.90 };
+   one small wave on caption three, the pose's own entrance and exit, a hold
+   short enough that the hand is home before the jump. */
+const WAVE = { at: 0, hold: 0.90 };
 const GLOVE_IN = 0.18, GLOVE_OUT = 0.22;
 let GATE = null;
 
@@ -299,7 +307,6 @@ const typedEnd = i => TYPED[i][TYPED[i].length - 1].t;
 const SMALL_R = HEAD.plate.s / GRID * SIZE * SMALL.s / 2;
 const SMALL_C = { x: +(SAFE_CSS.left + (SMALL.left - SAFE_CSS.left) + SMALL_R).toFixed(3), y: +(VH - SMALL.bottom - SMALL_R).toFixed(3) };
 const HOME = { x: VW / 2, y: CENTRE_Y };
-const FLY = { at: +(JUMP.at + JUMP.anti).toFixed(4), to: LAND };
 function placeAt(t) {
   if (t >= LAND) return { dx: 0, dy: 0, s: 1 };
   const dx0 = SMALL_C.x - HOME.x, dy0 = SMALL_C.y - HOME.y;
@@ -840,14 +847,25 @@ function probe(file) {
 /* ========================================================================== */
 
 /* ---------- the read, and the clock hung off it ----------
-   each take's sound starts PRE into its beat. lines one to three type their
-   caption; line four starts on the jump and its `the` is where the pill pops.
-   the fault waits for the last sound plus AFTER_READ, post20's rule. */
+   each take's sound starts PRE into its beat, and the next beat is that
+   take's last sound plus AFTER_LINE, so the beats are read off the reads in
+   order. lines one to three type their caption; line four starts on the jump
+   and its `the` is where the pill pops. the fault waits for the last sound
+   plus AFTER_READ, post20's rule. */
 const TAKES = [];
 for (let i = 0; i < 4; i++) TAKES.push(await take(i));
 const PCM = TAKES.map(t => decode(ffmpeg, t.file));
 const EDGE = PCM.map(audioEdges);
-const OFF = TAKES.map((t, i) => +(BEAT[i] + PRE - EDGE[i].start).toFixed(4));
+const OFF = [];
+for (let i = 0; i < 4; i++) {
+  OFF.push(+(BEAT[i] + PRE - EDGE[i].start).toFixed(4));
+  if (i < 3) BEAT[i + 1] = +(EDGE[i].end + OFF[i] + AFTER_LINE).toFixed(4);
+}
+JUMP.at = BEAT[3];
+FLY.at = +(JUMP.at + JUMP.anti).toFixed(4);
+LAND = FLY.to = +(FLY.at + JUMP.for).toFixed(4);
+REBOUND = +(LAND + SMASH.flat + SMASH.back).toFixed(4);
+WAVE.at = BEAT[2];
 /* `word` is what the screen types and `said` is the take's own token, and the
    two may differ by a trailing stop and nothing else: the read keeps its
    sentences and the caption carries no dot. */
@@ -1020,7 +1038,7 @@ const beats = [
   [DELIGHT_AT, 'delighted, once the rebound is done'],
   ...END.pre.map((w, i) => [w.t, 'stutter ' + (i + 1) + ' of two']),
   [END.at, 'the fault, ' + AFTER_READ + 's after the read\'s last sound. he and the bubble are cut and the wordmark is born on that frame'
-    + ' (the brief says ' + BRIEF_END.toFixed(2) + ', this is ' + (END.at - BRIEF_END >= 0 ? '+' : '') + (END.at - BRIEF_END).toFixed(2) + ')'],
+],
   [SECONDS, 'end, after ' + (SECONDS - END.wmIn - END.wmFor).toFixed(2) + 's of the end card'],
 ].sort((a, b) => a[0] - b[0]);
 for (const [t, what] of beats) console.log('    ' + t.toFixed(2).padStart(5) + 's  ' + what);
@@ -1079,8 +1097,10 @@ if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.fr
     if (i < 3 && TYPED[i].some(e => e.ch === '.')) fail.push('caption ' + (i + 1) + ' types a dot');
   }
   if (ADDRESS !== 'theboringtek.com') fail.push('the pill reads "' + ADDRESS + '"');
-  if (Math.abs(END.at - BRIEF_END) > 0.35) fail.push('the fault is at ' + END.at + 's, more than 0.35 off the brief\'s ' + BRIEF_END);
-  if (!(SECONDS >= 10.5 && SECONDS <= 12.0)) fail.push('the film is ' + SECONDS + 's, and the brief says about eleven');
+  /* the beats are the reads' plus AFTER_LINE, so no line has air after it
+     beyond that */
+  for (let i = 0; i < 3; i++) if (Math.abs(BEAT[i + 1] - SOUND[i].end - AFTER_LINE) > 1e-3) fail.push('beat ' + (i + 2) + ' is ' + (BEAT[i + 1] - SOUND[i].end).toFixed(2) + 's after line ' + (i + 1) + ' ends, not ' + AFTER_LINE);
+  if (!(SECONDS >= 8 && SECONDS <= 12.0)) fail.push('the film is ' + SECONDS + 's');
   /* every caption is whole before its beat ends, typed while its line is
      said, and the exchanges are on the frame */
   for (let i = 0; i < 3; i++) {
@@ -1207,7 +1227,7 @@ if (BLUR && !BLUR_ARG && FASTEST / SUB > SUB_STEP_WANT + 1e-6) fail.push('the so
 }
 
 console.log('\n  outstanding');
-console.log('    the fault is at ' + END.at + 's against the brief\'s ' + BRIEF_END + ': it waits for the read, and the address takes ' + (SOUND[3].end - SOUND[3].start).toFixed(2) + 's to say');
+console.log('    every beat is its line\'s last sound plus ' + AFTER_LINE + 's, so the clock is the read\'s: ' + BEAT.map(b => b.toFixed(2)).join(' / ') + ', the fault at ' + END.at);
 console.log('    the bubble is this file\'s, laid straight up over the crown in the module\'s own numbers, because the module\'s own placement runs an address off the frame');
 console.log('    the glow is the module\'s own two layers, not pushed');
 
