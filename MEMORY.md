@@ -6,6 +6,47 @@ names in here either.
 
 ## Status
 
+- **2026-09-15, SESSION CLOSE. post29 is final and pushed: the offer, 9.78s,
+  edge's andrew.** `demo/post29.mjs`, dark only, 60fps, shutter open at six
+  subframes (solved off the jump's take off, 35.6 css px a frame). Out to
+  `demo/out/post29-dark-1080x1920.mp4`. Write up is **The twenty ninth clip**
+  in `demo/README.md`, review at `demo/out/review-post29-dark-1080x1920.md`.
+  The skills/ working tree changes (video-review) and the two untracked clap
+  svgs were **left exactly as they were, uncommitted, on instruction**, for
+  the third session running.
+
+  **What a later session needs and cannot get from the code:**
+  - **Elevenlabs was not available for this clip and the file says so**: every
+    take passes `provider: 'edge'` and refuses a sidecar from anywhere else.
+    The four takes are cached under `demo/out/voice/post29-l1..4-calm.*`; a
+    change to any line's copy, rate or pitch refetches that line only.
+  - **The beats are read off the reads.** `BEAT[i+1]` is take i's last sound
+    plus 0.30s, the jump is `BEAT[3]`, and the fault is the last sound plus
+    0.08. The brief's 0 / 2.5 / 5.0 / 8.0 and its 10.5 fault are gone from the
+    file; on this read the beats are 0.00 / 1.48 / 4.04 / 6.29 and the fault
+    8.83. Any clip whose lines are shorter than its beats should do this
+    rather than hold air: Einz asked for it after seeing the air.
+  - **No dot on a caption, ever, and the read keeps its stops.** Two rounds of
+    notes were this rule: first the final stop, then the one inside `write to
+    us. it costs nothing`. The screen copy is dotless and the voice text is
+    not, and two guards hold both halves. Apply this to the next clip before
+    the first preview, not after.
+  - **The module's thought pill cannot carry an address from a centred head.**
+    `thought: 'over'` hangs the pill to one side and a 16 character pill runs
+    off the frame, so post29 draws the dots and the pill itself, centred over
+    the crown, off `BUBBLE`'s numbers and the module's dark tokens read out of
+    `mascotCss`. If this happens a second time it is a module option
+    (`thought: 'over-centre'`), not a second copy.
+  - **A centred typed caption smears on keystroke frames with the shutter
+    open**, post27's finding, seen again on this final. It is not fixed and it
+    is a decision: left anchor the line, or pin it at its final width.
+
+  **Open on post29, none of it blocking:** the smear above; the glove fading
+  while travelling home, 18 device px off the bottom band; his ink 20 device px
+  inside the safe corner at rest and 7 at the crouch, glow across the line; a
+  caption empty for up to a tenth of a second on a swap when the caret is in
+  its off phase; the glow not pushed past the module's own two layers.
+
 - **2026-09-12, SESSION CLOSE. post28 is final and pushed: the dance, 5.55s,
   silent.** `demo/post28.mjs`, dark only, 60fps, shutter closed (solved).
   Everything below in this entry is on `main`. The skills/ working tree

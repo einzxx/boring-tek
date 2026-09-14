@@ -187,6 +187,16 @@ All headless Chrome, all tooling. The renderers first:
   nothing on the cut, the house fault between them and after them, and the
   wordmark. The mascot module draws nothing; the camera is `lib/camera.mjs`.
   Out to `demo/out/post28-dark-1080x1920.mp4`. See The twenty eighth clip.
+- **`post29.mjs`** renders a 9.78 second clip, vertical, dark only, **the
+  offer, read by edge's andrew on purpose, and the first whose beats are read
+  off the reads rather than typed.** He sits small in the bottom left while
+  three captions type in big in the middle, each cut to its line word by word
+  and replaced 0.3s after that line's last sound; he waves once on the third;
+  then the caption clears, he jumps from the corner into the middle, lands
+  with post20's squash at the house size, and `theboringtek.com` pops over
+  his crown in the module's pill, drawn by the file because the module's own
+  placement runs an address off the frame. The house fault and the wordmark.
+  Out to `demo/out/post29-dark-1080x1920.mp4`. See The twenty ninth clip.
 - **`site-intro.mjs`** renders a 12 second **landscape** clip, 1920x1080,
   **light and then dark**, with the read in the file. It is the first thing in
   this folder that is not a phone and the first that changes theme mid clip: he
@@ -7332,6 +7342,141 @@ frame, where the ai clip's floor is still brightening (luma 7 to 9 over three
 frames), the fault's flash landing on his face both times because the flash
 and the head share the safe band's middle, and the pulldown. Nothing a guard
 could see and nothing that moved a number.
+
+## The twenty ninth clip — the offer, and a clock that is the read's
+
+```
+cd demo
+node post29.mjs                 # 1080x1920, 60fps, shutter closed
+DEMO_FPS=12 node post29.mjs     # the fast preview pass
+node post29.mjs --voice         # the read and the clock only, no browser
+node post29.mjs --blur          # 60fps with the shutter open, solved (the final)
+node post29.mjs --keep-frames   # leave the jpegs on disk
+node post29.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post29.mjs`, dark only, **9.78 seconds**,
+60fps, the shutter open at **six subframes, solved** off the jump's take off
+(35.6 css px a frame, 5.94 between samples). Out to
+`demo/out/post29-dark-1080x1920.mp4`, fifteen stills in
+`demo/out/verify-post29/`, review at `demo/out/review-post29-dark-1080x1920.md`.
+Four rounds of notes between the first preview and the final, and every one of
+them is in the file as a guard.
+
+He sits small in the bottom left, 0.65 of the house size, idle, the module's
+own glow. Three captions type in big in the middle, Nunito semibold at 36 css
+px, one at a time, each replacing the last, while a voice says them:
+`if you need help with ai`, `the boring tek is between you and ai`, `write to
+us / it costs nothing`. He waves once on the third. Then the caption clears,
+he crouches, jumps from the corner into the middle of the safe band, grows to
+the house size in the air, lands 1.52 wide by 0.66 tall on post20's table, and
+`theboringtek.com` pops over his crown. `delighted` hops once the rebound is
+done. Two stutters, the fault, the wordmark stacked three lines, 0.95s of card.
+
+### The voice is edge, on purpose, and it is asserted
+
+Elevenlabs was not available for this clip, so every take is asked for with
+`provider: 'edge'` and the sidecar is checked: a cached elevenlabs take with
+the same copy would otherwise pass silently. The read is `calm`, which is
+Andrew, at a rate and a pitch a line, a shade quick and a hair up for a warm
+read, post20's finding. Two lines run quicker because they had to: at the
+house rate `the boring tek is between you and ai` is 2.53s of sound and `go
+to. the boring tek, dot com.` is 2.64, so they are at +6% and +2%.
+
+    if you need help with ai.               -4%  +2Hz   1.12s of sound
+    the boring tek is between you and ai.   +6%  +1Hz   2.20s
+    write to us. it costs nothing.          -4%  +3Hz   1.90s
+    go to. the boring tek, dot com.         +2%  +2Hz   2.39s
+
+**The read keeps its full stops and the screen has none.** The stop is what
+the synthesiser turns into the sentence's fall, so it stays in the text that
+is sent; on a caption it is a dot doing no work, and the screen copy carries
+no dot anywhere, the one inside `write to us it costs nothing` included, where
+the line break is the sentence break. The read's token may differ from the
+screen's word by a trailing stop and nothing else, and two guards hold the
+rule: no `.` in any caption's copy, and none in the character schedule the
+page types from.
+
+### The beats are the reads', not the brief's
+
+The brief set them at 0, 2.5, 5.0 and 8.0 and the reads were shorter than
+their windows, so the first preview had 1.3s of air after line one and a
+second after line three. Now `BEAT` is filled line by line: each take's sound
+starts 0.06s into its beat, and the next beat is that take's last sound plus
+`AFTER_LINE` 0.30. The jump is the fourth beat. On this read they land at
+0.00, 1.48, 4.04 and 6.29; the landing at 6.99, the pill at 7.29, the fault at
+8.83, 0.08s after the last sound, post20's rule. The film went from 11.48s to
+9.78 and a guard holds every beat to exactly 0.30s after its line.
+
+### The typing is the read, at the character
+
+post17's rule at the character: a word's characters are laid across that
+word's spoken span, so the caption is being typed while the word is being
+said and is whole when it ends; the separator before a word arrives with the
+word. Silent, no key ticks. A caret rides the typing and goes 0.2s after the
+last character.
+
+### The corner and the jump are one transform on `frame.card`
+
+post20's pattern. The mascot is planned centred at the house size with
+`bias: 0`, and the file composes the small corner state and the flight onto
+the card: an offset and a uniform scale before the landing, nothing after.
+The gloves go with the card through the scale, which is what a small mascot
+with small hands is, and carry the inverse of the squash alone so they do not
+deform under it. The flight is ballistic on the chord with the arc 230 css px
+above it, which puts the landing at post20's own 37.7 css px a frame; the
+crouch is a squash in place with the ground compensation holding his bottom
+edge on the ground until the stretch takes over in the air, continuous at
+both ends. The landing is post20's table, unchanged.
+
+### The bubble is drawn here, in the module's own numbers
+
+The module hangs its pill to one side of the crown, which is right for two
+words and wrong for an address: from a centred head `theboringtek.com` at the
+pill's own size runs past the edge of the frame. So the two dots and the pill
+are laid straight up over the crown, centred, from `BUBBLE`'s sizes, tokens,
+stagger and spring, with the three colour tokens read off the module's own
+dark css rather than typed again. It pops on `the` of `the boring tek`, floored
+a beat after the chin hits the ground (7.16s on this read, 0.08s after the
+word), anchored above the crown's highest reach while it is up, and it holds
+to the fault the way post22 freezes the module's.
+
+### The gloves are gated to the wave
+
+`hands: true` draws the resting pair from frame zero and this clip wants no
+hands on the jump, so post20's two gates: only the acting hand is drawn at all,
+and it fades in over the entrance and out after the hold. The acting hand is
+the screen right one, the one that gestures into the frame from a bottom left
+corner, and a guard walks every frame at sixty for a left glove.
+
+### The guards
+
+On top of post27's: every take is edge's Andrew with engine timing, inside its
+beat, never overlapping the next; every caption's words are its take's words;
+every caption is whole before its beat ends and starts typing within 0.2s of
+its line; the exchanges are on the frame; the pill pops between the landing
+and well before the fault, on `the` within 0.3s, and holds whole to the fault;
+the states are `neutral` and `delighted` only; the one pose is the wave, home
+before the jump; the screen left glove never draws; he is at 0.65 in the corner
+and at 1 after the landing; the jump rises before it falls and the landing
+squashes; the captions are Nunito 600 inside the safe area with their middle on
+the safe band's, above his head while he is in the corner; the pill is Space
+Grotesk 500 at 38 device px caps, inside the safe area, clear of the crown; no
+accent, no red, no iris override; the bus is a thud, a pop and the fault, under
+the voice on every window; the liveness signature sums its subframes.
+
+### What the reviews found, and what is open
+
+The 60fps final shows the thing post27 named and no preview can: the caption
+is centred, so a character re-centres the line by half a glyph and a frame a
+character lands in averages it at two positions, a double image on keystroke
+frames. A left anchored line or one pinned at its final width is the fix, and
+it is a decision about how the caption types. The glove fades while it is
+still travelling home under his chin, post20's fault, and here the rest point
+is 18 device px off the bottom band. His ink sits 20 device px inside the safe
+corner at rest and 7 at the crouch; the glow crosses the line. A caption
+arrives empty for up to a tenth of a second when the caret is in its off
+phase on the swap. The glow is the module's own two layers, not pushed.
 
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
