@@ -7,9 +7,9 @@
    the house size and a bubble pops over his crown with the address.
 
      0.0  caption one types in the middle, silently, cut to the read word by
-          word: `if you need help with ai.`
-     2.5  caption two replaces it: `the boring tek is between you and ai.`
-     5.0  caption three: `write to us. it costs nothing.` he does one small
+          word: `if you need help with ai`
+     2.5  caption two replaces it: `the boring tek is between you and ai`
+     5.0  caption three: `write to us it costs nothing` he does one small
           wave with the wave hand, screen right, the one that gestures into
           the frame from a bottom left corner.
      8.0  the caption clears on the frame. a crouch, then he jumps from the
@@ -135,16 +135,16 @@ const CARD = 0.95;
    every line's words are the take's words: the typing is cut to the read and
    a caption that does not match its take cannot be.
 
-   **the read keeps its full stops and the screen drops the last one.** the
-   stop is what the synthesiser turns into the sentence's fall, so it stays in
-   `text`; on a caption it is a dot doing no work, so the final one is gone
-   from `lines`. a stop inside a caption stays, because `write to us. it costs
-   nothing` is two sentences and the second line is the second one. */
+   **the read keeps its full stops and the screen has none.** the stop is
+   what the synthesiser turns into the sentence's fall, so it stays in `text`;
+   on a caption it is a dot doing no work, so `lines` carries no dot at all,
+   the one inside `write to us it costs nothing` included: the line break is
+   the sentence break there. */
 const VOICE = 'calm';
 const LINES = [
   { lines: ['if you need', 'help with ai'], text: 'if you need help with ai.', rate: '-4%', pitch: '+2Hz' },
   { lines: ['the boring tek is', 'between you and ai'], text: 'the boring tek is between you and ai.', rate: '+6%', pitch: '+1Hz' },
-  { lines: ['write to us.', 'it costs nothing'], text: 'write to us. it costs nothing.', rate: '-4%', pitch: '+3Hz' },
+  { lines: ['write to us', 'it costs nothing'], text: 'write to us. it costs nothing.', rate: '-4%', pitch: '+3Hz' },
   /* the full stop after `go to` is post11's domain read: the stop is the pause
      and the pause is what makes the address a thing you go to. */
   { lines: [], text: 'go to. the boring tek, dot com.', rate: '+2%', pitch: '+2Hz' },
@@ -850,15 +850,15 @@ const EDGE = PCM.map(audioEdges);
 const OFF = TAKES.map((t, i) => +(BEAT[i] + PRE - EDGE[i].start).toFixed(4));
 /* `word` is what the screen types and `said` is the take's own token, and the
    two may differ by a trailing stop and nothing else: the read keeps its
-   sentence and the caption drops the last dot. */
+   sentences and the caption carries no dot. */
 const WORDS = TAKES.map((t, i) => t.words.map(w => ({ word: w.word, said: w.word, start: +(w.start + OFF[i]).toFixed(4), end: +(w.end + OFF[i]).toFixed(4) })));
 const SOUND = TAKES.map((t, i) => ({ start: +(EDGE[i].start + OFF[i]).toFixed(4), end: +(EDGE[i].end + OFF[i]).toFixed(4) }));
 for (let i = 0; i < 3; i++) {
   const want = LINES[i].lines.join(' ').split(' ');
   if (WORDS[i].length !== want.length) throw new Error('line ' + (i + 1) + ' came back with ' + WORDS[i].length + ' words and the caption has ' + want.length);
   for (let k = 0; k < want.length; k++) {
-    const said = WORDS[i][k].said, last = k === want.length - 1;
-    if (said !== want[k] && !(last && said === want[k] + '.')) throw new Error('line ' + (i + 1) + ' word ' + k + ' is "' + said + '" on the read and "' + want[k] + '" on the screen');
+    const said = WORDS[i][k].said;
+    if (said !== want[k] && said !== want[k] + '.') throw new Error('line ' + (i + 1) + ' word ' + k + ' is "' + said + '" on the read and "' + want[k] + '" on the screen');
     WORDS[i][k].word = want[k];
   }
   TYPED[i] = typedOf(i, WORDS[i]);
@@ -1072,9 +1072,11 @@ if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.fr
   }
   for (const [i, L] of LINES.entries()) {
     if (/[—–]/.test(L.text) || /\s-\s/.test(L.text) || /!/.test(L.text) || /[A-Z]/.test(L.text)) fail.push('line ' + (i + 1) + ' breaks the copy rules: "' + L.text + '"');
-    /* the read keeps its sentence and the screen drops the last dot */
+    /* the read keeps its sentences and the screen has no dot anywhere: on the
+       copy, and on the schedule the page types from, character by character */
     if (!/\.$/.test(L.text)) fail.push('line ' + (i + 1) + '\'s read has lost its full stop: "' + L.text + '"');
-    if (L.lines.length && /\.$/.test(L.lines[L.lines.length - 1])) fail.push('caption ' + (i + 1) + ' ends in a full stop: "' + L.lines.join(' / ') + '"');
+    if (L.lines.some(l => l.includes('.'))) fail.push('caption ' + (i + 1) + ' has a dot in it: "' + L.lines.join(' / ') + '"');
+    if (i < 3 && TYPED[i].some(e => e.ch === '.')) fail.push('caption ' + (i + 1) + ' types a dot');
   }
   if (ADDRESS !== 'theboringtek.com') fail.push('the pill reads "' + ADDRESS + '"');
   if (Math.abs(END.at - BRIEF_END) > 0.35) fail.push('the fault is at ' + END.at + 's, more than 0.35 off the brief\'s ' + BRIEF_END);
