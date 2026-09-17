@@ -248,43 +248,46 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .ct{margin:-4px 0 0;font-size:var(--t-body);color:var(--sub);max-width:52ch}
 
 /* ---- the more soon card: the mascot as pacman ----
-   the strip is one inline svg in the icon slot. the head runs left to right
-   along eight dots over the first ninety per cent of a six second loop, the
-   mouth is a wedge of the card's own colour scaled open and shut about the
-   head's centre, and each dot goes the moment the mouth reaches it. at the
-   end he fades, jumps back and the dots return. css only; the one line of
-   js pauses it while the tab is hidden. under reduced motion nothing moves:
-   he stands half way along, mouth half open, five dots gone. */
-.pac{display:block;width:200px;max-width:100%;height:40px;flex:0 0 auto;overflow:visible}
-.pac .face{fill:var(--face)}
-.pac .eye{fill:var(--eye)}
-.pac .mouth{fill:var(--field);transform-origin:24px 24px;animation:chomp .7s ease-in-out infinite alternate}
-.pac .pd{fill:var(--red);animation:pd1 6s linear infinite}
-.pac .pm{animation:run 6s linear infinite}
+   the strip is the card's inner width, 48px tall. he is the site's face with
+   no eyes and a mouth cut out of it: a clip-path wedge that opens to sixty
+   degrees and shuts, four bites a second while he moves, and stays shut
+   while he does not. one pass is five seconds, an ease in over the first
+   second and steady after; he fades out at the right edge, a second of
+   nothing, the six dots fade back, he fades in at the left and goes again.
+   the jump back to the left happens while he is invisible. the halo is the
+   site's own, under him, and moves with him. css only; the one line of js
+   pauses it while the tab is hidden. under reduced motion nothing moves: he
+   stands half way along, mouth open, three dots gone. */
+.pac{position:relative;display:block;width:100%;height:48px;flex:0 0 auto;margin:6px 0 2px}
+.pac .pd{position:absolute;top:20px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pd1 7.0s linear infinite}
+.pac .pm{position:absolute;top:0;left:0;width:48px;height:48px;animation:run 7.0s linear infinite}
+.pac .halo{position:absolute;left:50%;top:50%;width:210%;height:210%;transform:translate(-50%,-50%);border-radius:50%;
+  pointer-events:none;background-image:var(--halo);transition:background-image .5s ease}
+.pac .face{position:absolute;inset:0;border-radius:50%;background:var(--face);
+  clip-path:polygon(0 0,100% 0,100% 50%,50% 50%,100% 50%,100% 100%,0 100%);animation:bite 7.0s ease-in-out infinite;transition:background-color .5s ease}
 @keyframes run{
-  0%{transform:translateX(0);opacity:1}
-  90%{transform:translateX(204px);opacity:1}
-  94.9%{transform:translateX(204px);opacity:0}
-  95%{transform:translateX(0);opacity:0}
-  100%{transform:translateX(0);opacity:1}
+  0%{left:0;opacity:1;animation-timing-function:cubic-bezier(.5,0,.7,.45)}
+  14.286%{left:calc((100% - 48px) * 0.12);opacity:1;animation-timing-function:linear}
+  71.429%{left:calc(100% - 48px);opacity:1}
+  78.571%{left:calc(100% - 48px);opacity:0}
+  85.714%{left:calc(100% - 48px);opacity:0}
+  85.814%{left:0;opacity:0}
+  92.857%{left:0;opacity:0}
+  100%{left:0;opacity:1}
 }
-@keyframes chomp{from{transform:scaleY(.06)}to{transform:scaleY(1)}}
-@keyframes pd1{0%,2.6%{opacity:1}2.7%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(1){animation-name:pd1}
-@keyframes pd2{0%,13.2%{opacity:1}13.299999999999999%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(2){animation-name:pd2}
-@keyframes pd3{0%,23.8%{opacity:1}23.900000000000002%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(3){animation-name:pd3}
-@keyframes pd4{0%,34.4%{opacity:1}34.5%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(4){animation-name:pd4}
-@keyframes pd5{0%,45.0%{opacity:1}45.1%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(5){animation-name:pd5}
-@keyframes pd6{0%,55.6%{opacity:1}55.7%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(6){animation-name:pd6}
-@keyframes pd7{0%,66.2%{opacity:1}66.3%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(7){animation-name:pd7}
-@keyframes pd8{0%,76.8%{opacity:1}76.89999999999999%,95%{opacity:0}100%{opacity:1}}
-.pac .pd:nth-child(8){animation-name:pd8}
+@keyframes bite{0.0%,3.571%,7.143%,10.714%,14.286%,17.857%,21.429%,25.0%,28.571%,32.143%,35.714%,39.286%,42.857%,46.429%,50.0%,53.571%,57.143%,60.714%,64.286%,67.857%,71.429%,100%{clip-path:polygon(0 0,100% 0,100% 50%,50% 50%,100% 50%,100% 100%,0 100%)}1.786%,5.357%,8.929%,12.5%,16.071%,19.643%,23.214%,26.786%,30.357%,33.929%,37.5%,41.071%,44.643%,48.214%,51.786%,55.357%,58.929%,62.5%,66.071%,69.643%{clip-path:polygon(0 0,100% 0,100% 20%,50% 50%,100% 80%,100% 100%,0 100%)}}
+@keyframes pd1{0%,13.544%{opacity:1}13.644%,82.857%{opacity:0}90.0%,100%{opacity:1}}
+.pac .pd:nth-child(1){left:calc(24px + (100% - 48px) * 0.1429 - 4px);animation-name:pd1}
+@keyframes pd2{0%,22.774%{opacity:1}22.874%,82.857%{opacity:0}90.0%,100%{opacity:1}}
+.pac .pd:nth-child(2){left:calc(24px + (100% - 48px) * 0.2857 - 4px);animation-name:pd2}
+@keyframes pd3{0%,32.05%{opacity:1}32.15%,82.857%{opacity:0}90.0%,100%{opacity:1}}
+.pac .pd:nth-child(3){left:calc(24px + (100% - 48px) * 0.4286 - 4px);animation-name:pd3}
+@keyframes pd4{0%,41.327%{opacity:1}41.427%,82.857%{opacity:0}90.0%,100%{opacity:1}}
+.pac .pd:nth-child(4){left:calc(24px + (100% - 48px) * 0.5714 - 4px);animation-name:pd4}
+@keyframes pd5{0%,50.603%{opacity:1}50.703%,82.857%{opacity:0}90.0%,100%{opacity:1}}
+.pac .pd:nth-child(5){left:calc(24px + (100% - 48px) * 0.7143 - 4px);animation-name:pd5}
+@keyframes pd6{0%,59.879%{opacity:1}59.979%,82.857%{opacity:0}90.0%,100%{opacity:1}}
+.pac .pd:nth-child(6){left:calc(24px + (100% - 48px) * 0.8571 - 4px);animation-name:pd6}
 .pac.paused *{animation-play-state:paused}
 /* the site's form button, as a link */
 .btn{
@@ -327,9 +330,9 @@ html[data-theme=dark] .theme .i-moon{display:none}
   .soc:hover{transform:none}
   .cd:hover{transform:none}
   .pac *{animation:none!important}
-  .pac .pm{transform:translateX(96px)}
-  .pac .mouth{transform:scaleY(.7)}
-  .pac .pd:nth-child(-n+5){opacity:0}
+  .pac .pm{left:calc((100% - 48px) * .5)}
+  .pac .face{clip-path:polygon(0 0,100% 0,100% 20%,50% 50%,100% 80%,100% 100%,0 100%)}
+  .pac .pd:nth-child(-n+3){opacity:0}
 }
 </style>
 <script>
@@ -442,22 +445,15 @@ else boot();
       <a class="btn" href="/lv/tools/clean/" data-k="open">atvērt</a>
     </article>
     <article class="cd">
-      <svg class="pac" viewBox="0 0 240 48" focusable="false" aria-hidden="true">
-        <circle class="pd" cx="36" cy="24" r="3"/>
-        <circle class="pd" cx="60" cy="24" r="3"/>
-        <circle class="pd" cx="84" cy="24" r="3"/>
-        <circle class="pd" cx="108" cy="24" r="3"/>
-        <circle class="pd" cx="132" cy="24" r="3"/>
-        <circle class="pd" cx="156" cy="24" r="3"/>
-        <circle class="pd" cx="180" cy="24" r="3"/>
-        <circle class="pd" cx="204" cy="24" r="3"/>
-        <g class="pm">
-          <circle class="face" cx="24" cy="24" r="20"/>
-          <rect class="eye" x="11" y="14" width="10" height="3.4" rx="1.7"/>
-          <rect class="eye" x="25" y="14" width="10" height="3.4" rx="1.7"/>
-          <polygon class="mouth" points="24,24 48,10 48,38"/>
-        </g>
-      </svg>
+      <div class="pac" aria-hidden="true">
+        <i class="pd"></i>
+        <i class="pd"></i>
+        <i class="pd"></i>
+        <i class="pd"></i>
+        <i class="pd"></i>
+        <i class="pd"></i>
+        <span class="pm"><b class="halo"></b><b class="face"></b></span>
+      </div>
       <h2 class="tt" data-k="t_more">drīz vēl</h2>
       <p class="ct" data-k="d_more">nākamais bezmaksas rīks jau top</p>
     </article>
