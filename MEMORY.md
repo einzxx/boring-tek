@@ -6,6 +6,40 @@ names in here either.
 
 ## Status
 
+- **2026-09-17, SESSION CLOSE. the cleaner is finished and pushed:
+  `/clean/`, `/ru/clean/`, `/lv/clean/`, a browser only watermark remover.**
+  the build knows it: `tools/build-langs.mjs` carries `SEO_CLEAN`, the
+  `CLEAN` en/ru/lv dictionary and `buildClean()`, writes `ru/clean/` and
+  `lv/clean/` out of `clean/index.html` (the page's own `T` is english only
+  and is asserted against `CLEAN.en`), and the sitemap lists all six
+  addresses. root `README.md` was added this session with one section on it.
+
+- **2026-09-17. the cleaner, `/clean/index.html`, as built.** a free tool
+  page: one drop zone with the mascot in it (halo, eye tracking, blink, both
+  themes off `bt-theme`), a hidden file input for a tap on a phone, a text
+  field under it with one small form button and a `clear all` link; the clean
+  text field, its copy pill and the check line unfold only after a press, the
+  file card with download under them. a dropped file waits in the zone until
+  the press, which cleans text and file together. everything runs in the
+  browser: text (zero width, soft hyphen, direction marks, variation
+  selectors, tag characters, invisible separators, odd spaces; curly quotes
+  and long dashes are always straightened; an emoji's own joiner and selector
+  are kept; cyrillic, latvian with precomposed and combining marks verified
+  headless), png, jpg and webp (re encoded through canvas, then the browser's
+  own icc profile stripped from jpeg and webp output; a pure js reader counts
+  exif entries, xmp properties, icc, c2pa, iptc, comments, text chunks, tIME
+  on the way in and checks the copy on the way out), pdf (pdf-lib 1.17.1,
+  info dict emptied, xmp stream unlinked and deleted, dates included) and
+  docx (jszip 3.10.1, w:t text nodes cleaned in document, headers, footers
+  and notes, core and app and custom props blanked, dates removed, thumbnail
+  removed, zip entry dates flattened). **the two libraries are the first cdn
+  scripts on the site, a deliberate exception asked for by name: pinned, sri
+  hashed, fetched only when a pdf or a docx arrives, never on load.** the
+  cleaner's source keeps every invisible character as a `\u` escape, never as
+  a literal: one pass through a tool that unescaped them was caught and
+  reversed. the main site got one `tools` link (`.more`, keyed `tools` in all
+  three dictionaries) in the language cluster; ru/ and lv/ rebuilt.
+
 - **2026-09-15, SESSION CLOSE. post29 is final and pushed: the offer, 9.78s,
   edge's andrew.** `demo/post29.mjs`, dark only, 60fps, shutter open at six
   subframes (solved off the jump's take off, 35.6 css px a frame). Out to

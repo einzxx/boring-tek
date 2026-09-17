@@ -174,8 +174,8 @@ body{
   background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
   transition:background-image .5s ease;
 }
-.langs,.socials,.theme{pointer-events:auto}
-.langs{display:flex;gap:2px}
+.left,.socials,.theme{pointer-events:auto}
+.left,.langs{display:flex;align-items:center;gap:2px}
 .lang{
   font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
   padding:10px 8px;color:var(--muted);opacity:.5;text-decoration:none;
@@ -183,6 +183,13 @@ body{
 }
 .lang:hover{opacity:.85}
 .lang[aria-current=true]{color:var(--fg);opacity:1}
+/* one link to the free tool, in the language cluster's own dress. the rule
+   between them is the only thing that says it is not a fourth language. */
+.more{position:relative;margin-left:4px;padding-left:16px}
+.more::before{
+  content:""; position:absolute; left:0; top:50%; width:1px; height:11px;
+  transform:translateY(-50%); background:var(--line);
+}
 
 /* socials. one row of six, in the top bar on a wide screen and in the footer on
    a narrow one - never both, never two rows. the glyphs are tabler icons, MIT,
@@ -792,7 +799,8 @@ var T={
   e_pick:'pick at least one',
   e_question:'write your question first',
   e_net:'could not send. try again.',
-  th_dark:'dark mode', th_light:'light mode'
+  th_dark:'dark mode', th_light:'light mode',
+  tools:'tools'
  },
  ru:{
   sub:'строим скучную часть будущего',
@@ -847,7 +855,8 @@ var T={
   e_pick:'выберите хотя бы один',
   e_question:'сначала напишите вопрос',
   e_net:'не отправилось. попробуйте ещё раз.',
-  th_dark:'тёмная тема', th_light:'светлая тема'
+  th_dark:'тёмная тема', th_light:'светлая тема',
+  tools:'инструменты'
  },
  lv:{
   sub:'būvējam nākotnes garlaicīgo daļu',
@@ -902,7 +911,8 @@ var T={
   e_pick:'izvēlieties vismaz vienu',
   e_question:'vispirms uzrakstiet jautājumu',
   e_net:'neizdevās nosūtīt. mēģiniet vēlreiz.',
-  th_dark:'tumšais režīms', th_light:'gaišais režīms'
+  th_dark:'tumšais režīms', th_light:'gaišais režīms',
+  tools:'rīki'
  }
 };
 function t(k){ return T[lang][k] !== undefined ? T[lang][k] : T.en[k]; }
@@ -1780,11 +1790,14 @@ else boot();
 <div class="grain" aria-hidden="true"></div>
 
 <header class="bar">
-  <nav class="langs" aria-label="language">
-    <a class="lang" href="/">EN</a>
-    <a class="lang" href="/ru/">RU</a>
-    <a class="lang" href="/lv/" aria-current="true">LV</a>
-  </nav>
+  <div class="left">
+    <nav class="langs" aria-label="language">
+      <a class="lang" href="/">EN</a>
+      <a class="lang" href="/ru/">RU</a>
+      <a class="lang" href="/lv/" aria-current="true">LV</a>
+    </nav>
+    <a class="lang more" href="/clean/" data-k="tools">rīki</a>
+  </div>
   <nav class="socials" aria-label="socials">
     <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
     <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
