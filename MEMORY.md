@@ -6,6 +6,33 @@ names in here either.
 
 ## Status
 
+- **2026-09-17, SESSION SAVE. the tools hub is live at /tools/ in en ru lv,
+  post30 is final and pushed.** `tools/index.html` carries two cards in the
+  site's `.cd` style: **the cleaner** (mascot icon, `watermark remover`, one
+  line, an `open` pill to `/tools/clean/`) and **more soon** (`the next free
+  tool is cooking`), whose icon area is a 13 second loop written by a small
+  script in the page: the mascot idle at the icon's size with the halo, a
+  slow blink and a breath; a `more soon` bubble springing from his side at 2s
+  and popping away at 4s; eyes shut, six red dots up along the card, a four
+  second pacman run biting four times a second with a clip-path wedge, each
+  dot gone as the mouth reaches it; a fade at the right edge, a fade back in
+  his spot, one blink, a three second rest. the tab hidden pauses the clock
+  where it stands; reduced motion shows the idle mascot only. every string is
+  the `TOOLS` en/ru/lv dictionary in `tools/build-langs.mjs`, asserted
+  against the page's english `T`. **the cleaner lives at `/tools/clean/`**
+  (`tools/clean/index.html`, `ru/tools/clean/`, `lv/tools/clean/`) and the
+  old `/clean/`, `/ru/clean/`, `/lv/clean/` are build written stubs that
+  forward. the site's header `tools` link goes to `/tools/`. **post30, the
+  cleaner announcement, is final** at `demo/out/post30-dark-1080x1920.mp4`,
+  21.65s, 60fps, six subframes, pushed with its write up (**The thirtieth
+  clip** in `demo/README.md`); its captions are written into the clip. the
+  skills/ working tree changes and the two clap svgs are still uncommitted,
+  on instruction.
+
+  **open, next:** post the video; the price list and the pinned tweet for
+  the video work; crypto fun, four characters; the dark poster; part two of
+  the site video; the hand sheet; product one.
+
 - **2026-09-17, SESSION CLOSE. post30 is final and pushed: the cleaner
   announcement, 21.65s, edge's andrew.** `demo/post30.mjs`, dark only, 60fps,
   shutter open at six subframes (solved off his spring from the card's
