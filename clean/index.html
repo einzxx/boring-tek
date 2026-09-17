@@ -425,6 +425,11 @@ html:not([lang=en]) .big{font-family:var(--body)}
 .big[disabled]:hover{background:transparent;color:var(--muted)}
 
 .honest{margin:4px auto 0;color:var(--muted);font-size:var(--t-micro);max-width:48ch}
+/* on a wide screen the line takes the zone's full width, so it wraps into two
+   rows rather than three. 720 is the site's own card breakpoint. */
+@media (min-width:720px){
+  .honest{max-width:none}
+}
 
 .foot{
   position:relative; z-index:2;
