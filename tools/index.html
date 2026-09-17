@@ -246,6 +246,46 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .ico .m-eye{fill:var(--eye)}
 .tt{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
 .ct{margin:-4px 0 0;font-size:var(--t-body);color:var(--sub);max-width:52ch}
+
+/* ---- the more soon card: the mascot as pacman ----
+   the strip is one inline svg in the icon slot. the head runs left to right
+   along eight dots over the first ninety per cent of a six second loop, the
+   mouth is a wedge of the card's own colour scaled open and shut about the
+   head's centre, and each dot goes the moment the mouth reaches it. at the
+   end he fades, jumps back and the dots return. css only; the one line of
+   js pauses it while the tab is hidden. under reduced motion nothing moves:
+   he stands half way along, mouth half open, five dots gone. */
+.pac{display:block;width:200px;max-width:100%;height:40px;flex:0 0 auto;overflow:visible}
+.pac .face{fill:var(--face)}
+.pac .eye{fill:var(--eye)}
+.pac .mouth{fill:var(--field);transform-origin:24px 24px;animation:chomp .7s ease-in-out infinite alternate}
+.pac .pd{fill:var(--red);animation:pd1 6s linear infinite}
+.pac .pm{animation:run 6s linear infinite}
+@keyframes run{
+  0%{transform:translateX(0);opacity:1}
+  90%{transform:translateX(204px);opacity:1}
+  94.9%{transform:translateX(204px);opacity:0}
+  95%{transform:translateX(0);opacity:0}
+  100%{transform:translateX(0);opacity:1}
+}
+@keyframes chomp{from{transform:scaleY(.06)}to{transform:scaleY(1)}}
+@keyframes pd1{0%,2.6%{opacity:1}2.7%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(1){animation-name:pd1}
+@keyframes pd2{0%,13.2%{opacity:1}13.299999999999999%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(2){animation-name:pd2}
+@keyframes pd3{0%,23.8%{opacity:1}23.900000000000002%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(3){animation-name:pd3}
+@keyframes pd4{0%,34.4%{opacity:1}34.5%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(4){animation-name:pd4}
+@keyframes pd5{0%,45.0%{opacity:1}45.1%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(5){animation-name:pd5}
+@keyframes pd6{0%,55.6%{opacity:1}55.7%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(6){animation-name:pd6}
+@keyframes pd7{0%,66.2%{opacity:1}66.3%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(7){animation-name:pd7}
+@keyframes pd8{0%,76.8%{opacity:1}76.89999999999999%,95%{opacity:0}100%{opacity:1}}
+.pac .pd:nth-child(8){animation-name:pd8}
+.pac.paused *{animation-play-state:paused}
 /* the site's form button, as a link */
 .btn{
   display:inline-flex; align-items:center; justify-content:center;
@@ -286,6 +326,10 @@ html[data-theme=dark] .theme .i-moon{display:none}
   }
   .soc:hover{transform:none}
   .cd:hover{transform:none}
+  .pac *{animation:none!important}
+  .pac .pm{transform:translateX(96px)}
+  .pac .mouth{transform:scaleY(.7)}
+  .pac .pd:nth-child(-n+5){opacity:0}
 }
 </style>
 <script>
@@ -310,6 +354,8 @@ var T={
  "h1": "free tools",
  "t_clean": "watermark remover",
  "d_clean": "clean hidden ai marks from your text and files",
+ "t_more": "more soon",
+ "d_more": "the next free tool is cooking",
  "open": "open",
  "home": "home",
  "th_dark": "dark mode",
@@ -330,6 +376,10 @@ function setTheme(v){
 }
 themeBtn.addEventListener('click',function(){ setTheme(theme==='dark'?'light':'dark'); });
 setTheme(theme);
+/* the pacman strip stops while the tab is hidden, so it does not run on
+   behind another tab and it is where it was when you come back */
+var pac=D.querySelector('.pac');
+if(pac) D.addEventListener('visibilitychange',function(){ pac.classList.toggle('paused',D.hidden); });
 /* the build paints these once per document; this is the same paint at runtime,
    so the page and its script can never disagree about a string. */
 var keyed=D.querySelectorAll('[data-k]'),n;
@@ -390,6 +440,26 @@ else boot();
       <h2 class="tt" data-k="t_clean">watermark remover</h2>
       <p class="ct" data-k="d_clean">clean hidden ai marks from your text and files</p>
       <a class="btn" href="/tools/clean/" data-k="open">open</a>
+    </article>
+    <article class="cd">
+      <svg class="pac" viewBox="0 0 240 48" focusable="false" aria-hidden="true">
+        <circle class="pd" cx="36" cy="24" r="3"/>
+        <circle class="pd" cx="60" cy="24" r="3"/>
+        <circle class="pd" cx="84" cy="24" r="3"/>
+        <circle class="pd" cx="108" cy="24" r="3"/>
+        <circle class="pd" cx="132" cy="24" r="3"/>
+        <circle class="pd" cx="156" cy="24" r="3"/>
+        <circle class="pd" cx="180" cy="24" r="3"/>
+        <circle class="pd" cx="204" cy="24" r="3"/>
+        <g class="pm">
+          <circle class="face" cx="24" cy="24" r="20"/>
+          <rect class="eye" x="11" y="14" width="10" height="3.4" rx="1.7"/>
+          <rect class="eye" x="25" y="14" width="10" height="3.4" rx="1.7"/>
+          <polygon class="mouth" points="24,24 48,10 48,38"/>
+        </g>
+      </svg>
+      <h2 class="tt" data-k="t_more">more soon</h2>
+      <p class="ct" data-k="d_more">the next free tool is cooking</p>
     </article>
   </div>
  </div>
