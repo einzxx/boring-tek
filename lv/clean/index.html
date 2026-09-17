@@ -431,18 +431,6 @@ html:not([lang=en]) .big{font-family:var(--body)}
   display:flex; flex-direction:column; align-items:center; gap:6px;
   padding:clamp(24px,5vh,40px) 16px clamp(28px,6vh,44px);
 }
-.foot-t{
-  margin:0; font-family:var(--mono); font-size:var(--t-micro);
-  letter-spacing:.14em; color:var(--muted); opacity:.75;
-  text-align:center;
-}
-.foot a{
-  font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
-  color:var(--muted);text-decoration:underline;text-underline-offset:4px;
-  padding:6px 8px;
-  transition:color .22s ease-out;
-}
-.foot a:hover{color:var(--fg)}
 
 /* the swap, the site's: above 560px the socials sit in the bar, centred on
    the page, and the head gets 32px more sky; the footer keeps its lines. */
@@ -758,7 +746,6 @@ var T={
  "ready": "{name} ir šeit.",
  "honest": "šis rīks noņem slēptās zīmes no teksta un failiem. tas nepadara tekstu cilvēcīgāku. neviens rīks nevar solīt, ka mi pārbaude tiks izturēta vai nē.",
  "noscript": "šis rīks strādā tieši pārlūkā. bez javascript tas nedarbojas.",
- "trust": "nekas nepamet jūsu pārlūku. nekas netiek augšupielādēts. bez konta.",
  "home": "sākums",
  "th_dark": "tumšais režīms",
  "th_light": "gaišais režīms",
@@ -1499,8 +1486,6 @@ else boot();
     <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
     <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
   </nav>
-  <p class="foot-t" data-k="trust">nekas nepamet jūsu pārlūku. nekas netiek augšupielādēts. bez konta.</p>
-  <a class="foot-l" href="/lv/">theboringtek.com</a>
 </footer>
 </body>
 </html>

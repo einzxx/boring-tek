@@ -97,7 +97,6 @@ const CLEAN = {
     ready: '{name} is in.',
     honest: 'this tool removes hidden marks from your text and files. it does not make text look human. no tool can promise an ai checker will pass or fail.',
     noscript: 'this tool runs in your browser and needs javascript on.',
-    trust: 'nothing leaves your browser. no upload. no account.',
     home: 'home',
     th_dark: 'dark mode',
     th_light: 'light mode',
@@ -159,7 +158,6 @@ const CLEAN = {
     ready: '{name} на месте.',
     honest: 'этот инструмент убирает скрытые метки из текста и файлов. он не делает текст похожим на человеческий. ни один инструмент не может обещать, что проверка на ии пройдёт или нет.',
     noscript: 'этот инструмент работает прямо в браузере. без javascript он не запустится.',
-    trust: 'ничего не уходит из браузера. ничего не загружается на сервер. без регистрации.',
     home: 'главная',
     th_dark: 'тёмная тема',
     th_light: 'светлая тема',
@@ -221,7 +219,6 @@ const CLEAN = {
     ready: '{name} ir šeit.',
     honest: 'šis rīks noņem slēptās zīmes no teksta un failiem. tas nepadara tekstu cilvēcīgāku. neviens rīks nevar solīt, ka mi pārbaude tiks izturēta vai nē.',
     noscript: 'šis rīks strādā tieši pārlūkā. bez javascript tas nedarbojas.',
-    trust: 'nekas nepamet jūsu pārlūku. nekas netiek augšupielādēts. bez konta.',
     home: 'sākums',
     th_dark: 'tumšais režīms',
     th_light: 'gaišais režīms',
@@ -486,9 +483,8 @@ function buildClean(lang) {
   /* --- every keyed string, painted --- */
   body = paintKeys(body, CLEAN, lang, 6, 'clean/index.html');
 
-  /* --- the two links home go to this language's home --- */
+  /* --- the link home goes to this language's home --- */
   body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
-  body = one(body, `<a class="foot-l" href="/">`, `<a class="foot-l" href="${AT[lang]}">`, 'foot-link');
 
   /* --- the labels a screen reader gets before the script has run, and the
          placeholder everyone gets --- */
