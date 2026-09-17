@@ -6,13 +6,27 @@ names in here either.
 
 ## Status
 
-- **2026-09-17, SESSION CLOSE. the cleaner is finished and pushed:
-  `/clean/`, `/ru/clean/`, `/lv/clean/`, a browser only watermark remover.**
-  the build knows it: `tools/build-langs.mjs` carries `SEO_CLEAN`, the
-  `CLEAN` en/ru/lv dictionary and `buildClean()`, writes `ru/clean/` and
-  `lv/clean/` out of `clean/index.html` (the page's own `T` is english only
-  and is asserted against `CLEAN.en`), and the sitemap lists all six
-  addresses. root `README.md` was added this session with one section on it.
+- **2026-09-17, SESSION SAVE. the cleaner is live at theboringtek.com/clean
+  in en, ru and lv** (`/clean/`, `/ru/clean/`, `/lv/clean/`), heading
+  `Watermark Remover for Claude, ChatGPT and more`. **final layout as built,
+  top to bottom:** the drop zone with the mascot (files only, a dropped file
+  waits there, named, until the press), `your text` label and a 160px field,
+  one row 12px under it with the small form button `clean my text or file`
+  centred and the `clear all` link at the right edge, then, only after a
+  press, the `clean text` label, a 160px readonly field with the copy pill in
+  its top right corner and the check line (`found ..., removed. checked
+  again, 0 hidden marks left.`), then the file card with download; the honest
+  line under it all, two rows on desktop; no bottom trust line, the footer is
+  the phone socials row only. all borders on buttons and the pill are
+  `--line`. **the quotes and dashes fix is always on**, the chip is gone.
+  **the rewrite step is parked**: the tool removes marks and says so, it does
+  not make text look human, and the honest line says that in three languages.
+  **next up: a short animated video announcing the tool, with a phone
+  frame.** the build knows the page: `tools/build-langs.mjs` carries
+  `SEO_CLEAN`, the `CLEAN` en/ru/lv dictionary and `buildClean()`, writes
+  `ru/clean/` and `lv/clean/` out of `clean/index.html` (the page's own `T`
+  is english only and is asserted against `CLEAN.en`), and the sitemap lists
+  all six addresses. root `README.md` exists with one section on the tool.
 
 - **2026-09-17. the cleaner, `/clean/index.html`, as built.** a free tool
   page: one drop zone with the mascot in it (halo, eye tracking, blink, both

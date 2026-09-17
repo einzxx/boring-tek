@@ -57,6 +57,10 @@ boring-tek/
 ├── index.html          # the live site — single file, root, never moves
 ├── ru/index.html       # GENERATED. the russian page, built from index.html
 ├── lv/index.html       # GENERATED. the latvian page, built from index.html
+├── clean/index.html    # the cleaner, /clean/. one file, same rules, english source
+├── ru/clean/index.html # GENERATED. built from clean/index.html
+├── lv/clean/index.html # GENERATED. built from clean/index.html
+├── README.md           # one short section per public tool
 ├── CNAME               # theboringtek.com — never edit, never move
 ├── robots.txt          # root by convention
 ├── sitemap.xml         # root by convention
@@ -64,7 +68,7 @@ boring-tek/
 ├── MEMORY.md           # decisions + current state, updated every session
 ├── assets/             # the mascot: source svg, png reference, pose variants
 ├── tools/
-│   └── build-langs.mjs # writes ru/, lv/ and sitemap.xml out of index.html
+│   └── build-langs.mjs # writes ru/, lv/, ru/clean/, lv/clean/ and sitemap.xml
 └── skills/
     ├── SKILL.md        # index of available skills
     └── page-builder/
@@ -99,8 +103,17 @@ state or makes a decision.
   and og set per language. Editing either by hand is editing a build artifact. Change
   `index.html`, re-run the script, commit all three. `--check` fails if they are stale.
   Nothing is bundled, compiled or fetched, so the zero-dependency rule below is intact.
+  **The same holds for the cleaner.** `ru/clean/index.html` and `lv/clean/index.html`
+  are generated from `clean/index.html`, never edited by hand. The cleaner's strings
+  live in the `CLEAN` en/ru/lv dictionary in `tools/build-langs.mjs`; the page itself
+  carries only the English `T`, and the build asserts the two agree. A new string goes
+  into all three languages there, then the page, then a rebuild.
+  **`node tools/build-langs.mjs --check` must pass before every push.**
 - **Zero dependencies.** No npm, no package.json, no build step, no bundler, no
   framework, no CSS library, no icon library, no CDN scripts.
+  **One named exception, the cleaner:** `clean/index.html` fetches pdf-lib and jszip
+  from a pinned, SRI hashed CDN url, and only when a pdf or a docx is actually
+  dropped, never on load. Nothing else on the site may do this without a decision.
   **This rule is about what ships. `demo/` is tooling and is allowed its own
   `package.json` and local npm dependencies**, provided anything a rendered page
   needs is inlined from `node_modules` at render time rather than fetched, and
@@ -144,7 +157,7 @@ state or makes a decision.
   domain.
 - Deploy = push to `main`. There is no staging.
 - Because push is publish: check the diff for secrets and client names before every
-  push.
+  push, and run `node tools/build-langs.mjs --check` so no generated page ships stale.
 
 ## What Claude Code should NOT do
 
