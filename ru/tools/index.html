@@ -247,48 +247,39 @@ html[data-theme=dark] .theme .i-moon{display:none}
 .tt{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
 .ct{margin:-4px 0 0;font-size:var(--t-body);color:var(--sub);max-width:52ch}
 
-/* ---- the more soon card: the mascot as pacman ----
-   the strip is the card's inner width, 48px tall. he is the site's face with
-   no eyes and a mouth cut out of it: a clip-path wedge that opens to sixty
-   degrees and shuts, four bites a second while he moves, and stays shut
-   while he does not. one pass is five seconds, an ease in over the first
-   second and steady after; he fades out at the right edge, a second of
-   nothing, the six dots fade back, he fades in at the left and goes again.
-   the jump back to the left happens while he is invisible. the halo is the
-   site's own, under him, and moves with him. css only; the one line of js
-   pauses it while the tab is hidden. under reduced motion nothing moves: he
-   stands half way along, mouth open, three dots gone. */
-.pac{position:relative;display:block;width:100%;height:48px;flex:0 0 auto;margin:6px 0 2px}
-.pac .pd{position:absolute;top:20px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pd1 7.0s linear infinite}
-.pac .pm{position:absolute;top:0;left:0;width:48px;height:48px;animation:run 7.0s linear infinite}
-.pac .halo{position:absolute;left:50%;top:50%;width:210%;height:210%;transform:translate(-50%,-50%);border-radius:50%;
+/* ---- the more soon card: the mascot idle, a bubble, then pacman ----
+   the strip is the card's inner width and exactly the icon's 40px tall, so
+   the title and the line under it sit where the first card's do and
+   nothing below moves. he is the site's mascot at the icon's size in the
+   icon's spot: the face, the two calm eye slabs, the site's halo under
+   him. the script writes numbers to these elements on every frame and the
+   css holds the shapes and the bubble's spring; there is no css animation
+   here. under reduced motion the script does not run and the bubble and
+   the dots are not shown: the idle mascot, still. */
+.pac{position:relative;display:block;width:100%;height:40px;flex:0 0 auto}
+.pac .pm{position:absolute;left:0;top:0;width:40px;height:40px;will-change:transform,opacity}
+.pac .halo{position:absolute;left:50%;top:50%;width:190%;height:190%;transform:translate(-50%,-50%);border-radius:50%;
   pointer-events:none;background-image:var(--halo);transition:background-image .5s ease}
-.pac .face{position:absolute;inset:0;border-radius:50%;background:var(--face);
-  clip-path:polygon(0 0,100% 0,100% 50%,50% 50%,100% 50%,100% 100%,0 100%);animation:bite 7.0s ease-in-out infinite;transition:background-color .5s ease}
-@keyframes run{
-  0%{left:0;opacity:1;animation-timing-function:cubic-bezier(.5,0,.7,.45)}
-  14.286%{left:calc((100% - 48px) * 0.12);opacity:1;animation-timing-function:linear}
-  71.429%{left:calc(100% - 48px);opacity:1}
-  78.571%{left:calc(100% - 48px);opacity:0}
-  85.714%{left:calc(100% - 48px);opacity:0}
-  85.814%{left:0;opacity:0}
-  92.857%{left:0;opacity:0}
-  100%{left:0;opacity:1}
-}
-@keyframes bite{0.0%,3.571%,7.143%,10.714%,14.286%,17.857%,21.429%,25.0%,28.571%,32.143%,35.714%,39.286%,42.857%,46.429%,50.0%,53.571%,57.143%,60.714%,64.286%,67.857%,71.429%,100%{clip-path:polygon(0 0,100% 0,100% 50%,50% 50%,100% 50%,100% 100%,0 100%)}1.786%,5.357%,8.929%,12.5%,16.071%,19.643%,23.214%,26.786%,30.357%,33.929%,37.5%,41.071%,44.643%,48.214%,51.786%,55.357%,58.929%,62.5%,66.071%,69.643%{clip-path:polygon(0 0,100% 0,100% 20%,50% 50%,100% 80%,100% 100%,0 100%)}}
-@keyframes pd1{0%,13.544%{opacity:1}13.644%,82.857%{opacity:0}90.0%,100%{opacity:1}}
-.pac .pd:nth-child(1){left:calc(24px + (100% - 48px) * 0.1429 - 4px);animation-name:pd1}
-@keyframes pd2{0%,22.774%{opacity:1}22.874%,82.857%{opacity:0}90.0%,100%{opacity:1}}
-.pac .pd:nth-child(2){left:calc(24px + (100% - 48px) * 0.2857 - 4px);animation-name:pd2}
-@keyframes pd3{0%,32.05%{opacity:1}32.15%,82.857%{opacity:0}90.0%,100%{opacity:1}}
-.pac .pd:nth-child(3){left:calc(24px + (100% - 48px) * 0.4286 - 4px);animation-name:pd3}
-@keyframes pd4{0%,41.327%{opacity:1}41.427%,82.857%{opacity:0}90.0%,100%{opacity:1}}
-.pac .pd:nth-child(4){left:calc(24px + (100% - 48px) * 0.5714 - 4px);animation-name:pd4}
-@keyframes pd5{0%,50.603%{opacity:1}50.703%,82.857%{opacity:0}90.0%,100%{opacity:1}}
-.pac .pd:nth-child(5){left:calc(24px + (100% - 48px) * 0.7143 - 4px);animation-name:pd5}
-@keyframes pd6{0%,59.879%{opacity:1}59.979%,82.857%{opacity:0}90.0%,100%{opacity:1}}
-.pac .pd:nth-child(6){left:calc(24px + (100% - 48px) * 0.8571 - 4px);animation-name:pd6}
-.pac.paused *{animation-play-state:paused}
+.pac .face{position:absolute;inset:0;border-radius:50%;background:var(--face);transition:background-color .5s ease}
+/* the eyes at the mascot's own places on the 64 grid: x 15 and 36, y 36.3, 13 by 4.4 */
+.pac .eye{position:absolute;left:23.4%;top:56.7%;width:20.3%;height:6.9%;border-radius:999px;background:var(--eye);
+  transform-origin:50% 50%;transition:background-color .5s ease}
+.pac .eye+.eye{left:56.25%}
+/* the site's thought bubble at phone size: a pill in the page colour with a
+   hairline, springing from his side */
+.pac .bub{position:absolute;left:50px;top:50%;padding:4px 11px;border:1px solid var(--line);border-radius:999px;
+  background:var(--bg);color:var(--fg);font-size:var(--t-micro);line-height:1.3;white-space:nowrap;
+  transform:translateY(-50%) scale(.7);transform-origin:0 50%;opacity:0;
+  transition:transform .2s ease-in,opacity .16s ease-out,background-color .5s ease,border-color .5s ease,color .5s ease}
+.pac .bub.on{transform:translateY(-50%) scale(1);opacity:1;transition:transform .34s var(--spring),opacity .2s ease-out,background-color .5s ease,border-color .5s ease,color .5s ease}
+/* six dots at sevenths of his path, on any width */
+.pac .pd{position:absolute;top:16px;width:8px;height:8px;border-radius:50%;background:var(--red);opacity:0}
+.pac .pd:nth-child(1){left:calc(20px + (100% - 40px) * 0.1429 - 4px)}
+.pac .pd:nth-child(2){left:calc(20px + (100% - 40px) * 0.2857 - 4px)}
+.pac .pd:nth-child(3){left:calc(20px + (100% - 40px) * 0.4286 - 4px)}
+.pac .pd:nth-child(4){left:calc(20px + (100% - 40px) * 0.5714 - 4px)}
+.pac .pd:nth-child(5){left:calc(20px + (100% - 40px) * 0.7143 - 4px)}
+.pac .pd:nth-child(6){left:calc(20px + (100% - 40px) * 0.8571 - 4px)}
 /* the site's form button, as a link */
 .btn{
   display:inline-flex; align-items:center; justify-content:center;
@@ -329,10 +320,7 @@ html[data-theme=dark] .theme .i-moon{display:none}
   }
   .soc:hover{transform:none}
   .cd:hover{transform:none}
-  .pac *{animation:none!important}
-  .pac .pm{left:calc((100% - 48px) * .5)}
-  .pac .face{clip-path:polygon(0 0,100% 0,100% 20%,50% 50%,100% 80%,100% 100%,0 100%)}
-  .pac .pd:nth-child(-n+3){opacity:0}
+  .pac .bub,.pac .pd{display:none}
 }
 </style>
 <script>
@@ -359,6 +347,7 @@ var T={
  "d_clean": "убирает скрытые метки ии из вашего текста и файлов",
  "t_more": "скоро ещё",
  "d_more": "следующий бесплатный инструмент уже готовится",
+ "bub": "скоро ещё",
  "open": "открыть",
  "home": "главная",
  "th_dark": "тёмная тема",
@@ -379,10 +368,72 @@ function setTheme(v){
 }
 themeBtn.addEventListener('click',function(){ setTheme(theme==='dark'?'light':'dark'); });
 setTheme(theme);
-/* the pacman strip stops while the tab is hidden, so it does not run on
-   behind another tab and it is where it was when you come back */
-var pac=D.querySelector('.pac');
-if(pac) D.addEventListener('visibilitychange',function(){ pac.classList.toggle('paused',D.hidden); });
+/* ---------- the more soon card ----------
+   one loop of thirteen seconds on a clock this script owns, so the tab
+   being hidden pauses it where it stands. idle for two seconds, a blink
+   every three to four and a breath under two per cent; the bubble springs
+   from his side at two and pops away at four; he shuts his eyes, the dots
+   come up along the strip, he runs right for four seconds biting four
+   times a second and each dot goes the moment the mouth reaches it; he
+   fades at the right edge, fades back in his spot with his eyes open,
+   blinks once, and rests three seconds. under reduced motion none of this
+   runs and he is the idle mascot, still. */
+(function(){
+  var pac=D.querySelector('.pac');
+  if(!pac || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var head=pac.querySelector('.pm'), face=pac.querySelector('.face'), eyes=pac.querySelectorAll('.eye');
+  var bub=pac.querySelector('.bub'), dots=pac.querySelectorAll('.pd');
+  var LOOP=13, BUB_AT=2, BUB_FOR=2, SHUT_AT=4.3, RUN_AT=4.8, RUN_FOR=4, FADE=0.4, BACK_AT=9.4, BLINK_AT=10.1;
+  var t0=null, hiddenAt=0, blinkAt=0, blinkT0=-1, blinkedBack=-1, lastBub=null;
+  function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+  function span(t,a,b){ return clamp((t-a)/(b-a),0,1); }
+  function ease(p){ return 1-Math.pow(1-p,3); }
+  function frame(now){
+    if(D.hidden) return;
+    if(t0===null){ t0=now; blinkAt=now+3000+Math.random()*1000; }
+    var el=(now-t0)/1000, t=el%LOOP, n=Math.floor(el/LOOP);
+    var W=pac.clientWidth-40;
+    var x=0, o=1, m=0, eo=1, lid=1, br=1+0.012*Math.sin(2*Math.PI*el/3.4);
+    if(t>=SHUT_AT&&t<RUN_AT){ lid=1-0.94*ease(span(t,SHUT_AT,SHUT_AT+0.25)); eo=1-span(t,SHUT_AT+0.3,RUN_AT); br=1; }
+    if(t>=RUN_AT&&t<RUN_AT+RUN_FOR){
+      var p=span(t,RUN_AT,RUN_AT+RUN_FOR), q=p<0.15 ? (p/0.15)*(p/0.15)*0.15 : p;
+      x=W*q; m=0.5-0.5*Math.cos(2*Math.PI*4*(t-RUN_AT)); eo=0; lid=0.06; br=1;
+    }
+    if(t>=RUN_AT+RUN_FOR&&t<BACK_AT){ x=W; eo=0; lid=0.06; br=1; o=1-span(t,RUN_AT+RUN_FOR,RUN_AT+RUN_FOR+FADE); }
+    if(t>=BACK_AT){ o=span(t,BACK_AT,BACK_AT+FADE); }
+    /* the blinks: a scheduled one whenever he is idle with his eyes open,
+       and the one right after he is back, once a loop */
+    var idle=t<SHUT_AT||t>=BACK_AT+FADE;
+    if(blinkT0<0){
+      if(idle&&now>=blinkAt){ blinkT0=now; blinkAt=now+3000+Math.random()*1000; }
+      else if(t>=BLINK_AT&&t<BLINK_AT+0.5&&blinkedBack!==n){ blinkT0=now; blinkedBack=n; blinkAt=now+3000+Math.random()*1000; }
+      else if(!idle&&now>=blinkAt) blinkAt=now+3000+Math.random()*1000;
+    }
+    if(blinkT0>=0){ var d=(now-blinkT0)/1000; if(d>=0.2) blinkT0=-1; else lid=Math.min(lid, d<0.08 ? 1-0.94*(d/0.08) : 0.06+0.94*((d-0.08)/0.12)); }
+    head.style.transform='translateX('+x.toFixed(1)+'px) scale('+br.toFixed(4)+')';
+    head.style.opacity=o.toFixed(3);
+    var a=(50-30*m).toFixed(2), b=(50+30*m).toFixed(2);
+    face.style.clipPath = m<0.005 ? 'none' : 'polygon(0 0,100% 0,100% '+a+'%,50% 50%,100% '+b+'%,100% 100%,0 100%)';
+    for(var i=0;i<eyes.length;i++){ eyes[i].style.transform='scaleY('+lid.toFixed(3)+')'; eyes[i].style.opacity=eo.toFixed(3); }
+    var bon=t>=BUB_AT&&t<BUB_AT+BUB_FOR;
+    if(bon!==lastBub){ lastBub=bon; bub.classList.toggle('on',bon); }
+    /* the dots come up as he shuts his eyes and each goes when the mouth reaches it */
+    var cx=x+20;
+    for(i=0;i<dots.length;i++){
+      var dx=dots[i].offsetLeft+4;
+      var up=t>=RUN_AT-0.3&&t<RUN_AT+RUN_FOR+FADE&&!(t>=RUN_AT&&cx>=dx-10);
+      dots[i].style.opacity = up ? span(t,RUN_AT-0.3,RUN_AT).toFixed(3) : '0';
+    }
+    requestAnimationFrame(frame);
+  }
+  D.addEventListener('visibilitychange',function(){
+    if(D.hidden){ hiddenAt=performance.now(); return; }
+    var lost=performance.now()-hiddenAt;
+    if(t0!==null){ t0+=lost; blinkAt+=lost; if(blinkT0>=0) blinkT0+=lost; }
+    requestAnimationFrame(frame);
+  });
+  requestAnimationFrame(frame);
+})();
 /* the build paints these once per document; this is the same paint at runtime,
    so the page and its script can never disagree about a string. */
 var keyed=D.querySelectorAll('[data-k]'),n;
@@ -452,7 +503,8 @@ else boot();
         <i class="pd"></i>
         <i class="pd"></i>
         <i class="pd"></i>
-        <span class="pm"><b class="halo"></b><b class="face"></b></span>
+        <span class="pm"><b class="halo"></b><b class="face"><b class="eye"></b><b class="eye"></b></b></span>
+        <span class="bub" data-k="bub">скоро ещё</span>
       </div>
       <h2 class="tt" data-k="t_more">скоро ещё</h2>
       <p class="ct" data-k="d_more">следующий бесплатный инструмент уже готовится</p>

@@ -99,6 +99,7 @@ const TOOLS = {
     d_clean: 'clean hidden ai marks from your text and files',
     t_more: 'more soon',
     d_more: 'the next free tool is cooking',
+    bub: 'more soon',
     open: 'open',
     home: 'home',
     th_dark: 'dark mode',
@@ -110,6 +111,7 @@ const TOOLS = {
     d_clean: 'убирает скрытые метки ии из вашего текста и файлов',
     t_more: 'скоро ещё',
     d_more: 'следующий бесплатный инструмент уже готовится',
+    bub: 'скоро ещё',
     open: 'открыть',
     home: 'главная',
     th_dark: 'тёмная тема',
@@ -121,6 +123,7 @@ const TOOLS = {
     d_clean: 'notīra slēptās mi zīmes no jūsu teksta un failiem',
     t_more: 'drīz vēl',
     d_more: 'nākamais bezmaksas rīks jau top',
+    bub: 'drīz vēl',
     open: 'atvērt',
     home: 'sākums',
     th_dark: 'tumšais režīms',
@@ -582,7 +585,7 @@ function buildTools(lang) {
   head = one(head, dictTools[1], JSON.stringify(TOOLS[lang], null, 1), 'tools-dict');
 
   /* --- every keyed string, painted --- */
-  body = paintKeys(body, TOOLS, lang, 6, 'tools/index.html');
+  body = paintKeys(body, TOOLS, lang, 7, 'tools/index.html');
 
   /* --- the link home goes to this language's home --- */
   body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
