@@ -57,9 +57,12 @@ boring-tek/
 ├── index.html          # the live site — single file, root, never moves
 ├── ru/index.html       # GENERATED. the russian page, built from index.html
 ├── lv/index.html       # GENERATED. the latvian page, built from index.html
-├── clean/index.html    # the cleaner, /clean/. one file, same rules, english source
-├── ru/clean/index.html # GENERATED. built from clean/index.html
-├── lv/clean/index.html # GENERATED. built from clean/index.html
+├── tools/index.html    # the tools hub, /tools/. one file, same rules, english source
+├── tools/clean/index.html  # the cleaner, /tools/clean/. one file, same rules, english source
+├── ru/tools/           # GENERATED. ru/tools/index.html and ru/tools/clean/index.html
+├── lv/tools/           # GENERATED. the same in latvian
+├── clean/index.html    # GENERATED. a stub forwarding /clean/ to /tools/clean/
+├── ru/clean/, lv/clean/  # GENERATED. the same stubs for /ru/ and /lv/
 ├── README.md           # one short section per public tool
 ├── CNAME               # theboringtek.com — never edit, never move
 ├── robots.txt          # root by convention
@@ -68,7 +71,7 @@ boring-tek/
 ├── MEMORY.md           # decisions + current state, updated every session
 ├── assets/             # the mascot: source svg, png reference, pose variants
 ├── tools/
-│   └── build-langs.mjs # writes ru/, lv/, ru/clean/, lv/clean/ and sitemap.xml
+│   └── build-langs.mjs # writes ru/, lv/, ru/tools/, lv/tools/, the three stubs and sitemap.xml
 └── skills/
     ├── SKILL.md        # index of available skills
     └── page-builder/
@@ -103,15 +106,16 @@ state or makes a decision.
   and og set per language. Editing either by hand is editing a build artifact. Change
   `index.html`, re-run the script, commit all three. `--check` fails if they are stale.
   Nothing is bundled, compiled or fetched, so the zero-dependency rule below is intact.
-  **The same holds for the cleaner.** `ru/clean/index.html` and `lv/clean/index.html`
-  are generated from `clean/index.html`, never edited by hand. The cleaner's strings
-  live in the `CLEAN` en/ru/lv dictionary in `tools/build-langs.mjs`; the page itself
-  carries only the English `T`, and the build asserts the two agree. A new string goes
-  into all three languages there, then the page, then a rebuild.
+  **The same holds for the tools hub and the cleaner.** `ru/tools/` and `lv/tools/`
+  are generated from `tools/index.html` and `tools/clean/index.html`, never edited by
+  hand, and so are the three stubs under `clean/`. Their strings live in the `TOOLS`
+  and `CLEAN` en/ru/lv dictionaries in `tools/build-langs.mjs`; each page carries only
+  its English `T`, and the build asserts the two agree. A new string goes into all
+  three languages there, then the page, then a rebuild.
   **`node tools/build-langs.mjs --check` must pass before every push.**
 - **Zero dependencies.** No npm, no package.json, no build step, no bundler, no
   framework, no CSS library, no icon library, no CDN scripts.
-  **One named exception, the cleaner:** `clean/index.html` fetches pdf-lib and jszip
+  **One named exception, the cleaner:** `tools/clean/index.html` fetches pdf-lib and jszip
   from a pinned, SRI hashed CDN url, and only when a pdf or a docx is actually
   dropped, never on load. Nothing else on the site may do this without a decision.
   **This rule is about what ships. `demo/` is tooling and is allowed its own

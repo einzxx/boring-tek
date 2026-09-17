@@ -4,15 +4,18 @@
    english page, and writes `ru/index.html` and `lv/index.html`: the same
    markup, the same stylesheet, the same script, with the text already painted
    in that language and `lang`, `canonical` and the og tags already set. it does
-   the same for the cleaner, `clean/index.html`, into `ru/clean/` and
-   `lv/clean/`. it writes `sitemap.xml` too, so the six addresses are named in
-   exactly one place.
+   the same for the tools hub, `tools/index.html`, into `ru/tools/` and
+   `lv/tools/`, and for the cleaner, `tools/clean/index.html`, into
+   `ru/tools/clean/` and `lv/tools/clean/`. it writes `sitemap.xml` too, so the
+   nine addresses are named in exactly one place, and the three stubs at the
+   cleaner's old addresses (`/clean/`, `/ru/clean/`, `/lv/clean/`) that forward
+   a shared link to the new ones.
 
-   the two pages keep their copy differently. the main page carries all three
-   dictionaries in its own `T` and the build reads them out of it. the cleaner
-   carries only english in its `T`; the russian and latvian live here, in
-   `CLEAN` below, and the build asserts the page's english against `CLEAN.en`
-   before swapping the object in.
+   the pages keep their copy differently. the main page carries all three
+   dictionaries in its own `T` and the build reads them out of it. the hub and
+   the cleaner carry only english in their `T`; the russian and latvian live
+   here, in `TOOLS` and `CLEAN` below, and the build asserts each page's
+   english against its `.en` before swapping the object in.
 
    why it exists: a page that paints itself in russian after the script runs is
    an english page to a crawler, and a hash is not an address. three documents
@@ -23,8 +26,9 @@
      node tools/build-langs.mjs --check  verify they match the source, write nothing
 
    this is tooling. it never ships, it has no dependencies, and it is the only
-   thing that may write `ru/` and `lv/` — those two are output, so editing them
-   by hand is editing a build artifact and it will be overwritten.
+   thing that may write `ru/`, `lv/` and the three stubs under `clean/` — those
+   are output, so editing them by hand is editing a build artifact and it will
+   be overwritten.
 
    every replacement below asserts it matched exactly once. a rule that stops
    matching because the markup moved is a page that ships in the wrong language
@@ -38,13 +42,18 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const SRC = path.join(ROOT, 'index.html');
-const SRC_CLEAN = path.join(ROOT, 'clean', 'index.html');
+const SRC_TOOLS = path.join(ROOT, 'tools', 'index.html');
+const SRC_CLEAN = path.join(ROOT, 'tools', 'clean', 'index.html');
 const CHECK = process.argv.includes('--check');
 
 const ORIGIN = 'https://theboringtek.com';
 const LANGS = ['en', 'ru', 'lv'];
 const AT = { en: '/', ru: '/ru/', lv: '/lv/' };
-const AT_CLEAN = { en: '/clean/', ru: '/ru/clean/', lv: '/lv/clean/' };
+const AT_TOOLS = { en: '/tools/', ru: '/ru/tools/', lv: '/lv/tools/' };
+const AT_CLEAN = { en: '/tools/clean/', ru: '/ru/tools/clean/', lv: '/lv/tools/clean/' };
+/* where the cleaner lived until 2026-09-17. a stub at each forwards to the
+   same language's new address, so a link somebody shared keeps working. */
+const AT_CLEAN_OLD = { en: '/clean/', ru: '/ru/clean/', lv: '/lv/clean/' };
 const OG_LOCALE = { en: 'en_US', ru: 'ru_RU', lv: 'lv_LV' };
 
 /* the head copy. it is not painted by the page, so it does not live in `T` with
@@ -65,6 +74,51 @@ const SEO = {
   lv: {
     title: 'ai aģenti un automatizācija biznesam | the boring tek',
     desc: 'būvējam ai aģentus, backend sistēmas un darba procesu automatizāciju biznesam. mājaslapas, aplikācijas un boti arī. pastāstiet ko jums vajag.',
+  },
+};
+const SEO_TOOLS = {
+  en: {
+    title: 'free tools | the boring tek',
+    desc: 'free browser tools by the boring tek. a watermark remover for claude, chatgpt and other ai text and files. nothing leaves your browser.',
+  },
+  ru: {
+    title: 'бесплатные инструменты | the boring tek',
+    desc: 'бесплатные инструменты в браузере от the boring tek. удаление водяных знаков из текста и файлов claude, chatgpt и других ии. всё в браузере.',
+  },
+  lv: {
+    title: 'bezmaksas rīki | the boring tek',
+    desc: 'bezmaksas pārlūka rīki no the boring tek. ūdenszīmju noņemšana no claude, chatgpt un citu mi teksta un failiem. nekas neaiziet no pārlūka.',
+  },
+};
+/* the hub's copy. the english is the page's own `T`, repeated here so the
+   build can assert the two agree; ru and lv exist only here. */
+const TOOLS = {
+  en: {
+    h1: 'free tools',
+    t_clean: 'watermark remover',
+    d_clean: 'clean hidden ai marks from your text and files',
+    open: 'open',
+    home: 'home',
+    th_dark: 'dark mode',
+    th_light: 'light mode',
+  },
+  ru: {
+    h1: 'бесплатные инструменты',
+    t_clean: 'удаление водяных знаков',
+    d_clean: 'убирает скрытые метки ии из вашего текста и файлов',
+    open: 'открыть',
+    home: 'главная',
+    th_dark: 'тёмная тема',
+    th_light: 'светлая тема',
+  },
+  lv: {
+    h1: 'bezmaksas rīki',
+    t_clean: 'ūdenszīmju noņemšana',
+    d_clean: 'notīra slēptās mi zīmes no jūsu teksta un failiem',
+    open: 'atvērt',
+    home: 'sākums',
+    th_dark: 'tumšais režīms',
+    th_light: 'gaišais režīms',
   },
 };
 const SEO_CLEAN = {
@@ -303,6 +357,7 @@ function readPage(file) {
 }
 const { src, cut } = readPage(SRC);
 const { src: srcClean, cut: cutClean } = readPage(SRC_CLEAN);
+const { src: srcTools, cut: cutTools } = readPage(SRC_TOOLS);
 
 /* the copy comes out of the page's own dictionary. `new Function` on an object
    literal we wrote ourselves, in a script that only ever runs on this machine.
@@ -316,6 +371,11 @@ const T = new Function('return ' + dict[1])();
 const dictClean = srcClean.match(/\nvar T=(\{[\s\S]*?\n\});\nvar lang=/);
 if (!dictClean) throw new Error('could not find `var T={...}` in clean/index.html');
 const T_CLEAN_EN = new Function('return ' + dictClean[1])();
+/* the hub's `T` is english only too, and its `t(k)` follows it like the
+   main page's */
+const dictTools = srcTools.match(/\nvar T=(\{[\s\S]*?\n\});\nfunction t\(k\)/);
+if (!dictTools) throw new Error('could not find `var T={...}` in tools/index.html');
+const T_TOOLS_EN = new Function('return ' + dictTools[1])();
 
 function checkDict(name, dict, seo) {
   for (const l of LANGS) {
@@ -336,6 +396,7 @@ function checkDict(name, dict, seo) {
 }
 checkDict('T', T, SEO);
 checkDict('CLEAN', CLEAN, SEO_CLEAN);
+checkDict('TOOLS', TOOLS, SEO_TOOLS);
 
 /* the cleaner's english is written in two places, the page and CLEAN.en, and
    they have to be the same object: a key or a word that drifts in one of them
@@ -346,7 +407,15 @@ checkDict('CLEAN', CLEAN, SEO_CLEAN);
   for (const k of keys) {
     if (JSON.stringify(T_CLEAN_EN[k]) !== JSON.stringify(CLEAN.en[k])) bad.push(k);
   }
-  if (bad.length) throw new Error(`clean/index.html T and CLEAN.en disagree about: ${bad.join(', ')}`);
+  if (bad.length) throw new Error(`tools/clean/index.html T and CLEAN.en disagree about: ${bad.join(', ')}`);
+}
+{
+  const bad = [];
+  const keys = new Set([...Object.keys(T_TOOLS_EN), ...Object.keys(TOOLS.en)]);
+  for (const k of keys) {
+    if (JSON.stringify(T_TOOLS_EN[k]) !== JSON.stringify(TOOLS.en[k])) bad.push(k);
+  }
+  if (bad.length) throw new Error(`tools/index.html T and TOOLS.en disagree about: ${bad.join(', ')}`);
 }
 
 /* the same document is served from /, /ru/ and /lv/, so a document-relative url
@@ -367,7 +436,8 @@ function noRelativeUrls(text, label) {
   }
 }
 noRelativeUrls(src, 'index.html');
-noRelativeUrls(srcClean, 'clean/index.html');
+noRelativeUrls(srcClean, 'tools/clean/index.html');
+noRelativeUrls(srcTools, 'tools/index.html');
 
 /* english is written by hand in index.html and by this file for the other two.
    assert they are the same sentence, so changing one without the other stops
@@ -383,7 +453,8 @@ function assertEnglishHead(text, seo, label) {
   }
 }
 assertEnglishHead(src, SEO, 'index.html');
-assertEnglishHead(srcClean, SEO_CLEAN, 'clean/index.html');
+assertEnglishHead(srcClean, SEO_CLEAN, 'tools/clean/index.html');
+assertEnglishHead(srcTools, SEO_TOOLS, 'tools/index.html');
 
 /* ---------- the transforms ---------- */
 
@@ -481,7 +552,7 @@ function buildClean(lang) {
   head = one(head, dictClean[1], JSON.stringify(CLEAN[lang], null, 1), 'clean-dict');
 
   /* --- every keyed string, painted --- */
-  body = paintKeys(body, CLEAN, lang, 6, 'clean/index.html');
+  body = paintKeys(body, CLEAN, lang, 6, 'tools/clean/index.html');
 
   /* --- the link home goes to this language's home --- */
   body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
@@ -496,12 +567,51 @@ function buildClean(lang) {
   return head + body;
 }
 
-/* the sitemap names the same six addresses the canonicals do, off the same
-   constants, so they cannot disagree. */
+function buildTools(lang) {
+  let head = swapHead(srcTools.slice(0, cutTools), lang, SEO_TOOLS, AT_TOOLS);
+  let body = swapSwitch(srcTools.slice(cutTools), lang, AT_TOOLS);
+  const t = (k) => TOOLS[lang][k];
+
+  /* --- the dictionary itself, swapped the way the cleaner's is --- */
+  head = one(head, dictTools[1], JSON.stringify(TOOLS[lang], null, 1), 'tools-dict');
+
+  /* --- every keyed string, painted --- */
+  body = paintKeys(body, TOOLS, lang, 4, 'tools/index.html');
+
+  /* --- the link home goes to this language's home --- */
+  body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
+
+  /* --- the card opens this language's cleaner --- */
+  body = one(body, `<a class="btn" href="${AT_CLEAN.en}" data-k="open">`, `<a class="btn" href="${AT_CLEAN[lang]}" data-k="open">`, 'open-link');
+
+  /* --- the label a screen reader gets before the script has run --- */
+  body = one(body, `<button class="theme" type="button" aria-label="${escAttr(TOOLS.en.th_dark)}">`,
+                   `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
+
+  return head + body;
+}
+
+/* the stub at an old address: a meta refresh to the new one, a canonical
+   that says the new one is the page, and a plain link for anything that
+   follows neither. nothing else, so nothing here can go stale. */
+function buildRedirect(lang) {
+  const to = ORIGIN + AT_CLEAN[lang];
+  return '<!doctype html>\n'
+    + `<html lang="${lang}">\n<head>\n<meta charset="utf-8">\n`
+    + `<meta http-equiv="refresh" content="0; url=${to}">\n`
+    + `<link rel="canonical" href="${to}">\n`
+    + '<meta name="robots" content="noindex">\n'
+    + `<title>the boring tek</title>\n</head>\n<body>\n<p><a href="${to}">${to}</a></p>\n</body>\n</html>\n`;
+}
+
+/* the sitemap names the same nine addresses the canonicals do, off the same
+   constants, so they cannot disagree. the old cleaner addresses are stubs
+   and are not in it. */
 function buildSitemap() {
   return '<?xml version="1.0" encoding="UTF-8"?>\n'
     + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT[l]}</loc>\n  </url>\n`).join('')
+    + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_TOOLS[l]}</loc>\n  </url>\n`).join('')
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_CLEAN[l]}</loc>\n  </url>\n`).join('')
     + '</urlset>\n';
 }
@@ -510,7 +620,9 @@ function buildSitemap() {
 
 const out = [
   ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'index.html'), buildPage(l)]),
-  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'clean', 'index.html'), buildClean(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'index.html'), buildTools(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'clean', 'index.html'), buildClean(l)]),
+  ...LANGS.map((l) => [path.join(ROOT, ...AT_CLEAN_OLD[l].split('/').filter(Boolean), 'index.html'), buildRedirect(l)]),
   [path.join(ROOT, 'sitemap.xml'), buildSitemap()],
 ];
 

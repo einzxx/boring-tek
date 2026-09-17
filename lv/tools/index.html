@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="lv" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bezmaksas rīki | the boring tek</title>
+<meta name="description" content="bezmaksas pārlūka rīki no the boring tek. ūdenszīmju noņemšana no claude, chatgpt un citu mi teksta un failiem. nekas neaiziet no pārlūka.">
+<link rel="canonical" href="https://theboringtek.com/lv/tools/">
+<link rel="alternate" hreflang="en" href="https://theboringtek.com/tools/">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/tools/">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/tools/">
+<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/tools/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theboringtek.com/lv/tools/">
+<meta property="og:locale" content="lv_LV">
+<meta property="og:title" content="bezmaksas rīki | the boring tek">
+<meta property="og:description" content="bezmaksas pārlūka rīki no the boring tek. ūdenszīmju noņemšana no claude, chatgpt un citu mi teksta un failiem. nekas neaiziet no pārlūka.">
+<meta property="og:image" content="https://theboringtek.com/assets/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="the boring tek mascot above the wordmark, on white">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://theboringtek.com/assets/og.png">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap">
+<style>
+@property --ex{syntax:'<number>';inherits:true;initial-value:0}
+@property --ey{syntax:'<number>';inherits:true;initial-value:0}
+@property --blink{syntax:'<number>';inherits:true;initial-value:1}
+@property --wide{syntax:'<number>';inherits:true;initial-value:1}
+
+/* the same token set as the site, verbatim. light is the default, every colour
+   is a token, and the 0.5s cross-fade is one transition rule. */
+:root{
+  --bg:#ffffff;
+  --fg:#0b0d10;
+  --sub:#4b5058;
+  --muted:#767d86;
+  --line:#dfe3e7;
+  --field:#fbfbfc;
+  --pill-on:#eef1f4;
+  --pill-hover:#f5f7f9;
+  --pill-on-hover:#e5eaef;
+  --bub:rgba(11,13,16,.55);
+  --face:#0b0d10;
+  --eye:#ffffff;
+  --accent:#0f8a3c;
+  --accent-soft:rgba(15,138,60,.10);
+  --red:#c62828;
+  --glowon:0;
+  --halo:radial-gradient(circle,
+    rgba(11,13,16,.075) 0%,
+    rgba(11,13,16,.04) 30%,
+    rgba(11,13,16,.018) 52%,
+    rgba(11,13,16,0) 72%);
+  --vig:radial-gradient(140% 120% at 50% 45%,transparent 30%,rgba(11,13,16,.055) 100%);
+  --grain-o:.026;
+
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  --display:"Michroma",var(--mono);
+  --body:"Space Grotesk",var(--mono);
+  --t-micro:clamp(.6875rem,.66rem + .14vw,.75rem);
+  --t-body:clamp(.8125rem,.77rem + .22vw,.9375rem);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:cubic-bezier(.34,1.4,.64,1);
+  --gr:rgba(255,60,60,.85);
+  --gc:rgba(40,215,255,.85);
+}
+html[data-theme=dark]{
+  --bg:#06070a;
+  --fg:#d5dbd8;
+  --sub:#c8c8c8;
+  --muted:#6d7680;
+  --line:#1e242d;
+  --field:#0b0d12;
+  --pill-on:#161c24;
+  --pill-hover:#0f151c;
+  --pill-on-hover:#1e2530;
+  --bub:rgba(213,219,216,.5);
+  --face:#f4f7f5;
+  --eye:#06070a;
+  --accent:#35ff6a;
+  --accent-soft:rgba(53,255,106,.09);
+  --red:#ff5c5c;
+  --glowon:1;
+  --halo:radial-gradient(circle,
+    rgba(53,255,106,.20) 0%,
+    rgba(53,255,106,.11) 30%,
+    rgba(23,163,79,.055) 52%,
+    rgba(23,163,79,0) 72%);
+  --vig:radial-gradient(140% 120% at 50% 45%,transparent 30%,rgba(3,4,6,.74) 100%);
+  --grain-o:.038;
+}
+
+/* space grotesk ships no cyrillic, so the whole russian page drops to the
+   mono stack rather than mixing two faces inside one line. */
+html[lang=ru]{--body:var(--mono)}
+
+*{box-sizing:border-box}
+*,*::before,*::after{
+  transition:background-color .5s ease,border-color .5s ease,color .5s ease,fill .5s ease;
+}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:var(--bg); color:var(--fg);
+  font:400 var(--t-body)/1.65 var(--body);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* depth layers, the site's */
+.vignette,.grain{position:fixed;pointer-events:none}
+.vignette{
+  inset:-10%; z-index:0; background-image:var(--vig);
+  will-change:transform,opacity;
+  animation:breathe 34s cubic-bezier(.45,0,.55,1) infinite alternate;
+  transition:background-image .5s ease;
+}
+@keyframes breathe{
+  from{transform:scale(1) translate3d(0,0,0);opacity:.88}
+  to{transform:scale(1.045) translate3d(0,-1.2%,0);opacity:1}
+}
+.grain{
+  inset:-150px; z-index:1; opacity:var(--grain-o);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  will-change:transform;
+  animation:grainshift 7s steps(1,end) infinite;
+  transition:opacity .5s ease;
+}
+@keyframes grainshift{
+  0%{transform:translate3d(0,0,0)}     14%{transform:translate3d(-3%,-2%,0)}
+  28%{transform:translate3d(2%,-4%,0)} 42%{transform:translate3d(-1%,3%,0)}
+  57%{transform:translate3d(3%,1%,0)}  71%{transform:translate3d(-2%,2%,0)}
+  85%{transform:translate3d(1%,-3%,0)}
+}
+
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+
+/* top bar, the site's: languages and one link left, socials centred on a wide
+   screen, the theme toggle right, over the same scrim. */
+.bar{
+  position:fixed; top:0; left:0; right:0; z-index:5;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:12px 12px 30px;
+  pointer-events:none;
+  background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
+  transition:background-image .5s ease;
+}
+.left,.socials,.theme{pointer-events:auto}
+.left,.langs{display:flex;align-items:center;gap:2px}
+.lang{
+  font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
+  padding:10px 8px;color:var(--muted);opacity:.5;text-decoration:none;
+  transition:opacity .22s ease-out,color .5s ease;
+}
+.lang:hover{opacity:.85}
+.lang[aria-current=true]{color:var(--fg);opacity:1}
+/* the site's fourth slot. there it goes to this page; here it goes home. */
+.more{position:relative;margin-left:4px;padding-left:16px}
+.more::before{
+  content:""; position:absolute; left:0; top:50%; width:1px; height:11px;
+  transform:translateY(-50%); background:var(--line);
+}
+
+/* socials, the site's row: six tabler icons, in the bar above 560px and in the
+   footer under it, never both. */
+.sprite{display:none}
+.socials{display:flex;justify-content:center;gap:6px}
+.bar .socials{display:none}
+.soc{
+  flex:0 0 auto;
+  display:grid;place-items:center;text-decoration:none;
+  width:40px;height:40px;
+  color:var(--muted);opacity:.5;
+  transition:color .5s ease,opacity .22s ease-out,transform .22s ease-out;
+}
+.soc svg{
+  width:22px;height:22px;display:block;
+  fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.soc:hover{color:var(--fg);opacity:1;transform:translateY(-2px)}
+.soc:hover svg{animation:flick .2s steps(1,end)}
+@keyframes flick{
+  0%{filter:none}
+  26%{filter:drop-shadow(-1px 0 var(--gr)) drop-shadow(1px 0 var(--gc))}
+  56%{filter:drop-shadow(1px 0 var(--gr)) drop-shadow(-1px 0 var(--gc))}
+  80%,100%{filter:none}
+}
+.theme{
+  appearance:none;background:none;border:0;cursor:pointer;
+  width:44px;height:44px;padding:0;display:grid;place-items:center;
+  color:var(--muted);
+  transition:color .22s ease-out,transform .34s var(--spring);
+}
+.theme:hover{color:var(--fg);transform:rotate(-18deg)}
+.theme svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.theme .i-sun{display:none}
+html[data-theme=dark] .theme .i-sun{display:block}
+html[data-theme=dark] .theme .i-moon{display:none}
+
+/* content. one column, the zone in the middle of it. */
+.wrap{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center;
+  padding:clamp(84px,10vh,96px) 16px 16px;
+  text-align:center;
+}
+.col{
+  display:flex; flex-direction:column; align-items:stretch; gap:12px;
+  width:100%; max-width:640px;
+}
+.cl{
+  margin:0 0 4px; font-family:var(--mono);
+  font-size:var(--t-micro); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted); font-weight:400;
+}
+.cl::before{content:"// "}
+
+/* ---- the tools hub ----
+   the site's cards, `.cd` from index.html: 1px --line border, 16px radius,
+   --field background, the same padding, the same lift on hover. one card a
+   tool, in a grid that takes a second column at 720px, so there is room for
+   more without touching the layout. */
+.cards{display:grid;gap:12px;width:100%;text-align:left}
+@media (min-width:720px){
+  .cards{grid-template-columns:1fr 1fr}
+}
+.cd{
+  display:flex; flex-direction:column; align-items:flex-start; gap:12px;
+  border:1px solid var(--line); border-radius:16px;
+  background:var(--field);
+  padding:clamp(16px,3.6vw,22px);
+  transition:border-color .24s ease-out,background-color .5s ease,
+             transform .38s var(--ease);
+}
+.cd:hover{border-color:var(--muted);transform:translate3d(0,-3px,0)}
+/* the mascot as the tool's icon: the site's own face, small */
+.ico{display:block;width:40px;height:40px;flex:0 0 auto}
+.ico .m-face{fill:var(--face)}
+.ico .m-eye{fill:var(--eye)}
+.tt{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
+.ct{margin:-4px 0 0;font-size:var(--t-body);color:var(--sub);max-width:52ch}
+/* the site's form button, as a link */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-top:4px; text-decoration:none;
+  cursor:pointer;font:inherit;font-size:var(--t-micro);font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 16px;min-height:36px;
+  border:1px solid var(--line);border-radius:999px;
+  background:transparent;color:var(--fg);
+  transition:background-color .22s ease-out,color .22s ease-out,
+             border-color .5s ease,transform .28s var(--spring);
+}
+.btn:hover{background:var(--fg);color:var(--bg)}
+.btn:active{transform:scale(.97)}
+.foot{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:clamp(24px,5vh,40px) 16px clamp(28px,6vh,44px);
+}
+
+/* the swap, the site's: above 560px the socials sit in the bar, centred on
+   the page, and the head gets 32px more sky; the footer keeps its lines. */
+@media (min-width:560px){
+  .bar .socials{
+    display:flex; position:absolute; top:12px; left:50%;
+    transform:translateX(-50%);
+  }
+  .foot .socials{display:none}
+  .wrap{padding-top:clamp(112px,10vh + 32px,128px)}
+}
+
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation:none!important;
+    transition-property:background-color,border-color,color,fill!important;
+    transition-duration:.5s!important;
+  }
+  .soc:hover{transform:none}
+  .cd:hover{transform:none}
+}
+</style>
+<script>
+(function(){
+"use strict";
+var D=document, R=D.documentElement;
+
+/* ---- bootstrap: the theme lands before first paint, off the same key the
+   site uses, so a visitor who set dark on / gets dark here. ---- */
+var theme='light';
+try{
+  var ts=localStorage.getItem('bt-theme');
+  if(ts==='dark'||ts==='light') theme=ts;
+}catch(e){}
+R.setAttribute('data-theme',theme);
+R.style.colorScheme=theme;
+
+/* ---- copy. every visible string lives here, english. tools/build-langs.mjs
+   holds the same keys in ru and lv, asserts this block against its english,
+   and writes the two other documents with this object swapped. ---- */
+var T={
+ "h1": "bezmaksas rīki",
+ "t_clean": "ūdenszīmju noņemšana",
+ "d_clean": "notīra slēptās mi zīmes no jūsu teksta un failiem",
+ "open": "atvērt",
+ "home": "sākums",
+ "th_dark": "tumšais režīms",
+ "th_light": "gaišais režīms"
+};
+function t(k){ return T[k]; }
+
+function boot(){
+var themeBtn=D.querySelector('.theme');
+var metaColor=D.querySelector('meta[name=theme-color]');
+function setTheme(v){
+  theme=v;
+  R.setAttribute('data-theme',v);
+  R.style.colorScheme=v;
+  metaColor.setAttribute('content', v==='dark' ? '#06070a' : '#ffffff');
+  themeBtn.setAttribute('aria-label', v==='dark' ? t('th_light') : t('th_dark'));
+  try{ localStorage.setItem('bt-theme',v); }catch(e){}
+}
+themeBtn.addEventListener('click',function(){ setTheme(theme==='dark'?'light':'dark'); });
+setTheme(theme);
+/* the build paints these once per document; this is the same paint at runtime,
+   so the page and its script can never disagree about a string. */
+var keyed=D.querySelectorAll('[data-k]'),n;
+for(n=0;n<keyed.length;n++) keyed[n].textContent=t(keyed[n].getAttribute('data-k'));
+}
+
+if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',boot);
+else boot();
+})();
+</script>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></symbol>
+  <symbol id="i-youtube" viewBox="0 0 24 24"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M16.5 7.5v.01"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"/></symbol>
+</defs></svg>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <div class="left">
+    <nav class="langs" aria-label="language">
+      <a class="lang" href="/tools/">EN</a>
+      <a class="lang" href="/ru/tools/">RU</a>
+      <a class="lang" href="/lv/tools/" aria-current="true">LV</a>
+    </nav>
+    <a class="lang more" href="/lv/" data-k="home">sākums</a>
+  </div>
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+  <button class="theme" type="button" aria-label="tumšais režīms">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg>
+  </button>
+</header>
+
+<main class="wrap">
+ <div class="col">
+  <h1 class="cl" data-k="h1">bezmaksas rīki</h1>
+
+  <div class="cards">
+    <article class="cd">
+      <svg class="ico" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
+        <circle class="m-face" cx="32" cy="32" r="30"/>
+        <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
+        <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
+      </svg>
+      <h2 class="tt" data-k="t_clean">ūdenszīmju noņemšana</h2>
+      <p class="ct" data-k="d_clean">notīra slēptās mi zīmes no jūsu teksta un failiem</p>
+      <a class="btn" href="/lv/tools/clean/" data-k="open">atvērt</a>
+    </article>
+  </div>
+ </div>
+</main>
+
+<footer class="foot">
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+</footer>
+</body>
+</html>

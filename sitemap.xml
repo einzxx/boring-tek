@@ -10,12 +10,21 @@
     <loc>https://theboringtek.com/lv/</loc>
   </url>
   <url>
-    <loc>https://theboringtek.com/clean/</loc>
+    <loc>https://theboringtek.com/tools/</loc>
   </url>
   <url>
-    <loc>https://theboringtek.com/ru/clean/</loc>
+    <loc>https://theboringtek.com/ru/tools/</loc>
   </url>
   <url>
-    <loc>https://theboringtek.com/lv/clean/</loc>
+    <loc>https://theboringtek.com/lv/tools/</loc>
+  </url>
+  <url>
+    <loc>https://theboringtek.com/tools/clean/</loc>
+  </url>
+  <url>
+    <loc>https://theboringtek.com/ru/tools/clean/</loc>
+  </url>
+  <url>
+    <loc>https://theboringtek.com/lv/tools/clean/</loc>
   </url>
 </urlset>

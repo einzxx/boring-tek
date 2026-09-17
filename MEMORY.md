@@ -6,6 +6,27 @@ names in here either.
 
 ## Status
 
+- **2026-09-17, later. the cleaner lives at /tools/clean and there is a tools
+  hub at /tools, in en ru lv.** `tools/index.html` is the hub: the site's
+  header, socials, theme toggle and language switch, a `// free tools`
+  heading and one `.cd` card (mascot icon, `watermark remover`, one line, an
+  `open` pill to `/tools/clean/`), room for more in the grid. its strings are
+  the `TOOLS` dictionary in `tools/build-langs.mjs`, asserted against the
+  page's english `T`. `clean/index.html` moved to `tools/clean/index.html`
+  with every address inside it rewritten; the build writes `ru/tools/`,
+  `lv/tools/` (hub and cleaner), **three forwarding stubs at the old
+  addresses** (`clean/`, `ru/clean/`, `lv/clean/`: meta refresh, canonical to
+  the new address, noindex) and a nine address sitemap. the site's header
+  `tools` link goes to `/tools/`. **post30** (the cleaner announcement, in
+  `demo/post30.mjs`) loads the phone's pages from the new paths and ends on
+  `theboringtek.com/tools`; its 12fps preview is rendered, the 60fps final is
+  not. two things learned this session: **the edge tts endpoint refuses any
+  ssml `<break>`** (closes the connection before audio; post30 builds its
+  300ms stops by rendering each sentence as its own take and assembling), and
+  **python's text mode on this machine writes crlf**, which broke the build's
+  `var T=` match once; write with `newline='
+'`.
+
 - **2026-09-17, SESSION SAVE. the cleaner is live at theboringtek.com/clean
   in en, ru and lv** (`/clean/`, `/ru/clean/`, `/lv/clean/`), heading
   `Watermark Remover for Claude, ChatGPT and more`. **final layout as built,
