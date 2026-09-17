@@ -6,6 +6,42 @@ names in here either.
 
 ## Status
 
+- **2026-09-17, SESSION CLOSE. post30 is final and pushed: the cleaner
+  announcement, 21.65s, edge's andrew.** `demo/post30.mjs`, dark only, 60fps,
+  shutter open at six subframes (solved off his spring from the card's
+  corner, 33.4 css px a frame). Out to `demo/out/post30-dark-1080x1920.mp4`.
+  Write up is **The thirtieth clip** in `demo/README.md`. The skills/ working
+  tree changes and the two clap svgs were **left uncommitted, on
+  instruction**, for the fourth session running.
+
+  **What a later session needs and cannot get from the code:**
+  - **The phone is the real cleaner page in three iframes**, driven under
+    virtual time by taking over three things per frame: the page's rAF loop
+    (sixty ticks a second between captures, with a style flush between
+    ticks), every css animation and transition (paused and set to the clip's
+    clock), and `scrollIntoView` (eased by the script). This is the pattern
+    for any clip that shows a real page. Lazy fonts on the page (Michroma,
+    Space Grotesk 500 on the cleaner) must be asked for before the frame is
+    called ready.
+  - **Edge tts refuses ssml `<break>` in every spelling**, closing the
+    connection before audio. A stop of a chosen length is built by rendering
+    each sentence as its own take and assembling with silence; `lib/voice.mjs`
+    is untouched.
+  - **Subtitles under everything cost him his entrances through the frame's
+    edge**: the exit is a shrink in place and the return a spring in place.
+  - **A tall rise on the site's spring is an 86 px first frame**; the rise
+    curve `bezier(.5, 0, .3, 1.3)` keeps the overshoot with a slow start.
+  - **A moving text block under an open shutter shows discrete ghosts**, six
+    subframes give six copies of thin type. Not fixed; a decision for the
+    next clip that slides text.
+  - **The scene clock has two rules now**: the brief's starts floored by the
+    read (post29), except after lines whose scene the brief left long, where
+    the next scene starts a fixed 0.4 or 0.5 after the sound.
+
+  **Open on post30, none of it blocking:** the s3 line under him and its
+  subtitle say nearly the same thing twice; the chat g p t mark's own white
+  tile; the ghosting above.
+
 - **2026-09-17, later. the cleaner lives at /tools/clean and there is a tools
   hub at /tools, in en ru lv.** `tools/index.html` is the hub: the site's
   header, socials, theme toggle and language switch, a `// free tools`

@@ -7478,6 +7478,122 @@ corner at rest and 7 at the crouch; the glow crosses the line. A caption
 arrives empty for up to a tenth of a second when the caret is in its off
 phase on the swap. The glow is the module's own two layers, not pushed.
 
+## The thirtieth clip — the cleaner announcement, and a phone that is the real page
+
+```
+cd demo
+node post30.mjs                 # 1080x1920, 60fps, shutter closed
+DEMO_FPS=12 node post30.mjs     # the fast preview pass
+node post30.mjs --voice         # the read and the clock only, no browser
+node post30.mjs --blur          # 60fps with the shutter open, solved (the final)
+node post30.mjs --keep-frames   # leave the jpegs on disk
+node post30.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post30.mjs`, dark only, **21.65 seconds**,
+60fps, the shutter open at **six subframes, solved** off his spring from the
+card's corner to the middle (33.4 css px a frame, 5.57 between samples). Out
+to `demo/out/post30-dark-1080x1920.mp4`, twenty six stills in
+`demo/out/verify-post30/`. Voice only on the bus, `-15.3 LUFS`, true peak
+`-1.8`; the music goes on outside. Three rounds of notes between the first
+preview and the final, and every one of them is in the file as a guard.
+
+Six scenes on six lines read by edge's Andrew. A chat window card, the house
+dark card with three dots in its header, a three line reply typing in with a
+caret, him small in the card's bottom right corner turned a third toward the
+text; the Claude and ChatGPT marks pop over the card on the words that name
+them. He leans in, a scan line sweeps the reply and eight red dots pop where
+it passes, two of them tagged `zero width` and `soft hyphen`; the card tilts
+and slides into a message bubble with the dots inside and he rides it down.
+The bubble pops out, he springs to the middle at the house size, `delighted`,
+the wordmark, `watermark remover, free`. Then a phone with **the real cleaner
+page on its screen**: a file drops into the zone and the page's own mascot
+follows it with its eyes, the pointer presses the page's own button, the
+page's own scan runs and its own card unfolds with `found 6 hidden
+characters, 1 odd space and 3 curly marks, removed.`, the download button
+lights once. The pointer taps EN, RU, LV and the page under it is the russian
+one, then the latvian one, at the same point in the same run. The phone
+shrinks away, he springs back, the wordmark, `theboringtek.com/tools`. Every
+line is subtitled under whatever is on screen.
+
+### The phone is three iframes, and the page keeps its own script
+
+`/tools/clean/`, `/ru/tools/clean/` and `/lv/tools/clean/` are served straight
+off the repo's files by the script's own server into three iframes at 390 css
+px, scaled onto a 330 by 660 css px phone, all three driven identically and
+one visible at a time. The drop is a synthetic `drop` event carrying a real
+`File` with exactly six hidden characters, one odd space and three curly
+marks in it, every one written as a `\u` escape; the press is `runBtn.click()`;
+the eyes follow synthetic `pointermove`s. The card's line is whatever the
+page's cleaner says about the file, read back off the page and asserted, and
+the russian and latvian pages are asserted to say it in their own words.
+
+Three things are taken over so a render is a function of time, all from an
+`evaluateOnNewDocument` that runs only in frames whose path is a cleaner
+page: the page's rAF loop is driven at sixty ticks a second between captured
+frames whatever the render rate, with a forced style flush between ticks so
+the card's `display:none` to `on` unfold still transitions; every css
+animation and transition in the page is paused the first time
+`document.getAnimations()` sees it and set to the clip's clock on every tick;
+and `Element.prototype.scrollIntoView` is replaced by a scroll the script
+eases itself against a target that moves as the card grows. Michroma and the
+500 weight are lazy on the cleaner, nothing on load uses them, so the frame
+asks for them before it is called ready. The `--run-all-compositor-stages-
+before-draw` flag is on the launch line, post28's rule for anything that
+paints a bitmap.
+
+### The read is edge, and the stops are built, not asked for
+
+Every line at `-5%`. The brief asked for ssml with a 300ms `<break>` at each
+full stop, and **the endpoint refuses any `<break>`**: `time` or `strength`,
+single or double quoted, each closes the connection before a byte of audio,
+and the same line without it reads fine. Measured, three variants, so the
+one line change tried in `lib/voice.mjs` came out again and the lib is
+untouched. Instead every sentence is its own take, cached on its own copy,
+and the line is the sentences laid end to end with exactly 300ms between
+one's last sound and the next's first, words offset with their sentence. A
+guard measures each gap.
+
+The scene starts are the brief's floored by the read, post29's clock, with
+one exception asked for after the first preview: scenes five and six start
+0.40 and 0.50 after the line before them stops, because the brief's own 17
+and 21 left three seconds of air after `done` and again after `browser`.
+
+### The subtitles, and what they moved
+
+Ten cards for six lines, Nunito 600 at 22 css px, white, cut to the read's
+words by index into the take, the screen lines broken by hand, no full stop
+on screen. Two slots: 700 css px under the card, the bubble, the line under
+him and the address, 782 under the phone. Because a subtitle now sits under
+everything, his exit from the middle became a shrink and fade where he
+stands and his return a spring and fade in the middle: a drop through the
+bottom edge or a rise from it would have crossed the slot. The old caption
+under the phone, `nothing leaves your browser`, is gone; the fifth line's
+second card is that line.
+
+### The marks are assets, measured, not drawn
+
+`demo/assets/logo-claude.png` and `logo-chatgpt.png`, gitignored, placed as
+backgrounds at their own ratio with the ink solved to 45 css px tall, post19's
+method: the png header for the size, ffmpeg for the alpha box. Nothing here
+reaches their pixels.
+
+### What the frames found that the numbers could not
+
+The module puts him at z 4 and the card was at z 4 too, so the first render
+had him under the card; the card is z 3 now. The scan on the site's ease
+crossed the whole reply in its first tenth of a second and every dot popped
+at once; it is on a symmetric glide now and the dots spread over a quarter
+second, and a guard says so. His rise from below on the site's spring was an
+86 px first frame; the rise is `bezier(.5, 0, .3, 1.3)`, a slow start with
+the same overshoot, and this clip's step ceiling is 56 rather than 42.
+
+**Open, none of it blocking:** in scene three `watermark remover, free` and
+its subtitle `so we made a remover, free` stack under him for two seconds,
+nearly the same words twice; the ChatGPT mark carries its own white tile; on
+the final the open shutter shows six discrete ghosts on the sliding reply's
+thin type rather than a smooth smear, which is what six subframes do to text.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
