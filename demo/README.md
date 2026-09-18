@@ -197,6 +197,17 @@ All headless Chrome, all tooling. The renderers first:
   his crown in the module's pill, drawn by the file because the module's own
   placement runs an address off the frame. The house fault and the wordmark.
   Out to `demo/out/post29-dark-1080x1920.mp4`. See The twenty ninth clip.
+- **`post31.mjs`** renders a 22.83 second clip, vertical, dark only, **did you
+  know, claude for small business, and the first clip built on `lib/props/`.**
+  Five lines by edge's andrew with post30's 300ms stops. A desk card fills with
+  eight labelled sheets on the spring while he watches from its corner; a
+  bento of five tool names springs in around the claude mark, linked by thin
+  lines, and a number counts to 43; a laptop shows a monday brief whose rows
+  land on the read's words, one of them a bklit line drawing itself; the
+  laptop slides out, the pile collapses to one sheet with a check while he
+  springs to the middle; the wordmark, `we set it up for you`. Every line
+  subtitled under everything. Out to `demo/out/post31-dark-1080x1920.mp4`.
+  See The thirty first clip.
 - **`site-intro.mjs`** renders a 12 second **landscape** clip, 1920x1080,
   **light and then dark**, with the read in the file. It is the first thing in
   this folder that is not a phone and the first that changes theme mid clip: he
@@ -7593,6 +7604,87 @@ its subtitle `so we made a remover, free` stack under him for two seconds,
 nearly the same words twice; the ChatGPT mark carries its own white tile; on
 the final the open shutter shows six discrete ghosts on the sliding reply's
 thin type rather than a smooth smear, which is what six subframes do to text.
+
+## The thirty first clip — claude for small business, and the props
+
+```
+cd demo
+node post31.mjs                 # 1080x1920, 60fps, shutter closed
+DEMO_FPS=12 node post31.mjs     # the fast preview pass
+node post31.mjs --voice         # the read and the clock only, no browser
+node post31.mjs --blur          # 60fps with the shutter open, solved (the final)
+node post31.mjs --keep-frames   # leave the jpegs on disk
+node post31.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post31.mjs`, dark only, **22.83 seconds**,
+60fps, the shutter open at **seven subframes, solved** off the laptop's slide
+out of the frame (40.85 css px a frame, 5.84 between samples). Out to
+`demo/out/post31-dark-1080x1920.mp4`, sixteen stills in
+`demo/out/verify-post31/`. Voice only on the bus, `-15.4 LUFS`, true peak
+`-1.8`; the music goes on outside. One round of notes between the first
+preview and the final, and it was the voice: the first read ran 30.9 seconds,
+the lines were cut, and the clock was rebuilt on the cut.
+
+Five scenes on five lines read by edge's Andrew. A desk card, the house dark
+card, with eight sheets dropping in one by one on the site's spring, `order`,
+`invoice`, `payroll`, `receipt` in mono on each, the pile leaning as it grows,
+a counter in the corner, him small in the card's bottom right corner turned a
+third toward the pile. The pile freezes; the Claude mark pops above the card
+on `claude`, then `shopify`, `stripe`, `xero`, `square` and `zoom` spring in
+around it as plain Michroma names on the field colour, three over two with the
+mark in the middle slot, each on its own word, a thin line drawing from each
+to the mark; a number counts from 0 to 43 in one second on `43`, `ready
+workflows` under it. The card and the bento go, a laptop pops in with a plain
+dark page, `monday brief`, and four rows land on the read's words: `cash`,
+`sales vs last week` with a small line drawing itself, `overdue invoices` with
+a red three, `to do` with three lines; he sits small on the laptop's corner
+and goes `delighted` as the page fills. The laptop slides out to the left, the
+desk card comes back with its pile, the pile collapses to one clean sheet and
+an accent check draws on it while he springs from the corner to the middle at
+the house size and turns to the lens. The card goes; calm, the wordmark, `we
+set it up for you`, `theboringtek.com`, held to the end. Every line is
+subtitled in one slot under the card, the laptop and the address.
+
+### The clock is the read's, and scene four waits for his eyes
+
+The brief's starts (0 / 5 / 11 / 17 / 20) are gone. Scene two is floored at
+4.0 so the pile finishes dropping first, slow first; every other scene starts
+0.30 after the line before it stops sounding, post30's rule, so the film
+carries no air; and scene four has one more floor: the to do row lands on
+`what`, he goes `delighted` as it lands, and `delighted` needs 1.10s whole
+before the turn to the lens 0.10 into scene four, so scene four starts no
+earlier than `what` plus 1.15. On this read that floor adds 0.12s. A guard
+measures the gap between every line's last sound and the next scene and fails
+on anything over the allowed floor. The first read, on the longer lines, ran
+30.9 seconds; the lines were cut by hand and the same clock lands at 22.84.
+
+**Zoom is shown and not said.** The cut line names four tools; the fifth tile
+stays, on the beat 0.45 after `square`, and a guard holds four said and five
+shown, so a future line that names zoom again puts it back on its word with
+no code change.
+
+### The props, and what the clip takes from them
+
+`demo/lib/props/` is new: ports of kokonutui's background paths, beams, ai
+input and hand written title and of bklit ui's bar and line charts into the
+rig's shape, css, markup and script strings, no react, one `apply(t)` each,
+the site's tokens for colour and the site's `--ease` and `--spring` for
+motion, MIT notices kept in the files. `props-test.mjs` shows each once,
+light and dark alternating. This clip takes one of them: the sales row's line
+is `charts.mjs`'s line with `grid: false, labels: false`, the bklit reveal
+clip and the terminal ring on the row's own clock, the first prop in a film.
+
+### What the frames found that the numbers could not
+
+The sheets stacked upward with their labels at the top edge, and each sheet
+covered the label of the one under it: only `receipt` read. The labels moved
+to each sheet's bottom strip and the step opened to 13px so every one peeks
+out. The third to do line ran nine pixels off the laptop's screen; the rows
+moved up and a guard now keeps every row and every to do line inside the
+measured screen. `we set it up for you` sat on the wordmark's last row; it
+moved down with the address, and a guard measures the line against the
+wordmark's painted bottom and the address against the line's.
 
 ## The two voices — a second elevenlabs clone, and why it is a clone
 

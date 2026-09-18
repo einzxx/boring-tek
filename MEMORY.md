@@ -6,6 +6,65 @@ names in here either.
 
 ## Status
 
+- **2026-09-18, SESSION CLOSE. post31 is final and pushed: did you know,
+  claude for small business, 22.83s, edge's andrew.** `demo/post31.mjs`, dark
+  only, 60fps, shutter open at seven subframes (solved off the laptop's slide
+  out, 40.85 css px a frame). Out to `demo/out/post31-dark-1080x1920.mp4`,
+  sixteen stills in `demo/out/verify-post31/`. Write up is **The thirty first
+  clip** in `demo/README.md`. Pushed with it: `demo/lib/props/` (the kokonutui
+  and bklit ports, see the entry below) and `demo/props-test.mjs`. **Left
+  uncommitted, on instruction:** the skills/ working tree changes
+  (`skills/SKILL.md`, `skills/video-review/*`), the two clap svgs, and
+  `skills/bklit-ui/` (installed this session into the same folder, so it
+  stayed with that work rather than riding a clip commit).
+
+  **What a later session needs and cannot get from the code:**
+  - **The first read was 30.9s on the brief's longer lines.** Einz cut the
+    lines by hand (fix round one) and the same clock lands at 22.84: the
+    starts are the read's, scene two floored at 4.0 so the pile finishes,
+    every other scene 0.30 after the line before it, scene four also floored
+    at `what` + 1.15 so his delighted on the to do row is whole before the
+    turn. When a brief's lines are long, say the length after `--voice` and
+    before the first preview.
+  - **Zoom is shown and not said**: the cut line names four tools, the fifth
+    tile follows square by 0.45 and a guard holds four said, five shown.
+  - **The first prop in a film**: the sales row is `lib/props/charts.mjs`'s
+    line with `grid:false, labels:false`, driven by its own `apply(t)` on the
+    row's clock inside the page's `apply`. The pattern for any prop in a
+    clip: include `propsRuntime()` and the prop's script in the page, call
+    `__props.get(id).apply(local)` from the frame writer.
+  - **Three frame findings, all guarded now:** sheets stacked upward hide
+    every label but the top one (labels moved to each sheet's bottom strip,
+    13px step); a row can run off a measured screen by nine px; a line under
+    the wordmark has to be checked against the wordmark's painted bottom, not
+    its top plus a guess.
+
+  **open, next:** post the video; the price list and the pinned tweet for the
+  video work; crypto fun, four characters; the dark poster; part two of the
+  site video; the hand sheet; product one.
+
+- **2026-09-18. props rigged from kokonutui and bklit ui, no clip, nothing
+  committed.** `demo/lib/props/` is new: `tokens.mjs` (the site's two token
+  blocks via `brandTokens()`, the one fonts link, and a page runtime `__bt`
+  with the site's --ease and --spring solved, a seeded prng, and the
+  `__props` registry whose every prop is one `apply(t)`), then
+  `background-paths.mjs`, `beams.mjs`, `ai-input.mjs`, `hand-written.mjs`
+  (all kokonutui, mit; hand written was taken from commit 9ddbfbb, v2 dropped
+  it) and `charts.mjs` (bar and line after bklit ui, mit; d3's natural spline
+  ported in twenty lines). every module is css, markup and script strings,
+  no react, no npm, one ink and one accent, both themes off `data-theme` on
+  <html>. the mit notices are in the files. `demo/props-test.mjs` shows each
+  once, 3s each, light dark alternating, out to
+  `demo/out/props-test-1080x1920.mp4` (18s, 12fps preview rendered). the
+  bklit charts skill is installed at `skills/bklit-ui/` (via `npx skills add`,
+  copied, moved out of `.claude/skills/`; the cli's `skills-lock.json` was
+  removed with it). `skills/SKILL.md` has no section for it yet because that
+  file is in the uncommitted skills work, on instruction. two rig findings:
+  a path or a label inside a `display:none` scene measures 0, so
+  `getTotalLength` and the label width are taken on the first drawn frame;
+  and the beams' y is arithmetic on t with the re roll keyed by wrap count,
+  so a frame is still a pure function of time.
+
 - **2026-09-17, SESSION SAVE. the tools hub is live at /tools/ in en ru lv,
   post30 is final and pushed.** `tools/index.html` carries two cards in the
   site's `.cd` style: **the cleaner** (mascot icon, `watermark remover`, one
