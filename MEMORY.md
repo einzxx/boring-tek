@@ -6,18 +6,36 @@ names in here either.
 
 ## Status
 
-- **2026-09-19, SESSION CLOSE. post32 is final and pushed: i love you, 7.70s,
-  silent.** `demo/post32.mjs`, dark only, 60fps, no voice and no audio track
-  (einz adds the sound outside), the shutter closed on the two peeks and open
-  from the pop at seven subframes solved on the pop (62.3 css px a frame, 8.9
-  between samples). Out to `demo/out/post32-dark-1080x1920.mp4`, eight stills
-  in `demo/out/verify-post32/`. Write up is **The thirty second clip** in
-  `demo/README.md`. Three fix rounds, all on the opening. **Left uncommitted,
-  on instruction, as before:** the skills/ working tree changes
+- **2026-09-19, SESSION CLOSE. post32 is final and pushed with his voice: i
+  love you, 8.63s, three lines on the bus, no music.** `demo/post32.mjs`, dark
+  only, 60fps, the shutter closed on the two peeks and open from the pop at
+  seven subframes solved on the pop (62.3 css px a frame, 8.9 between
+  samples). The voice is three wavs in **`demo/assets/voice/`**, edge's
+  en-US-AnaNeural through a robot chain, made by a one off scratch script
+  that is not in the repo, and `.gitignore` carries a `!demo/assets/voice/`
+  so they ship. Bus at -16 LUFS: post30's solver and ceilings, and on this
+  voice the 5 dB limiter allowance is what stops the lift short of -14. Out
+  to `demo/out/post32-dark-1080x1920.mp4`, eight stills in
+  `demo/out/verify-post32/`. Write up is **The thirty second clip** in
+  `demo/README.md`. Three fix rounds on the opening, then the voice. **Left
+  uncommitted, on instruction, as before:** the skills/ working tree changes
   (`skills/SKILL.md`, `skills/video-review/*`), the two clap svgs and
   `skills/bklit-ui/`.
 
   **What a later session needs and cannot get from the code:**
+  - **The takes were made and picked without ears.** Nobody in the session
+    could listen: the second line's spelling (`it, me, A. I.`) was chosen by
+    measuring the stop after `it` on a 5 ms envelope, and the robot chain
+    was checked by envelope correlation against the clean take (0.93 to
+    0.98). No whisper key is in the environment, so no transcription was
+    possible. Einz has not yet said whether the lines are clear; if a take
+    is re-read, the clip floors the holds on the new file by itself.
+  - **The on screen pill says `it me, ai` and the read says `it, me, A. I.`**
+    on purpose: the spelling is for edge's mouth, the pill is the copy.
+  - **A one off edge voice slot** can be registered at runtime
+    (`VOICES.ana = { id, rate, pitch, whyEdge }` before `speak`) without
+    editing `lib/voice.mjs`; `speak` writes a sidecar json beside an `out`
+    path, delete it if the take is being kept as an asset.
   - **The pink is the clip's own, `#ff6fae`.** The site has no pink token and
     no clip before this used one; the brief said "our pink" and there was
     none. It is one hex at the top of the file, on the hearts and the blush
@@ -45,9 +63,10 @@ names in here either.
     radial gradient in the face svg's own defs, so it goes with every
     transform and stays inside the clip path. The module's markup is not
     edited for it.
-  - The film is 7.7s against a brief of "about six": the two peeks take 2.8
-    where the brief gave 1.1 and Einz slid everything after them rather than
-    cutting. The guard checks six plus the peeks' own length.
+  - The film is 8.63s against a brief of "about six": the two peeks take
+    3.73 with the voice where the brief gave 1.1 and Einz slid everything
+    after them rather than cutting. The guard checks six plus the peeks' own
+    length.
 
   **open, next:** post the video; the price list and the pinned tweet for the
   video work; crypto fun, four characters; the dark poster; part two of the

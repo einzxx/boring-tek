@@ -7698,14 +7698,15 @@ node post32.mjs --keep-frames   # leave the jpegs on disk
 node post32.mjs --encode-only   # re-encode from kept frames
 ```
 
-**Where it stands, final.** `demo/post32.mjs`, dark only, **7.70 seconds**,
-60fps, silent: no voice and nothing on the bus, the file ships with no audio
-track and Einz adds the sound outside. The shutter is closed on the two peeks
-and open from the pop at **seven subframes, solved on the pop** (62.3 css px
-a frame, 8.9 between samples). Out to `demo/out/post32-dark-1080x1920.mp4`,
-eight stills in `demo/out/verify-post32/`. Three rounds of notes between the
-first preview and the final, all on the opening: the flying passes became
-peeks, the peeks got their pills, and the second peek got a longer hold.
+**Where it stands, final.** `demo/post32.mjs`, dark only, **8.63 seconds**,
+60fps, three lines in his own voice on the bus and nothing else, no music:
+that goes on outside. The shutter is closed on the two peeks and open from
+the pop at **seven subframes, solved on the pop** (62.3 css px a frame, 8.9
+between samples). Out to `demo/out/post32-dark-1080x1920.mp4`, eight stills
+in `demo/out/verify-post32/`. Three rounds of notes between the first preview
+and the silent final, all on the opening: the flying passes became peeks, the
+peeks got their pills, and the second peek got a longer hold. Then the voice,
+which floored the second hold again.
 
 Seven beats. He peeks in from the left edge, low, at 1.6 times the house
 size with two thirds of him in frame, stops, eyes toward the middle, a pill
@@ -7762,6 +7763,36 @@ to three frames at sixty plus a two frame residue on the first end card
 frame, ten glitched frames of 462, no flash anywhere, and a guard fails on
 bursts closer than four frames.
 
+### The voice: three takes on disk, each on its pill
+
+`demo/assets/voice/` carries three small wavs, the first files under
+`demo/assets/` besides the gloves that are ours to publish: edge's
+en-US-AnaNeural reading `hey`, `it, me, A. I.` and `i love you` at -10% and
++5Hz, run through a robot chain in ffmpeg (a 6 Hz vibrato, a chorus with 20
+and 30 ms delays, a shallow flanger, a 34 Hz tremolo, a 10 bit crush mixed in
+at 40%, a 120 Hz highpass, a 6 kHz lowpass, a limiter) by a one off script
+that is not in the repo. The takes were made and picked without ears: the
+second line's spelling was chosen by measuring the stop after `it` on a 5 ms
+envelope (`it, me, A. I.` gave 380 ms with the word whole; the full stop
+version gave a 1.2s sentence break and was set aside; a capital `It` did
+nothing for the t), the `i love you` read is slower at -16% and 2.5 dB
+softer for the shy beat, and the robot versions were checked against the
+clean ones by envelope correlation, 0.93 to 0.98, not by listening.
+
+The clip decodes each take at the top, measures its sound edges (the files
+carry a 0.2s lead and about a second of tail) and lands the **first sound on
+the pill's pop**: `hey` at 0.25, `it, me, A. I.` at 1.40, `i love you` at
+4.63. A peek's hold is floored at its line's sounding length plus 0.15, so
+the second hold went from 1.20 to 2.13 and the clock after the peeks slid by
+2.63 in all. The bus is post30's whole: lifted toward -14 LUFS under a -1.8
+sample ceiling with the limiter allowed 5 dB, and on this voice the limiter
+is what stops it, at **-16 LUFS**, 4.93 dB taken; the guard allows three
+under the target and fails on anything over it. Guards walk the rest: every
+take loaded from `demo/assets/voice`, first sound within 5 ms of its pill,
+the peek lines finished before he starts leaving, the love line finished
+before the cut, silence between and around the lines, an audio track in the
+file, true peak under -1.
+
 ### What the rounds changed
 
 The first cut flew him across the frame twice, huge, with a beat on camera
@@ -7772,8 +7803,8 @@ right, gave each stop a pill that pops on the spring and carries his slide
 out on its own transform, and dropped the address from the end card, which
 is the wordmark alone now. Round three lengthened the second hold from 0.8
 to 1.2. The clock after the peeks is the brief's slid by what the peeks
-need over the 1.1 the brief gave them, 1.70 on the final, and the guard
-checks six plus that rather than six.
+need over the 1.1 the brief gave them, 1.70 on the silent final and 2.63
+with the voice, and the guard checks six plus that rather than six.
 
 ## The two voices — a second elevenlabs clone, and why it is a clone
 

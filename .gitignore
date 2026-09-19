@@ -37,6 +37,10 @@ demo/assets/*
 # file. the same paths already ship inside `demo/lib/mascot.mjs`, so keeping the
 # svgs is keeping the source beside what was built from it.
 !demo/assets/hands/
+# and the mascot's own voice takes: our copy, read by an edge voice, filtered
+# by our own ffmpeg chain, small wavs a clip loads at render time. ours to
+# publish the way the gloves are.
+!demo/assets/voice/
 
 # format breakdowns of other people's clips. the notes are ours but the thing
 # they are about is not, and neither is the media they were read from. the

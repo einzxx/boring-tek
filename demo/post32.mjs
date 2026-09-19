@@ -1,7 +1,18 @@
 /* the boring tek — post32. i love you.
 
-   dark only, 1080x1920, six seconds, no voice and nothing on the bus: einz
-   adds the sound outside. the file ships silent, with no audio track at all.
+   dark only, 1080x1920, about eight seconds. three lines in his own voice
+   and nothing else on the bus, no music: einz adds the rest outside.
+
+   **the voice is three takes on disk,** `demo/assets/voice/`, edge's
+   en-US-AnaNeural at -10% and +5Hz run through a small robot chain (a 6 Hz
+   warble, a chorus, a flanger, a 34 Hz tremolo, a tenth of a bitcrush, a
+   120 Hz highpass, a 6 kHz lowpass, a limiter) by a one off script that is
+   not in the repo; the files are what a later render loads. each starts the
+   moment its pill pops: `hey` on the first peek, `it, me, A. I.` on the
+   second, `i love you` on the love pill. a peek's hold is floored so the
+   take has finished sounding before he leaves, and the clock after the peeks
+   slides with the holds. the bus is lifted to post30's target, -14 LUFS,
+   under the same ceilings.
 
      one    0.0 to 1.2   the peek from the left, low: his centre at 60% of
                          the frame's height, 1.6 times the house size, two
@@ -105,6 +116,7 @@ import {
   STAGE, SAFE, HEAD, GRID, GLOW, BUBBLE, EYE_CX,
 } from './lib/mascot.mjs';
 import { brandTokens } from './lib/captions.mjs';
+import { writeWav, applyGain, limit, loudness, decode, SR } from './lib/sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -142,12 +154,45 @@ const CHROME = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 ].find(p => { try { return fs.existsSync(p); } catch { return false; } });
 
+/* ---------- the voice, measured first ----------
+   three takes on disk. each is decoded here so the clock below can floor a
+   peek's hold on how long its line sounds: the files carry a lead in and a
+   tail of silence, so the edges are measured rather than the file length,
+   post31's audioEdges, and the first sound is what lands on the pop. */
+const VOICE_DIR = path.join(HERE, 'assets', 'voice');
+const VOICE_FILES = ['voice-post32-01-hey-robot.wav', 'voice-post32-02-itme-robot.wav', 'voice-post32-03-love-robot.wav'];
+const SILENCE_DB = -42;
+const PRE = 0.06, POST = 0.10, EDGE_FADE = 0.012;
+const AFTER_LINE = 0.15;              /* a peek holds this long past its line's last sound */
+function audioEdges(pcm) {
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i++) peak = Math.max(peak, Math.abs(pcm[i]));
+  const gate = peak * Math.pow(10, SILENCE_DB / 20);
+  const H = Math.round(0.005 * SR), n = Math.floor(pcm.length / H);
+  const loud = k => { let m = 0; for (let j = k * H; j < Math.min((k + 1) * H, pcm.length); j++) m = Math.max(m, Math.abs(pcm[j])); return m > gate; };
+  let a = 0, b = n - 1;
+  while (a < n && !loud(a)) a++;
+  while (b > a && !loud(b)) b--;
+  return { start: +(a * 0.005).toFixed(4), end: +((b + 1) * 0.005).toFixed(4) };
+}
+const TAKES = VOICE_FILES.map((f, i) => {
+  const file = path.join(VOICE_DIR, f);
+  if (!fs.existsSync(file)) throw new Error('no take at ' + path.relative(ROOT, file));
+  const pcm = decode(ffmpeg, file);
+  const edge = audioEdges(pcm);
+  return { i, file, pcm, edge, seconds: +(pcm.length / SR).toFixed(3), sounds: +(edge.end - edge.start).toFixed(3) };
+});
+
 /* ---------- the clock ----------
-   the two peeks are the brief's lengths; everything after them is the
+   the two peeks are the brief's lengths, each hold floored so its line has
+   stopped sounding AFTER_LINE before he leaves; everything after them is the
    brief's clock slid by what the peeks needed over the 1.1 it gave them. */
-const PEEK1 = { at: 0.00, in: 0.25, hold: 0.70, out: 0.25, say: 'hey' };
-const PEEK2 = { at: 1.20, in: 0.20, hold: 1.20, out: 0.20, say: 'it me, ai' };
+const PEEK1 = { at: 0.00, in: 0.25, hold: 0.70, out: 0.25, say: 'hey', brief: { hold: 0.70 } };
+const PEEK2 = { at: 0, in: 0.20, hold: 1.20, out: 0.20, say: 'it me, ai', brief: { hold: 1.20 } };
+PEEK1.hold = +Math.max(PEEK1.hold, TAKES[0].sounds + AFTER_LINE).toFixed(4);
+PEEK2.hold = +Math.max(PEEK2.hold, TAKES[1].sounds + AFTER_LINE).toFixed(4);
 PEEK1.end = +(PEEK1.at + PEEK1.in + PEEK1.hold + PEEK1.out).toFixed(4);
+PEEK2.at = PEEK1.end;
 PEEK2.end = +(PEEK2.at + PEEK2.in + PEEK2.hold + PEEK2.out).toFixed(4);
 const SLID = +(PEEK2.end - 1.10).toFixed(4);
 const CUT = +(5.0 + SLID).toFixed(4);
@@ -237,6 +282,11 @@ const GL = {
 const WM1 = { at: CUT, for: 0.09 };
 
 const CRF = 17;
+/* post30's bus numbers, whole */
+const TARGET_LUFS = -14;
+const SAMPLE_CEILING = -1.8;
+const PEAK_CEILING = -1.0;
+const MAX_REDUCTION = 5.0;
 const STEP_CEIL = 130;               /* css px a frame at 60, on screen, the pop, under the shutter */
 const PEEK_STEP_CEIL = 200;          /* the peeks' slides, sharp */
 
@@ -850,10 +900,11 @@ function blend(N) {
   ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS * SUB), '-i', path.join(SUBS, 's%06d.jpg'),
     '-vf', 'tmix=frames=' + SUB + ',trim=start_frame=' + (SUB - 1) + ',setpts=PTS-STARTPTS,framestep=' + SUB, '-q:v', '2', path.join(FRAMES, 'f%05d.jpg')]);
 }
-function encode() {
+function encode(wav) {
   const out = path.join(OUT, 'post32-dark-1080x1920.mp4');
-  ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', String(CRF), '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', '-movflags', '+faststart', out]);
+  ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'), '-i', wav,
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', String(CRF), '-pix_fmt', 'yuv420p', '-r', String(FPS),
+    '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', out]);
   return out;
 }
 function probe(file) {
@@ -898,6 +949,49 @@ console.log(describeMotion(rep));
 GL_WINDOWS = glitchWindows(FPS);
 GL_WINDOWS_60 = FPS === 60 ? GL_WINDOWS : glitchWindows(60);
 const MODULE_CUES = mascotCues(plan);
+
+/* ---------- the voice on the clip's clock, and nothing else on the bus ----------
+   each take's first sound lands on its pill's pop; the lead in and the tail
+   are cut at the measured edges with a short fade, post31's way. */
+const AT = [PEEK1.bubAt, PEEK2.bubAt, BUB.at];
+const OFF = TAKES.map((t, k) => +(AT[k] - t.edge.start).toFixed(4));
+const SOUND = TAKES.map((t, k) => ({ start: +(t.edge.start + OFF[k]).toFixed(4), end: +(t.edge.end + OFF[k]).toFixed(4) }));
+const VTRACK = new Float32Array(Math.ceil(SECONDS * SR));
+for (let k = 0; k < TAKES.length; k++) {
+  const pcm = TAKES[k].pcm, e = TAKES[k].edge;
+  const a = Math.max(0, Math.round((e.start - PRE) * SR)), b = Math.min(pcm.length, Math.round((e.end + POST) * SR));
+  const at = Math.round(OFF[k] * SR) + a, fade = Math.round(EDGE_FADE * SR);
+  for (let i = a; i < b; i++) {
+    const j = at + (i - a);
+    if (j < 0 || j >= VTRACK.length) continue;
+    let g = 1;
+    if (i - a < fade) g = (i - a) / fade; else if (b - i < fade) g = (b - i) / fade;
+    VTRACK[j] += pcm[i] * g;
+  }
+}
+const WAV = path.join(OUT, 'post32-mix.wav');
+const RAW = path.join(OUT, 'post32-mix-raw.wav');
+fs.mkdirSync(OUT, { recursive: true });
+function pass(lift) {
+  const buf = VTRACK.slice();
+  applyGain(buf, lift);
+  const peak = limit(buf, SAMPLE_CEILING);
+  writeWav(RAW, buf);
+  return { lift: +lift.toFixed(2), buf, peak, lufs: loudness(ffmpeg, RAW).lufs };
+}
+const zero = pass(0);
+const want = zero.lufs == null ? 0 : +(TARGET_LUFS - zero.lufs).toFixed(2);
+let best = zero, tries = 1;
+if (want > 0.05) {
+  let lo = 0, hi = want;
+  const top = pass(want); tries++;
+  if (top.peak.reduction <= MAX_REDUCTION) best = top;
+  else while (hi - lo > 0.20 && tries < 10) { const mid = (lo + hi) / 2, q = pass(mid); tries++; if (q.peak.reduction <= MAX_REDUCTION) { lo = mid; best = q; } else hi = mid; }
+} else if (want < -0.05) { best = pass(want); tries++; }
+writeWav(WAV, best.buf);
+const after = loudness(ffmpeg, WAV);
+const peak = best.peak;
+fs.rmSync(RAW, { force: true });
 
 /* ---------- the fast things, at sixty, on screen ---------- */
 /* on screen: the head's box, grown by the halo, overlaps the stage. headRect
@@ -952,13 +1046,18 @@ console.log('    peek one moves at most ' + peek1Step.d + ' css px a frame, at '
 console.log('    peek two moves at most ' + peek2Step.d + ' css px a frame, at ' + peek2Step.at + 's, sharp');
 console.log('    the pop moves at most ' + popStep.d + ' css px a frame');
 console.log('  the shutter: ' + (BLUR ? SUB + ' subframes' + (BLUR_ARG ? ' because --blur=' + BLUR_ARG + ' said so' : ', solved on the pop') + ', ' + (FASTEST * 60 / FPS / SUB).toFixed(2) + ' css px between samples at ' + FPS + ', closed until ' + POP_IN.at.toFixed(2) : 'closed'));
-console.log('  the sound: none. the file ships without an audio track');
+console.log('\n  the sound');
+for (const [k, t] of TAKES.entries()) console.log('    take ' + (k + 1) + '  ' + path.relative(ROOT, t.file) + '  ' + t.seconds.toFixed(2) + 's on disk, sounds ' + t.sounds.toFixed(2) + 's, on the bus ' + SOUND[k].start.toFixed(2) + ' to ' + SOUND[k].end.toFixed(2) + ', on the pill at ' + AT[k].toFixed(2));
+console.log('    the holds: peek one ' + PEEK1.hold.toFixed(2) + (PEEK1.hold > PEEK1.brief.hold ? ' (the brief said ' + PEEK1.brief.hold.toFixed(2) + ', floored on the take)' : '') + ', peek two ' + PEEK2.hold.toFixed(2) + (PEEK2.hold > PEEK2.brief.hold ? ' (the brief said ' + PEEK2.brief.hold.toFixed(2) + ', floored on the take)' : ''));
+console.log('    the lift: off the voice at ' + (zero.lufs == null ? '?' : zero.lufs) + ' LUFS, took ' + best.lift.toFixed(2) + ' dB in ' + tries + ' pass' + (tries === 1 ? '' : 'es'));
+console.log('    the bus: ' + (after.lufs == null ? '?' : after.lufs) + ' LUFS, peak ' + peak.peak + ' dBFS, limiter took ' + (peak.reduction > 0.01 ? peak.reduction.toFixed(2) + ' dB' : 'nothing') + ', three takes and nothing else, no music');
 
 const state = ONLY_ENCODE ? JSON.parse(fs.readFileSync(path.join(OUT, 'post32.json'), 'utf8')) : await render(plan);
-const file = encode();
+const file = encode(WAV);
 const p = probe(file);
+const lu = loudness(ffmpeg, file);
 console.log('\nrendered');
-console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps  ' + p.seconds.toFixed(2) + 's  ' + (p.audio ? 'WITH SOUND' : 'silent') + '  '
+console.log('  ' + p.w + 'x' + p.h + ' @' + p.fps + 'fps  ' + p.seconds.toFixed(2) + 's  ' + (p.audio ? 'with sound' : 'SILENT') + '  '
   + (fs.statSync(file).size / 1e6).toFixed(2) + ' MB  ' + path.relative(ROOT, file));
 console.log('  the shutter is ' + (BLUR ? 'open, ' + SUB + ' subframes to a frame' : 'closed'));
 console.log('  ' + state.glitched + ' glitched frames of ' + state.frames);
@@ -973,7 +1072,7 @@ console.log('\nchecks');
 if (p.w !== VW * DSF || p.h !== VH * DSF) fail.push('the file is ' + p.w + 'x' + p.h);
 if (Math.abs(p.fps - FPS) > 0.01) fail.push('the file runs at ' + p.fps + 'fps rather than ' + FPS);
 if (Math.abs(p.seconds - SECONDS) > 0.15) fail.push('the file runs ' + p.seconds.toFixed(2) + 's rather than ' + SECONDS);
-if (p.audio) fail.push('the file carries an audio track, and einz adds the sound');
+if (!p.audio) fail.push('the file has no audio track');
 if (state.frames !== Math.round(FPS * SECONDS)) fail.push('rendered ' + state.frames + ' frames');
 if (Math.abs(SECONDS - (6.0 + SLID)) > 1e-6) fail.push('the film is ' + SECONDS + 's, not six plus the peeks\' own ' + SLID);
 
@@ -1082,8 +1181,10 @@ if (Math.abs(SECONDS - (6.0 + SLID)) > 1e-6) fail.push('the film is ' + SECONDS 
     if (bEnd.o > 0 && (P.side < 0 ? M.cssRight + bEnd.x > 0 : M.cssLeft + bEnd.x < VW)) fail.push('peek ' + i + '\'s pill is still on screen at the end of the peek');
   }
   if (!(PEEK2.s <= PEEK1.s)) fail.push('peek two is bigger than peek one');
-  if (Math.abs(PEEK1.in - 0.25) > 1e-6 || Math.abs(PEEK1.hold - 0.70) > 1e-6 || Math.abs(PEEK1.out - 0.25) > 1e-6) fail.push('peek one is not in 0.25, hold 0.7, out 0.25');
-  if (Math.abs(PEEK2.in - 0.20) > 1e-6 || Math.abs(PEEK2.hold - 1.20) > 1e-6 || Math.abs(PEEK2.out - 0.20) > 1e-6) fail.push('peek two is not in 0.2, hold 1.2, out 0.2');
+  if (Math.abs(PEEK1.in - 0.25) > 1e-6 || PEEK1.hold < 0.70 - 1e-6 || Math.abs(PEEK1.out - 0.25) > 1e-6) fail.push('peek one is not in 0.25, hold 0.7 or the take, out 0.25');
+  if (Math.abs(PEEK2.in - 0.20) > 1e-6 || PEEK2.hold < 1.20 - 1e-6 || Math.abs(PEEK2.out - 0.20) > 1e-6) fail.push('peek two is not in 0.2, hold 1.2 or the take, out 0.2');
+  if (Math.abs(PEEK1.hold - Math.max(PEEK1.brief.hold, TAKES[0].sounds + AFTER_LINE)) > 1e-6) fail.push('peek one\'s hold is not the brief\'s or the take\'s');
+  if (Math.abs(PEEK2.hold - Math.max(PEEK2.brief.hold, TAKES[1].sounds + AFTER_LINE)) > 1e-6) fail.push('peek two\'s hold is not the brief\'s or the take\'s');
   if (visible(POP_IN.at)) fail.push('he is still on screen at the start of the pop');
   /* the shutter was closed on every peek frame and open from the pop */
   if (state.sharp !== Math.ceil(POP_IN.at * FPS - 1e-9)) fail.push(state.sharp + ' sharp frames, and the peeks run ' + Math.ceil(POP_IN.at * FPS - 1e-9));
@@ -1157,7 +1258,7 @@ if (Math.abs(SECONDS - (6.0 + SLID)) > 1e-6) fail.push('the film is ' + SECONDS 
   if (runs.length !== 4) fail.push('the glitch is ' + runs.length + ' runs at sixty, not three bursts and a residue');
   for (let i = 1; i < runs.length; i++) if (runs[i].start - runs[i - 1].end - 1 < 4) fail.push('bursts ' + i + ' and ' + (i + 1) + ' are ' + (runs[i].start - runs[i - 1].end - 1) + ' frames apart, which is a strobe');
   if (on.length > 12) fail.push(on.length + ' glitched frames at sixty, over twelve');
-  if (on.length && (on[0] / 60 < GL.bursts[0].t - 1e-6 || on[on.length - 1] / 60 > CUT + 0.05)) fail.push('the glitch runs from ' + (on[0] / 60).toFixed(2) + ' to ' + (on[on.length - 1] / 60).toFixed(2));
+  if (on.length && (on[0] / 60 < GL.bursts[0].t - 1 / 120 || on[on.length - 1] / 60 > CUT + 0.05)) fail.push('the glitch runs from ' + (on[0] / 60).toFixed(2) + ' to ' + (on[on.length - 1] / 60).toFixed(2));
   if (GL.flash !== 0) fail.push('the glitch flashes');
   const g = glitchAt(GL_WINDOWS[1].t0 * FPS);
   if (!(g.split > 0 && g.slices.length === GL.slices && (g.jx !== 0 || g.jy !== 0))) fail.push('the second burst is not a jump with slices and a split');
@@ -1176,6 +1277,34 @@ if (Math.abs(SECONDS - (6.0 + SLID)) > 1e-6) fail.push('the film is ' + SECONDS 
   if ((mine.match(new RegExp(PINK, 'gi')) || []).length !== 1) fail.push('the pink hex appears more than once in the css');
   if (/var\(--accent\)|var\(--red\)/.test(mine)) fail.push('the accent or the red is painted somewhere');
   if (/--iris/.test(mine)) fail.push('the iris is overridden, and his eyes stay the module\'s');
+}
+
+/* ---------- the sound is his three lines, on their pills, and nothing else ---------- */
+{
+  if (lu && lu.ok) {
+    if (lu.truePeak > PEAK_CEILING) fail.push('the true peak is ' + lu.truePeak + ' dBFS, over the ' + PEAK_CEILING + ' ceiling');
+    if (lu.lufs > TARGET_LUFS + 0.5) fail.push('the file measures ' + lu.lufs + ' LUFS, over the ' + TARGET_LUFS + ' target');
+    if (lu.lufs < TARGET_LUFS - 3) fail.push('the file measures ' + lu.lufs + ' LUFS, well under the ' + TARGET_LUFS + ' target');
+  } else fail.push('ebur128 said nothing about the finished file');
+  if (peak.reduction > MAX_REDUCTION + 1e-6) fail.push('the limiter took ' + peak.reduction.toFixed(2) + ' dB, over the ' + MAX_REDUCTION + ' dB this clip allows');
+  for (const [k, t] of TAKES.entries()) {
+    if (!t.file.startsWith(VOICE_DIR)) fail.push('take ' + (k + 1) + ' is not loaded from demo/assets/voice');
+    if (Math.abs(SOUND[k].start - AT[k]) > 0.005) fail.push('take ' + (k + 1) + ' starts sounding at ' + SOUND[k].start + ', not on its pill at ' + AT[k]);
+    if (t.sounds < 0.3) fail.push('take ' + (k + 1) + ' sounds for ' + t.sounds + 's, which is not a line');
+  }
+  /* the peek lines finish before he leaves; the love line before the cut */
+  if (SOUND[0].end > PEEK1.at + PEEK1.in + PEEK1.hold - AFTER_LINE + 1e-3) fail.push('hey is still sounding at ' + SOUND[0].end + ' when he starts leaving at ' + (PEEK1.at + PEEK1.in + PEEK1.hold).toFixed(2));
+  if (SOUND[1].end > PEEK2.at + PEEK2.in + PEEK2.hold - AFTER_LINE + 1e-3) fail.push('it me is still sounding at ' + SOUND[1].end + ' when he starts leaving at ' + (PEEK2.at + PEEK2.in + PEEK2.hold).toFixed(2));
+  if (SOUND[2].end > CUT - 0.10) fail.push('i love you is still sounding at ' + SOUND[2].end + ', into the cut at ' + CUT);
+  for (let k = 0; k + 1 < TAKES.length; k++) {
+    if (SOUND[k].end > SOUND[k + 1].start) fail.push('takes ' + (k + 1) + ' and ' + (k + 2) + ' overlap');
+    const a = Math.round((SOUND[k].end + POST + 0.02) * SR), b = Math.round((SOUND[k + 1].start - PRE - 0.02) * SR);
+    let m = 0; for (let j = a; j < b; j++) m = Math.max(m, Math.abs(best.buf[j]));
+    if (m > 1e-4) fail.push('something sounds between takes ' + (k + 1) + ' and ' + (k + 2));
+  }
+  { let m = 0; for (let j = 0; j < Math.round((SOUND[0].start - PRE - 0.02) * SR); j++) m = Math.max(m, Math.abs(best.buf[j])); if (m > 1e-4) fail.push('something sounds before the first line'); }
+  { let m = 0; for (let j = Math.round((SOUND[2].end + POST + 0.02) * SR); j < best.buf.length; j++) m = Math.max(m, Math.abs(best.buf[j])); if (m > 1e-4) fail.push('something sounds after the last line'); }
+  if (MODULE_CUES.length) fail.push('the module offers cues, and nothing here plays them');
 }
 
 /* ---------- the module's own report ---------- */
@@ -1205,7 +1334,7 @@ if (!BLUR) fail.push('the shutter is closed, and the pop wants the blur');
 console.log('\n  outstanding');
 console.log('    the pink is this clip\'s own, ' + PINK + ': the site has no pink token');
 console.log('    the glow is the module\'s two layers held at the house css px at every size, see the header');
-console.log('    the film is silent by design; einz adds the sound');
+console.log('    the bus is his three lines and nothing else; the music goes on outside');
 
 if (fail.length) { console.error(['', 'FAILED', ...fail].join('\n  ')); process.exit(1); }
 console.log('\nall checks passed.');
