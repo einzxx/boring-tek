@@ -7686,6 +7686,95 @@ measured screen. `we set it up for you` sat on the wordmark's last row; it
 moved down with the address, and a guard measures the line against the
 wordmark's painted bottom and the address against the line's.
 
+## The thirty second clip — i love you
+
+```
+cd demo
+node post32.mjs                 # 1080x1920, 60fps, shutter open on the pop, solved (the final)
+DEMO_FPS=12 node post32.mjs     # the fast preview pass
+node post32.mjs --no-blur       # shutter closed
+node post32.mjs --blur=N        # N subframes rather than the solved count
+node post32.mjs --keep-frames   # leave the jpegs on disk
+node post32.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post32.mjs`, dark only, **7.70 seconds**,
+60fps, silent: no voice and nothing on the bus, the file ships with no audio
+track and Einz adds the sound outside. The shutter is closed on the two peeks
+and open from the pop at **seven subframes, solved on the pop** (62.3 css px
+a frame, 8.9 between samples). Out to `demo/out/post32-dark-1080x1920.mp4`,
+eight stills in `demo/out/verify-post32/`. Three rounds of notes between the
+first preview and the final, all on the opening: the flying passes became
+peeks, the peeks got their pills, and the second peek got a longer hold.
+
+Seven beats. He peeks in from the left edge, low, at 1.6 times the house
+size with two thirds of him in frame, stops, eyes toward the middle, a pill
+pops beside him, `hey`, and he slides back out with it. The same from the
+right edge, high, a touch smaller, `it me, ai`, a longer stop. He pops up
+from the bottom to the middle of the frame at the house size on post30's
+rise, overshoot and settle, eyes to `delighted`'s arcs. A pill springs from
+his upper right, `i love you`; a beat later he goes shy: the arcs squint
+further, the head tilts nine degrees and drops six px, two soft pink blush
+spots come up on the cheeks, a small wobble that never stops. Ten hearts
+rise off his rim, pink, ten sizes, swaying, fading. Three short glitch
+bursts, then the cut: the wordmark alone on the middle of the frame, held.
+
+### The peeks, and why the shutter is closed on them
+
+A peek is three eased moves on one number: in on the site's `--ease` to a
+stop, the hold, out on the same ease run backwards, so he leaves slowly and
+is gone fast, the mirror of how he came. The first cut had him fly across the
+frame at a head and a half the screen's width with the shutter open, and the
+tmix of a slide that fast on a shape that big came back as a ring of discrete
+copies rather than a smear, which reads as flashing. So the peek frames are
+one sample each, written `SUB` times into the subframe sequence, and the blend
+stays one ffmpeg tmix; a guard counts the sharp frames against the peeks'
+length. The eyes toward the middle are the module's own near eye travel at
+two thirds of a turn, 6.3 grid units, written on both eyes.
+
+### The glow at every size
+
+The module's two blur copies live inside the card and scale with it, which
+nobody noticed at 0.42 to 1 and which at 5.8, the first cut's size, was a fog
+across the frame. The page writes his scale to `--m-s` every frame and the
+clip's css divides both radii by it: the same halo, the same proportion, at
+every size. It stayed after the peeks came down to 1.6.
+
+### The pink, the blush, the hearts
+
+The site has no pink token and no clip before this one used a pink, so it is
+one hex at the top of the file, `#ff6fae`, painted on the hearts and the
+blush and nowhere else, and a guard counts the places. The blush is two
+circles the page adds inside the face svg's clipped `.m-features` group with
+a radial gradient, so they tilt, turn and squash with him; the module's
+markup is untouched. The hearts are one path, seeded births off the upper
+half of his rim, each on its own clock, every one inside both margins for
+its whole life.
+
+### The glitch is the frame, cut up
+
+On a glitch frame the clean frame is captured first, handed back to the page
+as a data url, split into its three channels with `feColorMatrix` and screen
+blended back over the page colour with the red and the blue slid apart, three
+torn slices of the plain frame over that, the whole layer jumped. So a glitch
+frame is still a pure function of time, captured twice. Three bursts of two
+to three frames at sixty plus a two frame residue on the first end card
+frame, ten glitched frames of 462, no flash anywhere, and a guard fails on
+bursts closer than four frames.
+
+### What the rounds changed
+
+The first cut flew him across the frame twice, huge, with a beat on camera
+mid pass. Round one made them peeks: a third of his face in from the edge, a
+short stop, eyes toward the middle, sharp. Round two brought him down to 1.6
+and 1.55 of the house size with two thirds in frame, low left then high
+right, gave each stop a pill that pops on the spring and carries his slide
+out on its own transform, and dropped the address from the end card, which
+is the wordmark alone now. Round three lengthened the second hold from 0.8
+to 1.2. The clock after the peeks is the brief's slid by what the peeks
+need over the 1.1 the brief gave them, 1.70 on the final, and the guard
+checks six plus that rather than six.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

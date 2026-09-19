@@ -6,6 +6,53 @@ names in here either.
 
 ## Status
 
+- **2026-09-19, SESSION CLOSE. post32 is final and pushed: i love you, 7.70s,
+  silent.** `demo/post32.mjs`, dark only, 60fps, no voice and no audio track
+  (einz adds the sound outside), the shutter closed on the two peeks and open
+  from the pop at seven subframes solved on the pop (62.3 css px a frame, 8.9
+  between samples). Out to `demo/out/post32-dark-1080x1920.mp4`, eight stills
+  in `demo/out/verify-post32/`. Write up is **The thirty second clip** in
+  `demo/README.md`. Three fix rounds, all on the opening. **Left uncommitted,
+  on instruction, as before:** the skills/ working tree changes
+  (`skills/SKILL.md`, `skills/video-review/*`), the two clap svgs and
+  `skills/bklit-ui/`.
+
+  **What a later session needs and cannot get from the code:**
+  - **The pink is the clip's own, `#ff6fae`.** The site has no pink token and
+    no clip before this used one; the brief said "our pink" and there was
+    none. It is one hex at the top of the file, on the hearts and the blush
+    only, and a guard counts. Einz has not said whether it is the pink; if a
+    later clip needs one, ask before reusing it.
+  - **A shutter trail on a big sharp slide reads as flashing.** The first
+    cut's flying passes at 1.5 times the screen's width came back from tmix
+    as a ring of discrete copies. Peeks are sharp by design now: one sample a
+    frame written `SUB` times, so the blend stays one tmix. Reuse the pattern
+    for any short eased move on a big shape.
+  - **The module's glow scales with the card.** At 5.8 it was a fog across
+    the frame. The clip writes his scale to `--m-s` and divides the two blur
+    radii by it in its own css; the module is untouched. Any clip that scales
+    him past about 2 wants the same two lines.
+  - **The module's first blink is at 0.74 on every seed.** Post30's held lid
+    (lid 0 written over the idle in `compose`) is the way round it when a
+    beat needs the eyes open there; this clip ended up not needing it once
+    the peeks' holds got long enough for a blink to read as watching.
+  - **The glitch as a captured frame cut up** (channel split with
+    feColorMatrix, screen blended, torn slices, a jump) works with virtual
+    time: the clean capture goes back to the page as a data url and
+    `img.decode()` resolves inside `page.evaluate`. It is a two capture
+    frame and it is still a pure function of time.
+  - **The blush is two circles the page adds inside `.m-features`** with a
+    radial gradient in the face svg's own defs, so it goes with every
+    transform and stays inside the clip path. The module's markup is not
+    edited for it.
+  - The film is 7.7s against a brief of "about six": the two peeks take 2.8
+    where the brief gave 1.1 and Einz slid everything after them rather than
+    cutting. The guard checks six plus the peeks' own length.
+
+  **open, next:** post the video; the price list and the pinned tweet for the
+  video work; crypto fun, four characters; the dark poster; part two of the
+  site video; the hand sheet; product one.
+
 - **2026-09-18, SESSION CLOSE. post31 is final and pushed: did you know,
   claude for small business, 22.83s, edge's andrew.** `demo/post31.mjs`, dark
   only, 60fps, shutter open at seven subframes (solved off the laptop's slide
