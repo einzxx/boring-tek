@@ -7806,6 +7806,107 @@ to 1.2. The clock after the peeks is the brief's slid by what the peeks
 need over the 1.1 the brief gave them, 1.70 on the silent final and 2.63
 with the voice, and the guard checks six plus that rather than six.
 
+## The thirty fourth clip — what is this sound
+
+```
+cd demo
+node post34.mjs                 # 1080x1920, 60fps, the sound on the bus (the final)
+DEMO_FPS=12 node post34.mjs     # the fast preview pass
+node post34.mjs --blur=N        # N subframes, the shutter open
+node post34.mjs --keep-frames   # leave the jpegs on disk
+node post34.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post34.mjs`, dark only, **10.05 seconds**,
+60fps, the shutter closed, one sound on the bus, `demo/assets/sfx/wall.mp3`,
+and nothing else: einz adds the music after the headphones land. Out to
+`demo/out/post34-dark-1080x1920.mp4`, eight stills in
+`demo/out/verify-post34/`. Nine rounds of notes between the first preview and
+the final, almost all of them on the right third of the frame: what the
+neighbours are.
+
+Eight beats. Night. A wall on the right third, a band in the card colour with
+a line edge each side and a faint brick pattern; behind it a computer table
+from the side with a monitor on it and the neighbour face down on the table,
+an image, arm out along the top toward the monitor, head and hair hanging
+past the table's end and cut by the frame's right edge; `neighbours` in mono
+above, all of it dim. On the left, him facing us behind a laptop seen from
+its back, one rounded lid with a tiny ring for a mark and a thin base strip,
+the screen's light a soft green haze from behind the lid onto the lower half
+of his face, flickering with the keys. At 1.0 the sound starts and the table
+comes up: on every squeak the table, the monitor and the neighbour shake, the
+monitor wobbles on its foot, the neighbour's head hops a touch more than the
+arm, the wall shakes with it and four grains of dust fall from the top of the
+band. On the third squeak he stops typing, the eyes go to the wall, one blink.
+A third in, his pill springs off his right side, `what is` / `this sound`,
+stays 1.5, pops away. Half way he leans twenty px toward the wall, the shakes
+grow with the beat, his glow pulses on it. On the beat nearest 5.5 he
+freezes, eyes to the camera. Headphones drop onto his head on the spring and
+**the sound stops the moment they land**, at 6.54, on a 60ms fade; the table
+goes dim. A thought bubble with three dots climbs off his upper right rim,
+`someone is shipping tonight`; he turns back to the laptop and types again.
+The wall, the table and the neighbour keep shaking, unheard, to the cut.
+Three glitch bursts, then the wordmark alone on the middle of the frame.
+
+### The clock is the file's
+
+Every beat time is read off the mp3. The squeaks are detected as onsets on a
+5ms rms envelope, a climb of ten decibels over the forty milliseconds before,
+one per squeak, at least 120ms apart: thirty one in 6.9 seconds, 0.17 to
+0.29 apart, mean 0.224. The third beat, the third, the half, the freeze and
+everything after are placed from that list, and the shakes, the dust and the
+hop ride it. After the headphones the file still has six squeaks in it; those
+go on unheard, and after the file's last beat the ring goes on at the mean
+gap, five more to the cut. Change the file and the clip re-times itself.
+A file over seven seconds would be read to six with a short fade.
+
+### The shake is one ring at three amplitudes
+
+A decaying sine on every beat, 14 Hz with a 90ms time constant, normalised so
+its first peak is the amplitude exactly: 6 px on the wall growing to 10 by
+the file's last beat, 10 to 16 on the table and the neighbour. The table's
+svg box starts on the wall's far edge and clips there, moves with the wall's
+own shake, and carries the table's ring inside as the difference, so the wall
+is always the edge of the table and the neighbour is cut by the wall on one
+side and by the frame on the other and by nothing else. The neighbour is the
+png inlined as a data url twice under two clip rects, the arm and the head,
+so the head can hop deeper.
+
+### What is his and what is the room's
+
+His glow pulses on the beats he hears, from the half to the landing, and on
+none after. The dim on the table means inaudible on both ends: forty five
+percent until the sound, full while it plays, back to forty five as the
+headphones land. The freeze is a real one, the module's frame at the beat
+held, with the eyes coming to the camera the only thing moving on him. The
+one blink after the look is the clip's own on the module's lid curves,
+because the module never blinks within two seconds of its first and the
+third squeak is inside that; the seed keeps the module's blinks clear of it,
+the freeze and the drop.
+
+### The margins, and the one exception
+
+Everything is measured against the brief's 120 device px and the house safe
+area: the wall, the label, the laptop, both pills, the headphones on his
+head, the wordmark. The table and the neighbour are the named exception,
+asked for: the head and the shoulder bleed off the right edge, and the guard
+exempts them and instead asserts the box reaches past the frame so nothing
+but the frame cuts the picture. The green on his face is `--accent-soft`,
+used once, the one place the accent touches him: a white light on a white
+plate is nothing.
+
+### What it took nine rounds to settle
+
+The desk card became a three quarter laptop with the traced gloves typing on
+it, then a laptop from behind with no hands and the typing moved into the
+light. The bed's foot end, blanket and four toes-up feet became a table with
+gloves gripping its edge, then a table 2.5 times the size for an image of the
+neighbour that turned out to be a whole person rather than two hands, which
+was raised before it went in and then asked for as it is. The wall grew from
+a line to a band, briefly wore a picture frame and a light switch, and lost
+them. The end card is counted on the page: a census of every scene piece's
+effective opacity, all zero, the wordmark one.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

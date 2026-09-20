@@ -6,6 +6,60 @@ names in here either.
 
 ## Status
 
+- **2026-09-20, SESSION CLOSE. post34 is final and pushed: what is this
+  sound, 10.05s, one sound on the bus, the wall squeak, no music.**
+  `demo/post34.mjs`, dark only, 60fps, the shutter closed. Out to
+  `demo/out/post34-dark-1080x1920.mp4`, eight stills in
+  `demo/out/verify-post34/`. Write up is **The thirty fourth clip** in
+  `demo/README.md`. Nine fix rounds, nearly all on the right third of the
+  frame. Pushed with it: `demo/assets/sfx/wall.mp3` and
+  `demo/assets/hands-grip.png`, both einz's, un-ignored in `.gitignore` the
+  way the voice folder is. **Left uncommitted, on instruction, as before:**
+  the skills/ working tree changes (`skills/SKILL.md`, `skills/video-review/*`),
+  the two clap svgs and `skills/bklit-ui/`. **Also still uncommitted, not
+  asked about: `demo/post33.mjs`**, the how are you clip, whole and passing
+  but never committed by its own session; its output and stills are in
+  `demo/out/`. Ask before the next push whether it goes up.
+
+  **What a later session needs and cannot get from the code:**
+  - **The clip's clock is read off the mp3.** Beats are onsets on a 5ms rms
+    envelope, a ten decibel climb over the forty ms before, 120ms apart at
+    least; thirty one in 6.9s. Everything from the third squeak on is placed
+    off that list, so a new file re-times the clip. The sound is cut the
+    moment the headphones land (about 6.5, the beat nearest 5.5 plus the
+    freeze plus the drop) on a 60ms fade; the file's last 1.37s go unheard
+    and still drive the shake, then the ring continues at the mean gap to
+    the cut. His glow pulses on heard beats only; the table's dim means
+    inaudible on both ends.
+  - **The neighbours went through five shapes** before this one: a bed's
+    foot end with feet, a table gripped by the traced gloves, a bigger table
+    for an image of hands that turned out to be a person. Einz asked for the
+    png as it is. The png is a person face down on a table with the head and
+    shoulder off the right edge: **the one deliberate margin break in the
+    house**, guarded as such, and the one place a body is on screen in a
+    clip. Do not reuse either without asking.
+  - **`--accent-soft` is on his face** as the screen's light, once. The
+    house has no other clip with the green on him. A white light on the
+    white plate is invisible, and einz took the green.
+  - **The module cannot blink within two seconds of its first blink** at
+    0.74 on every seed, so a beat that wants a blink before 2.7 has to write
+    the lid itself. post34 composes one on the module's own lid curves
+    (`btk.shut` and `btk.open` as beziers) and its middle blink numbers, and
+    the lid guard allows the clip's lid over the module's in that window.
+  - **The end card is counted, not assumed.** Two dim leftovers slipped past
+    the scene fade because inline opacities override a class rule. The page
+    now has a `census()` that multiplies every ancestor's opacity for every
+    scene piece and the guard wants zeros. Copy it into any clip with a cut.
+  - **Ids that spell hex fail the colour guard**: `#bed-...`, `#feet-...`,
+    `#face...`. Name svg groups with a letter past f.
+  - **wall.mp3's licence is einz's to hold.** It ships because he said so;
+    the `.gitignore` note says whose it is. If that was wrong, the two
+    negation lines come out and the file stays on this machine.
+
+  **open, next:** post the video; the price list and the pinned tweet for the
+  video work; crypto fun, four characters; the dark poster; part two of the
+  site video; the hand sheet; product one; post33's commit.
+
 - **2026-09-19, SESSION CLOSE. post32 is final and pushed with his voice: i
   love you, 8.63s, three lines on the bus, no music.** `demo/post32.mjs`, dark
   only, 60fps, the shutter closed on the two peeks and open from the pop at
