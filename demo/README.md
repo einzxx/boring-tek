@@ -7907,6 +7907,116 @@ a line to a band, briefly wore a picture frame and a light switch, and lost
 them. The end card is counted on the page: a census of every scene piece's
 effective opacity, all zero, the wordmark one.
 
+## The thirty fifth clip — ai agrees to slow down
+
+```
+cd demo
+node post35.mjs --blur          # 1080x1920, 60fps, the shutter open, solved (the final)
+DEMO_FPS=12 node post35.mjs     # the fast preview pass
+node post35.mjs --voice         # the read and the clock only, no browser
+node post35.mjs --keep-frames   # leave the jpegs on disk
+node post35.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post35.mjs`, dark only, **23.07 seconds**,
+60fps, the shutter open at seven subframes (solved off his move from under the
+news card to under the row, 43.65 css px a frame), five lines read by
+edge's andrew at minus five per cent with a 300ms stop at every full stop,
+post31's take() whole, and nothing else on the bus. Out to
+`demo/out/post35-dark-1080x1920.mp4`, five stills in `demo/out/verify-post35/`.
+One fix round between the first preview and the final, on scene one and on
+what a card may hold.
+
+Five scenes, slow first then faster, every line subtitled under everything in
+nunito, post31's slot at 660. **One**, 0 to 3: a news card in the house card
+style, upper middle, text only: `this week in ai` in mono, then
+`three ai leaders` / `agree to slow down` typed in line by line in michroma at
+eighteen characters a second under a bar cursor that is solid while it types
+and blinks on a one second clock after. He sits below it at the house size,
+calm, eyes up at the card, one blink 0.16 after the last character. The card
+holds until two, then slides up forty px and out. **Two**, 3 to 10.6: he moves
+under the row, shrinking to 0.42 on the way. Three tiles spring in on their
+names, `anthropic`, `open`, `x`: the claude mark, the chatgpt mark and the x
+mark, each a png placed as a background with its ink solved to 42 css px, a
+text tile in michroma if its file is missing. A thin bus line draws under the
+row from the first tile to the last with a stub down from each, starting while
+the last tile is still landing so it is joined before `agreed`, when one check
+springs above the row in its own circle. He goes happy. On the second
+sentence, on `most`, a card the row's width comes in under the bus with a
+speed line inside it, short dashes racing left to right; on `slower` they
+slow and space out over 1.2 seconds into a calm even rhythm, and he goes calm
+with them. **Three**, 10.6 to 14.8: the calm rhythm holds; he nods once on
+`pacing`. **Four**, 14.8 to 19.2: the row, the check, the bus and the speed
+card fade; a card comes in with three pills, `build`, `test`, `build`, each
+lighting on its word (the second `build` on the second `build`), then a small
+loop arrow draws under them from the last back to the first. **Five**: the
+pill card leaves in a quarter second, he springs from under it to the middle
+at the house size, the wordmark pops under him, `theboringtek.com` small under
+that, held to the end.
+
+### The word it turns on is in the line before
+
+The brief put the speed line in three and had it slow "as the voice says
+slower", and `slower` is the last word of two. The picture follows the word:
+the dashes race in on two's second sentence and slow on it, and three is the
+calm rhythm with the nod. The clip's `outstanding` block says so on every run.
+
+### The dashes are a set, anchored at the centre
+
+x = w/2 + (phase mod period) + k · period, for k across the track. The phase
+is the integral of the speed, closed form while the speed is constant and
+summed at a millisecond across the change, so no dash ever jumps when the
+word lands. Anchoring at the centre rather than the left end halves the extra
+travel the far dashes pick up as the period grows from 34 to 62, and the mix
+runs on an in-and-out curve for the same reason: the first cut anchored at
+the left end on the site's --ease and a far dash moved 24 css px on one frame.
+A guard walks every frame at sixty and fails on any dash more than 0.45 of
+the fast period from where a dash was on the frame before.
+
+### A card holds text or props, never him
+
+Three cards, one style, `--field` on `--bg` with a `--line` border: the news
+card, the speed card and the pill card. He sits below every one of them. The
+guard walks his head against each card's box on every frame the card is up,
+the news card's box moving with its slide, and fails under four css px. Passing
+it is why the pill card leaves in 0.25 rather than 0.35 and the spring home
+waits for it: the first cut had him crossing the fading card on the way up.
+
+### The look up is on the eyes, the blink is the module's
+
+The look up at the card is one offset on both eyes, 4.2 grid units, composed
+onto the module's frame the way the moves are composed onto his zone; it eases
+in over the first half second and out over the move to two, and a guard runs
+the module's own silhouette distance over the composed eyes so the ink never
+leaves the head. The blink on the finished headline is not injected: the seed
+is searched until one of the module's own blinks starts within 0.20 of the
+last character, with nothing blinking in the 0.7 before, nothing on the two
+landings and nothing on the nod. The typing rate is eighteen a second because
+the module's first blink is 0.6 to 1.2 and the next 2.0 to 3.3 later, so a
+headline finishing at 2.0 could never be blinked on; it finishes at 2.54, the
+blink is at 2.70, seed 1976.
+
+### The nod is one dip
+
+The module's `agreeing` is two nods. The brief says once, so the nod is a
+2.5 px lift, a 6.5 px dip on the spring and a slow return, composed onto his
+zone, and a guard counts the dips and fails on any number but one.
+
+### The marks, and which ship
+
+Three pngs in `demo/assets/`, each read for its alpha bounding box so the ink
+is 42 css px tall centred in its tile. `logo-xai.png` ships, un-ignored in
+`.gitignore` on instruction; the claude and chatgpt marks stay ignored as
+they were for post31, so on a fresh clone those two tiles are their names in
+michroma and the third is the mark. A guard ties mark to file both ways.
+
+### The length
+
+The read is 23.07 seconds against a brief that said about twenty: line two
+alone is 7.2 seconds of sound, every scene after the first starts 0.30 after
+the line before it, and the only air is the scene one floor at 3.0 so the
+first beat is slow. Raised at the first preview, kept.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

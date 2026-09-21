@@ -47,6 +47,10 @@ demo/assets/*
 # file has to be beside the script that reads it.
 !demo/assets/sfx/
 !demo/assets/hands-grip.png
+# and the x ai mark post35's third tile carries, asked to ship with the clip
+# (2026-09-21) so the tile is the mark on a fresh clone rather than its text
+# fallback. the claude and chatgpt marks beside it stay ignored as before.
+!demo/assets/logo-xai.png
 
 # format breakdowns of other people's clips. the notes are ours but the thing
 # they are about is not, and neither is the media they were read from. the

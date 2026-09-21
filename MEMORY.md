@@ -6,6 +6,56 @@ names in here either.
 
 ## Status
 
+- **2026-09-21, SESSION CLOSE. post35 is final and pushed: ai agrees to
+  slow down, 23.07s, edge's andrew, voice only on the bus.**
+  `demo/post35.mjs`, dark only, 60fps, the shutter open at seven subframes
+  (solved off his move from under the news card to under the row,
+  43.65 css px a frame). Out to `demo/out/post35-dark-1080x1920.mp4`,
+  five stills in `demo/out/verify-post35/`. Write up is **The thirty fifth
+  clip** in `demo/README.md`. Pushed with it: `demo/assets/logo-xai.png`,
+  un-ignored in `.gitignore` on instruction the way the sfx and the grip
+  are; the claude and chatgpt marks beside it stay ignored. **Left
+  uncommitted, on instruction, as before:** the skills/ working tree
+  changes (`skills/SKILL.md`, `skills/video-review/*`), the two clap svgs
+  and `skills/bklit-ui/`. **Also still uncommitted, not asked about:
+  `demo/post33.mjs`.** Ask before the next push whether it goes up.
+
+  **What a later session needs and cannot get from the code:**
+  - **The word a picture turns on can be in the line before.** The brief
+    put the speed line in three and had it slow on `slower`, the last word
+    of two; the dashes race in on two's second sentence and slow on the
+    word, three is the calm rhythm with the nod. Said at the first preview,
+    accepted by silence, printed in the clip's outstanding block.
+  - **A card holds text or props, never him.** Einz's rule from fix round
+    one, for every card in the house style: he sits below or beside. Guard
+    it by walking his head against every card's box on every frame the card
+    is up; the pill card leaves in 0.25 and the spring waits for it because
+    of that guard.
+  - **A module blink can be placed by the seed, but only where the module
+    blinks.** First blink 0.6 to 1.2, then 2.0 to 3.3 apart: a beat that
+    wants one blink at t has to sit in that lattice, so the typing was slowed
+    to land the headline at 2.54 and the seed searched to 6000 for a blink
+    within 0.20 after it with a quiet 0.7 before. post34 wrote its own blink
+    on the module's lid curves instead; either is fine, this one keeps the
+    plan honest.
+  - **The look up is an eye offset, composed, and it needs its own ink
+    guard.** The module's silhouette check runs on the module's frames, not
+    on composed ones, so a clip that moves the eyes has to run `headSD` over
+    the composed eyes itself. 4.2 grid units up is still below the centre
+    line and reads.
+  - **A dash field that changes period is anchored at the centre and mixed
+    in and out**, or the far dashes sprint on the frame the word lands.
+  - **The length was 23.07 against about twenty**, said after `--voice` and
+    before the first preview, post31's rule; the only air is the scene one
+    floor at 3.0. Kept.
+  - **`logo-xai.png` landed on disk mid round**, dropped in by einz while
+    the fix was being built; the tile was already declared like the other
+    two, so it picked the mark up on the next render with no change.
+
+  **open, next:** post the video; post33's commit; the price list and the
+  pinned tweet for the video work; crypto fun, four characters; the dark
+  poster; part two of the site video; the hand sheet; product one.
+
 - **2026-09-20, SESSION CLOSE. post34 is final and pushed: what is this
   sound, 10.05s, one sound on the bus, the wall squeak, no music.**
   `demo/post34.mjs`, dark only, 60fps, the shutter closed. Out to
