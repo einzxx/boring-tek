@@ -8017,6 +8017,123 @@ alone is 7.2 seconds of sound, every scene after the first starts 0.30 after
 the line before it, and the only air is the scene one floor at 3.0 so the
 first beat is slow. Raised at the first preview, kept.
 
+## The thirty sixth clip — the link checker
+
+```
+cd demo
+node post36.mjs --blur          # 1080x1920, 60fps, the shutter open, solved (the final)
+DEMO_FPS=12 node post36.mjs     # the fast preview pass
+node post36.mjs --voice         # the read and the clock only, no browser
+node post36.mjs --keep-frames   # leave the jpegs on disk
+node post36.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post36.mjs`, dark only, **21.21 seconds**,
+60fps, the shutter open at five subframes (solved off the notification's
+slide, 28.25 css px a frame, 5.65 between samples), five lines read by edge's andrew at his own
+pace with a 200ms stop at every full stop, post31's take() whole, and
+nothing else on the bus. Out to `demo/out/post36-dark-1080x1920.mp4`, four
+stills in `demo/out/verify-post36/`. Two fix rounds between the first
+preview and the final: the lines and the clock, then scene one.
+
+Five scenes, every line subtitled under everything in nunito, two slots:
+660 under him and 788 under the phone and its line. **One**, 0 to 4.27: he
+sits in the middle of the frame at the house size, calm, idle. As `message`
+ends he springs up 180 css px on post30's rise and a phone notification
+slides in from below into the room he left, on a symmetric glide, landing
+with a small buzz: a dark chat card with a soft shadow, a round avatar with
+the letter `P`, `PayPal` in bold, `22:41` at the right, `your account is
+locked, open` and the link `https://pаypal.com/login` in blue, underlined,
+with a cyrillic а where the first a should be. He looks down at it and
+blinks once after it has landed. **Two**, 4.27 to 7.52: the card fades, he
+shrinks away where he stands, the link lifts out of the card and flies into
+the field of a phone whose screen is the real link checker, and he springs
+in small on the phone's bottom right corner, eyes on the phone. The pointer
+presses `check it`, the page types its own nine lines, and its own danger
+pill lands at 7.52, when his glow pulses red once. **Three**, 7.52 to 11.73:
+on `fake` a soft red ring sits on the page's lookalike line for a second and
+`fake copy of paypal` comes in under the phone. **Four**, 11.73 to 16.98:
+the pointer presses `check another link`, the page clears itself, a new link
+types into the field at twenty letters a second, `https://por` and from
+there every letter is fog; his eyes slide to the lens, one blink; `check it`,
+the page types its lines all green with the host fogged, the pill says
+`nothing found`, he goes happy on it and the line under the phone reads
+`even these, we only check`. **Five**: the phone shrinks away, he springs in
+at the middle, calm, the wordmark under him, `theboringtek.com/tools` small
+under that, held to the end.
+
+### The phone is the real page, post30's way, with one rule added
+
+`/tools/check/` is served off the repo's file by the script's own server into
+one iframe at 390 css px, scaled onto the screen. The page keeps its own
+script: the field is set, the presses are `.btn.click()` and
+`.again.click()`, and the lines, their colours, the ring's line and both
+pills are whatever the page's checker says, read back off it every frame and
+asserted. The page's rAF loop is driven at sixty ticks a second between
+captures and every css animation and transition in it is paused and set to
+the clip's clock. One style rule is injected before the page boots, hiding
+the language switch, the home link, the socials and the theme toggle, so
+only the tool is on the screen; a guard wants their widths at zero. The
+page's own scan runs 2.40 seconds under virtual time, and the pulse, the
+ring, the captions, the happy and two scene floors hang off that number,
+with the observed pill asserted within 0.30 of it.
+
+### The clock is the read's, with two floors from the page
+
+Every scene starts 0.2 seconds after the line before it stops sounding,
+no brief floor at all; the first preview had the brief's starts and a
+second of air in every gap, and fix round one cut it. Two places are floored
+by the picture: three cannot start before the danger pill is up, because
+`it found a fake letter` should be said to a pill that exists, and five
+holds the nothing found pill 0.8 seconds. A guard fails any gap over 0.2
+that is not one of those two.
+
+### The fog is only blur, and it covers the page's own line too
+
+The real second link is one constant, `FOG.real`, a plain address the
+checker finds nothing on, and only its first eleven characters are ever
+readable. Each letter after them gets a puff, a soft blob of the page's
+muted grey, over one band of backdrop blur at nine px, in the field and on
+the host in the page's `real address` line alike, because that line would
+otherwise print the host in full. The field's fog is a pure function of the
+clock: the letters' places are measured on the real link once, so it never
+depends on what the field held a frame ago. The guard reads the rendered
+stills back through ffmpeg and wants the fogged band's luma spread under
+half of the readable letters' (8.6 against 74.8 on the fog still), and the
+host band in the page's line the same. No picture anywhere.
+
+### The notification's colours are the clip's own
+
+Three hexes in `NOTE.colors`: the card's dark chat green, the avatar's slate
+and the link's blue, plus a soft shadow under the card. The site has no
+token for any of them and a notification has to read as one. The guard
+counts where each is painted (card once, avatar once, link twice, the fly
+copies it) and refuses any other hex in the clip's own css. The `22:41`
+colon is the brief's and is exempt from the punctuation rule; everything
+else on screen is walked by it.
+
+### Two states, two looks, two blinks
+
+Neutral throughout, delighted on the nothing found pill, neutral again once
+he is home. The look down at the card and the look at the phone from the
+corner are one offset composed onto both eyes, in grid units, and the
+module's silhouette distance is run over the composed eyes on every frame.
+The two blinks the brief names are the module's own: the seed is searched
+until exactly one blink lands after the card has settled and before two,
+one in the window after the eyes reach the lens in four with quiet before
+it, none in the jump, none on the two landings. The idle blinks before the
+jump are his; the jump is placed at the end of `message` and never before
+1.25, because the module's first blink is 0.6 to 1.2 on every seed.
+
+### He sits on the phone's corner, a quarter of him over the bezel
+
+His centre is eight px in from the phone's bottom right corner, riding the
+phone's scale; a guard measures how much of his head box is over the screen
+on every frame he is there and allows a corner, thirty percent, no more.
+The stills are taken on the frames themselves during the render, not
+re-driven after, because the phone has three different states in this clip
+and a re-driven still would show the last of them.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

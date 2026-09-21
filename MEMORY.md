@@ -6,6 +6,58 @@ names in here either.
 
 ## Status
 
+- **2026-09-21, SESSION CLOSE. post36 is final and pushed: the link
+  checker announcement, 21.21s, edge's andrew, voice only on the bus.**
+  `demo/post36.mjs`, dark only, 60fps, the shutter open at five subframes
+  (solved off the notification's slide, 28.25 css px a frame). Out to
+  `demo/out/post36-dark-1080x1920.mp4`, four stills in
+  `demo/out/verify-post36/`. Write up is **The thirty sixth clip** in
+  `demo/README.md`. Two fix rounds: the lines and the clock, then scene
+  one. **Left uncommitted, on instruction, as before:** the skills/ working
+  tree changes (`skills/SKILL.md`, `skills/video-review/*`), the two clap
+  svgs and `skills/bklit-ui/`. **Also still uncommitted, not asked about:
+  `demo/post33.mjs`.** Ask before the next push whether it goes up.
+
+  **What a later session needs and cannot get from the code:**
+  - **The phone is the real checker page**, post30's method with one
+    iframe. The page's scan is 2.40s under virtual time (it was 3.3s
+    measured in real time with puppeteer overhead, and the first preview
+    was cut to that wrong number); every beat that waits for a pill hangs
+    off `SCAN.len` and the observed pill is asserted within 0.30 of it.
+  - **The real second link is `FOG.real`, one constant**, and the fog
+    covers the host in the page's own `real address` line as well as the
+    field, or the line prints it. Einz saw the still and did not object.
+    The fog's legibility is a pixel guard on the stills, luma spread under
+    half of the readable letters'.
+  - **The clock has no brief floors at all**: every scene starts 0.2 after
+    the line before it, fix round one's rule, floored only by the page's
+    two pills. Fix round one also cut the phone shrink and the two big
+    captions from the old scene three when their line went.
+  - **The notification card is the clip's own colours**, three hexes in
+    `NOTE.colors` plus a soft shadow, a guard counts them; the `22:41`
+    colon is exempt from the punctuation rule. Einz asked for a real
+    looking whatsapp or telegram card: no logo, a letter avatar and the
+    name in bold is the line.
+  - **The checker page's chrome is hidden inside the phone** by one
+    injected style rule (langs, home, socials, theme toggle). The page has
+    no wordmark in its header; the `// link checker` heading is what stays.
+  - **A stills list taken on the render's own frames**, not re-driven
+    after: the phone has three states in this clip and a re-driven still
+    shows the last one. Copy the pattern into any clip whose page changes.
+  - **The module's first blink is 0.6 to 1.2 on every seed**, so the jump
+    on the message is placed at the end of `message` and never before 1.25;
+    the idle blink before it is his. The seed search wants one blink after
+    the card lands, one after the eyes reach the lens, none on the jump
+    or the two landings; seed 10.
+  - **He sits on the phone's corner, a quarter over the bezel**, centre
+    8 px in; the guard allows thirty percent of his head box over the
+    screen and the spring's overshoot on the landing reaches exactly that.
+
+  **open, next:** post the video; post33's commit; the price list and the
+  pinned tweet for the video work; crypto fun, four characters; the dark
+  poster; part two of the site video; the hand sheet; product one; the
+  known bad lists worker for the checker.
+
 - **2026-09-21, SESSION CLOSE. the link checker is live at
   theboringtek.com/tools/check in en ru lv**, pushed as `9c1c5f5` (the
   tool) and this save. the tools hub carries two cards, the cleaner and the
