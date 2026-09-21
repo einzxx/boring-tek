@@ -6,8 +6,18 @@ names in here either.
 
 ## Status
 
-- **2026-09-21, later. the link checker is built at /tools/check/ in en ru
-  lv, uncommitted, waiting for review.** `tools/check/index.html`: one
+- **2026-09-21, SESSION CLOSE. the link checker is live at
+  theboringtek.com/tools/check in en ru lv**, pushed as `9c1c5f5` (the
+  tool) and this save. the tools hub carries two cards, the cleaner and the
+  checker; the pacman more soon card is gone. the honest line under the
+  heading is plain words, in three languages: `we cannot say a link is safe.
+  we can show you what looks wrong.` **still to do: the known bad lists
+  worker**, the grey line in the card is a placeholder until then. **next:
+  a short announcement clip for the checker, with a phone frame like
+  post30, safe margins.** the build notes below are from the build session,
+  same day.
+
+- **2026-09-21, earlier. the link checker as built**, `tools/check/index.html`: one
   field, one `check it` button (enter works), a terminal card that is dark in
   both themes with the mascot small in its top right corner (dark face, green
   halo, eyes ride the caret as the lines type, calm between scans). the scan
