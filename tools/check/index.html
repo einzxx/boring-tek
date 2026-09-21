@@ -231,7 +231,12 @@ html[data-theme=dark] .theme .i-moon{display:none}
 }
 .cl::before{content:"// "}
 /* the one honest line, under the heading. plain words, the cleaner's size. */
-.honest{margin:-8px auto 4px;color:var(--sub);font-size:var(--t-body);max-width:48ch}
+.honest{margin:-8px auto 4px;color:var(--sub);font-size:var(--t-body);max-width:100%}
+/* above 560px it sits on one line, as wide as the field and button row. the
+   russian page is mono and cannot fit, so it keeps wrapping there. */
+@media (min-width:560px){
+  html:not([lang=ru]) .honest{white-space:nowrap}
+}
 
 /* the field and the button, one row. the field is the cleaner's field at one
    line tall; the button is the site's form button. */
