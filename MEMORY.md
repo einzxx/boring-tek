@@ -6,6 +6,47 @@ names in here either.
 
 ## Status
 
+- **2026-09-21, later. the link checker is built at /tools/check/ in en ru
+  lv, uncommitted, waiting for review.** `tools/check/index.html`: one
+  field, one `check it` button (enter works), a terminal card that is dark in
+  both themes with the mascot small in its top right corner (dark face, green
+  halo, eyes ride the caret as the lines type, calm between scans). the scan
+  types nine lines 0.25s apart, each with a dot: real address, https,
+  shortener, lookalike letters, brand copy, ip address, strange address,
+  known bad lists (grey, `not checked yet, coming soon`), then the bold line
+  `if you did not expect this link, do not open it`. under it a summary
+  pill (`nothing found` / `be careful` / `danger` plus the first reason at
+  that level), `copy report` and `check another link`. **the rules, as
+  coded:** any red line is danger, any yellow is be careful. red: a
+  lookalike letter (any char from the LOOK map beside ascii letters in one
+  label, or two alphabets in one label), a brand copy (the mapped sld is a
+  brand but the real domain is not; the brand as a dash token or a
+  subdomain; glued to a word from GLUE like paypalsecure; one letter changed
+  for brands of six letters or more, or digits standing in for letters),
+  userinfo before `@`, a non http scheme. yellow: http, a shortener from
+  SHORT, an ip host, a url over 75 chars, more than 4 dots or 2 dashes in the
+  host a person sees, a tld from ODD_TLD. the address line shows the unicode
+  host when every label is one alphabet and the xn-- form when it is not,
+  because that is what the browser will show; punycode is decoded in the
+  page (rfc 3492, decode only). a bare word with no dot is not a link. **the
+  page adds one token pair, `--warn` and `--warn-soft`** (light `#9a6400`,
+  dark `#ffc93c`), for the yellow state; inside the terminal the colours are
+  fixed dark values. strings are the `CHECK` en/ru/lv dictionary in
+  `tools/build-langs.mjs`, asserted against the page's english `T`; the
+  build's `--check` flag constant was renamed `CHECK_ONLY` to make room. the
+  hub lost the more soon card (markup, css, the pacman script and its three
+  strings) and carries the link checker card beside the cleaner's, two side
+  by side at 720px, stacked under it; its description in three languages
+  names both tools. sitemap has twelve addresses. `README.md` has a section.
+  `demo/out/check-link.mjs` (gitignored) serves the root on :8099 and runs
+  five links through the page headless.
+
+  **what a later session needs:** known bad lists is a placeholder line on
+  purpose; wiring a list is a decision (it would be a fetch, and the site's
+  rule is nothing fetches). the BRANDS list is about 50 names, latvian and
+  russian banks and services included; adding one is a line. the checker's
+  mascot does not track the pointer, only the typed line, by brief.
+
 - **2026-09-21, SESSION CLOSE. post35 is final and pushed: ai agrees to
   slow down, 23.07s, edge's andrew, voice only on the bus.**
   `demo/post35.mjs`, dark only, 60fps, the shutter open at seven subframes

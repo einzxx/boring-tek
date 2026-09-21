@@ -5,17 +5,19 @@
    markup, the same stylesheet, the same script, with the text already painted
    in that language and `lang`, `canonical` and the og tags already set. it does
    the same for the tools hub, `tools/index.html`, into `ru/tools/` and
-   `lv/tools/`, and for the cleaner, `tools/clean/index.html`, into
-   `ru/tools/clean/` and `lv/tools/clean/`. it writes `sitemap.xml` too, so the
-   nine addresses are named in exactly one place, and the three stubs at the
-   cleaner's old addresses (`/clean/`, `/ru/clean/`, `/lv/clean/`) that forward
-   a shared link to the new ones.
+   `lv/tools/`, for the cleaner, `tools/clean/index.html`, into
+   `ru/tools/clean/` and `lv/tools/clean/`, and for the link checker,
+   `tools/check/index.html`, into `ru/tools/check/` and `lv/tools/check/`. it
+   writes `sitemap.xml` too, so the twelve addresses are named in exactly one
+   place, and the three stubs at the cleaner's old addresses (`/clean/`,
+   `/ru/clean/`, `/lv/clean/`) that forward a shared link to the new ones.
 
    the pages keep their copy differently. the main page carries all three
-   dictionaries in its own `T` and the build reads them out of it. the hub and
-   the cleaner carry only english in their `T`; the russian and latvian live
-   here, in `TOOLS` and `CLEAN` below, and the build asserts each page's
-   english against its `.en` before swapping the object in.
+   dictionaries in its own `T` and the build reads them out of it. the hub,
+   the cleaner and the checker carry only english in their `T`; the russian
+   and latvian live here, in `TOOLS`, `CLEAN` and `CHECK` below, and the build
+   asserts each page's english against its `.en` before swapping the object
+   in.
 
    why it exists: a page that paints itself in russian after the script runs is
    an english page to a crawler, and a hash is not an address. three documents
@@ -44,13 +46,15 @@ const ROOT = path.resolve(HERE, '..');
 const SRC = path.join(ROOT, 'index.html');
 const SRC_TOOLS = path.join(ROOT, 'tools', 'index.html');
 const SRC_CLEAN = path.join(ROOT, 'tools', 'clean', 'index.html');
-const CHECK = process.argv.includes('--check');
+const SRC_CHECK = path.join(ROOT, 'tools', 'check', 'index.html');
+const CHECK_ONLY = process.argv.includes('--check');
 
 const ORIGIN = 'https://theboringtek.com';
 const LANGS = ['en', 'ru', 'lv'];
 const AT = { en: '/', ru: '/ru/', lv: '/lv/' };
 const AT_TOOLS = { en: '/tools/', ru: '/ru/tools/', lv: '/lv/tools/' };
 const AT_CLEAN = { en: '/tools/clean/', ru: '/ru/tools/clean/', lv: '/lv/tools/clean/' };
+const AT_CHECK = { en: '/tools/check/', ru: '/ru/tools/check/', lv: '/lv/tools/check/' };
 /* where the cleaner lived until 2026-09-17. a stub at each forwards to the
    same language's new address, so a link somebody shared keeps working. */
 const AT_CLEAN_OLD = { en: '/clean/', ru: '/ru/clean/', lv: '/lv/clean/' };
@@ -79,15 +83,15 @@ const SEO = {
 const SEO_TOOLS = {
   en: {
     title: 'free tools | the boring tek',
-    desc: 'free browser tools by the boring tek. a watermark remover for claude, chatgpt and other ai text and files. nothing leaves your browser.',
+    desc: 'free browser tools by the boring tek. a watermark remover for ai text and files, and a link checker. nothing leaves your browser.',
   },
   ru: {
     title: 'бесплатные инструменты | the boring tek',
-    desc: 'бесплатные инструменты в браузере от the boring tek. удаление водяных знаков из текста и файлов claude, chatgpt и других ии. всё в браузере.',
+    desc: 'бесплатные инструменты в браузере от the boring tek. удаление водяных знаков из текста и файлов ии и проверка ссылок. всё в браузере.',
   },
   lv: {
     title: 'bezmaksas rīki | the boring tek',
-    desc: 'bezmaksas pārlūka rīki no the boring tek. ūdenszīmju noņemšana no claude, chatgpt un citu mi teksta un failiem. nekas neaiziet no pārlūka.',
+    desc: 'bezmaksas pārlūka rīki no the boring tek. ūdenszīmju noņemšana no mi teksta un failiem un saites pārbaude. nekas neaiziet no pārlūka.',
   },
 };
 /* the hub's copy. the english is the page's own `T`, repeated here so the
@@ -97,9 +101,8 @@ const TOOLS = {
     h1: 'free tools',
     t_clean: 'watermark remover',
     d_clean: 'clean hidden ai marks from your text and files',
-    t_more: 'more soon',
-    d_more: 'the next free tool is cooking',
-    bub: 'more soon',
+    t_check: 'link checker',
+    d_check: 'see what is hiding in a link before you open it',
     open: 'open',
     home: 'home',
     th_dark: 'dark mode',
@@ -109,9 +112,8 @@ const TOOLS = {
     h1: 'бесплатные инструменты',
     t_clean: 'удаление водяных знаков',
     d_clean: 'убирает скрытые метки ии из вашего текста и файлов',
-    t_more: 'скоро ещё',
-    d_more: 'следующий бесплатный инструмент уже готовится',
-    bub: 'скоро ещё',
+    t_check: 'проверка ссылки',
+    d_check: 'посмотрите, что скрыто в ссылке, до того как её открыть',
     open: 'открыть',
     home: 'главная',
     th_dark: 'тёмная тема',
@@ -121,9 +123,8 @@ const TOOLS = {
     h1: 'bezmaksas rīki',
     t_clean: 'ūdenszīmju noņemšana',
     d_clean: 'notīra slēptās mi zīmes no jūsu teksta un failiem',
-    t_more: 'drīz vēl',
-    d_more: 'nākamais bezmaksas rīks jau top',
-    bub: 'drīz vēl',
+    t_check: 'saites pārbaude',
+    d_check: 'redziet, kas slēpjas saitē, pirms to atverat',
     open: 'atvērt',
     home: 'sākums',
     th_dark: 'tumšais režīms',
@@ -338,6 +339,208 @@ const CLEAN = {
 
 /* ---------- house rules, enforced ---------- */
 
+const SEO_CHECK = {
+  en: {
+    title: 'link checker | the boring tek',
+    desc: 'paste a link and see what is hiding in it before you open it: the real address, lookalike letters, brand copies, shorteners. nothing leaves your browser.',
+  },
+  ru: {
+    title: 'проверка ссылки | the boring tek',
+    desc: 'вставьте ссылку и посмотрите, что в ней скрыто, до того как открыть: настоящий адрес, похожие буквы, подделки брендов, сокращатели. всё в браузере.',
+  },
+  lv: {
+    title: 'saites pārbaude | the boring tek',
+    desc: 'ielīmējiet saiti un redziet, kas tajā slēpjas, pirms to atverat: īstā adrese, līdzīgi burti, zīmolu kopijas, saīsinātāji. nekas neaiziet no pārlūka.',
+  },
+};
+
+/* the link checker's copy. the english is the page's own `T`, repeated here
+   so the build can assert the two agree; ru and lv exist only here. the
+   `k_` keys are the line labels, the `v_` keys the values after the comma,
+   the `r_` keys the short reason on the summary pill. `{host}`, `{shown}`,
+   `{scheme}`, `{a}`, `{word}`, `{brand}`, `{tld}`, `{url}` and `{reason}`
+   are filled at runtime. plain words a kid or an old man reads in one go,
+   no dashes, same rules as the site. */
+const CHECK = {
+  en: {
+    h1: 'link checker',
+    honest: 'we cannot say a link is safe. we can show you what looks wrong.',
+    ph: 'paste the link here',
+    run: 'check it',
+    idle: 'paste a link above and press check it',
+    bad_link: 'i cannot read this as a link. check it and try again.',
+    k_addr: 'real address',
+    v_addr_ok: 'the link goes to {host}',
+    v_addr_at: 'the link goes to {host} but the text you pasted shows {shown}',
+    v_addr_scheme: 'this is not a normal web link, it starts with {scheme}',
+    k_https: 'https',
+    v_https_ok: 'yes, it is encrypted',
+    v_https_no: 'no, it is not encrypted',
+    k_short: 'shortener',
+    v_short_ok: 'no',
+    v_short_no: 'yes, {host} hides where it really goes',
+    k_look: 'lookalike letters',
+    v_look_ok: 'none',
+    v_look_no: 'found a letter that looks like {a} but is not, in the word {word}',
+    v_look_mix: 'found letters from two alphabets in the word {word}',
+    k_brand: 'brand copy',
+    v_brand_ok: 'none',
+    v_brand_no: 'it looks like {brand} but the real address is {host}',
+    k_ip: 'ip address',
+    v_ip_ok: 'no',
+    v_ip_no: 'yes, a number instead of a name, that is unusual',
+    k_odd: 'strange address',
+    v_odd_ok: 'ok',
+    o_long: 'very long',
+    o_dots: 'many dots',
+    o_dash: 'many dashes',
+    o_tld: 'an unusual ending like {tld}',
+    k_lists: 'known bad lists',
+    v_lists: 'not checked yet, coming soon',
+    last: 'if you did not expect this link, do not open it',
+    s_ok: 'nothing found',
+    s_warn: 'be careful',
+    s_bad: 'danger',
+    r_ok: 'nothing looks wrong here',
+    r_addr: 'the address is not what it shows',
+    r_scheme: 'this is not a normal web link',
+    r_https: 'the link is not encrypted',
+    r_short: 'the real address is hidden',
+    r_look: 'a letter in the address is fake',
+    r_brand: 'the address copies a known brand',
+    r_ip: 'a number instead of a name',
+    r_odd: 'the address looks strange',
+    rep_link: 'link: {url}',
+    rep_sum: 'result: {word}, {reason}',
+    copy: 'copy report',
+    copied: 'copied',
+    nocopy: 'could not copy',
+    again: 'check another link',
+    noscript: 'this tool runs in your browser and needs javascript on.',
+    home: 'home',
+    th_dark: 'dark mode',
+    th_light: 'light mode',
+  },
+  ru: {
+    h1: 'проверка ссылки',
+    honest: 'мы не можем сказать, что ссылка безопасна. мы можем показать, что выглядит подозрительно.',
+    ph: 'вставьте ссылку сюда',
+    run: 'проверить',
+    idle: 'вставьте ссылку выше и нажмите проверить',
+    bad_link: 'не могу прочитать это как ссылку. проверьте и попробуйте ещё раз.',
+    k_addr: 'настоящий адрес',
+    v_addr_ok: 'ссылка ведёт на {host}',
+    v_addr_at: 'ссылка ведёт на {host}, но в тексте, который вы вставили, видно {shown}',
+    v_addr_scheme: 'это не обычная ссылка на сайт, она начинается с {scheme}',
+    k_https: 'https',
+    v_https_ok: 'да, соединение зашифровано',
+    v_https_no: 'нет, соединение не зашифровано',
+    k_short: 'сокращатель',
+    v_short_ok: 'нет',
+    v_short_no: 'да, {host} скрывает, куда ссылка ведёт на самом деле',
+    k_look: 'похожие буквы',
+    v_look_ok: 'нет',
+    v_look_no: 'нашёл букву, которая похожа на {a}, но это не она, в слове {word}',
+    v_look_mix: 'в слове {word} буквы из двух алфавитов',
+    k_brand: 'подделка бренда',
+    v_brand_ok: 'нет',
+    v_brand_no: 'похоже на {brand}, но настоящий адрес {host}',
+    k_ip: 'ip адрес',
+    v_ip_ok: 'нет',
+    v_ip_no: 'да, вместо имени цифры, это необычно',
+    k_odd: 'странный адрес',
+    v_odd_ok: 'всё в порядке',
+    o_long: 'очень длинный',
+    o_dots: 'много точек',
+    o_dash: 'много дефисов',
+    o_tld: 'необычное окончание {tld}',
+    k_lists: 'списки опасных сайтов',
+    v_lists: 'пока не проверяю, скоро',
+    last: 'если вы не ждали эту ссылку, не открывайте её',
+    s_ok: 'ничего не найдено',
+    s_warn: 'будьте осторожны',
+    s_bad: 'опасно',
+    r_ok: 'ничего подозрительного',
+    r_addr: 'адрес не тот, что показан',
+    r_scheme: 'это не обычная ссылка',
+    r_https: 'соединение не зашифровано',
+    r_short: 'настоящий адрес скрыт',
+    r_look: 'в адресе поддельная буква',
+    r_brand: 'адрес копирует известный бренд',
+    r_ip: 'вместо имени цифры',
+    r_odd: 'адрес выглядит странно',
+    rep_link: 'ссылка: {url}',
+    rep_sum: 'итог: {word}, {reason}',
+    copy: 'скопировать отчёт',
+    copied: 'скопировано',
+    nocopy: 'не удалось скопировать',
+    again: 'проверить другую ссылку',
+    noscript: 'этот инструмент работает прямо в браузере. без javascript он не запустится.',
+    home: 'главная',
+    th_dark: 'тёмная тема',
+    th_light: 'светлая тема',
+  },
+  lv: {
+    h1: 'saites pārbaude',
+    honest: 'mēs nevaram teikt, ka saite ir droša. mēs varam parādīt, kas izskatās aizdomīgi.',
+    ph: 'ielīmējiet saiti šeit',
+    run: 'pārbaudīt',
+    idle: 'ielīmējiet saiti augšā un nospiediet pārbaudīt',
+    bad_link: 'nevaru to nolasīt kā saiti. pārbaudiet un mēģiniet vēlreiz.',
+    k_addr: 'īstā adrese',
+    v_addr_ok: 'saite ved uz {host}',
+    v_addr_at: 'saite ved uz {host}, bet ielīmētajā tekstā redzams {shown}',
+    v_addr_scheme: 'šī nav parasta saite uz lapu, tā sākas ar {scheme}',
+    k_https: 'https',
+    v_https_ok: 'jā, savienojums ir šifrēts',
+    v_https_no: 'nē, savienojums nav šifrēts',
+    k_short: 'saīsinātājs',
+    v_short_ok: 'nē',
+    v_short_no: 'jā, {host} slēpj, kurp saite ved patiesībā',
+    k_look: 'līdzīgi burti',
+    v_look_ok: 'nav',
+    v_look_no: 'atradu burtu, kas izskatās kā {a}, bet tāds nav, vārdā {word}',
+    v_look_mix: 'vārdā {word} ir burti no diviem alfabētiem',
+    k_brand: 'zīmola kopija',
+    v_brand_ok: 'nav',
+    v_brand_no: 'izskatās kā {brand}, bet īstā adrese ir {host}',
+    k_ip: 'ip adrese',
+    v_ip_ok: 'nē',
+    v_ip_no: 'jā, cipari vārda vietā, tas ir neparasti',
+    k_odd: 'dīvaina adrese',
+    v_odd_ok: 'viss kārtībā',
+    o_long: 'ļoti gara',
+    o_dots: 'daudz punktu',
+    o_dash: 'daudz defišu',
+    o_tld: 'neparasta beigu daļa {tld}',
+    k_lists: 'bīstamo lapu saraksti',
+    v_lists: 'vēl nepārbaudu, drīz',
+    last: 'ja jūs šo saiti negaidījāt, neatveriet to',
+    s_ok: 'nekas nav atrasts',
+    s_warn: 'esiet uzmanīgi',
+    s_bad: 'bīstami',
+    r_ok: 'nekas aizdomīgs',
+    r_addr: 'adrese nav tā, kas redzama',
+    r_scheme: 'šī nav parasta saite',
+    r_https: 'savienojums nav šifrēts',
+    r_short: 'īstā adrese ir paslēpta',
+    r_look: 'adresē ir viltots burts',
+    r_brand: 'adrese kopē zināmu zīmolu',
+    r_ip: 'cipari vārda vietā',
+    r_odd: 'adrese izskatās dīvaini',
+    rep_link: 'saite: {url}',
+    rep_sum: 'rezultāts: {word}, {reason}',
+    copy: 'kopēt atskaiti',
+    copied: 'nokopēts',
+    nocopy: 'neizdevās nokopēt',
+    again: 'pārbaudīt citu saiti',
+    noscript: 'šis rīks strādā tieši pārlūkā. bez javascript tas nedarbojas.',
+    home: 'sākums',
+    th_dark: 'tumšais režīms',
+    th_light: 'gaišais režīms',
+  },
+};
+
 /* no punctuation dash anywhere a visitor can read it, in any language. the trap
    is ru and lv, which reach for the em dash where english uses a comma. hyphens
    inside words are spelling and stay, so this looks for a dash with space on at
@@ -367,6 +570,7 @@ function readPage(file) {
 const { src, cut } = readPage(SRC);
 const { src: srcClean, cut: cutClean } = readPage(SRC_CLEAN);
 const { src: srcTools, cut: cutTools } = readPage(SRC_TOOLS);
+const { src: srcCheck, cut: cutCheck } = readPage(SRC_CHECK);
 
 /* the copy comes out of the page's own dictionary. `new Function` on an object
    literal we wrote ourselves, in a script that only ever runs on this machine.
@@ -385,6 +589,10 @@ const T_CLEAN_EN = new Function('return ' + dictClean[1])();
 const dictTools = srcTools.match(/\nvar T=(\{[\s\S]*?\n\});\nfunction t\(k\)/);
 if (!dictTools) throw new Error('could not find `var T={...}` in tools/index.html');
 const T_TOOLS_EN = new Function('return ' + dictTools[1])();
+/* and the checker's, laid out like the hub's */
+const dictCheck = srcCheck.match(/\nvar T=(\{[\s\S]*?\n\});\nfunction t\(k\)/);
+if (!dictCheck) throw new Error('could not find `var T={...}` in tools/check/index.html');
+const T_CHECK_EN = new Function('return ' + dictCheck[1])();
 
 function checkDict(name, dict, seo) {
   for (const l of LANGS) {
@@ -406,6 +614,7 @@ function checkDict(name, dict, seo) {
 checkDict('T', T, SEO);
 checkDict('CLEAN', CLEAN, SEO_CLEAN);
 checkDict('TOOLS', TOOLS, SEO_TOOLS);
+checkDict('CHECK', CHECK, SEO_CHECK);
 
 /* the cleaner's english is written in two places, the page and CLEAN.en, and
    they have to be the same object: a key or a word that drifts in one of them
@@ -425,6 +634,14 @@ checkDict('TOOLS', TOOLS, SEO_TOOLS);
     if (JSON.stringify(T_TOOLS_EN[k]) !== JSON.stringify(TOOLS.en[k])) bad.push(k);
   }
   if (bad.length) throw new Error(`tools/index.html T and TOOLS.en disagree about: ${bad.join(', ')}`);
+}
+{
+  const bad = [];
+  const keys = new Set([...Object.keys(T_CHECK_EN), ...Object.keys(CHECK.en)]);
+  for (const k of keys) {
+    if (JSON.stringify(T_CHECK_EN[k]) !== JSON.stringify(CHECK.en[k])) bad.push(k);
+  }
+  if (bad.length) throw new Error(`tools/check/index.html T and CHECK.en disagree about: ${bad.join(', ')}`);
 }
 
 /* the same document is served from /, /ru/ and /lv/, so a document-relative url
@@ -447,6 +664,7 @@ function noRelativeUrls(text, label) {
 noRelativeUrls(src, 'index.html');
 noRelativeUrls(srcClean, 'tools/clean/index.html');
 noRelativeUrls(srcTools, 'tools/index.html');
+noRelativeUrls(srcCheck, 'tools/check/index.html');
 
 /* english is written by hand in index.html and by this file for the other two.
    assert they are the same sentence, so changing one without the other stops
@@ -464,6 +682,7 @@ function assertEnglishHead(text, seo, label) {
 assertEnglishHead(src, SEO, 'index.html');
 assertEnglishHead(srcClean, SEO_CLEAN, 'tools/clean/index.html');
 assertEnglishHead(srcTools, SEO_TOOLS, 'tools/index.html');
+assertEnglishHead(srcCheck, SEO_CHECK, 'tools/check/index.html');
 
 /* ---------- the transforms ---------- */
 
@@ -590,11 +809,36 @@ function buildTools(lang) {
   /* --- the link home goes to this language's home --- */
   body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
 
-  /* --- the card opens this language's cleaner --- */
-  body = one(body, `<a class="btn" href="${AT_CLEAN.en}" data-k="open">`, `<a class="btn" href="${AT_CLEAN[lang]}" data-k="open">`, 'open-link');
+  /* --- each card opens this language's tool --- */
+  body = one(body, `<a class="btn" href="${AT_CLEAN.en}" data-k="open">`, `<a class="btn" href="${AT_CLEAN[lang]}" data-k="open">`, 'open-link-clean');
+  body = one(body, `<a class="btn" href="${AT_CHECK.en}" data-k="open">`, `<a class="btn" href="${AT_CHECK[lang]}" data-k="open">`, 'open-link-check');
 
   /* --- the label a screen reader gets before the script has run --- */
   body = one(body, `<button class="theme" type="button" aria-label="${escAttr(TOOLS.en.th_dark)}">`,
+                   `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
+
+  return head + body;
+}
+
+function buildCheck(lang) {
+  let head = swapHead(srcCheck.slice(0, cutCheck), lang, SEO_CHECK, AT_CHECK);
+  let body = swapSwitch(srcCheck.slice(cutCheck), lang, AT_CHECK);
+  const t = (k) => CHECK[lang][k];
+
+  /* --- the dictionary itself, swapped the way the cleaner's is, so the
+         lines the scan types come out in this language too --- */
+  head = one(head, dictCheck[1], JSON.stringify(CHECK[lang], null, 1), 'check-dict');
+
+  /* --- every keyed string, painted --- */
+  body = paintKeys(body, CHECK, lang, 7, 'tools/check/index.html');
+
+  /* --- the link home goes to this language's home --- */
+  body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
+
+  /* --- the placeholder everyone gets, and the label a screen reader gets
+         before the script has run --- */
+  body = one(body, `placeholder="${escAttr(CHECK.en.ph)}"`, `placeholder="${escAttr(t('ph'))}"`, 'placeholder');
+  body = one(body, `<button class="theme" type="button" aria-label="${escAttr(CHECK.en.th_dark)}">`,
                    `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
 
   return head + body;
@@ -613,7 +857,7 @@ function buildRedirect(lang) {
     + `<title>the boring tek</title>\n</head>\n<body>\n<p><a href="${to}">${to}</a></p>\n</body>\n</html>\n`;
 }
 
-/* the sitemap names the same nine addresses the canonicals do, off the same
+/* the sitemap names the same twelve addresses the canonicals do, off the same
    constants, so they cannot disagree. the old cleaner addresses are stubs
    and are not in it. */
 function buildSitemap() {
@@ -622,6 +866,7 @@ function buildSitemap() {
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT[l]}</loc>\n  </url>\n`).join('')
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_TOOLS[l]}</loc>\n  </url>\n`).join('')
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_CLEAN[l]}</loc>\n  </url>\n`).join('')
+    + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_CHECK[l]}</loc>\n  </url>\n`).join('')
     + '</urlset>\n';
 }
 
@@ -631,6 +876,7 @@ const out = [
   ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'index.html'), buildPage(l)]),
   ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'index.html'), buildTools(l)]),
   ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'clean', 'index.html'), buildClean(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'check', 'index.html'), buildCheck(l)]),
   ...LANGS.map((l) => [path.join(ROOT, ...AT_CLEAN_OLD[l].split('/').filter(Boolean), 'index.html'), buildRedirect(l)]),
   [path.join(ROOT, 'sitemap.xml'), buildSitemap()],
 ];
@@ -642,14 +888,14 @@ for (const [file, text] of out) {
   try { had = fs.readFileSync(file, 'utf8'); } catch {}
   if (had === text) { console.log(`  ok       ${rel}`); continue; }
   stale++;
-  if (CHECK) { console.log(`  STALE    ${rel}`); continue; }
+  if (CHECK_ONLY) { console.log(`  STALE    ${rel}`); continue; }
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
   console.log(`  written  ${rel}  ${(Buffer.byteLength(text) / 1024).toFixed(1)} KB`);
 }
 
-if (CHECK && stale) {
+if (CHECK_ONLY && stale) {
   console.error(`\n${stale} file(s) out of date. run: node tools/build-langs.mjs`);
   process.exit(1);
 }
-console.log(CHECK ? '\nup to date.' : '\ndone.');
+console.log(CHECK_ONLY ? '\nup to date.' : '\ndone.');

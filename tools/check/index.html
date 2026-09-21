@@ -1,0 +1,1093 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>link checker | the boring tek</title>
+<meta name="description" content="paste a link and see what is hiding in it before you open it: the real address, lookalike letters, brand copies, shorteners. nothing leaves your browser.">
+<link rel="canonical" href="https://theboringtek.com/tools/check/">
+<link rel="alternate" hreflang="en" href="https://theboringtek.com/tools/check/">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/tools/check/">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/tools/check/">
+<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/tools/check/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theboringtek.com/tools/check/">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="link checker | the boring tek">
+<meta property="og:description" content="paste a link and see what is hiding in it before you open it: the real address, lookalike letters, brand copies, shorteners. nothing leaves your browser.">
+<meta property="og:image" content="https://theboringtek.com/assets/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="the boring tek mascot above the wordmark, on white">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://theboringtek.com/assets/og.png">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f4f7f5'/%3E%3Crect x='15' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3Crect x='36' y='36.3' width='13' height='4.4' rx='2.2' fill='%2306070a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap">
+<style>
+@property --ex{syntax:'<number>';inherits:true;initial-value:0}
+@property --ey{syntax:'<number>';inherits:true;initial-value:0}
+@property --blink{syntax:'<number>';inherits:true;initial-value:1}
+@property --wide{syntax:'<number>';inherits:true;initial-value:1}
+
+/* the same token set as the site, verbatim. light is the default, every colour
+   is a token, and the 0.5s cross-fade is one transition rule. this page adds
+   one token pair, --warn and --warn-soft, for the "look at this" state: the
+   site has no yellow, and the summary pill needs one that reads on white as
+   well as on black. */
+:root{
+  --bg:#ffffff;
+  --fg:#0b0d10;
+  --sub:#4b5058;
+  --muted:#767d86;
+  --line:#dfe3e7;
+  --field:#fbfbfc;
+  --pill-on:#eef1f4;
+  --pill-hover:#f5f7f9;
+  --pill-on-hover:#e5eaef;
+  --bub:rgba(11,13,16,.55);
+  --face:#0b0d10;
+  --eye:#ffffff;
+  --accent:#0f8a3c;
+  --accent-soft:rgba(15,138,60,.10);
+  --warn:#9a6400;
+  --warn-soft:rgba(154,100,0,.10);
+  --red:#c62828;
+  --red-soft:rgba(198,40,40,.10);
+  --glowon:0;
+  --halo:radial-gradient(circle,
+    rgba(11,13,16,.075) 0%,
+    rgba(11,13,16,.04) 30%,
+    rgba(11,13,16,.018) 52%,
+    rgba(11,13,16,0) 72%);
+  --vig:radial-gradient(140% 120% at 50% 45%,transparent 30%,rgba(11,13,16,.055) 100%);
+  --grain-o:.026;
+
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono","Roboto Mono","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  --display:"Michroma",var(--mono);
+  --body:"Space Grotesk",var(--mono);
+  --t-micro:clamp(.6875rem,.66rem + .14vw,.75rem);
+  --t-body:clamp(.8125rem,.77rem + .22vw,.9375rem);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:cubic-bezier(.34,1.4,.64,1);
+  --gr:rgba(255,60,60,.85);
+  --gc:rgba(40,215,255,.85);
+}
+html[data-theme=dark]{
+  --bg:#06070a;
+  --fg:#d5dbd8;
+  --sub:#c8c8c8;
+  --muted:#6d7680;
+  --line:#1e242d;
+  --field:#0b0d12;
+  --pill-on:#161c24;
+  --pill-hover:#0f151c;
+  --pill-on-hover:#1e2530;
+  --bub:rgba(213,219,216,.5);
+  --face:#f4f7f5;
+  --eye:#06070a;
+  --accent:#35ff6a;
+  --accent-soft:rgba(53,255,106,.09);
+  --warn:#ffc93c;
+  --warn-soft:rgba(255,201,60,.09);
+  --red:#ff5c5c;
+  --red-soft:rgba(255,92,92,.09);
+  --glowon:1;
+  --halo:radial-gradient(circle,
+    rgba(53,255,106,.20) 0%,
+    rgba(53,255,106,.11) 30%,
+    rgba(23,163,79,.055) 52%,
+    rgba(23,163,79,0) 72%);
+  --vig:radial-gradient(140% 120% at 50% 45%,transparent 30%,rgba(3,4,6,.74) 100%);
+  --grain-o:.038;
+}
+
+/* space grotesk ships no cyrillic, so the whole russian page drops to the
+   mono stack rather than mixing two faces inside one line. */
+html[lang=ru]{--body:var(--mono)}
+
+*{box-sizing:border-box}
+*,*::before,*::after{
+  transition:background-color .5s ease,border-color .5s ease,color .5s ease,fill .5s ease;
+}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:var(--bg); color:var(--fg);
+  font:400 var(--t-body)/1.65 var(--body);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* depth layers, the site's */
+.vignette,.grain{position:fixed;pointer-events:none}
+.vignette{
+  inset:-10%; z-index:0; background-image:var(--vig);
+  will-change:transform,opacity;
+  animation:breathe 34s cubic-bezier(.45,0,.55,1) infinite alternate;
+  transition:background-image .5s ease;
+}
+@keyframes breathe{
+  from{transform:scale(1) translate3d(0,0,0);opacity:.88}
+  to{transform:scale(1.045) translate3d(0,-1.2%,0);opacity:1}
+}
+.grain{
+  inset:-150px; z-index:1; opacity:var(--grain-o);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  will-change:transform;
+  animation:grainshift 7s steps(1,end) infinite;
+  transition:opacity .5s ease;
+}
+@keyframes grainshift{
+  0%{transform:translate3d(0,0,0)}     14%{transform:translate3d(-3%,-2%,0)}
+  28%{transform:translate3d(2%,-4%,0)} 42%{transform:translate3d(-1%,3%,0)}
+  57%{transform:translate3d(3%,1%,0)}  71%{transform:translate3d(-2%,2%,0)}
+  85%{transform:translate3d(1%,-3%,0)}
+}
+
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+
+/* top bar, the site's: languages and one link left, socials centred on a wide
+   screen, the theme toggle right, over the same scrim. */
+.bar{
+  position:fixed; top:0; left:0; right:0; z-index:5;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:12px 12px 30px;
+  pointer-events:none;
+  background-image:linear-gradient(to bottom,var(--bg) 42%,transparent);
+  transition:background-image .5s ease;
+}
+.left,.socials,.theme{pointer-events:auto}
+.left,.langs{display:flex;align-items:center;gap:2px}
+.lang{
+  font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;
+  padding:10px 8px;color:var(--muted);opacity:.5;text-decoration:none;
+  transition:opacity .22s ease-out,color .5s ease;
+}
+.lang:hover{opacity:.85}
+.lang[aria-current=true]{color:var(--fg);opacity:1}
+/* the site's fourth slot. there it goes to the tools; here it goes home. */
+.more{position:relative;margin-left:4px;padding-left:16px}
+.more::before{
+  content:""; position:absolute; left:0; top:50%; width:1px; height:11px;
+  transform:translateY(-50%); background:var(--line);
+}
+
+/* socials, the site's row: six tabler icons, in the bar above 560px and in the
+   footer under it, never both. */
+.sprite{display:none}
+.socials{display:flex;justify-content:center;gap:6px}
+.bar .socials{display:none}
+.soc{
+  flex:0 0 auto;
+  display:grid;place-items:center;text-decoration:none;
+  width:40px;height:40px;
+  color:var(--muted);opacity:.5;
+  transition:color .5s ease,opacity .22s ease-out,transform .22s ease-out;
+}
+.soc svg{
+  width:22px;height:22px;display:block;
+  fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.soc:hover{color:var(--fg);opacity:1;transform:translateY(-2px)}
+.soc:hover svg{animation:flick .2s steps(1,end)}
+@keyframes flick{
+  0%{filter:none}
+  26%{filter:drop-shadow(-1px 0 var(--gr)) drop-shadow(1px 0 var(--gc))}
+  56%{filter:drop-shadow(1px 0 var(--gr)) drop-shadow(-1px 0 var(--gc))}
+  80%,100%{filter:none}
+}
+.theme{
+  appearance:none;background:none;border:0;cursor:pointer;
+  width:44px;height:44px;padding:0;display:grid;place-items:center;
+  color:var(--muted);
+  transition:color .22s ease-out,transform .34s var(--spring);
+}
+.theme:hover{color:var(--fg);transform:rotate(-18deg)}
+.theme svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.theme .i-sun{display:none}
+html[data-theme=dark] .theme .i-sun{display:block}
+html[data-theme=dark] .theme .i-moon{display:none}
+
+/* content. one column, the terminal in the middle of it. */
+.wrap{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center;
+  padding:clamp(84px,10vh,96px) 16px 16px;
+  text-align:center;
+}
+.col{
+  display:flex; flex-direction:column; align-items:stretch; gap:12px;
+  width:100%; max-width:640px;
+}
+.cl{
+  margin:0 0 4px; font-family:var(--mono);
+  font-size:var(--t-micro); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted); font-weight:400;
+}
+.cl::before{content:"// "}
+/* the one honest line, under the heading. plain words, the cleaner's size. */
+.honest{margin:-8px auto 4px;color:var(--sub);font-size:var(--t-body);max-width:48ch}
+
+/* the field and the button, one row. the field is the cleaner's field at one
+   line tall; the button is the site's form button. */
+.ask{display:flex;gap:8px;align-items:stretch;width:100%}
+.in{
+  flex:1 1 auto;min-width:0;
+  font:inherit;font-family:var(--mono);font-size:var(--t-body);color:var(--fg);
+  background:var(--field);border:1px solid var(--line);border-radius:12px;
+  padding:0 14px;height:44px;
+  transition:border-color .2s ease-out,background-color .5s ease,color .5s ease;
+}
+.in:focus{outline:none;border-color:var(--accent)}
+.in::placeholder{color:var(--muted);opacity:.75}
+.btn{
+  flex:0 0 auto;
+  appearance:none;cursor:pointer;font:inherit;font-size:var(--t-micro);
+  font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+  padding:8px 18px;min-height:44px;
+  border:1px solid var(--line);border-radius:999px;
+  background:transparent;color:var(--fg);
+  transition:background-color .22s ease-out,color .22s ease-out,
+             border-color .5s ease,transform .28s var(--spring);
+}
+.btn:hover{background:var(--fg);color:var(--bg)}
+.btn:active{transform:scale(.97)}
+
+/* ---- the terminal ----
+   a dark box in both themes: this is the one place on the site where the
+   light theme does not reach, because a scan reads as a scan on black. so
+   every colour inside it is fixed here rather than taken from the page, and
+   the mascot inside it is the dark theme's mascot with the dark theme's
+   halo, whatever the page is doing. text is the mono stack. */
+.term{
+  --tbg:#090b0f; --tfg:#d5dbd8; --tline:#1e242d; --tmuted:#6d7680;
+  --ok:#35ff6a; --tw:#ffc93c; --tb:#ff5c5c;
+  --face:#f4f7f5; --eye:#06070a; --glowon:1;
+  --halo:radial-gradient(circle,
+    rgba(53,255,106,.20) 0%,
+    rgba(53,255,106,.11) 30%,
+    rgba(23,163,79,.055) 52%,
+    rgba(23,163,79,0) 72%);
+  position:relative; width:100%; text-align:left;
+  min-height:264px;
+  padding:clamp(16px,3.4vw,22px);
+  border:1px solid var(--tline); border-radius:18px;
+  background:var(--tbg); color:var(--tfg);
+  font-family:var(--mono); font-size:var(--t-body); line-height:1.6;
+  overflow:hidden;
+}
+/* the mascot, small, in the top right corner. a float, so the first lines
+   run beside him and the rest take the full width under him. */
+.term .m-zone{float:right;margin:-2px 0 6px 14px;position:relative}
+.m-wrap{position:relative;display:block;border-radius:50%}
+.m-wrap::before{
+  content:""; position:absolute; left:50%; top:50%;
+  width:230%; height:230%; transform:translate(-50%,-50%);
+  border-radius:50%; pointer-events:none; background-image:var(--halo);
+}
+.mascot{position:relative;display:block;width:44px;height:auto}
+.m-face{fill:var(--face)}
+.m-eyes{transform:translate(calc(var(--ex) * 1px),calc(var(--ey) * 1px))}
+.m-eye{
+  fill:var(--eye);
+  transform-box:fill-box; transform-origin:center;
+  transform:scaleY(calc(var(--blink) * var(--wide)));
+}
+.tb{margin:0;padding:0;list-style:none;min-height:1.6em}
+/* one line: the dot, then the text. the label is dim, the found value is
+   in the line's colour when there is something to look at. */
+.ln{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:0;padding:2px 0;overflow-wrap:anywhere;
+}
+.ln .dot{
+  flex:0 0 auto;width:8px;height:8px;border-radius:50%;
+  margin-top:.55em;background:var(--tmuted);
+}
+.ln.ok .dot{background:var(--ok)}
+.ln.warn .dot{background:var(--tw)}
+.ln.bad .dot{background:var(--tb)}
+.ln .k{color:var(--tmuted)}
+.ln.warn .v{color:var(--tw)}
+.ln.bad .v{color:var(--tb)}
+.ln.idle{color:var(--tmuted)}
+.ln.last{font-weight:700;color:#ffffff;margin-top:10px}
+.ln.last .dot{display:none}
+/* the typing caret, on while a line is being written. one per page, off
+   under reduced motion. */
+.cur{color:var(--ok);animation:cur 1.05s step-end infinite}
+@keyframes cur{50%{opacity:0}}
+
+/* the result: the summary pill and the two small controls. hidden until the
+   scan is done, then the cleaner's unfold. */
+.res{
+  display:grid; grid-template-rows:0fr; opacity:0;
+  transition:grid-template-rows .44s var(--ease),opacity .3s ease-out;
+}
+.res.on{grid-template-rows:1fr;opacity:1}
+.res.off{display:none}
+.resin{
+  overflow:hidden; display:flex; flex-direction:column; align-items:center; gap:12px;
+  transform:translateY(-10px) scale(.97);
+  transition:transform .52s var(--spring);
+}
+.res.on .resin{transform:none}
+.pill{
+  display:inline-flex;align-items:baseline;gap:8px;flex-wrap:wrap;justify-content:center;
+  margin:4px 0 0;padding:8px 16px;
+  border:1px solid var(--accent);border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);
+  font-family:var(--mono);font-size:var(--t-body);
+}
+.pill b{font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:var(--t-micro)}
+.pill span{color:var(--fg)}
+.pill.warn{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.pill.bad{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.acts{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+/* the copy pill, the cleaner's, and the small underlined link */
+.cp{
+  display:inline-flex;align-items:center;gap:6px;
+  appearance:none;cursor:pointer;font:inherit;
+  font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.1em;
+  padding:5px 10px;min-height:28px;
+  border:1px solid var(--line);border-radius:999px;
+  background:var(--bg);color:var(--muted);
+  transition:border-color .2s ease-out,color .2s ease-out,background-color .5s ease,transform .28s var(--spring);
+}
+.cp svg{width:13px;height:13px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cp:hover{border-color:var(--muted);color:var(--fg)}
+.cp:active{transform:scale(.96)}
+.lnk{
+  appearance:none;cursor:pointer;background:none;border:0;padding:8px 10px;
+  white-space:nowrap;
+  font:inherit;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.1em;
+  color:var(--muted);text-decoration:underline;text-underline-offset:4px;
+  transition:color .22s ease-out;
+}
+.lnk:hover{color:var(--fg)}
+.note{margin:4px auto 0;color:var(--muted);font-size:var(--t-micro);max-width:48ch}
+
+.foot{
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:clamp(24px,5vh,40px) 16px clamp(28px,6vh,44px);
+}
+
+/* the swap, the site's: above 560px the socials sit in the bar, centred on
+   the page, and the head gets 32px more sky; the footer keeps its lines. */
+@media (min-width:560px){
+  .bar .socials{
+    display:flex; position:absolute; top:12px; left:50%;
+    transform:translateX(-50%);
+  }
+  .foot .socials{display:none}
+  .wrap{padding-top:clamp(112px,10vh + 32px,128px)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation:none!important;
+    transition-property:background-color,border-color,color,fill!important;
+    transition-duration:.5s!important;
+  }
+  .cur{display:none}
+  .soc:hover{transform:none}
+}
+</style>
+<script>
+(function(){
+"use strict";
+var D=document, R=D.documentElement;
+
+/* ---- bootstrap: the theme lands before first paint, off the same key the
+   site uses, so a visitor who set dark on / gets dark here. ---- */
+var theme='light';
+try{
+  var ts=localStorage.getItem('bt-theme');
+  if(ts==='dark'||ts==='light') theme=ts;
+}catch(e){}
+R.setAttribute('data-theme',theme);
+R.style.colorScheme=theme;
+
+/* ---- copy. every visible string lives here, english. tools/build-langs.mjs
+   holds the same keys in ru and lv as CHECK, asserts this block against its
+   english, and writes the two other documents with this object swapped.
+   {host}, {shown}, {scheme}, {a}, {word}, {brand}, {tld}, {list}, {url},
+   {word} and {reason} are filled at runtime. ---- */
+var T={
+ "h1": "link checker",
+ "honest": "we cannot say a link is safe. we can show you what looks wrong.",
+ "ph": "paste the link here",
+ "run": "check it",
+ "idle": "paste a link above and press check it",
+ "bad_link": "i cannot read this as a link. check it and try again.",
+ "k_addr": "real address",
+ "v_addr_ok": "the link goes to {host}",
+ "v_addr_at": "the link goes to {host} but the text you pasted shows {shown}",
+ "v_addr_scheme": "this is not a normal web link, it starts with {scheme}",
+ "k_https": "https",
+ "v_https_ok": "yes, it is encrypted",
+ "v_https_no": "no, it is not encrypted",
+ "k_short": "shortener",
+ "v_short_ok": "no",
+ "v_short_no": "yes, {host} hides where it really goes",
+ "k_look": "lookalike letters",
+ "v_look_ok": "none",
+ "v_look_no": "found a letter that looks like {a} but is not, in the word {word}",
+ "v_look_mix": "found letters from two alphabets in the word {word}",
+ "k_brand": "brand copy",
+ "v_brand_ok": "none",
+ "v_brand_no": "it looks like {brand} but the real address is {host}",
+ "k_ip": "ip address",
+ "v_ip_ok": "no",
+ "v_ip_no": "yes, a number instead of a name, that is unusual",
+ "k_odd": "strange address",
+ "v_odd_ok": "ok",
+ "o_long": "very long",
+ "o_dots": "many dots",
+ "o_dash": "many dashes",
+ "o_tld": "an unusual ending like {tld}",
+ "k_lists": "known bad lists",
+ "v_lists": "not checked yet, coming soon",
+ "last": "if you did not expect this link, do not open it",
+ "s_ok": "nothing found",
+ "s_warn": "be careful",
+ "s_bad": "danger",
+ "r_ok": "nothing looks wrong here",
+ "r_addr": "the address is not what it shows",
+ "r_scheme": "this is not a normal web link",
+ "r_https": "the link is not encrypted",
+ "r_short": "the real address is hidden",
+ "r_look": "a letter in the address is fake",
+ "r_brand": "the address copies a known brand",
+ "r_ip": "a number instead of a name",
+ "r_odd": "the address looks strange",
+ "rep_link": "link: {url}",
+ "rep_sum": "result: {word}, {reason}",
+ "copy": "copy report",
+ "copied": "copied",
+ "nocopy": "could not copy",
+ "again": "check another link",
+ "noscript": "this tool runs in your browser and needs javascript on.",
+ "home": "home",
+ "th_dark": "dark mode",
+ "th_light": "light mode"
+};
+function t(k){ return T[k]; }
+function fmt(str,vars){
+  return str.replace(/\{(\w+)\}/g,function(m,k){ return vars[k]!==undefined ? vars[k] : m; });
+}
+
+/* ---- the lists. nothing here is fetched: they ship in the file. ---- */
+
+/* well known names people get sent fake copies of. the check compares the
+   registered domain's first label against these, so amazon.de and amazon.com
+   are both amazon and pass; amazon-help.co, amaz0n.com and amazon.evil.com
+   do not. short names are matched whole only, never by one letter changed. */
+var BRANDS=['google','youtube','gmail','facebook','instagram','whatsapp','apple','icloud',
+ 'microsoft','outlook','amazon','paypal','netflix','spotify','twitter','tiktok','linkedin',
+ 'telegram','dropbox','adobe','ebay','aliexpress','alibaba','booking','airbnb','uber',
+ 'coinbase','binance','revolut','steam','discord','github','zoom','chase','wellsfargo',
+ 'dhl','fedex','usps','ups','swedbank','seb','citadele','luminor','sberbank','tinkoff',
+ 'gosuslugi','yandex','wildberries','ozon','avito','omniva','latvenergo','smartid'];
+/* a word glued to a brand name that a real brand does not glue: paypalsecure,
+   amazonhelp. a brand plus any other glue, applebees, is left alone. */
+var GLUE=['secure','security','safe','safety','login','signin','logon','verify','verified',
+ 'account','accounts','update','support','help','service','services','pay','payment','bank',
+ 'wallet','auth','confirm','billing','invoice','delivery','track','tracking','parcel','gift',
+ 'promo','bonus','prize','refund','alert','online','official','app','my','web','mail','info',
+ 'center','centre','team','portal','access','recovery','unlock','claim','reward','order',
+ 'shop','store','customer','notice','check','id'];
+/* services whose whole job is to hide the address behind a short one */
+var SHORT=['bit.ly','tinyurl.com','t.co','goo.gl','ow.ly','is.gd','buff.ly','cutt.ly',
+ 'rebrand.ly','tiny.cc','shorturl.at','rb.gy','t.ly','lnkd.in','s.id','v.gd','clck.ru',
+ 'vk.cc','short.io','bl.ink','snip.ly','trib.al','dlvr.it','amzn.to','fb.me','qr.ae',
+ 'adf.ly','bc.vc','soo.gd','u.to','x.co','tr.im','urlz.fr','gg.gg','shorte.st','ouo.io',
+ 'surl.li','2u.pw','shrtco.de','tiny.one','cli.re','kutt.it'];
+/* endings that are cheap or new and turn up in scams far more than in
+   addresses a person would type on purpose */
+var ODD_TLD=['zip','mov','top','xyz','tk','ml','ga','cf','gq','icu','click','link','work',
+ 'rest','fit','buzz','cam','monster','quest','sbs','cfd','bond','lol','pw','cc','su','ws',
+ 'biz','cyou','loan','win','party','date','racing','review','stream','download','men','gdn',
+ 'bid','trade','science','faith','cricket','accountant','webcam','country','kim','xin',
+ 'wang','ren','host'];
+/* endings that take two labels, so the registered domain is three deep */
+var TWO=['co.uk','org.uk','ac.uk','gov.uk','me.uk','ltd.uk','com.au','net.au','org.au',
+ 'co.nz','co.jp','ne.jp','or.jp','com.br','com.mx','com.ar','com.co','com.tr','co.za',
+ 'co.in','co.kr','com.cn','com.hk','com.tw','com.sg','com.my','co.id','com.ph','com.vn',
+ 'com.ua','in.ua','org.ru','net.ru','spb.ru','msk.ru','com.pl','co.il','com.eg','com.sa',
+ 'com.pk','com.bd','com.ng','co.ke','com.pe','com.ve','com.ec','com.uy','co.th'];
+/* letters from other alphabets that look like a latin letter on a screen,
+   each with the latin letter it passes for. cyrillic and greek carry most of
+   it; a few latin extras and the full width forms finish the list. */
+var LOOK={
+ 'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x',
+ 'і':'i','ј':'j','ѕ':'s','һ':'h','ԁ':'d','ԛ':'q','ԝ':'w',
+ 'ѵ':'v','ӏ':'l','ѡ':'w','є':'e','б':'b','к':'k','н':'h',
+ 'м':'m','т':'t','г':'r',
+ 'α':'a','ο':'o','ν':'v','ρ':'p','τ':'t','ι':'i','κ':'k',
+ 'χ':'x','υ':'u','η':'n','ϲ':'c','ε':'e','γ':'y','ω':'w',
+ 'ı':'i','ł':'l','ɡ':'g','ɩ':'i','ʀ':'r','ẟ':'d','ȷ':'j',
+ 'ð':'o','ĸ':'k','ᴏ':'o','ɪ':'i','ʙ':'b','ᴄ':'c','ᴇ':'e',
+ 'ａ':'a','ｂ':'b','ｃ':'c','ｄ':'d','ｅ':'e','ｆ':'f','ｇ':'g',
+ 'ｈ':'h','ｉ':'i','ｊ':'j','ｋ':'k','ｌ':'l','ｍ':'m','ｎ':'n',
+ 'ｏ':'o','ｐ':'p','ｑ':'q','ｒ':'r','ｓ':'s','ｔ':'t','ｕ':'u',
+ 'ｖ':'v','ｗ':'w','ｘ':'x','ｙ':'y','ｚ':'z'
+};
+
+/* ---- punycode, decode only. `new URL` turns a typed host into its xn--
+   form; this turns it back so the letter can be named and shown. rfc 3492,
+   the reference algorithm as written, no extras. ---- */
+function puny(s){
+  var n=128, i=0, bias=72, out=[], b=s.lastIndexOf('-'), j;
+  if(b>0) for(j=0;j<b;j++) out.push(s.charCodeAt(j));
+  for(var idx=b>0?b+1:0; idx<s.length;){
+    var oldi=i, w=1, k=36;
+    for(;;k+=36){
+      if(idx>=s.length) throw new Error('puny');
+      var c=s.charCodeAt(idx++);
+      var d=c-48<10 ? c-22 : c-65<26 ? c-65 : c-97<26 ? c-97 : 36;
+      if(d>=36) throw new Error('puny');
+      i+=d*w;
+      var th=k<=bias ? 1 : k>=bias+26 ? 26 : k-bias;
+      if(d<th) break;
+      w*=36-th;
+    }
+    var len=out.length+1;
+    var delta=i-oldi;
+    delta = oldi===0 ? Math.floor(delta/700) : delta>>1;
+    delta += Math.floor(delta/len);
+    var kk=0;
+    while(delta>455){ delta=Math.floor(delta/35); kk+=36; }
+    bias = kk+Math.floor(36*delta/(delta+38));
+    n += Math.floor(i/len); i %= len;
+    out.splice(i++,0,n);
+  }
+  return String.fromCodePoint.apply(null,out);
+}
+function unHost(host){
+  return host.split('.').map(function(l){
+    if(l.slice(0,4)!=='xn--') return l;
+    try{ return puny(l.slice(4)); }catch(e){ return l; }
+  }).join('.');
+}
+
+/* ---- the checks. each returns {level, key, value}: level 0 is green,
+   1 is yellow, 2 is red, -1 is grey and counts for nothing. ---- */
+function script(ch){
+  var c=ch.charCodeAt(0);
+  if((c>=97&&c<=122)||(c>=65&&c<=90)) return 'latin';
+  if(c>=0x0400&&c<=0x052F) return 'cyr';
+  if(c>=0x0370&&c<=0x03FF) return 'greek';
+  if(c>=0x00C0&&c<=0x024F) return 'latin';
+  if(c>=0x1E00&&c<=0x1EFF) return 'latin';
+  if(c>=0xFF21&&c<=0xFF5A) return 'wide';
+  if(c>=48&&c<=57) return '';
+  if(c===45) return '';
+  return 'other';
+}
+function toLatin(label){
+  var s='';
+  for(var i=0;i<label.length;i++){ var ch=label[i]; s+=LOOK[ch]||ch; }
+  return s;
+}
+function lookalike(uhost){
+  var labels=uhost.split('.');
+  for(var i=0;i<labels.length;i++){
+    var l=labels[i], seen={}, hit=null, ascii=false;
+    for(var j=0;j<l.length;j++){
+      var ch=l[j], sc=script(ch);
+      if(sc) seen[sc]=true;
+      if(ch.charCodeAt(0)<128&&sc==='latin') ascii=true;
+      if(LOOK[ch]&&!hit) hit=ch;
+    }
+    var kinds=Object.keys(seen).length;
+    if(hit&&ascii) return {level:2,key:'v_look_no',vars:{a:LOOK[hit],word:l}};
+    if(kinds>1) return hit ? {level:2,key:'v_look_no',vars:{a:LOOK[hit],word:l}}
+                           : {level:2,key:'v_look_mix',vars:{word:l}};
+  }
+  return {level:0,key:'v_look_ok',vars:{}};
+}
+function isIp(host){
+  if(host.charAt(0)==='[') return true;
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
+}
+function regDomain(host){
+  var p=host.split('.');
+  if(p.length<2) return {reg:host,sld:host,subs:[]};
+  var two=p.slice(-2).join('.');
+  var n = TWO.indexOf(two)>=0 && p.length>=3 ? 3 : 2;
+  return {reg:p.slice(-n).join('.'), sld:p[p.length-n], subs:p.slice(0,p.length-n)};
+}
+function edit1(a,b){
+  if(a===b) return false;
+  var la=a.length, lb=b.length;
+  if(Math.abs(la-lb)>1) return false;
+  var i=0, j=0, diff=0;
+  while(i<la&&j<lb){
+    if(a[i]===b[j]){ i++; j++; continue; }
+    if(++diff>1) return false;
+    if(la>lb) i++; else if(lb>la) j++; else { i++; j++; }
+  }
+  if(i<la||j<lb) diff++;
+  if(diff===1) return true;
+  /* two letters swapped */
+  if(la===lb){
+    var k=[]; for(i=0;i<la;i++) if(a[i]!==b[i]) k.push(i);
+    return k.length===2&&k[1]===k[0]+1&&a[k[0]]===b[k[1]]&&a[k[1]]===b[k[0]];
+  }
+  return false;
+}
+function brandCopy(host,seen){
+  /* `host` is where the link really goes; `seen` is the same host with every
+     lookalike letter read as the latin one it passes for. when the two are
+     the same domain the brand is the brand; when they are not, the letters
+     spell a brand the address is not. */
+  var rd=regDomain(host), sd=regDomain(seen), sld=sd.sld, i, b;
+  if(BRANDS.indexOf(sld)>=0) return sd.reg===rd.reg ? {level:0,key:'v_brand_ok',vars:{}} : hit(sld);
+  var tokens=sld.split('-');
+  for(i=0;i<BRANDS.length;i++){
+    b=BRANDS[i];
+    /* the brand as its own word among dashes: amazon-help */
+    if(tokens.length>1&&tokens.indexOf(b)>=0) return hit(b);
+    /* the brand as a subdomain of something else: paypal.evil.com */
+    for(var s=0;s<sd.subs.length;s++){
+      var st=sd.subs[s].split('-');
+      if(sd.subs[s]===b||(st.length>1&&st.indexOf(b)>=0)) return hit(b);
+    }
+    /* the brand glued to a word that a real brand does not glue */
+    if(sld.length>b.length&&(sld.indexOf(b)===0||sld.indexOf(b)===sld.length-b.length)){
+      var rest = sld.indexOf(b)===0 ? sld.slice(b.length) : sld.slice(0,sld.length-b.length);
+      if(GLUE.indexOf(rest)>=0) return hit(b);
+    }
+    /* one letter changed, or digits standing in for letters: g00gle, paypa1 */
+    if(edit1(sld,b)&&(b.length>=6||/\d/.test(sld))) return hit(b);
+    if(/\d/.test(sld)&&b.length>=5){
+      var dg=sld.replace(/[0134578]/g,function(d){ return {'0':'o','1':'l','3':'e','4':'a','5':'s','7':'t','8':'b'}[d]; });
+      if(dg===b||(edit1(dg,b)&&b.length>=6)) return hit(b);
+    }
+  }
+  return {level:0,key:'v_brand_ok',vars:{}};
+  function hit(brand){ return {level:2,key:'v_brand_no',vars:{brand:brand,host:rd.reg}}; }
+}
+function strange(url,uhost){
+  var list=[];
+  if(url.length>75) list.push(t('o_long'));
+  if((uhost.match(/\./g)||[]).length>4) list.push(t('o_dots'));
+  if((uhost.match(/-/g)||[]).length>2) list.push(t('o_dash'));
+  var tld=uhost.split('.').pop();
+  if(ODD_TLD.indexOf(tld)>=0) list.push(fmt(t('o_tld'),{tld:'.'+tld}));
+  if(!list.length) return {level:0,key:'v_odd_ok',vars:{}};
+  return {level:1,key:'v_odd_no',text:list.join(', ')};
+}
+
+/* pull one address out of whatever was pasted: the first word that looks
+   like one, the brackets and quotes around it dropped, https added when no
+   scheme was typed. a bare word with a colon in it is not a scheme. */
+function parse(raw){
+  var s=(raw||'').trim();
+  if(!s) return null;
+  var words=s.split(/\s+/), pick=words[0];
+  for(var i=0;i<words.length;i++){
+    if(/:\/\//.test(words[i])||/\./.test(words[i])){ pick=words[i]; break; }
+  }
+  pick=pick.replace(/^[<("'“‘\[]+|[>)"'”’\].,;!?]+$/g,'');
+  if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(pick)&&!/^(mailto|javascript|data|tel|file|sms):/i.test(pick)){
+    /* a word with no dot in it is a word, not an address */
+    if(!/\.|^\[|^localhost(:|\/|$)/i.test(pick)) return null;
+    pick='https://'+pick;
+  }
+  try{
+    var u=new URL(pick);
+    return {u:u, text:pick};
+  }catch(e){ return null; }
+}
+function check(raw){
+  var p=parse(raw);
+  if(!p) return null;
+  var u=p.u, out=[], host=u.hostname, uhost=unHost(host);
+  var web = u.protocol==='http:'||u.protocol==='https:';
+  if(!web){
+    out.push({level:2,k:'k_addr',key:'v_addr_scheme',vars:{scheme:u.protocol},reason:'r_scheme'});
+    return {lines:out, level:2, url:p.text};
+  }
+  /* the address: the unicode host when every label is one alphabet, the
+     xn-- form when it is not, because that is what the browser will show. */
+  var look=lookalike(uhost);
+  var shown = look.level ? host : uhost;
+  var shows = u.username ? decodeURIComponent(u.username)+(u.password?':'+decodeURIComponent(u.password):'') : '';
+  if(shows) out.push({level:2,k:'k_addr',key:'v_addr_at',vars:{host:shown,shown:shows},reason:'r_addr'});
+  else out.push({level:0,k:'k_addr',key:'v_addr_ok',vars:{host:shown}});
+  if(u.protocol==='https:') out.push({level:0,k:'k_https',key:'v_https_ok',vars:{}});
+  else out.push({level:1,k:'k_https',key:'v_https_no',vars:{},reason:'r_https'});
+  var rd=regDomain(host);
+  if(SHORT.indexOf(rd.reg)>=0||SHORT.indexOf(host)>=0) out.push({level:1,k:'k_short',key:'v_short_no',vars:{host:rd.reg},reason:'r_short'});
+  else out.push({level:0,k:'k_short',key:'v_short_ok',vars:{}});
+  out.push({level:look.level,k:'k_look',key:look.key,vars:look.vars,reason:'r_look'});
+  var ip=isIp(host);
+  var brand = ip ? {level:0,key:'v_brand_ok',vars:{}} : brandCopy(host,toLatin(uhost));
+  out.push({level:brand.level,k:'k_brand',key:brand.key,vars:brand.vars,reason:'r_brand'});
+  if(ip) out.push({level:1,k:'k_ip',key:'v_ip_no',vars:{},reason:'r_ip'});
+  else out.push({level:0,k:'k_ip',key:'v_ip_ok',vars:{}});
+  var odd=strange(p.text,uhost);
+  out.push({level:odd.level,k:'k_odd',key:odd.key,vars:odd.vars,text:odd.text,reason:'r_odd'});
+  out.push({level:-1,k:'k_lists',key:'v_lists',vars:{}});
+  var level=0;
+  for(var i=0;i<out.length;i++) if(out[i].level>level) level=out[i].level;
+  return {lines:out, level:level, url:p.text};
+}
+
+function boot(){
+var REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+var form=D.querySelector('.ask');
+var inEl=D.querySelector('.in');
+var term=D.querySelector('.term');
+var tb=D.querySelector('.tb');
+var mascot=D.querySelector('.mascot');
+var res=D.querySelector('.res');
+var pill=D.querySelector('.pill');
+var pillWord=pill.querySelector('b');
+var pillWhy=pill.querySelector('span');
+var cpBtn=D.querySelector('.cp');
+var cpTxt=cpBtn.querySelector('span');
+var again=D.querySelector('.again');
+var live=D.querySelector('.live');
+var themeBtn=D.querySelector('.theme');
+var metaColor=D.querySelector('meta[name=theme-color]');
+var report='';
+var cpTimer=0;
+var run=0;
+
+/* ---------- theme ---------- */
+function setTheme(v){
+  theme=v;
+  R.setAttribute('data-theme',v);
+  R.style.colorScheme=v;
+  metaColor.setAttribute('content', v==='dark' ? '#06070a' : '#ffffff');
+  themeBtn.setAttribute('aria-label', v==='dark' ? t('th_light') : t('th_dark'));
+  try{ localStorage.setItem('bt-theme',v); }catch(e){}
+}
+themeBtn.addEventListener('click',function(){ setTheme(theme==='dark'?'light':'dark'); });
+setTheme(theme);
+/* the build paints these once per document; this is the same paint at runtime,
+   so the page and its script can never disagree about a string. */
+(function(){
+  var keyed=D.querySelectorAll('[data-k]'),n;
+  for(n=0;n<keyed.length;n++) keyed[n].textContent=t(keyed[n].getAttribute('data-k'));
+})();
+inEl.setAttribute('placeholder',t('ph'));
+
+/* ---------- mascot: blink, the site's numbers, and eyes that follow the
+   line being typed rather than the pointer. calm between scans. ---------- */
+var EX=6, EY=3.8, REACH=90, EASE=.22;
+var ex=0, ey=0, aimX=0, aimY=0, lastEx=-9, lastEy=-9;
+var LID=.06, CLOSE=95, HOLD=45, OPEN=140;
+var blink={at:0,phase:0,t0:0,again:false,last:-1};
+function put(v){
+  if(v===blink.last) return;
+  blink.last=v;
+  mascot.style.setProperty('--blink',v.toFixed(3));
+}
+function blinkStep(now){
+  var b=blink;
+  if(!b.at) b.at=now+800+Math.random()*1600;
+  if(b.phase===0){
+    if(now<b.at) return;
+    b.phase=1; b.t0=now;
+    b.again=Math.random()<.22;
+  }
+  var d=now-b.t0;
+  if(b.phase===1){
+    if(d>=CLOSE){ b.phase=2; b.t0=now; put(LID); }
+    else { var p=d/CLOSE; put(1-(1-LID)*p*p); }
+  }else if(b.phase===2){
+    if(d>=HOLD){ b.phase=3; b.t0=now; }
+    put(LID);
+  }else{
+    if(d>=OPEN){
+      b.phase=0; put(1);
+      b.at = b.again ? (b.again=false, now+90+Math.random()*70)
+                     : now+3000+Math.random()*2000;
+    }else{ var q=d/OPEN; put(LID+(1-LID)*(1-(1-q)*(1-q))); }
+  }
+}
+function lookAt(el){
+  if(!el){ aimX=aimY=0; return; }
+  var m=mascot.getBoundingClientRect(), r=el.getBoundingClientRect();
+  var ecx=m.left+m.width/2, ecy=m.top+m.height/2;
+  var edx=(r.left+r.width/2)-ecx, edy=(r.top+r.height/2)-ecy;
+  var ed=Math.hypot(edx,edy)||1;
+  var g=Math.min(1,ed/REACH);
+  aimX=(edx/ed)*g*EX;
+  aimY=(edy/ed)*g*EY;
+}
+function frame(now){
+  blinkStep(now);
+  ex+=(aimX-ex)*EASE; ey+=(aimY-ey)*EASE;
+  if(Math.abs(ex-lastEx)>.02||Math.abs(ey-lastEy)>.02){
+    lastEx=ex; lastEy=ey;
+    mascot.style.setProperty('--ex',ex.toFixed(2));
+    mascot.style.setProperty('--ey',ey.toFixed(2));
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- helpers ---------- */
+function el(tag,cls,txt){
+  var n=D.createElement(tag);
+  if(cls) n.className=cls;
+  if(txt!==undefined) n.textContent=txt;
+  return n;
+}
+function wait(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+function levelCls(l){ return l===2 ? 'bad' : l===1 ? 'warn' : l===0 ? 'ok' : ''; }
+function lineText(ln){
+  var v = ln.text!==undefined ? ln.text : fmt(t(ln.key),ln.vars||{});
+  return {k:t(ln.k), v:v};
+}
+
+/* ---------- the scan: one line every 0.25s, each typed in over a fifth of
+   a second, the dot first. the mascot's eyes ride the caret. under reduced
+   motion the lines are simply there. ---------- */
+function clearTerm(){
+  while(tb.firstChild) tb.removeChild(tb.firstChild);
+}
+function makeLine(cls){
+  var li=el('li','ln '+cls);
+  li.appendChild(el('i','dot'));
+  var s=el('span','tx');
+  li.appendChild(s);
+  tb.appendChild(li);
+  return li;
+}
+function finishLine(li,parts){
+  var s=li.querySelector('.tx');
+  s.textContent='';
+  if(parts.k){
+    s.appendChild(el('span','k',parts.k));
+    s.appendChild(D.createTextNode(', '));
+  }
+  s.appendChild(el('span','v',parts.v));
+}
+function typeLine(li,full,myRun){
+  return new Promise(function(done){
+    var s=li.querySelector('.tx');
+    var cur=el('i','cur','▊');
+    var n=full.length, i=0;
+    var per=Math.max(4,Math.min(12,200/Math.max(1,n)));
+    s.textContent='';
+    s.appendChild(cur);
+    lookAt(cur);
+    function step(){
+      if(myRun!==run) return;
+      i=Math.min(n,i+1);
+      s.textContent=full.slice(0,i);
+      if(i<n){ s.appendChild(cur); lookAt(cur); setTimeout(step,per); }
+      else done();
+    }
+    setTimeout(step,per);
+  });
+}
+async function scan(result){
+  var myRun=++run;
+  clearTerm();
+  res.classList.remove('on');
+  res.classList.add('off');
+  var lines=result.lines, i, li, parts, full, rows=[];
+  for(i=0;i<lines.length;i++){
+    if(myRun!==run) return;
+    parts=lineText(lines[i]);
+    full=parts.k+', '+parts.v;
+    rows.push('• '+full);
+    li=makeLine(levelCls(lines[i].level));
+    if(REDUCED){ finishLine(li,parts); continue; }
+    var t0=performance.now();
+    await typeLine(li,full,myRun);
+    if(myRun!==run) return;
+    finishLine(li,parts);
+    var left=250-(performance.now()-t0);
+    if(left>0) await wait(left);
+  }
+  if(myRun!==run) return;
+  li=makeLine('last');
+  var last=t('last');
+  rows.push(last);
+  if(REDUCED) li.querySelector('.tx').textContent=last;
+  else { await typeLine(li,last,myRun); if(myRun!==run) return; li.querySelector('.tx').textContent=last; }
+  /* the eyes rest on the last line a beat, then come back to calm */
+  setTimeout(function(){ if(myRun===run) lookAt(null); },900);
+  /* the summary: any red line is danger, any yellow is be careful, else
+     nothing found. the reason is the first line that set the level. */
+  var word, why, cls;
+  if(result.level===2){ word=t('s_bad'); cls='bad'; }
+  else if(result.level===1){ word=t('s_warn'); cls='warn'; }
+  else { word=t('s_ok'); cls='ok'; }
+  why=t('r_ok');
+  if(result.level>0) for(i=0;i<lines.length;i++) if(lines[i].level===result.level&&lines[i].reason){ why=t(lines[i].reason); break; }
+  pill.className='pill '+cls;
+  pillWord.textContent=word;
+  pillWhy.textContent=why;
+  report=fmt(t('rep_link'),{url:result.url})+'\n'+rows.join('\n')+'\n'+fmt(t('rep_sum'),{word:word,reason:why})+'\n';
+  live.textContent=report;
+  res.classList.remove('off');
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ res.classList.add('on'); }); });
+}
+function idle(){
+  run++;
+  clearTerm();
+  var li=makeLine('idle');
+  li.querySelector('.tx').textContent=t('idle');
+  res.classList.remove('on');
+  res.classList.add('off');
+  report='';
+  live.textContent='';
+  lookAt(null);
+}
+function bad(){
+  run++;
+  clearTerm();
+  var li=makeLine('bad');
+  li.querySelector('.tx').textContent=t('bad_link');
+  res.classList.remove('on');
+  res.classList.add('off');
+  report='';
+  live.textContent=t('bad_link');
+  lookAt(null);
+}
+
+/* ---------- the press. enter in the field is the same press. ---------- */
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  var r=check(inEl.value);
+  if(!r){ if(inEl.value.trim()) bad(); else idle(); return; }
+  scan(r);
+});
+again.addEventListener('click',function(){
+  inEl.value='';
+  idle();
+  inEl.focus();
+});
+
+/* ---------- copy the report as plain text ---------- */
+function copied(ok){
+  cpTxt.textContent=t(ok?'copied':'nocopy');
+  clearTimeout(cpTimer);
+  cpTimer=setTimeout(function(){ cpTxt.textContent=t('copy'); },1400);
+}
+cpBtn.addEventListener('click',function(){
+  if(!report) return;
+  var p = navigator.clipboard&&navigator.clipboard.writeText ? navigator.clipboard.writeText(report) : Promise.reject();
+  p.then(function(){ copied(true); },function(){
+    var ta=el('textarea'); ta.value=report; ta.setAttribute('readonly','');
+    ta.style.position='fixed'; ta.style.opacity='0';
+    D.body.appendChild(ta); ta.select();
+    var ok=false; try{ ok=D.execCommand('copy'); }catch(e){}
+    D.body.removeChild(ta);
+    copied(ok);
+  });
+});
+
+idle();
+}
+
+if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',boot);
+else boot();
+})();
+</script>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></symbol>
+  <symbol id="i-youtube" viewBox="0 0 24 24"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z"/><path d="M10 9l5 3l-5 3z"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M16.5 7.5v.01"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"/></symbol>
+</defs></svg>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <div class="left">
+    <nav class="langs" aria-label="language">
+      <a class="lang" href="/tools/check/" aria-current="true">EN</a>
+      <a class="lang" href="/ru/tools/check/">RU</a>
+      <a class="lang" href="/lv/tools/check/">LV</a>
+    </nav>
+    <a class="lang more" href="/" data-k="home">home</a>
+  </div>
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+  <button class="theme" type="button" aria-label="dark mode">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg>
+  </button>
+</header>
+
+<main class="wrap">
+ <div class="col">
+  <h1 class="cl" data-k="h1">link checker</h1>
+  <p class="honest" data-k="honest">we cannot say a link is safe. we can show you what looks wrong.</p>
+
+  <form class="ask" autocomplete="off">
+    <label class="sr" for="link" data-k="ph">paste the link here</label>
+    <input class="in" id="link" type="text" inputmode="url" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="paste the link here">
+    <button class="btn" type="submit" data-k="run">check it</button>
+  </form>
+
+  <section class="term" aria-label="result">
+    <div class="m-zone" aria-hidden="true">
+      <div class="m-wrap">
+        <svg class="mascot" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
+          <circle class="m-face" cx="32" cy="32" r="30"/>
+          <g class="m-eyes">
+            <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
+            <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <ul class="tb" aria-hidden="true"></ul>
+    <p class="sr live" aria-live="polite"></p>
+  </section>
+
+  <div class="res off">
+    <div class="resin">
+      <p class="pill ok"><b></b><span></span></p>
+      <div class="acts">
+        <button class="cp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></svg><span data-k="copy">copy report</span></button>
+        <button class="again lnk" type="button" data-k="again">check another link</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p class="note" data-k="noscript">this tool runs in your browser and needs javascript on.</p></noscript>
+ </div>
+</main>
+
+<footer class="foot">
+  <nav class="socials" aria-label="socials">
+    <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://x.com/boringtek" target="_blank" rel="noopener" aria-label="x"><svg aria-hidden="true"><use href="#i-x"/></svg></a>
+    <a class="soc" href="https://www.youtube.com/@boringtek" target="_blank" rel="noopener" aria-label="youtube"><svg aria-hidden="true"><use href="#i-youtube"/></svg></a>
+    <a class="soc" href="https://www.tiktok.com/@boringtek" target="_blank" rel="noopener" aria-label="tiktok"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
+    <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
+  </nav>
+</footer>
+</body>
+</html>
