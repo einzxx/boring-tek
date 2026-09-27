@@ -6,6 +6,56 @@ names in here either.
 
 ## Status
 
+- **2026-09-28, SESSION CLOSE. post38 is final and pushed: no thanks, i use
+  ai, 6.73s, two elevenlabs voices and nothing else on the bus.**
+  `demo/post38.mjs`, dark only, 60fps, the shutter open at nine subframes
+  (solved off the pop). Out to `demo/out/post38-dark-1080x1920.mp4`, three
+  stills in `demo/out/verify-post38/`. Write up is **The thirty eighth
+  clip** in `demo/README.md`. **Three fix rounds, and round two rebuilt the
+  story from scratch.** Pushed with it: `demo/lib/voice.mjs` (the third
+  voice slot), `demo/assets/brain-plate.png` and its `.gitignore` negation.
+  Left uncommitted, on instruction, as before: the skills/ working tree
+  changes, the two clap svgs. **Also still untracked and not part of this
+  push:** `demo/post33.mjs` (still not asked about), and this session's
+  research and test work: `demo/hf/` (the hyperframes trial),
+  `demo/lib/motion.mjs`, `demo/lib/scene3d.mjs`, `demo/motion-test.mjs`,
+  `demo/motion-test2.mjs`. post38 does not import any of them: its two
+  curves are the site's own, written into the file.
+
+  **What a later session needs and cannot get from the code:**
+  - **There is a third elevenlabs voice, `human`.** A premade voice (will,
+    relaxed and chill), picked for a casual, slightly lazy customer line.
+    Its id is `ELEVENLABS_VOICE_ID_HUMAN` in `demo/.env`, never in a tracked
+    file, and the slot is `character: true` so nothing narrates in it. The
+    mascot's lines in post38 are the **narrator** voice, not the mascot
+    clone, because the brief said so.
+  - **The stop hand is `demo/assets/hands/wave.svg` through the rig's own
+    `wave` pose, held.** The brief asked for a hello hand png; none exists
+    and Einz said use the svg. The pose's pop is the spring; from its
+    settled frame to the cut the whole glove pair is pinned to that frame,
+    so the five wrist rocks and the exit never play. A guard compares every
+    frame. From the lift to the cut the lids are written too, open but for
+    the one blink: no seed leaves 2.6s free of the module's idle blinks.
+  - **The phone message sits 40 css px under the plate, centred, and is
+    only 19.4 css px (39 device px) clear of the bottom 300 device px** where
+    tiktok and shorts put captions and buttons. Einz asked for the 40; more
+    clearance means a smaller gap or moving the plate and him up.
+  - **The bus is -14 by ffmpeg's loudnorm, not by the limiter alone.** Two
+    dry reads could not reach -14 inside the limiter's reduction cap (round
+    one sat at -17.2). The limiter runs first, then a measured two pass
+    loudnorm aimed half a unit high because the aac encode loses that much.
+    The mp4 measures -14.4; the guard allows half a unit.
+  - **Rounds one and two built things that are gone and should stay gone:**
+    the eating of the brain, an empty plate cut out of the photo by colour
+    and refilled from the dish's own pixels, a text card, a thanks line, a
+    nudge with a zoom punch. Einz asked for the simple story instead.
+
+  **open, next:** post the video (Einz adds the sounds); post33's commit;
+  the price list and the pinned tweet for the video work; crypto fun, four
+  characters; the dark poster; part two of the site video; the hand sheet;
+  product one; the known bad lists worker for the checker; whether any of
+  the motion kit, scene3d or the hyperframes trial goes up.
+
 - **2026-09-27, SESSION CLOSE. post37 is final and pushed: what should we
   make next, 14.13s, the elevenlabs narrator, ticks and a sputter under it.**
   `demo/post37.mjs`, dark only, 60fps, the shutter open at five subframes

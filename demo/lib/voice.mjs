@@ -70,8 +70,9 @@ const DEMO = path.resolve(HERE, '..');
 export const VOICE_OUT = path.join(DEMO, 'out', 'voice');
 
 /* ---------- demo/.env ----------
-   three keys live here and none of them is ever printed: ELEVENLABS_API_KEY,
-   ELEVENLABS_VOICE_ID and ELEVENLABS_VOICE_ID_MASCOT. the file is covered by
+   four keys live here and none of them is ever printed: ELEVENLABS_API_KEY,
+   ELEVENLABS_VOICE_ID, ELEVENLABS_VOICE_ID_MASCOT and, since post38,
+   ELEVENLABS_VOICE_ID_HUMAN. the file is covered by
    the root `.gitignore`'s bare
    `.env` line, which matches at any depth, so demo/.env needs no rule of its
    own — `git check-ignore -v demo/.env` says so.
@@ -112,6 +113,10 @@ const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || ENV.ELEVENLABS_API_KEY || '
 const ELEVEN_IDS = {
   narrator: process.env.ELEVENLABS_VOICE_ID || ENV.ELEVENLABS_VOICE_ID || '',
   mascot: process.env.ELEVENLABS_VOICE_ID_MASCOT || ENV.ELEVENLABS_VOICE_ID_MASCOT || '',
+  /* a third person: somebody who is neither the agency nor the mascot, for a
+     line a customer says. added for post38. a premade elevenlabs voice, but it
+     lives in .env with the other two anyway, so no id is ever in a tracked file. */
+  human: process.env.ELEVENLABS_VOICE_ID_HUMAN || ENV.ELEVENLABS_VOICE_ID_HUMAN || '',
 };
 
 /* the key must not reach a terminal, a sidecar or a stack trace. an http error
@@ -138,7 +143,7 @@ export function elevenReady(which = 'narrator') {
   if ((ELEVEN_KEY || id) && !warnedHalf.has(which)) {
     warnedHalf.add(which);
     console.error('  demo/.env carries only half of elevenlabs\' ' + which + ' — '
-      + (ELEVEN_KEY ? (which === 'mascot' ? 'ELEVENLABS_VOICE_ID_MASCOT' : 'ELEVENLABS_VOICE_ID')
+      + (ELEVEN_KEY ? ({ mascot: 'ELEVENLABS_VOICE_ID_MASCOT', human: 'ELEVENLABS_VOICE_ID_HUMAN' }[which] || 'ELEVENLABS_VOICE_ID')
         : 'ELEVENLABS_API_KEY')
       + ' is empty. reading with edge instead.');
   }
@@ -264,6 +269,19 @@ export const VOICES = {
     note: 'the mascot, and the only slot with a voice id of its own. he is a '
       + 'character in the film rather than somebody reading over it, so he is a '
       + 'second clone rather than the narrator in a different mood.',
+  },
+  /* **the human**, added for post38: a person on the other side of the
+     screen, casual and a little lazy, saying the thing the clip is about.
+     a premade elevenlabs voice (will, relaxed and chill) rather than a clone,
+     because he is nobody in particular. stability low so the read slouches a
+     bit; style 0 all the same, the brand is still deadpan. `character: true`
+     keeps him out of NARRATORS: nothing may narrate a clip in his voice. */
+  human: {
+    id: 'en-US-GuyNeural', rate: '0%', pitch: '+0Hz', character: true,
+    elevenId: 'human',
+    eleven: { stability: 0.30, similarity: 0.75, style: 0, speakerBoost: true },
+    note: 'somebody who is not the agency and not the mascot. a premade voice, '
+      + 'casual and a bit lazy, for one line a customer would say.',
   },
 };
 export const DEFAULT_VOICE = 'calm';

@@ -8274,6 +8274,71 @@ The tick recipe itself never moved — it is already three milliseconds of band
 passed noise and a short pulse with no body under it, over in a thirtieth of a
 second, which is a dry click by construction rather than a hiss.
 
+## The thirty eighth clip — no thanks, i use ai
+
+```
+cd demo
+node post38.mjs                 # 1080x1920, 60fps, the shutter open, solved (the final)
+DEMO_FPS=12 node post38.mjs     # the fast preview pass
+node post38.mjs --no-blur       # shutter closed
+node post38.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post38.mjs`, dark only, **6.73 seconds**,
+60fps, the shutter open at nine subframes (solved off the pop). Two lines on
+elevenlabs and nothing else on the bus: Einz puts the rest of the sound on
+himself, and the file prints the moments a sound would want. Out to
+`demo/out/post38-dark-1080x1920.mp4`, three stills in
+`demo/out/verify-post38/`.
+
+He pops up to the middle of the frame. A brain on a plate slides up from the
+bottom and stops under him, and a grey phone message pops under the plate
+with a small label, `you`: `here is a brain for you.`, read by somebody who
+is not us. On the last word he lifts one glove beside his face, palm out,
+and holds it there. His bubble and the narrator say `no thanks, i use ai.`
+The hand stays up a beat, he blinks once, the glitch takes it and the
+wordmark holds.
+
+### Three people's worth of voices, and the third is premade
+
+The human line is a third elevenlabs id, `human` in `lib/voice.mjs`, a
+premade voice (will, relaxed and chill) picked for casual and a little
+lazy. It is a premade rather than a clone because he is nobody in
+particular. The id lives in `demo/.env` as `ELEVENLABS_VOICE_ID_HUMAN` like
+the other two, is redacted like them, and the slot is `character: true` so
+nothing can narrate a clip in it. His own line is the narrator's voice, as
+the brief asked. No edge fallback: a failed call or a take from anywhere but
+elevenlabs stops the file.
+
+### The stop is the wave glove, held still
+
+`demo/assets/hands/wave.svg`, which the rig already draws as its `wave`
+pose. The pose's own entrance is the lift, and its pop is the small spring.
+Everything the pose does after it lands, five rocks at the wrist and an
+exit, is taken off: from the settled frame to the cut the glove pair is that
+frame's, and a guard compares every frame of the hold. The rig's idle blinks
+are written out over the same stretch, so the one blink in the held beat is
+the only one there.
+
+### The plate is the photo, and the message keeps out of the app's way
+
+`demo/assets/brain-plate.png` is an image layer, shipped with the clip
+(its `.gitignore` negation says why), and the file stops if it is missing
+rather than drawing a brain. The message's top sits 40 css px under the
+plate, centred, and a guard keeps its bottom above the last 300 device px,
+where tiktok and shorts put captions and buttons. It clears that line by
+39 device px.
+
+### The clock is the read's, and the bus is -14
+
+Past the pop and the plate, every beat hangs off where a line starts or
+stops: the message on the frame the plate stops, the glove on the human's
+last word, his bubble when the glove lands, a 0.45s held beat after it, then
+the glitch. The bus is two dry reads, placed, through the house limiter and
+then a measured two pass `loudnorm` to -14, aimed half a unit high because
+the aac encode loses that much. The mp4 measures -14.4 LUFS integrated with
+a -1.5 true peak, and a guard fails anything outside half a unit.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

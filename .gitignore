@@ -51,6 +51,10 @@ demo/assets/*
 # (2026-09-21) so the tile is the mark on a fresh clone rather than its text
 # fallback. the claude and chatgpt marks beside it stay ignored as before.
 !demo/assets/logo-xai.png
+# and the brain on a plate post38 is built on, asked to ship with the clip
+# (2026-09-28) so the clip renders from a fresh clone. the clip reads it as an
+# image layer and stops if it is missing rather than drawing a brain.
+!demo/assets/brain-plate.png
 
 # format breakdowns of other people's clips. the notes are ours but the thing
 # they are about is not, and neither is the media they were read from. the
