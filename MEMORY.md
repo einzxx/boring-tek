@@ -6,6 +6,63 @@ names in here either.
 
 ## Status
 
+- **2026-09-27, SESSION CLOSE. post37 is final and pushed: what should we
+  make next, 14.13s, the elevenlabs narrator, ticks and a sputter under it.**
+  `demo/post37.mjs`, dark only, 60fps, the shutter open at five subframes
+  (solved off the pop, 47.76 css px a frame). Out to
+  `demo/out/post37-dark-1080x1920.mp4`, four stills in
+  `demo/out/verify-post37/`. Write up is **The thirty seventh clip** in
+  `demo/README.md`. **Three fix rounds, and round two threw away most of
+  round one.** Left uncommitted, on instruction, as before: the skills/
+  working tree changes (`skills/SKILL.md`, `skills/video-review/*`,
+  `skills/bklit-ui/`) and the two clap svgs. **`demo/post33.mjs` is still
+  uncommitted and still not asked about** — ask before the next push.
+
+  **What a later session needs and cannot get from the code:**
+  - **Round one built a pacman and round two killed it.** The first cut ate
+    the bug by clipping his face with the tools hub's own wedge, at the hub's
+    own polygons, pointed at the bug. Einz did not want it. The eating is now
+    post25's, which is post15's, and two guards stop the wedge coming back:
+    one greps this file's own code with the comments stripped and the search
+    words built out of fragments so it cannot match itself, and one fails if
+    `clip-path` appears anywhere but a glitch slice. **Do not reintroduce it.**
+  - **The bug, the walk, the tripod gait, the knees and the eating are
+    post25's, copied across unchanged.** Only the lane's derivation re-runs
+    against this clip's plate. The no sliding guard still measures 0.0000 px.
+    If the bug ever needs to change, change post25 and copy again rather than
+    editing the copy: the whole argument is that a foot is a function of
+    arclength and nothing else.
+  - **The clock has no typed beat times past the pop.** Four constants carry
+    it — 0.18 lead in, 0.20 between lines, 0.70 after the last word, 1.00 of
+    end card — and everything else is measured off a take. The one place the
+    picture pushes the read is line three, which waits 0.55s for the puff. A
+    guard fails any air that neither the read nor the puff asked for, so
+    adding a beat means adding it to that rule as well.
+  - **The two sound levels are solved, not typed.** The brief asked for the
+    footsteps 12 dB under the voice and the sputter as loud as it, and both
+    are relationships, so the file probe renders at the house levels, measures
+    the ducked tick peak and the fart peak, and works out the offsets. The
+    read peaks at -7.1 dBFS; the clicks land at -11.48 dB and measure 12.0
+    under, the sputter at -7.1 and measures 0.0 against. **The tick recipe was
+    never the problem** — it is already a dry click with no body under it; it
+    was only 25 dB too quiet.
+  - **Every bubble is over his head and the file measures why.** A pill off
+    the end of the tail has 133 css px before the safe line and the shortest
+    of the six lines is 197, so none of them fits at his side. The tail is one
+    distance three times, edge to edge along its ray: rim to small dot, small
+    dot to big dot, big dot to the pill. Nine px, dots of nine and thirteen,
+    and the pill's height above him falls out at 31.
+  - **The eyes never widen and there is one squint.** Post25's gaze drives
+    them per frame off whatever is being looked at; the arcs are capped at
+    0.6s a run by a guard; the eating shuts them to a bar at a quarter height
+    rather than to a lid, because a held lid is a face with no eyes. The
+    squint is on the puff and nowhere else.
+
+  **open, next:** post the video; post33's commit; the price list and the
+  pinned tweet for the video work; crypto fun, four characters; the dark
+  poster; part two of the site video; the hand sheet; product one; the known
+  bad lists worker for the checker.
+
 - **2026-09-21, SESSION CLOSE. post36 is final and pushed: the link
   checker announcement, 21.21s, edge's andrew, voice only on the bus.**
   `demo/post36.mjs`, dark only, 60fps, the shutter open at five subframes

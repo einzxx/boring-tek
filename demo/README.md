@@ -8134,6 +8134,146 @@ The stills are taken on the frames themselves during the render, not
 re-driven after, because the phone has three different states in this clip
 and a re-driven still would show the last of them.
 
+## The thirty seventh clip — what should we make next
+
+```
+cd demo
+node post37.mjs                 # 1080x1920, 60fps, the shutter open, solved (the final)
+DEMO_FPS=12 node post37.mjs     # the fast preview pass
+node post37.mjs --voice         # the read and the clock only, no browser
+node post37.mjs --no-blur       # shutter closed
+node post37.mjs --keep-frames   # leave the jpegs on disk
+node post37.mjs --encode-only   # re-encode from kept frames
+```
+
+**Where it stands, final.** `demo/post37.mjs`, dark only, **14.13 seconds**,
+60fps, the shutter open at five subframes (solved off the pop, 47.76 css px a
+frame, 9.55 between samples), three lines read by the elevenlabs narrator at
+his own pace with a 200ms stop at every full stop, post31's `take()` whole.
+Out to `demo/out/post37-dark-1080x1920.mp4`, four stills in
+`demo/out/verify-post37/`. Three fix rounds between the first preview and the
+final, and the second of them threw away most of the first.
+
+He pops up from under the bottom edge to the middle of the frame and says
+`we made two free tools. what should we make next.` Then
+`or maybe we need to fix some bug for you.`, and while he says it a bug walks
+in over the top edge, arcs around his left, comes down the left lane and turns
+along the floor to a stop underneath him. His eyes follow it the whole way. He
+rises, lunges, eats it, chews three times and bobs. A green cloud comes out
+from under him with a sputter on it, he squints, and then
+`maybe fresh air. or you have a better idea. do not be shy, share it.` Six
+bubbles, one a sentence. The cut takes the lot and the wordmark is held for a
+second.
+
+### The clock is the read's, and there is not one typed beat time in it
+
+Past the pop, four constants carry the whole thing: 0.18s before the first
+word, 0.20s between lines, 0.70s after the last, and a second of end card.
+Everything else is measured off a take — a bubble pops on the frame its own
+sentence starts making noise, the bug walks in on the first frame of the line
+about the bug, and `SECONDS` is whatever it all adds up to. The one place the
+picture pushes the read is line three, which waits 0.55s for the puff to be
+out; a guard fails if any line has air in front of it that neither the read
+nor the puff asked for.
+
+### The eating is post25's, which is post15's, and there is no pacman in it
+
+Fix round one built a pacman — the tools hub's own clip path wedge, pointed at
+the bug — and fix round two threw it out. What is there now is post25's: one
+transform on `#m-zone`, which `lib/mascot.mjs` writes nothing to. He goes up
+seven px before he goes down, because every entrance in the module does; the
+lunge accelerates, because a head going after something has mass; the contact
+carries a volume preserving squash; then three chews with the side
+alternating, fast in and slower out, and a bob. **How deep the lunge goes is
+walked rather than typed**: down in half pixel steps until his drawn ellipse
+contains every corner of the bug's drawn ink on the contact frame, then the
+middle of the admissible range rather than its first entry. It came out at
+126px inside a 111 to 141 window, containment 0.8666. The frame the bug is
+switched off on is a ceiling rather than a rounding, so the twelve frame
+preview and the sixty frame final switch it on the same instant of film.
+
+Two guards keep the wedge from coming back: one greps this file's own code,
+with the comments stripped and the search words built out of fragments so it
+cannot match itself, and one fails if the `clip-path` property appears
+anywhere but a glitch slice.
+
+### The bug is post25's asset, walk, tripod gait and knees, unchanged
+
+The table, the arclength driven gait, the planted foot, the two bone knee on
+the outside, the seeded antennae and the six segment curved lane are copied
+across. Only the lane's derivation re-runs against this clip's plate: the
+floor is his lowest ink plus the clearance plus the bug's own reach sideways,
+the left lane is the safe line plus its half width plus a margin, the two turn
+radii fall out of how far left that is, and the floor run is what is left
+over. 818 px of lane in 2.20s, 18 strides, floor at 596, left lane at 115.
+**A planted foot moves 0.0000 px between frames**, which is the whole of
+post15's no sliding argument surviving a curve: a foot is set down at the
+body's own position at the moment the stance began, and that is a function of
+arclength and of nothing else.
+
+### The eyes are alive the whole way through
+
+Open and normal nearly all of it, and what they do is look at things. The
+looking is post25's gaze — the module's own `TURN` table, its `EYE_CX`, its
+`headSD` and its own clamp — driven per frame by where the thing being looked
+at actually is, which no mark can express: the bug for the whole of its walk,
+the pill whenever one is up, the lens otherwise. He lets go of the bug on the
+lunge anticipation, because a head still tracking while it winds up is two
+moves at once and neither reads. `bias: 0` means the module writes nothing to
+the channel, so there is nothing for it to fight.
+
+Three one directional writes sit on top. **The happy arcs**, delighted's own
+numbers, twice and briefly: on the first bubble and on the last, 0.55s each,
+and a guard fails if any run of them reaches 0.6. **The eating's shut**,
+post25's: hold a lid down for a second and the face is not a face with its
+eyes closed, it is a face with no eyes, so the eye is squashed to a quarter of
+its own height instead and a bar of the same ink stays on the plate. **The
+squint**, on the puff and nowhere else. Nothing widens them, and a guard walks
+every frame and fails if anything ever makes an eye taller than the module
+drew it or pushes eye ink outside the silhouette. The module's idle blinks run
+underneath all of it, untouched.
+
+### The bubbles are the house thought bubble, and the tail is one distance
+
+Two dots climbing off his rim toward a pill: the pill is `--eye` filled with a
+`--bub` hairline and `--face` text, read off the module's own css rather than
+typed again, and the two dots are the tail pointing back at him. **The chain
+is laid out along its ray by its edges rather than by its centres**, off one
+constant: his rim to the small dot, the small dot to the big one, and the big
+one to where the ray meets the pill's bottom edge are all nine css px. The two
+diameters — nine and thirteen, the smaller nearest him — are the only other
+numbers in it, and how high the pill ends up is derived rather than chosen: 31
+px over his rim. One bubble a line, popping in dots first and out pill first.
+Nothing crossfades, each is fully out before the next is in, and a guard walks
+every frame to prove only one is ever up.
+
+**Every one of them sits over his head rather than off his side, and the file
+measures why** rather than asserting it: a pill hanging off the end of the
+tail has 133 css px before the safe line, and the shortest of the six lines is
+197.
+
+### The two sound levels are relationships to the read, not settings
+
+Under the voice there are two things and nothing else: **one tick a footstep**,
+read off the walk rather than laid on a grid, so as the bug decelerates the
+last few spread out and stop on their own; and **the sputter on the puff**,
+`FART.sputter`. The eating is silent on purpose — no crunch on the bite or the
+chews, because einz puts his own on that stretch — so there is 1.88s of
+nothing at all between the last footstep and the sputter, and a guard fails if
+any cue lands in it.
+
+Neither level is a typed number. Fix round three asked for the footsteps 12 dB
+under the voice and the sputter as loud as it, and both of those are
+relationships rather than levels, so the file solves them against the read's
+own peak: one probe render at the house levels, the two peaks measured off it,
+and the offsets that land them where the brief says. **The ticks are measured
+after the duck**, because they run under line two and the ducked one is the
+one anybody hears. The read peaks at -7.1 dBFS; the clicks came out at -11.48
+and measure 12.0 dB under it, the sputter at -7.1 and measures 0.0 against it.
+The tick recipe itself never moved — it is already three milliseconds of band
+passed noise and a short pulse with no body under it, over in a thirtieth of a
+second, which is a dry click by construction rather than a hiss.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
