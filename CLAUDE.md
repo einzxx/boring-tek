@@ -154,6 +154,40 @@ state or makes a decision.
 - Don't touch `index.html`, `CNAME` or `.gitignore` unless asked directly.
 - Ask before adding any new top-level file or directory.
 
+## Motion
+
+House rules for every clip in `demo/`. They apply before Einz sees anything.
+
+### Banned looks
+
+- Centered title on a gradient, everything just fading in, corner labels, frame
+  borders, generic particle bursts, heavy glow, bloom or grain.
+- Dead time. Something new must happen every 2 to 4 seconds.
+- Code drawn hands. Hands come only from pngs or `demo/assets/hands/`.
+- Pacman shapes for eating. Eating is the post25 bite and chews.
+
+### Mascot rules
+
+- Eyes calm, happy, neutral or squint only. Never wide, never angry. Open and alive
+  most of the time. Happy arcs last 0.6s at most.
+- Speech bubbles in the house style, with the two dots, equal gaps.
+- Max 10 seconds unless Einz says otherwise. 120px safe margin on every edge. The
+  bottom 300px stays clear of anything important, for the TikTok and Shorts buttons.
+- On screen text has no dashes, apostrophes or quotes.
+
+### Critique loop, before Einz sees any preview
+
+1. Render a contact sheet, one frame per half second, 6 across, to
+   `demo/out/verify-postNN/contact.png`, and a phone test sheet at 360px wide.
+2. Look at both properly, as a harsh motion director, and score 1 to 10:
+   hook in the first 2 seconds, readable at phone size, motion quality, something new
+   every 2 to 4 seconds, composition, mascot rules followed, sound sync if there is
+   sound.
+3. Write the scores and the 3 worst problems with timestamps to
+   `demo/out/verify-postNN/review.md`. Fix them, re render, repeat until every score
+   is 8 or more. Max 3 rounds.
+4. Then report to Einz the final scores in one line, with the last five lines.
+
 ## Deployment
 
 - GitHub Pages, serving `main` branch from root.
