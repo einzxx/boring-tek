@@ -8339,6 +8339,68 @@ then a measured two pass `loudnorm` to -14, aimed half a unit high because
 the aac encode loses that much. The mp4 measures -14.4 LUFS integrated with
 a -1.5 true peak, and a guard fails anything outside half a unit.
 
+## The thirty ninth clip — agi next year
+
+```
+cd demo
+node post39.mjs                 # 1080x1920, 60fps, the shutter open, solved (the final)
+DEMO_FPS=12 node post39.mjs     # the fast preview pass
+node post39.mjs --no-blur       # shutter closed
+node post39.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post39.mjs`, dark only, **14.50 seconds**,
+60fps, the shutter open at twelve subframes over half a frame (solved off the
+falling pages). Three lines on elevenlabs and one 1 khz bleep, nothing else on
+the bus. Out to `demo/out/post39-dark-1080x1920.mp4`, the critique sheets and
+`review.md` in `demo/out/verify-post39/`.
+
+He sits in the lower third under a wall sign, `agi next year`, and a tear off
+calendar on 2023. The pages tear off, 2024, 2025, 2026, each sooner than the
+last. A web draws itself in the top right corner, a spider spins a dropline
+down onto his head and sits there, and dust settles on him. His blinks get
+slower and heavier. On 2026 the sign flickers and shuffles and lands on the
+same words. His eyes go to the lens: `any day now`. Then `do you know what agi
+means`, and the spider springs up in front of his face, head sized, happy
+eyes, an `AGI` sign on its thread: `surprise surprise mother fucker`, with the
+one word bleeped. His eyes go to it, to the lens, one slow blink, the glitch,
+the wordmark.
+
+### The first clip on the motion kit
+
+The web is `lib/motion.mjs`'s trim path, and this clip is why the kit went up
+with it. The web is a hub in the top right corner, frame threads, a sagging
+spiral and one dropline. The dropline runs straight down the gap between the
+sign and the calendar, so no thread ever crosses a letter. Round one had the
+hub top left and its long thread cut through `next year`.
+
+### The spider rides the head's own transform
+
+On the way down it is in the room. From the last fifth of a second before it
+lands it is placed through the card's own translate, rotate and scale, so the
+idle drift and the gaze tilt carry it and it never slides. The dropline is
+redrawn every frame to its body. The legs are dark with a light edge, so they
+read on the wall and on his white face; round one's light legs vanished on
+the face. It is drawn at 1.6 times its base size, peaks at 5.6 on the jump
+and settles to 3.
+
+### The bleep is cut on the word, and ended on the audio
+
+The engine's timings are per word, and the last word's box runs on through
+the full stop and the silence after it. So the bleep starts at the word's
+timing, and its end is found in the audio: the vowel's peak, the drop into the
+k closure, the first sustained rise after it, which is the er. It covers
+11.67s to 11.88s, and `mother` and the `er` stay clear. A guard fails a bleep
+that reaches the er. If the timings come back estimated, or the closure is
+not found, the file stops rather than guess.
+
+### The loudness is measured on the mp4
+
+A steady tone encodes differently from speech, and the fixed half unit aac
+allowance left the first cut at -13.4. The mp4 is now read after the encode.
+If it is off by more than 0.2, the wav is moved by the error and only the
+audio is put back in.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

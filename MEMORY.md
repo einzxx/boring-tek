@@ -6,12 +6,27 @@ names in here either.
 
 ## Status
 
-- **2026-09-28, post39 agi next year, 12fps preview only, uncommitted.**
-  `demo/post39.mjs`, dark, 8.83s, one elevenlabs narrator line (any day now).
-  Out to `demo/out/post39-dark-1080x1920.mp4`, critique sheets and
-  `review.md` in `demo/out/verify-post39/`, all scores 8 or more. Fix round
-  one added the spider that spins the dropline and sits on his head. Not
-  rendered at 60fps yet, not committed.
+- **2026-09-28, SESSION CLOSE. post39 is final and pushed: agi next year,
+  14.50s, two narrator lines, one human line, one bleep.** `demo/post39.mjs`,
+  dark only, 60fps, the shutter open at twelve subframes over half a frame.
+  Out to `demo/out/post39-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post39/`. Write up is **The thirty ninth clip** in
+  `demo/README.md`. Critique loop scores all 8 or more.
+  - **`demo/lib/motion.mjs` went up with it**, because post39 imports it (the
+    web's trim path). `scene3d.mjs`, `demo/hf/` and the two motion tests are
+    still untracked.
+  - **14.50s is over the 10s house max, and on purpose.** Fix round two
+    added the agi beat, so Einz's brief overrode the max. The first cut was
+    8.83s.
+  - **The bleep's end is found in the audio, not in the timings.**
+    Elevenlabs runs the last word's box on through the full stop and the
+    silence after it. If a clip bleeps a word, copy post39's closure search
+    rather than trusting the word end.
+  - **The mp4 loudness is measured and corrected after the encode.** A tone
+    shifts the aac offset, and the old fixed 0.5 allowance landed the file
+    at -13.4.
+  - Still left uncommitted on instruction: the skills/ working tree, the two
+    clap svgs, `demo/post33.mjs`.
 
 - **2026-09-28, SESSION SAVE. No code changes.**
   - **post38 no thanks i use ai is final and pushed** (entry below).
