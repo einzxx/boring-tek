@@ -6,6 +6,23 @@ names in here either.
 
 ## Status
 
+- **2026-09-28, SESSION SAVE. No code changes.**
+  - **post38 no thanks i use ai is final and pushed** (entry below).
+  - **CLAUDE.md now has a Motion section:** banned looks, mascot rules and the
+    critique loop (contact sheet plus a 360px phone sheet into
+    `demo/out/verify-postNN/`, scored 1 to 10, `review.md`, fix until every score
+    is 8 or more, max 3 rounds). It applies to every clip in `demo/`.
+  - **Motion kit, uncommitted:** `demo/lib/motion.mjs` and `demo/lib/scene3d.mjs`.
+    No post imports them yet.
+  - **Hyperframes test, uncommitted:** `demo/hf/`.
+  - **New project, boring-news, in its own private repo, not this one.** A
+    Telegram news bot, THE BORING TEK NEWS: 3 short ai news posts a day for
+    business people. Logo is the mascot with a red NEWS pill. Nothing of it
+    lives in this repo.
+  - Still left uncommitted on instruction: the skills/ working tree changes, the
+    two clap svgs, `demo/post33.mjs`, `demo/motion-test.mjs`,
+    `demo/motion-test2.mjs`.
+
 - **2026-09-28, SESSION CLOSE. post38 is final and pushed: no thanks, i use
   ai, 6.73s, two elevenlabs voices and nothing else on the bus.**
   `demo/post38.mjs`, dark only, 60fps, the shutter open at nine subframes
