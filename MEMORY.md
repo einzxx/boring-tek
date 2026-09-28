@@ -19,6 +19,7 @@ names in here either.
     Telegram news bot, THE BORING TEK NEWS: 3 short ai news posts a day for
     business people. Logo is the mascot with a red NEWS pill. Nothing of it
     lives in this repo.
+  - **boring-news bot is live** on the veer-tx server. Telegram channel THE BORING TEK NEWS at @boringtek is ready with a welcome message and socials. Public posting starts after the first good posts to Einz.
   - Still left uncommitted on instruction: the skills/ working tree changes, the
     two clap svgs, `demo/post33.mjs`, `demo/motion-test.mjs`,
     `demo/motion-test2.mjs`.
