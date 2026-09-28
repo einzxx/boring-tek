@@ -6,6 +6,13 @@ names in here either.
 
 ## Status
 
+- **2026-09-28, post39 agi next year, 12fps preview only, uncommitted.**
+  `demo/post39.mjs`, dark, 8.83s, one elevenlabs narrator line (any day now).
+  Out to `demo/out/post39-dark-1080x1920.mp4`, critique sheets and
+  `review.md` in `demo/out/verify-post39/`, all scores 8 or more. Fix round
+  one added the spider that spins the dropline and sits on his head. Not
+  rendered at 60fps yet, not committed.
+
 - **2026-09-28, SESSION SAVE. No code changes.**
   - **post38 no thanks i use ai is final and pushed** (entry below).
   - **CLAUDE.md now has a Motion section:** banned looks, mascot rules and the
