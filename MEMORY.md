@@ -6,6 +6,32 @@ names in here either.
 
 ## Status
 
+- **2026-09-29, SESSION CLOSE. post42 is final and pushed: claude 5.5, 26.18s,
+  five narrator lines.** `demo/post42.mjs`, dark only, 60fps. Out to
+  `demo/out/post42-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post42/`. Write up is **The forty second clip** in
+  `demo/README.md`. Three briefs. Every critique score is 8 or more.
+  - **One elevenlabs take per line, whole line, never spliced.** Einz heard the
+    per sentence splicing (post40 and post41's way) as robotic. The stops between
+    sentences are `<break time>` tags inside the take, set per boundary (`brk` on
+    each line), because the model adds its own stop after a full stop. They measure
+    400 to 525ms, and a guard holds them to 0.38 to 0.55s. The tags come back in
+    the alignment as words and are filtered out. Voice settings are post41's.
+  - **The anthropic mark, `demo/assets/anthropic-logo1.png`, is local only.** The
+    brief named `anthropic-logo.png`, which does not exist. `demo/assets/*` is
+    ignored. Never force add it. A fresh clone stops at the file check.
+  - **The sonnet line bolt was added unasked**, because the card sat empty for
+    2.5s. It stayed through three briefs. Brain and bolt are tabler outline.
+  - **Michroma draws % as a broken 0/0.** Set the % in Space Grotesk.
+  - s1's bubble is post39's, Nunito 600, the third family on this demo page only.
+  - **Glitch frames: 10 at 60fps**, bursts of 2, 3, 3 and 2 around the cut at
+    25.05s. The fringe count on the mp4 finds frames 1479 and 1480, 1488 to 1490,
+    1496 to 1498 and 1503, and nothing else.
+  - post42 imports no new lib file.
+  - Still left uncommitted on instruction: the skills/ working tree, the two
+    clap svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the
+    motion tests.
+
 - **2026-09-29, SESSION CLOSE. post41 is final and pushed: the boring tek
   news, 26.57s, six narrator lines, for the telegram channel.**
   `demo/post41.mjs`, dark only, 60fps. Out to

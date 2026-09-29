@@ -8522,6 +8522,66 @@ because looking up at the phone slid his eyes under their own lid.
 the mp4 frame by frame, by counting pure red and blue fringe pixels, which
 nothing else in the palette has.
 
+## The forty second clip — claude 5.5
+
+```
+cd demo
+node post42.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post42.mjs     # the fast preview pass
+node post42.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post42.mjs`, dark only, **26.18 seconds**,
+60fps. Five lines on the elevenlabs narrator at speed 1.0, nothing else on the
+bus: no music, einz adds it. Out to `demo/out/post42-dark-1080x1920.mp4`, the
+critique sheets and `review.md` in `demo/out/verify-post42/`.
+
+Two cards, OPUS 5.5 and SONNET 5.5, slam in side by side on the spring, with
+their dates under them. The head pops in below and looks from card to card,
+and post39's thought bubble says `claude code` over his right side. In s2 the
+opus card grows to the centre and sonnet dims. A line brain draws itself on
+the kit's trim path, goes green on `top`, and 40% counts up on `40` with less
+cost under it. In s3 sonnet zooms in with speed lines, a line bolt draws, and
+30% counts up on `30` with faster under it. In s4 a divider draws down the
+middle. A heavy hard job block slides left into opus and lands with a shake,
+then a light daily task block floats right into sonnet, and he nods once. In s5
+the cards fade and he comes to the centre, looking at the camera, happy then a
+squint. `written by opus 5.5` types on above him, and the anthropic mark pops
+in over it on `opus` and turns slowly. Then post39's glitch and the wordmark.
+
+### One take a line
+
+Every line is one elevenlabs request for the whole line. Nothing is cut,
+stretched or pitched. post40 and post41 spliced a take per sentence, and on
+this read that sounded robotic. The stops between sentences are `<break
+time>` tags inside the take. They are set per boundary, because the model adds
+a stop of its own after a full stop and its length differs by sentence. They
+measure 400 to 525ms, and a guard holds every stop to 0.38 to 0.55s. The tags
+come back in the alignment as words, so they are filtered out, and the word
+count is checked against the text.
+
+### The one picture is local
+
+The anthropic mark is `demo/assets/anthropic-logo1.png`, placed as an `<img>`
+at post14's 108 css and turning at post14's pace, in its own orange. It is not
+recoloured. `demo/assets/*` is ignored, so the file is never committed, and a
+fresh clone stops at the file check. Nothing else is anyone else's: the cards,
+the brain, the bolt and the blocks are drawn here.
+
+### Small things the frames found
+
+Michroma draws % as a broken 0/0, so the numbers set the % in Space Grotesk.
+The sonnet card sat empty for 2.5s after its zoom, so it got the bolt. A card
+body fades in 0.16s when the card leaves focus, because the 30% spilled past
+the margin while sonnet shrank back into the split.
+
+### Glitch frames
+
+10 at 60fps, in bursts of 2, 3, 3 and 2 around the cut at 25.05s. Checked on
+the mp4 by counting pure red and blue fringe pixels: frames 1479 and 1480, 1488
+to 1490, 1496 to 1498 and 1503. Nothing appears outside them. The orange mark
+is not pure enough to count.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
