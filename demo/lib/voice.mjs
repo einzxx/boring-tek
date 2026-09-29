@@ -748,6 +748,7 @@ function rateToSpeed(rate) {
      speak(line, { stability: 0.7 })      hold this one steadier
      speak(line, { style: 0.15 })         let this one lean
      speak(line, { speed: 0.9 })          slower than the voice's own rate
+     speak(line, { model: 'eleven_v3' })  another elevenlabs model for one line
 
    stability is the one worth touching. low is expressive and drifts, high is
    flat and repeatable, which is what a deadpan brand wants, and it is why the
@@ -766,7 +767,7 @@ function elevenStyleFor(voice, opts, rate) {
 
 /* one request. json in, json out, and the audio arrives base64 inside it
    because the timestamps have to arrive with it. */
-async function elevenOnce(text, style, previous, voiceId, allowSpeed = true) {
+async function elevenOnce(text, style, previous, voiceId, allowSpeed = true, model = ELEVEN_MODEL) {
   const settings = {
     stability: style.stability,
     similarity_boost: style.similarity,
@@ -774,8 +775,8 @@ async function elevenOnce(text, style, previous, voiceId, allowSpeed = true) {
     use_speaker_boost: style.speakerBoost,
   };
   if (allowSpeed && style.speed !== 1) settings.speed = style.speed;
-  const body = { text, model_id: ELEVEN_MODEL, voice_settings: settings };
-  if (previous) body.previous_text = previous;
+  const body = { text, model_id: model, voice_settings: settings };
+  if (previous && model !== 'eleven_v3') body.previous_text = previous;
 
   let res;
   try {
@@ -801,7 +802,7 @@ async function elevenOnce(text, style, previous, voiceId, allowSpeed = true) {
        path's one retry against a 403. */
     if (res.status === 422 && allowSpeed && settings.speed !== undefined) {
       console.error('  elevenlabs refused voice_settings.speed — retrying without it');
-      return elevenOnce(text, style, previous, voiceId, false);
+      return elevenOnce(text, style, previous, voiceId, false, model);
     }
     const err = new Error('elevenlabs answered ' + res.status + ' ' + res.statusText
       + (detail ? ': ' + detail : ''));
@@ -912,7 +913,7 @@ export async function speak(text, opts = {}) {
     const style = elevenStyleFor(voice, opts, v.rate);
     let previous = '';
     for (const chunk of chunks) {
-      const got = await elevenOnce(chunk, style, previous, elevenId);
+      const got = await elevenOnce(chunk, style, previous, elevenId, true, opts.model || ELEVEN_MODEL);
       /* the alignment restarts at zero every request, so a chunk after the
          first is pushed along by the audio the chunks before it really
          produced. constant bitrate, so that is exact arithmetic on the byte
@@ -1006,7 +1007,7 @@ export async function speak(text, opts = {}) {
        existed and a line rendered after it are different takes, and the sidecar
        is the only place that says which one a file is. */
     provider: provider === 'eleven' ? 'elevenlabs' : 'edge',
-    model: provider === 'eleven' ? ELEVEN_MODEL : null,
+    model: provider === 'eleven' ? (opts.model || ELEVEN_MODEL) : null,
     rate: v.rate, pitch: provider === 'eleven' ? null : v.pitch,
     speed: provider === 'eleven' ? elevenStyleFor(voice, opts, v.rate).speed : null,
     format, file, bytes: fs.statSync(file).size, seconds,

@@ -8582,6 +8582,64 @@ the mp4 by counting pure red and blue fringe pixels: frames 1479 and 1480, 1488
 to 1490, 1496 to 1498 and 1503. Nothing appears outside them. The orange mark
 is not pure enough to count.
 
+## The forty third clip — the dot.com troll
+
+```
+cd demo
+node post43.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post43.mjs     # the fast preview pass
+node post43.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post43.mjs`, dark only, **18.05 seconds**,
+60fps. Six lines on the elevenlabs narrator on `eleven_v3`, nothing else on the
+bus: no music, einz adds it. Out to `demo/out/post43-dark-1080x1920.mp4`, the
+critique sheets and `review.md` in `demo/out/verify-post43/`.
+
+A tweet screenshot springs in and the head pops in bottom right. On line 2 the
+dots picture pops in over the tweet, and he hops on `dots`. On line 3 it slides
+away, and the whole tweet grows slowly towards Dot.com, never past the margins.
+On `elons` an elon laughing gif pops in bottom right, and he moves to the left
+beside it. He laughs along with it through line 5, squinting, and on line 6
+turns to the camera for a big laughing bounce. Then post39's glitch and the
+wordmark.
+
+### The pictures are local
+
+`demo/assets/dot-tweet.png`, `dots.png` and `elon-laugh.gif` are other
+people's pictures, so `demo/assets/*` keeps them off the public repo. The
+script stops if one is missing. They are screenshots, not cut outs, so
+post40's white outline and glow sit around a rounded clip. The gif gets a
+bolder outline and a deeper glow.
+
+### The gif plays in step
+
+A gif played by the browser runs on its own clock, and this render has none.
+ffmpeg resamples it to the render's frame rate, the frames are decoded up
+front, and one is drawn to a canvas per rendered frame. At 60fps that is 239
+frames, a 3.98s loop.
+
+### The voice is eleven_v3
+
+`lib/voice.mjs` takes an opt in `model` now, and everything else still
+defaults to multilingual_v2. v3 takes stability as 0, 0.5 or 1 only, so the
+read is 0.5, v3's natural, with style 0.2 at speed 1.0. It has no break tag.
+Every line gets three whole line takes, and one is kept by measurement: all
+the words there, no hole over 0.6s, nothing trailing, then the length nearest
+the middle. All three stay on disk as `post43-rN-v3tK`.
+
+### His eyes
+
+Calm, happy or a squint. Every happy arc is 0.55s, so the laugh is a held
+squint with hops, a head rock and arcs placed apart.
+
+### Glitch frames
+
+10 at 60fps, in bursts of 2, 3, 3 and 2 around the cut at 17.34s. The fringe
+count on the mp4 finds frames 1017 and 1018, 1026 to 1028, 1034 to 1036 and
+1042. dots.png's own colours give 1 to 4 fringe pixels while it is up, against
+hundreds in a real burst.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

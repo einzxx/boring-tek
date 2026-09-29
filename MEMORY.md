@@ -6,6 +6,32 @@ names in here either.
 
 ## Status
 
+- **2026-09-29, SESSION CLOSE. post43 is final and pushed: the dot.com troll,
+  18.05s, six narrator lines.** `demo/post43.mjs`, dark only, 60fps. Out to
+  `demo/out/post43-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post43/`. Write up is **The forty third clip** in
+  `demo/README.md`. Two briefs. Every critique score is 8 or more.
+  - **The voice is eleven_v3, and `lib/voice.mjs` went up with an opt in
+    `model` option.** Everything else still defaults to multilingual_v2. v3 takes
+    stability as 0, 0.5 or 1 only, so the setting is 0.5 with style 0.2 at speed 1.0. There is no break
+    tag on v3. There are three takes a line on disk as `post43-rN-v3tK`, and one is kept by
+    measurement, not by ear: all words, no hole over 0.6s, then the length nearest the middle.
+    t1 won every line. Einz can ask for a different take by key.
+  - **Three pictures, all local only:** `demo/assets/dot-tweet.png`, `dots.png`,
+    `elon-laugh.gif` (`demo/assets/*` is ignored). The script stops if one is missing.
+    They are screenshots, so post40's outline and glow sit on a rounded clip, and the gif
+    gets a bolder one.
+  - **The gif is resampled by ffmpeg to the render fps** into `demo/out/gif-post43-<fps>/`,
+    decoded up front, and drawn to a canvas a frame per render frame.
+  - **The whole tweet stays inside the margins**, growing 380 to 418 css. Einz
+    rejected the crop zoom because it cut the tweet's right side.
+  - **Glitch frames: 10 at 60fps** around the cut at 17.34s. The fringe count on the mp4 finds
+    frames 1017 and 1018, 1026 to 1028, 1034 to 1036 and 1042. dots.png's own colours
+    show as 1 to 4 fringe px while it is up, which is not glitch.
+  - Still left uncommitted on instruction: the skills/ working tree, the two
+    clap svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the
+    motion tests.
+
 - **2026-09-29, SESSION CLOSE. post42 is final and pushed: claude 5.5, 26.18s,
   five narrator lines.** `demo/post42.mjs`, dark only, 60fps. Out to
   `demo/out/post42-dark-1080x1920.mp4`, sheets and `review.md` in
