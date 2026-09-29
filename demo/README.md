@@ -8469,6 +8469,59 @@ The rig plans no head under 118 css px, so it is planned at 118 and drawn at
 fails any frame where it touches the subtitles or a window. The first cut had
 him peeking up behind an invisible clip line, and the brief replaced it.
 
+## The forty first clip — the boring tek news
+
+```
+cd demo
+node post41.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post41.mjs     # the fast preview pass
+node post41.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post41.mjs`, dark only, **26.57 seconds**,
+60fps. Six lines on the elevenlabs narrator at speed 1.0, nothing else on the
+bus: no music, einz adds it. Out to `demo/out/post41-dark-1080x1920.mp4`, the
+critique sheets and `review.md` in `demo/out/verify-post41/`. Made for the
+telegram channel, THE BORING TEK NEWS at @boringtek.
+
+A phone in the middle styled as a dark telegram channel, the head beside it.
+Grey placeholder posts race up the feed on `ai news moves fast`, stop dead on
+`we`, and clear on `simple` as a beta badge pops in the header. Four posts
+arrive with a soft bounce on their words across s2 and s3: NEW, NEW IN AI,
+PROMPT OF THE WEEK, AI SCAM ALERT. The first post's business line goes green
+on `for your business`. In s4 a wave of grey spam flies at the phone and
+bounces off its edge, and a card counts to 3 under `max 3 a day`. In s5 the
+badge flips into `better every week` and he gives one happy bounce. In s6 a
+join button rises out of the bottom bar with @boringtek under it and is
+pressed on `telegram`. Then post39's glitch and the wordmark.
+
+### The avatar is the site's own mark
+
+The channel avatar is `assets/mascot.svg`, served as a file. It is the same
+drawing as the favicon in `index.html`, the only logo the site uses. Nothing
+is redrawn, and the script stops if the file is missing. No telegram logo is
+drawn anywhere.
+
+### What is invented, and why it is safe
+
+The views counts, the times and `early subscribers` are ui, not claims. There
+is no subscriber number, on purpose. The times read 9am, 1pm, 6pm and 9am, so
+the four posts span two days and never break `max three posts a day`. Times
+have no colon because the copy rule bans colons on screen, and a guard checks
+every string.
+
+### His eyes
+
+Calm or happy only. The happy arcs are delighted's shape, written here, 0.55s
+each, and a guard fails anything over 0.6s. His vertical gaze is capped,
+because looking up at the phone slid his eyes under their own lid.
+
+### Glitch frames
+
+10 at 60fps, in bursts of 2, 3, 3 and 2 around the cut at 24.09s. Checked on
+the mp4 frame by frame, by counting pure red and blue fringe pixels, which
+nothing else in the palette has.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

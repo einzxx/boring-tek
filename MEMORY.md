@@ -6,6 +6,27 @@ names in here either.
 
 ## Status
 
+- **2026-09-29, SESSION CLOSE. post41 is final and pushed: the boring tek
+  news, 26.57s, six narrator lines, for the telegram channel.**
+  `demo/post41.mjs`, dark only, 60fps. Out to
+  `demo/out/post41-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post41/`. Write up is **The forty first clip** in
+  `demo/README.md`. Two briefs. The fix round replaced the posts and the lines
+  and set the voice back to speed 1.0. Every critique score is 8 or more.
+  - **The channel avatar is `assets/mascot.svg`**, the same drawing as the
+    site favicon. Einz asked for the real logo and no redraw.
+  - **The voice runs at elevenlabs speed 1.0 on instruction.** The first cut
+    ran it at 1.15 to hit 20s, and Einz said no rushing, about 26s is fine.
+  - **Views counts, times and `early subscribers` are ui, not claims.** There
+    is no subscriber number, on purpose. Times are 9am style because on screen
+    text bans colons.
+  - **Glitch frames: 10 at 60fps**, bursts of 2, 3, 3 and 2 around the cut at
+    24.09s, checked on the mp4 by counting red and blue fringe pixels.
+  - post41 imports no new lib file.
+  - Still left uncommitted on instruction: the skills/ working tree, the two
+    clap svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the
+    motion tests.
+
 - **2026-09-29, SESSION CLOSE. post40 is final and pushed: trust me, 47.02s,
   eleven narrator lines and two bleeps.** `demo/post40.mjs`, dark only, 60fps,
   shutter closed. Out to `demo/out/post40-dark-1080x1920.mp4`, sheets and
