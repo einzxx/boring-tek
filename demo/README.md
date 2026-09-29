@@ -8401,6 +8401,74 @@ allowance left the first cut at -13.4. The mp4 is now read after the encode.
 If it is off by more than 0.2, the wav is moved by the error and only the
 audio is put back in.
 
+## The fortieth clip — trust me
+
+```
+cd demo
+node post40.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post40.mjs     # the fast preview pass
+node post40.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post40.mjs`, dark only, **47.02 seconds**,
+60fps, shutter closed. Eleven lines on the elevenlabs narrator and two 1 khz
+bleeps, nothing else on the bus. Out to `demo/out/post40-dark-1080x1920.mp4`,
+the critique sheets and `review.md` in `demo/out/verify-post40/`.
+
+A true story, and every chat line is the real quote as the brief gave it.
+2004 springs in with the photo and the logo, then `he called facebook users
+idiots` with idiots going green on the word. Then two chat windows in 2004
+chrome. The first is about a rival website, with the swear bleeped in the
+voice and his typo fixed. It slides off, and the second one opens. `if you
+ever need info about anyone at harvard, just ask`. A counter runs to 4000 and
+mail, photo, home and id tiles pile up behind the window. The friend asks how.
+A slow zoom lands on `they "trust me"` while the head narrows to a squint.
+The narrator says `then two more words`, the last message lands with the
+bleep, and the frame holds one second with nothing moving. Cut to black.
+The head pops in centred with its own eyes open, hops once, blinks once and
+looks up while `what did you tell your ai today` lands word by word. Then
+post39's glitch and the wordmark.
+
+### The voice never stops
+
+Every sentence is its own take with 300ms between them, post31's take() on
+elevenlabs. Every line starts 0.42s after the one before, and a guard fails
+any gap over 0.6s. The one pause is the second's hold after the last bleep.
+Takes are cached by a key rather than a line number, so adding a line
+never re-reads the others.
+
+### The quotes keep their punctuation
+
+The chat lines keep their apostrophes, quote marks and `!?`, because they are
+a real quote and the brief said to keep them as written. Every other string on
+screen is checked against the house rule. The swear words only ever appear as
+stars, and a guard fails the file if one shows up without them.
+
+### Two bleeps, cut two ways
+
+The last one, `dumb f**ks`, is a plain 0.62s tone with no speech under it.
+The one in the rival answer is cut over a read word. It runs from the word's
+start to the next word's start, which is safe here because the swear is not
+the last word in the take. That is the case where the engine's box runs on,
+see post39. The word goes out and the tone comes in, with 5ms ramps. Measured
+in the mix, the tone sits at -9 dB and energy away from 1 khz is about -27 dB.
+
+### The pictures are local only
+
+`demo/assets/zuck.png` and `demo/assets/facebook-logo.png` sit in their slots
+at their own ratio, with a white outline and a soft glow that follow their
+alpha. **They are not in the repo:** `demo/assets/*` is ignored on purpose,
+because other people's photos and logos stay off a public repo. A missing file
+leaves its slot empty and draws no placeholder, so a fresh clone renders the
+clip with those two slots empty.
+
+### The head is always whole
+
+The rig plans no head under 118 css px, so it is planned at 118 and drawn at
+0.95. It pops in whole at the bottom right, above the subtitles, and a guard
+fails any frame where it touches the subtitles or a window. The first cut had
+him peeking up behind an invisible clip line, and the brief replaced it.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

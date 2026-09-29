@@ -6,6 +6,30 @@ names in here either.
 
 ## Status
 
+- **2026-09-29, SESSION CLOSE. post40 is final and pushed: trust me, 47.02s,
+  eleven narrator lines and two bleeps.** `demo/post40.mjs`, dark only, 60fps,
+  shutter closed. Out to `demo/out/post40-dark-1080x1920.mp4`, sheets and
+  `review.md` in `demo/out/verify-post40/`. Write up is **The fortieth clip**
+  in `demo/README.md`. Five brief rounds, every critique score 8 or more.
+  - **The two pictures are local only, and that was decided.** Einz asked to
+    commit `demo/assets/zuck.png` and `facebook-logo.png`. When the
+    .gitignore rule came up (other people's photos and logos stay off the
+    public repo), he chose to keep them local. A fresh clone renders those
+    two slots empty. Do not force add them.
+  - **The chat lines keep their apostrophes and quotes on screen**, because
+    the brief said so. Everything else follows the rule, and a guard checks it.
+  - **Glitch frames: 10 at 60fps, 4 at 12fps.** The four bursts are 2, 3, 3
+    and 2 frames long at 60fps. The final was checked frame by frame for rgb
+    split, and it is only those ten, around the cut at 44.92s.
+  - **The rig will not plan a head under 118 css px.** For a smaller head,
+    plan it at 118 and scale the card.
+  - **Voice rule from this brief:** no gap over 0.6s between lines, and a
+    guard enforces it. Takes are cached by key, not by line number.
+  - The tile glyphs are tabler outline paths, written in from memory.
+  - Still left uncommitted on instruction: the skills/ working tree, the two
+    clap svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the
+    motion tests.
+
 - **2026-09-28, SESSION CLOSE. post39 is final and pushed: agi next year,
   14.50s, two narrator lines, one human line, one bleep.** `demo/post39.mjs`,
   dark only, 60fps, the shutter open at twelve subframes over half a frame.
