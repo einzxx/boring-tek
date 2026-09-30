@@ -8640,6 +8640,60 @@ count on the mp4 finds frames 1017 and 1018, 1026 to 1028, 1034 to 1036 and
 1042. dots.png's own colours give 1 to 4 fringe pixels while it is up, against
 hundreds in a real burst.
 
+## The forty fourth clip — AI AFTER, ep 1, the terms and conditions
+
+```
+cd demo
+node post44.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post44.mjs     # the fast preview pass
+node post44.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post44.mjs`, dark only, **18.45 seconds**,
+60fps. The first episode of a series, AI AFTER. Four lines on the elevenlabs
+narrator on `eleven_v3`, nothing else on the bus. Out to
+`demo/out/post44-dark-1080x1920.mp4`, the critique sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post44/`.
+
+Frame 0 already shows everything: the title in two lines, the ep tag, the head
+and a tall terms and conditions window below him. The terms scroll fast while he
+reads and nods. As line 1 ends the scroll slows, he squints and his head drops.
+His eyes shut on `it lasted`, and z letters float up. The thumb lights green, and
+a card lands on the window on `one`: `1% read.`. He wakes to the lens for line 3,
+and `same as you.` grows into the card. The tip grows in on line 4 and he reads it
+line by line. Then a short glitch and the wordmark, held 1s.
+
+### The series template
+
+`demo/lib/aiafter.mjs` is the whole rig. An episode passes a title, an ep number
+and a gag, and optionally a read and its subtitles. The lib draws the page, the
+title lockup, the ep tag, the head with his glow and gaze, a camera, the glitch
+and the end card. It also mixes the voice to -14 LUFS, renders the sheets and
+runs the guards. A guard fails the run if the title, the tag, the head or the
+gag's hook is not fully on screen at frame 0. The end card never holds under 1s.
+
+### The thumb is honest
+
+It moves 1% of its track over the whole scroll, so the joke is in the geometry
+as well as the label. There is no camera at the end: the window, its title bar,
+the title and he stay whole and inside the margins, and a guard says so.
+
+### The voice
+
+post43's way. Three whole line takes a line, one kept by measurement, speed 1.0,
+never stretched. The takes stay on disk as `post44-rN-v3tK`.
+
+### His eyes
+
+Calm, a squint, and a slit when asleep. At a full lid the eyes vanish and he
+reads as a blank disc, so asleep the lid stops at 0.88.
+
+### Glitch frames
+
+5 at 60fps, a burst of 3 and the residue of 2 around the cut at 17.45s. The
+fringe count on the mp4 finds frames 1042 to 1044 and 1047 to 1048, and nothing
+else. The green card and tag are not counted as fringe.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

@@ -6,6 +6,32 @@ names in here either.
 
 ## Status
 
+- **2026-09-30, SESSION CLOSE. post44 is final and pushed: AI AFTER ep 1, ai after
+  reading the terms and conditions, 18.45s, four narrator lines.** `demo/post44.mjs`,
+  dark only, 60fps. Out to `demo/out/post44-dark-1080x1920.mp4`, sheets, `frame0.jpg`
+  and `review.md` in `demo/out/verify-post44/`. Write up is **The forty fourth clip**
+  in `demo/README.md`. Three briefs. Every critique score is 8 or more.
+  - **AI AFTER is now a series, and `demo/lib/aiafter.mjs` is its template.** The next
+    episode changes only the title, the ep number and the gag, plus its lines and subs
+    if it has a read. `runEpisode()` owns the page, the title lockup, the ep tag, the
+    head with glow and gaze, `focus()` for a camera, post43's glitch cut to one burst
+    and the residue, the wordmark end card, the silent or voiced encode, the sheets
+    and the guards. The voice path is `readLines()`, `place()` and `wAt()`, post43's
+    way, and post43's subtitles.
+  - **Series rules, guarded:** frame 0 shows title, tag, head and the gag's hook at
+    full opacity and size. The end card holds 1s at least. Without a read the file
+    must have no audio.
+  - **Takes kept:** l1 t1, l2 t1, l3 t2, l4 t1 (t2 out, a 0.61s hole).
+  - **No end zoom.** Einz wanted the whole window, its title and the head whole at the
+    end. The thumb lights green with a ring and the card lands on the window.
+  - **18.45s is over the 10s house max, and on purpose**: the brief asked for the read.
+  - **The head window is 220 to 280 device px**, so `size` is at least 118 css.
+  - **Asleep the lid stops at 0.88.** At 1 the eyes vanish and he reads as a blank disc.
+  - **Glitch frames: 5 at 60fps**, 1042 to 1044 and 1047 to 1048 around the cut at 17.45s.
+  - post44 imports no lib file that was not already committed besides `aiafter.mjs`.
+  - Still left uncommitted on instruction: the skills/ working tree, the two clap svgs,
+    `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the motion tests.
+
 - **2026-09-29, SESSION CLOSE. post43 is final and pushed: the dot.com troll,
   18.05s, six narrator lines.** `demo/post43.mjs`, dark only, 60fps. Out to
   `demo/out/post43-dark-1080x1920.mp4`, sheets and `review.md` in
