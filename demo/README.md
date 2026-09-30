@@ -8753,6 +8753,22 @@ slider starts, 3.15 slider ends, 3.80 card 1 lands, 4.06 pop, 4.61 card 2 lands,
 key e, 7.43 jumps up, 7.50 to 7.86 the spin, 7.98 lands in the air, 8.20 wink,
 8.65 glitch starts, 8.74 the cut, 9.84 the end.
 
+### The sound version
+
+`node post45.mjs --sfx` puts 32 synthesised effects on the silent final and
+writes `demo/out/post45-dark-sfx-1080x1920.mp4` with the video stream copied, so the
+picture is the silent file frame for frame, and a guard compares the md5. The bus
+alone is `demo/out/post45-sfx.wav`, 48k 24 bit, for a music mix. The cues come
+from the same constants the picture is cut to, so they cannot drift. -14 LUFS,
+-1.1 dBTP on the mp4, 3.8dB of limiting, the worst hit 8ms off by onset on the
+decoded mp4. None came from elevenlabs: every sound passed the measured check.
+
+The sounds are the play set at the end of `lib/sfx.mjs`: bounce, toggle, land,
+riser, tock, chime, bwop, bubble, tap, whooshUp, spin, boing, sparkle, zap and
+bass. A later clip passes a timing list to `renderList()` and masters with
+`master()`; `inspect()` is the listening check. The bass carries its body in the
+2nd and 3rd harmonics, because the loudness meter hardly hears 46 hertz.
+
 ### Glitch frames
 
 5 at 60fps, a burst of 3 and the residue of 2 around the cut at 8.74s. The red

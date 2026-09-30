@@ -27,12 +27,19 @@
    here in the tabler outline style. no app marks.
 
      DEMO_FPS=12 node post45.mjs         the preview
-     node post45.mjs                     60fps
+     node post45.mjs                     60fps, silent
+     node post45.mjs --sfx               the sound version on the silent final, and the bus alone
 */
 
 import {
   runEpisode, span, lerp, smooth, bump, clamp, EASE, SPRING, IO, MARGIN, VW, FPS,
 } from './lib/aiafter.mjs';
+import { renderList, master, loudness, decode, describeMix, SR } from './lib/sfx.mjs';
+import ffmpeg from 'ffmpeg-static';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync, spawnSync } from 'node:child_process';
 
 /* ---------- where things sit, css px of the 540x960 stage ---------- */
 const SCALE = 0.8;
@@ -395,6 +402,93 @@ const SFX = [
 const BEATS = [...JUMPS.map(j => j.t0), ...JUMPS.map(j => j.t1), ...LOOKS.map(l => l.at), ...BLINKS, ...HAPPY.map(h => h.at),
   UPJ.t0, WINK.at, SLIDE.a, HDR_OUT, ROLL.a, ROLL.b, SW_OUT, SL_IN, SL_OUT, CARDS_IN, KB_IN, ...TXT, ...POPS];
 const inside = r => r && r.l >= MARGIN - 0.5 && r.r <= VW - MARGIN + 0.5;
+/* ---------- the sound version: node post45.mjs --sfx ----------
+   the silent final stays as it is. this builds the effects from the same
+   timeline constants the picture is cut to, masters them, writes the bus alone
+   to demo/out/post45-sfx.wav and muxes it onto the silent mp4 with the video
+   stream copied, so the picture is the same file, frame for frame. */
+if (process.argv.includes('--sfx')) {
+  const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out');
+  const SILENT = path.join(OUT, 'post45-dark-1080x1920.mp4');
+  const FILE = path.join(OUT, 'post45-dark-sfx-1080x1920.mp4');
+  const WAV = path.join(OUT, 'post45-sfx.wav');
+  const ff = (args, err = false) => (err ? spawnSync(ffmpeg, args, { encoding: 'utf8' }).stderr : execFileSync(ffmpeg, args, { stdio: ['ignore', 'pipe', 'pipe'] }).toString());
+  if (!fs.existsSync(SILENT)) { console.error('\nSTOPPED. render the silent final first: node post45.mjs'); process.exit(1); }
+  const probe = ff(['-hide_banner', '-i', SILENT], true);
+  const dm = probe.match(/Duration:\s*(\d+):(\d+):([\d.]+)/);
+  const SECS = +dm[1] * 3600 + +dm[2] * 60 + parseFloat(dm[3]);
+  /* when the ball passes each tick mark: the tick is half lit 2px before its x */
+  const kxAt = t => lerp(SL.x0, SL.x1, IO(span(t, ROLL.a, ROLL.b)));
+  const TICK_T = TICK_X.map(x => { let a = ROLL.a, b = ROLL.b; for (let i = 0; i < 40; i++) { const m = (a + b) / 2; if (kxAt(m) >= x - 2) b = m; else a = m; } return +b.toFixed(4); });
+  const CUES = [
+    { t: HOP0 + 0.26, kind: 'bounce', from: 'small hop in the switch' },
+    { t: SLIDE.a, kind: 'toggle', from: 'switch click' },
+    { t: INTO_SL, kind: 'land', from: 'lands in the slider' },
+    { t: ROLL.a, kind: 'riser', opts: { len: +(ROLL.b - ROLL.a).toFixed(3) }, from: 'slider rolls' },
+    ...TICK_T.map((t, i) => ({ t, kind: 'tock', opts: { f: +(1600 * Math.pow(2, i / 12)).toFixed(1) }, from: 'tick ' + (i + 1) })),
+    { t: ROLL.b, kind: 'chime', from: 'slider ends, 100' },
+    ...HITS.map((t, k) => ({ t, kind: 'bwop', opts: { step: k }, from: 'lands on card ' + (k + 1) })),
+    ...POPS.map((t, k) => ({ t, kind: 'bubble', from: 'card ' + (k + 1) + ' pops' })),
+    ...KEY_AT.map((t, i) => ({ t, kind: 'tap', opts: { seed: 0x19d4b7 + i * 977 }, from: 'key ' + WORD[i] })),
+    { t: UPJ.t0, kind: 'whooshUp', from: 'jumps up off the e' },
+    { t: UPJ.t0 + UPJ.dur * 0.12, kind: 'spin', opts: { len: +(UPJ.dur * 0.66).toFixed(3) }, from: 'the spin' },
+    { t: UPJ.t1, kind: 'boing', from: 'lands in the air' },
+    { t: WINK.at, kind: 'sparkle', from: 'wink' },
+    { t: CUT - 0.09, kind: 'zap', from: 'glitch' },
+    { t: CUT, kind: 'bass', opts: { len: +(SECS - CUT - 0.01).toFixed(3) }, from: 'the end card, gone by the end' },
+  ].map(c => ({ ...c, t: +c.t.toFixed(4) }));
+  const { buf, report } = renderList(CUES, SECS);
+  /* master the bus, mux it, measure the mp4; aac can lift the true peak, so
+     the target comes down by whatever the encode added, twice at most */
+  const TARGET = { lufs: -14, tp: -1 };
+  let tp = TARGET.tp, m, lu;
+  for (let pass = 0; pass < 3; pass++) {
+    const b = Float32Array.from(buf);
+    m = master(b, ffmpeg, WAV, { lufs: TARGET.lufs, tp });
+    ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', SILENT, '-i', WAV, '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
+      '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-t', String(SECS), '-movflags', '+faststart', FILE]);
+    lu = loudness(ffmpeg, FILE);
+    if (lu.truePeak <= TARGET.tp && Math.abs(lu.lufs - TARGET.lufs) <= 0.3) break;
+    tp -= Math.max(0.1, lu.truePeak - TARGET.tp + 0.05);
+  }
+  /* the checks: loudness and peak on the mp4, no clipping on the wav, the
+     picture untouched, and every hit on its second */
+  const fails = [];
+  if (Math.abs(lu.lufs - TARGET.lufs) > 0.5) fails.push('the mp4 is ' + lu.lufs + ' LUFS');
+  if (lu.truePeak > TARGET.tp) fails.push('the mp4 true peak is ' + lu.truePeak + ' dBTP');
+  const pcm = decode(ffmpeg, FILE);
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i++) peak = Math.max(peak, Math.abs(pcm[i]));
+  if (peak >= 0.999) fails.push('the mp4 clips');
+  const vmd5 = f => ff(['-hide_banner', '-loglevel', 'error', '-i', f, '-map', '0:v', '-c', 'copy', '-f', 'md5', '-']).trim();
+  if (vmd5(SILENT) !== vmd5(FILE)) fails.push('the picture is not the silent final');
+  /* sync, measured on the decoded mp4: each struck sound's onset, the first 2ms
+     block 8dB over the 12ms before it, against its planned second */
+  const HOP = Math.round(0.002 * SR), lvl = i => { let e = 0; for (let j = i; j < i + HOP && j < pcm.length; j++) e += pcm[j] * pcm[j]; return Math.sqrt(e / HOP) + 1e-6; };
+  const struck = CUES.filter(c => ['bounce', 'toggle', 'land', 'chime', 'bwop', 'bubble', 'tap', 'boing', 'zap', 'bass'].includes(c.kind));
+  let worst = 0;
+  for (const c of struck) {
+    let hit = null;
+    for (let i = Math.round((c.t - 0.03) * SR); i < (c.t + 0.06) * SR; i += HOP) {
+      let before = 0;
+      for (let j = i - Math.round(0.012 * SR); j < i; j += HOP) before = Math.max(before, lvl(j));
+      if (lvl(i) > before * 2.5) { hit = i / SR; break; }
+    }
+    const err = hit == null ? Infinity : Math.abs(hit - c.t);
+    worst = Math.max(worst, err);
+    if (err > 0.02) fails.push(c.from + ' lands ' + (hit == null ? 'nowhere near' : (1000 * (hit - c.t)).toFixed(0) + 'ms off') + ' ' + c.t);
+  }
+  console.log('\npost45 sound version. ' + CUES.length + ' effects, all synthesised in lib/sfx.mjs, none from elevenlabs.');
+  console.log(describeMix(report));
+  console.log('\n  master gain ' + m.gain + 'dB, limiter ' + m.reduction + 'dB, sample ceiling ' + m.ceiling + ' dBFS');
+  console.log('  sync: ' + struck.length + ' struck sounds measured on the mp4, worst ' + (1000 * worst).toFixed(1) + 'ms off');
+  console.log('  loudness ' + lu.lufs + ' LUFS, true peak ' + lu.truePeak + ' dBTP, on the mp4');
+  console.log('  length ' + SECS.toFixed(2) + 's, ' + path.relative(path.dirname(OUT), FILE) + ', bus alone ' + path.relative(path.dirname(OUT), WAV));
+  if (fails.length) { console.error(['', 'FAILED', ...fails].join('\n  ')); process.exit(1); }
+  console.log('  guards: all green');
+  process.exit(0);
+}
+
 const res = await runEpisode({
   post: 45, ep: 0, series: false, title: [],
   cut: CUT, hold: HOLD,

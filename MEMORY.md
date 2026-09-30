@@ -7,7 +7,7 @@ names in here either.
 ## Status
 
 - **2026-09-30, SESSION CLOSE. post45 is final and pushed: the bouncing ai agent,
-  9.83s, silent.** `demo/post45.mjs`, dark only, 60fps. Out to
+  9.83s, silent, and a sound version beside it.** `demo/post45.mjs`, dark only, 60fps. Out to
   `demo/out/post45-dark-1080x1920.mp4`, sheets, `frame0.jpg` and `review.md` in
   `demo/out/verify-post45/`. Write up is **The forty fifth clip** in
   `demo/README.md`. Four briefs. Every critique score is 8 or more.
@@ -27,6 +27,11 @@ names in here either.
   - **9.83s keeps it under the 10s silent guard.** Einz asked for 10 to 12.
   - **Glitch frames: 5 at 60fps**, 519 to 521 and 524 to 525 around the cut at
     8.74s, checked by the red fringe count on the mp4.
+  - **The sound version is `post45-dark-sfx-1080x1920.mp4`**, from `node post45.mjs
+    --sfx`, on the silent final with the video stream copied. The bus alone is
+    `demo/out/post45-sfx.wav`. 32 effects from the new play set in `lib/sfx.mjs`
+    (`renderList`, `master`, `inspect`), none from elevenlabs. -14 LUFS, -1.1 dBTP,
+    3.8dB limiting, worst hit 8ms off. The silent final is unchanged.
   - Still left uncommitted on instruction: the skills/ working tree, the two clap
     svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the motion tests.
 

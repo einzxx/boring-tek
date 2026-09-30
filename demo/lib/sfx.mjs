@@ -1505,3 +1505,213 @@ export function describeMix(report, extra = {}) {
   for (const [k, v] of Object.entries(extra)) out.push('    ' + k + ': ' + v);
   return out.join('\n');
 }
+
+/* ==========================================================================
+   the play set, post45. everything above is paper and ink, written to sit
+   under a voice. post45 has no voice: the sounds are the whole track, so they
+   are allowed to be a small cartoon, a toggle, a pop, a boing. the house rules
+   still hold: synthesised here, seeded, no file, every sound ends at zero, and
+   nothing is bright: a low pass under seven kilohertz on everything, because
+   a phone speaker turns anything above that into hiss.
+
+   a later clip reuses it by giving a timing list:
+
+     import { renderList, master } from './lib/sfx.mjs';
+     const { buf } = renderList([{ t: 0.81, kind: 'bounce' }, ...], seconds);
+     master(buf, ffmpegPath, 'out/mix.wav', { lufs: -14, tp: -1 });
+   ========================================================================== */
+const sine = (buf, fAt, amp) => { let ph = 0; for (let i = 0; i < buf.length; i++) { ph += 2 * Math.PI * fAt(i / SR) / SR; buf[i] += Math.sin(ph) * amp(i / SR); } return buf; };
+const noiseInto = (buf, seed, amp) => { const r = noise(seed); for (let i = 0; i < buf.length; i++) buf[i] += r() * amp(i / SR); return buf; };
+const env = (t, tau, att) => Math.exp(-t / tau) * Math.min(1, t / att);
+/* a band of noise whose centre moves: two one pole stages whose corners are
+   set per sample, so a whoosh can rise or swirl without a resonant filter */
+function sweptBand(len, seed, lo, hi, amp) {
+  const out = n(len), r = noise(seed);
+  let y1 = 0, y2 = 0, prev = 0, h = 0;
+  for (let i = 0; i < out.length; i++) {
+    const q = i / out.length, fl = lo(q), fh = hi(q);
+    const ah = Math.exp(-2 * Math.PI * fl / SR), al = Math.exp(-2 * Math.PI * fh / SR);
+    const x = r();
+    h = ah * (h + x - prev); prev = x;
+    y1 = (1 - al) * h + al * y1; y2 = (1 - al) * y1 + al * y2;
+    out[i] = y2 * amp(q);
+  }
+  return out;
+}
+const soft = buf => ends(normalise(lp(buf, 7000)), 3);
+
+export const PLAY = {
+  /* a rubber ball set down: a sine falling 190 to 105 hertz, gone in 0.18s */
+  bounce({ len = 0.18, f0 = 190, f1 = 105, tau = 0.05 } = {}) {
+    return soft(sine(n(len), t => f1 + (f0 - f1) * Math.exp(-t / 0.03), t => env(t, tau, 0.002)));
+  },
+  /* the toggle: a short tock. a 1.9 kilohertz body over a 450 hertz knock and
+     3ms of band limited air, the way the switch on a phone sounds */
+  toggle({ len = 0.06 } = {}) {
+    const b = n(len);
+    sine(b, () => 1900, t => 0.55 * env(t, 0.006, 0.0006));
+    sine(b, () => 450, t => 0.8 * env(t, 0.011, 0.0008));
+    const air = bp(noiseInto(n(len), 0x61e2c3, t => env(t, 0.0025, 0.0003)), 1800, 5200);
+    for (let i = 0; i < b.length; i++) b[i] += 0.5 * air[i];
+    return soft(b);
+  },
+  /* a soft landing pop: 380 falling to 170, a breath of noise under it */
+  land({ len = 0.14, f0 = 380, f1 = 170, tau = 0.04 } = {}) {
+    const b = sine(n(len), t => f1 + (f0 - f1) * Math.exp(-t / 0.02), t => env(t, tau, 0.0015));
+    const puff = lp(noiseInto(n(len), 0x3c11a7, t => env(t, 0.012, 0.0005)), 1600);
+    for (let i = 0; i < b.length; i++) b[i] += 0.25 * puff[i];
+    return soft(b);
+  },
+  /* the rising whoosh under the roll: noise whose band climbs while it swells,
+     and a quiet sine climbing an octave and a half */
+  riser({ len = 0.9, seed = 0x2a71e5 } = {}) {
+    const b = sweptBand(len, seed, q => 180 + 700 * q * q, q => 600 + 2400 * q,
+      q => Math.pow(Math.sin(Math.PI * Math.min(1, q * 0.62 + 0.02)), 1.4) * (q > 0.92 ? (1 - q) / 0.08 : 1));
+    sine(b, t => 210 * Math.pow(2, 1.5 * t / len), t => 0.05 * Math.sin(Math.PI * Math.min(1, t / len)));
+    return soft(b);
+  },
+  /* a tiny tick, one per blue tick mark, a step up the scale each time */
+  tock({ len = 0.035, f = 2100 } = {}) {
+    return soft(sine(n(len), () => f, t => env(t, 0.007, 0.0005)));
+  },
+  /* the success ding: two bell partials a fifth apart, the second a hair late */
+  chime({ len = 0.75, f = 1046.5, tau = 0.22 } = {}) {
+    const b = n(len);
+    const bell = (f0, at, g) => sine(b, () => f0, t => (t < at ? 0 : g * env(t - at, tau, 0.002)));
+    bell(f, 0, 1); bell(f * 2.76, 0, 0.12); bell(f * 1.5, 0.07, 0.8); bell(f * 1.5 * 2.76, 0.07, 0.08);
+    return soft(b);
+  },
+  /* the cartoon bounce: a quick bwop, 170 up to 430 hertz and back, with a
+     rubber wobble on it. `step` lifts each one a whole tone */
+  bwop({ len = 0.24, step = 0 } = {}) {
+    const k = Math.pow(2, step * 2 / 12);
+    const f = t => k * (170 + 260 * Math.sin(Math.PI * Math.min(1, t / 0.11)));
+    const b = sine(n(len), t => f(t) * (1 + 0.04 * Math.sin(2 * Math.PI * 24 * t)), t => env(t, 0.07, 0.003));
+    sine(b, t => 2 * f(t), t => 0.12 * env(t, 0.04, 0.003));
+    return soft(b);
+  },
+  /* a bubble pop: a sine blip gliding 520 up to 1500 hertz in 30ms */
+  bubble({ len = 0.07, f0 = 520, f1 = 1500 } = {}) {
+    return soft(sine(n(len), t => f0 + (f1 - f0) * Math.min(1, t / 0.03), t => env(t, 0.018, 0.0008)));
+  },
+  /* the keyboard tap: 5ms of band limited air and a 1.1 kilohertz knock */
+  tap({ len = 0.045, seed = 0x19d4b7 } = {}) {
+    const b = bp(noiseInto(n(len), seed, t => env(t, 0.004, 0.0004)), 1500, 6000);
+    sine(b, () => 1100, t => 0.35 * env(t, 0.008, 0.0005));
+    sine(b, () => 260, t => 0.25 * env(t, 0.010, 0.001));
+    return soft(b);
+  },
+  /* the jump: a short whoosh whose band rises, 0.3s */
+  whooshUp({ len = 0.32, seed = 0x44e1a9 } = {}) {
+    return soft(sweptBand(len, seed, q => 250 + 500 * q, q => 900 + 2600 * q, q => Math.pow(Math.sin(Math.PI * q), 1.6)));
+  },
+  /* the spin: a whoosh that swirls, the band turning up and down three times */
+  spin({ len = 0.38, seed = 0x6b2f03, turns = 3 } = {}) {
+    const w = q => Math.sin(2 * Math.PI * turns * q);
+    return soft(sweptBand(len, seed, q => 300 + 250 * w(q), q => 1500 + 1100 * w(q),
+      q => Math.pow(Math.sin(Math.PI * q), 1.2) * (0.65 + 0.35 * Math.sin(2 * Math.PI * turns * q - 1))));
+  },
+  /* a small boing: 230 hertz with a vibrato that starts wide and settles */
+  boing({ len = 0.34, f = 230 } = {}) {
+    const fr = t => f * (1 + 0.25 * Math.exp(-t / 0.04));
+    const b = sine(n(len), t => fr(t) * (1 + 0.06 * Math.exp(-t / 0.12) * Math.sin(2 * Math.PI * 17 * t)), t => env(t, 0.09, 0.003));
+    sine(b, t => 2 * fr(t), t => 0.15 * env(t, 0.05, 0.003));
+    return soft(b);
+  },
+  /* the wink sparkle: five small bells up a major pentatonic, 36ms apart */
+  sparkle({ len = 0.42, f = 1568, gap = 0.036 } = {}) {
+    const b = n(len);
+    [0, 2, 4, 7, 9].forEach((s, k) => {
+      const at = k * gap, f0 = f * Math.pow(2, s / 12), g = 1 - 0.12 * k;
+      sine(b, () => f0, t => (t < at ? 0 : g * env(t - at, 0.07, 0.0015)));
+    });
+    return soft(b);
+  },
+  /* the glitch zap: a crushed, stepping saw sweeping down, cut into bursts */
+  zap({ len = 0.10, f0 = 1400, f1 = 180, crush = 3200, seed = 0x77c02e } = {}) {
+    const b = n(len), r = noise(seed), hold = Math.round(SR / crush);
+    let ph = 0, held = 0;
+    for (let i = 0; i < b.length; i++) {
+      const t = i / SR;
+      ph += (f0 * Math.pow(f1 / f0, t / len)) / SR;
+      if (i % hold === 0) held = 2 * (ph % 1) - 1 + 0.3 * r();
+      b[i] = held * (Math.sin(2 * Math.PI * 38 * t) > -0.3 ? 1 : 0.25) * Math.min(1, t / 0.002, Math.max(0, len - t) / 0.025);
+    }
+    /* the tail curves out after the filters, so nothing downstream can lift it */
+    const out = soft(bp(b, 150, 6000)), k = Math.round(0.040 * SR);
+    for (let i = 0; i < k; i++) out[out.length - 1 - i] *= Math.pow(i / k, 2);
+    return out;
+  },
+  /* the end card: a sub drop, 92 falling to 46 hertz, a round thump on top,
+     at zero by the end of `len` */
+  bass({ len = 1.1, tau = 0.32 } = {}) {
+    const fr = t => 46 + 46 * Math.exp(-t / 0.06);
+    const b = sine(n(len), fr, t => env(t, tau, 0.004) * (t > len - 0.25 ? Math.max(0, len - t) / 0.25 : 1));
+    /* the loudness meter hardly hears 46 hertz, so the body is the 2nd and 3rd harmonics */
+    sine(b, t => 2 * fr(t), t => 0.55 * env(t, 0.22, 0.004) * (t > len - 0.25 ? Math.max(0, len - t) / 0.25 : 1));
+    sine(b, t => 3 * fr(t), t => 0.22 * env(t, 0.12, 0.004));
+    const thump = lp(noiseInto(n(len), 0x0fe13d, t => env(t, 0.010, 0.0005)), 900);
+    for (let i = 0; i < b.length; i++) b[i] += 0.30 * thump[i];
+    return ends(normalise(lp(b, 7000)), 8);
+  },
+};
+Object.assign(VOICES, PLAY);
+/* the play set's levels, peak dBFS before the master, set against each other:
+   the landings and the pops are the beat, the whooshes sit under them, the
+   ticks and taps are texture, the ding and the bass are the two full stops */
+Object.assign(GAINS, {
+  bounce: -14, toggle: -13, land: -14, riser: -16, tock: -21, chime: -13,
+  bwop: -14, bubble: -15, tap: -16, whooshUp: -16, spin: -16, boing: -14,
+  sparkle: -15, zap: -15, bass: -13,
+});
+
+/* a timing list, [{ t, kind, opts }], straight to a bus */
+export function renderList(list, seconds, opts = {}) {
+  return renderSfx(list.map(c => ({ ...c, from: c.from || c.kind })), seconds, opts);
+}
+
+/* the master: a gain found by measuring, a true peak ceiling held by the
+   limiter, the result read back off a real file. true peak is measured by
+   ebur128, which oversamples, so the sample ceiling sits under the target. */
+export function master(buf, ffmpegPath, file, { lufs = -14, tp = -1, maxReduction = 8 } = {}) {
+  const src = Float32Array.from(buf);
+  const run = (gdb, ceil) => { const b = Float32Array.from(src); applyGain(b, gdb); const lim = limit(b, ceil); writeWav(file, b); return { b, gdb, ceil, lim, m: loudness(ffmpegPath, file) }; };
+  let best = null, lo = -20, hi = 30, ceil = tp - 0.6;
+  for (let i = 0; i < 16; i++) {
+    const a = run((lo + hi) / 2, ceil);
+    if (!a.m.ok) throw new Error('the loudness could not be measured');
+    if (a.m.truePeak > tp - 0.05) { ceil -= 0.2; continue; }
+    const legal = a.lim.reduction <= maxReduction;
+    if (legal && (!best || Math.abs(a.m.lufs - lufs) < Math.abs(best.m.lufs - lufs))) best = a;
+    if (!legal || a.m.lufs > lufs) hi = a.gdb; else lo = a.gdb;
+  }
+  if (!best) throw new Error('no legal master: ' + lufs + ' LUFS needs more than ' + maxReduction + 'dB of limiting');
+  buf.set(best.b);
+  writeWav(file, buf);
+  return { gain: +best.gdb.toFixed(2), ceiling: +best.ceil.toFixed(2), reduction: best.lim.reduction, lufs: best.m.lufs, truePeak: best.m.truePeak };
+}
+
+/* the listening check, by measurement: a sound is harsh if too much of its
+   energy is over 6 kilohertz, clicky if it starts or stops away from zero or
+   jumps in its first millisecond, and cut off if it is still loud at its end */
+export function inspect(kind, opts = {}) {
+  const b = VOICES[kind](opts);
+  let e = 0;
+  for (let i = 0; i < b.length; i++) e += b[i] * b[i];
+  const hiB = hp(Float32Array.from(b), 6000);
+  let eh = 0;
+  for (let i = 0; i < hiB.length; i++) eh += hiB[i] * hiB[i];
+  let jump = 0;
+  for (let i = 1; i < Math.round(0.001 * SR); i++) jump = Math.max(jump, Math.abs(b[i] - b[i - 1]));
+  const edge = Math.abs(b[b.length - 1]) + Math.abs(b[0]);
+  const k10 = Math.round(0.010 * SR);
+  let endRms = 0;
+  for (let i = b.length - k10; i < b.length; i++) endRms += b[i] * b[i];
+  endRms = Math.sqrt(endRms / k10);
+  const hf = eh / Math.max(e, 1e-12);
+  const why = [];
+  if (hf > 0.12) why.push('harsh, ' + (100 * hf).toFixed(0) + '% over 6k');
+  if (jump > 0.35 || edge > 1e-3) why.push('clicky');
+  if (endRms > 0.05) why.push('cut off');
+  return { kind, len: +(b.length / SR).toFixed(3), hf: +(100 * hf).toFixed(1), jump: +jump.toFixed(3), endRms: +endRms.toFixed(4), ok: !why.length, why };
+}
