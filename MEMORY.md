@@ -6,6 +6,30 @@ names in here either.
 
 ## Status
 
+- **2026-09-30, SESSION CLOSE. post45 is final and pushed: the bouncing ai agent,
+  9.83s, silent.** `demo/post45.mjs`, dark only, 60fps. Out to
+  `demo/out/post45-dark-1080x1920.mp4`, sheets, `frame0.jpg` and `review.md` in
+  `demo/out/verify-post45/`. Write up is **The forty fifth clip** in
+  `demo/README.md`. Four briefs. Every critique score is 8 or more.
+  - **Silent on instruction.** Einz adds sound effects. The run prints a timing
+    list for every landing, pop, key, the spin, the wink and the glitch.
+  - **Briefs one and two had a read, and it was dropped.** The takes stay on disk
+    as `post45-rN-v3tK` and `post45-bN-v3tK`. Line b1 was pinned to t2 by ear,
+    because t3 drew `he` out.
+  - **He is planned at 118 and drawn at 0.8** through the new `mascot.scale`. The
+    switch and the slider are sized so he is exactly their knob.
+  - **Blinks and the wink stop at a slit, 0.84.** At a full lid a still reads as
+    a blank disc or a one eyed face.
+  - **aiafter.mjs grew five opt in options:** `series: false`, `subsAt0`,
+    `take: n` per line, `mascot.scale`, per eye `eyes`. post44 re-rendered at
+    12fps on old and new rig differs only by render noise (56 dB, the same as two
+    renders on the old rig). The final post44 mp4 was restored byte for byte.
+  - **9.83s keeps it under the 10s silent guard.** Einz asked for 10 to 12.
+  - **Glitch frames: 5 at 60fps**, 519 to 521 and 524 to 525 around the cut at
+    8.74s, checked by the red fringe count on the mp4.
+  - Still left uncommitted on instruction: the skills/ working tree, the two clap
+    svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the motion tests.
+
 - **2026-09-30, SESSION CLOSE. post44 is final and pushed: AI AFTER ep 1, ai after
   reading the terms and conditions, 18.45s, four narrator lines.** `demo/post44.mjs`,
   dark only, 60fps. Out to `demo/out/post44-dark-1080x1920.mp4`, sheets, `frame0.jpg`

@@ -8694,6 +8694,71 @@ reads as a blank disc, so asleep the lid stops at 0.88.
 fringe count on the mp4 finds frames 1042 to 1044 and 1047 to 1048, and nothing
 else. The green card and tag are not counted as fringe.
 
+## The forty fifth clip — the bouncing ai agent
+
+```
+cd demo
+node post45.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post45.mjs     # the fast preview pass
+node post45.mjs --keep-frames   # leave the jpegs on disk
+```
+
+**Where it stands, final.** `demo/post45.mjs`, dark only, **9.83 seconds**,
+60fps, **silent**: einz adds the sound effects, and every run prints their
+timings. Built on `lib/aiafter.mjs` with the series title and tag off. Out to
+`demo/out/post45-dark-1080x1920.mp4`, the sheets, `frame0.jpg` and `review.md`
+in `demo/out/verify-post45/`. Four briefs.
+
+Frame 0 shows `your ai agent` in Michroma at the top, and him as the knob of an
+off switch. He slides across on the click, the track goes blue, the words fade.
+He jumps out in an arc into an ios slider, is its knob, and rolls it 0 to 100:
+the fill grows behind him, eleven ticks go blue as he passes, a bubble counts
+over him. He falls onto a stack of three notifications, bounces off each, the
+text goes and the card pops. He falls onto a keyboard and lands on d, o, n, e,
+each key blue only while he is on it, and the field fills to `done`. Then one
+jump up to the middle with a fast spin, a landing on nothing, a wink, the
+glitch cut and the wordmark, held 1.1s.
+
+### He is the ball
+
+Every move is a real bounce: a squash to load, an arc stretched along its speed,
+a squash on the landing that rings out. The squash is the whole card, so the
+eyes squash with the head and never leave it. As a knob he squashes about his
+middle; standing on a card or a key the squash keeps his bottom on the surface.
+The top of the last jump is its landing, so he arrives with no speed left.
+
+### His size
+
+Planned at 118 css, as the rig needs, and drawn at 0.8 through the rig's new
+`mascot.scale`. The switch is his plate plus a 5px rim, and a guard checks it.
+
+### His eyes
+
+Calm or happy. A blink and the wink stop at a slit, 0.84: at a full lid the
+eye vanishes, a blink reads as a blank disc and a wink as a one eyed face. The
+wink is the rig's new per eye `eyes`, and the eye guards read both eyes.
+
+### What the rig gained
+
+`series: false` (no title or tag), `subsAt0`, a `take: n` pin per line,
+`mascot.scale` and per eye lids and arcs. All opt in: post44 rendered at 12fps
+on the old and the new rig differs only by render noise, the same as two renders
+on the old rig.
+
+### Sound effect timings
+
+0.81 small hop in the switch, 1.00 switch click, 2.15 lands in the slider, 2.25
+slider starts, 3.15 slider ends, 3.80 card 1 lands, 4.06 pop, 4.61 card 2 lands,
+4.87 pop, 5.42 card 3 lands, 5.68 pop, 6.23 key d, 6.59 key o, 6.95 key n, 7.31
+key e, 7.43 jumps up, 7.50 to 7.86 the spin, 7.98 lands in the air, 8.20 wink,
+8.65 glitch starts, 8.74 the cut, 9.84 the end.
+
+### Glitch frames
+
+5 at 60fps, a burst of 3 and the residue of 2 around the cut at 8.74s. The red
+fringe count on the mp4 finds frames 519 to 521 and 524 to 525, and nothing
+else.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

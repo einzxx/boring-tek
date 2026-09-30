@@ -37,6 +37,9 @@
        },
        voice: TAKES,                    optional, from readLines(), each placed with place()
        subs: [{ line, text }],          optional, post43's subtitles, matched to the read
+       subsAt0: true,                   optional, the first subtitle already on at frame 0
+       series: false,                   optional, a clip on this rig with no title and no ep tag
+       mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
      });
 
      DEMO_FPS=12 node postNN.mjs         the preview
@@ -177,7 +180,10 @@ export async function readLines(post, LINES, tries = 3) {
     const good = all.filter(x => x.ok);
     if (!good.length) { console.error('\nSTOPPED. no usable take of line ' + (i + 1) + ': ' + all.map(x => x.why.join(', ')).join(' | ')); process.exit(1); }
     const mid = good.map(x => x.dur).sort((x, y) => x - y)[Math.floor((good.length - 1) / 2)];
-    const kept = good.reduce((x, y) => (Math.abs(y.dur - mid) < Math.abs(x.dur - mid) ? y : x));
+    /* a line may pin a take by ear, `take: n`, and it still has to pass */
+    const pin = LINES[i].take && good.find(x => x.n === LINES[i].take);
+    if (LINES[i].take && !pin) { console.error('\nSTOPPED. the pinned take t' + LINES[i].take + ' of line ' + (i + 1) + ' is not usable.'); process.exit(1); }
+    const kept = pin || good.reduce((x, y) => (Math.abs(y.dur - mid) < Math.abs(x.dur - mid) ? y : x));
     kept.all = all.map(x => 't' + x.n + (x.ok ? ' ' + x.dur + 's' : ' out, ' + x.why.join(', ')) + (x === kept ? ' KEPT' : ''));
     out.push(kept);
   }
@@ -223,10 +229,13 @@ export async function runEpisode(E) {
   /* the end card holds a second at least, every episode */
   const CUT = E.cut, END_HOLD = Math.max(1.0, E.hold ?? 1.0);
   const SECONDS = +(CUT + END_HOLD).toFixed(4);
-  const TAGTEXT = 'ep ' + E.ep;
+  const SERIES = E.series !== false;
+  const TAGTEXT = SERIES ? 'ep ' + E.ep : '';
+  const TITLES = SERIES ? E.title : [];
 
   const TAKES = E.voice || null;
   const CARDS = TAKES && E.subs ? subCards(TAKES, E.subs) : [];
+  if (E.subsAt0 && CARDS.length && CARDS[0].from < 0.3) CARDS[0].from = -ST.fadeIn;
   function subAt(t) {
     for (let i = 0; i < CARDS.length; i++) {
       const c = CARDS[i];
@@ -236,7 +245,7 @@ export async function runEpisode(E) {
     }
     return { o: 0, y: 0, i: -1 };
   }
-  for (const s of [...E.title, TAGTEXT, ...(G.copy || []), ...CARDS.map(c => c.text)]) if (COPY_BAN.test(s)) throw new Error('a dash, colon, apostrophe or quote on screen: ' + s);
+  for (const s of [...TITLES, TAGTEXT, ...(G.copy || []), ...CARDS.map(c => c.text)]) if (COPY_BAN.test(s)) throw new Error('a dash, colon, apostrophe or quote on screen: ' + s);
 
   /* ---------- him ---------- */
   const M = E.mascot;
@@ -266,7 +275,8 @@ export async function runEpisode(E) {
     }
     mas.card.rot = +(mas.card.rot + TURN.tilt * g.q).toFixed(4);
   }
-  const faceAt = t => ({ lid: 0.04, arc: 0, dx: 0, dy: 0, rot: 0, sq: 0, s: 1, ...G.face(t) });
+  /* `mascot.scale` draws him smaller than the rig plans him, eyes in proportion */
+  const faceAt = t => ({ lid: 0.04, arc: 0, dx: 0, dy: 0, rot: 0, sq: 0, s: M.scale ?? 1, ...G.face(t) });
   function compose(t) {
     const mas = mascotFrame(plan, t);
     const F = faceAt(t);
@@ -278,12 +288,15 @@ export async function runEpisode(E) {
         v: +(clamp((F.look.y - eyeY) / GAZE.vspan, -GAZE.up, GAZE.down) * w).toFixed(5),
       });
     }
-    for (const e of mas.eyes) {
-      e.sy = +(e.sy * lerp(1, 0.40, F.arc)).toFixed(4);
-      e.sx = +(e.sx * lerp(1, 1.28, F.arc)).toFixed(4);
-      e.y = +(e.y + 0.9 * F.arc).toFixed(4);
-      e.lid = +lerp(F.lid, 0, F.arc).toFixed(4);
-    }
+    /* `eyes: [{ lid, arc }, { lid, arc }]`, optional, one eye apart from the
+       other, a wink: 0 is his left on screen */
+    mas.eyes.forEach((e, k) => {
+      const one = (F.eyes && F.eyes[k]) || {}, arc = one.arc ?? F.arc, lid = one.lid ?? F.lid;
+      e.sy = +(e.sy * lerp(1, 0.40, arc)).toFixed(4);
+      e.sx = +(e.sx * lerp(1, 1.28, arc)).toFixed(4);
+      e.y = +(e.y + 0.9 * arc).toFixed(4);
+      e.lid = +lerp(lid, 0, arc).toFixed(4);
+    });
     mas.card = { ...mas.card, x: +(mas.card.x + F.dx).toFixed(4), y: +(mas.card.y + F.dy).toFixed(4), rot: +(mas.card.rot + F.rot).toFixed(4),
       sx: +(mas.card.sx * F.s * (1 + F.sq)).toFixed(5), sy: +(mas.card.sy * F.s * (1 - F.sq)).toFixed(5) };
     mas.shadow = { ...mas.shadow, o: 0 };
@@ -407,8 +420,8 @@ ${G.css || ''}
   <div class="vignette" aria-hidden="true"></div>
   <div id="main">
     <div id="cam">
-      <div class="aa-tag" id="aa-tag">${TAGTEXT}</div>
-      <div class="aa-title" id="aa-title">${E.title.map(l => '<span>' + l + '</span>').join('')}</div>
+      ${SERIES ? '<div class="aa-tag" id="aa-tag">' + TAGTEXT + '</div>' : ''}
+      <div class="aa-title" id="aa-title">${TITLES.map(l => '<span>' + l + '</span>').join('')}</div>
       ${G.markup || ''}
       <div id="mas-cut">${mascotMarkup(plan)}</div>
       ${G.front || ''}
@@ -501,12 +514,13 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
 
   /* the hook: everything on and whole at frame 0 */
   await put(0, 0);
-  for (const sel of ['#aa-title', '#aa-tag', '#m-card', ...(G.hook || [])]) {
+  for (const sel of [...(SERIES ? ['#aa-title', '#aa-tag'] : []), '#m-card', ...(G.hook || [])]) {
     const r = await rect(sel);
     if (!r || r.o < 0.99) fails.push('frame 0: ' + sel + ' is not fully on (' + (r ? r.o.toFixed(2) : 'hidden') + ')');
   }
   const m0 = await rect('#m-card');
-  if (m0 && Math.abs(m0.w - M.size) > M.size * 0.06) fails.push('frame 0: he is ' + m0.w.toFixed(1) + ' wide, not ' + M.size);
+  const drawn = M.size * (M.scale ?? 1);
+  if (m0 && Math.abs(m0.w - drawn) > drawn * 0.06) fails.push('frame 0: he is ' + m0.w.toFixed(1) + ' wide, not ' + drawn);
   /* the title lockup and the tag stay apart, and he stays under the title */
   const t0 = await rect('#aa-title'), g0 = await rect('#aa-tag');
   if (t0 && g0 && g0.b > t0.t - 2) fails.push('the ep tag touches the title');
@@ -629,10 +643,11 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   /* the eyes: shut only inside a sleep window, happy arcs 0.6s at most */
   const inSleep = t => (G.sleep || []).some(([a, b]) => t >= a && t <= b);
   for (let f = 0, run = 0, arc = 0; f < CUT * 60; f++) {
-    const t = f / 60, F = faceAt(t);
-    run = F.lid >= 0.98 && !inSleep(t) ? run + 1 : 0;
-    if (run / 60 > 0.3) { fails.push('the eyes are shut outside a sleep at ' + t.toFixed(2)); break; }
-    arc = F.arc > 0.01 ? arc + 1 : 0;
+    const t = f / 60, F = faceAt(t), one = F.eyes || [];
+    const lid = Math.max(F.lid, ...one.map(e => e.lid ?? 0)), anyArc = Math.max(F.arc, ...one.map(e => e.arc ?? 0));
+    run = lid >= 0.98 && !inSleep(t) ? run + 1 : 0;
+    if (run / 60 > 0.3) { fails.push('an eye is shut outside a sleep at ' + t.toFixed(2)); break; }
+    arc = anyArc > 0.01 ? arc + 1 : 0;
     if (arc / 60 > 0.6) { fails.push('a happy arc past 0.6s at ' + t.toFixed(2)); break; }
   }
   /* something new every 2 to 4 seconds */
