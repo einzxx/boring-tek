@@ -77,8 +77,8 @@ const SEO = {
     desc: 'we build custom ai agents, backend systems and workflow automation for businesses. websites, apps and bots too. tell us what you need.',
   },
   nb: {
-    title: 'ai-agenter og automatisering for bedrift | the boring tek',
-    desc: 'vi lager ai-agenter, backend-systemer og automatisering av arbeidsflyt for bedrifter. nettsider, apper og boter også. fortell oss hva du trenger.',
+    title: 'ai og automatisering for bedrifter i Norge | the boring tek',
+    desc: 'vi lager ai-agenter, backend og automatisering for bedrifter. nettsider og apper også. basert på Frøya i Trøndelag, vi jobber med bedrifter i hele Norge.',
   },
   ru: {
     title: 'ai агенты и автоматизация для бизнеса | the boring tek',
