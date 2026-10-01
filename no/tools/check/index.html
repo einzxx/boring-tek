@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="ru" data-theme="light">
+<html lang="nb" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>проверка ссылки | the boring tek</title>
-<meta name="description" content="вставьте ссылку и посмотрите, что в ней скрыто, до того как открыть: настоящий адрес, похожие буквы, подделки брендов, сокращатели. всё в браузере.">
-<link rel="canonical" href="https://theboringtek.com/ru/tools/check/">
+<title>lenkesjekk | the boring tek</title>
+<meta name="description" content="lim inn en lenke og se hva som skjuler seg i den før du åpner: den ekte adressen, falske bokstaver, merkekopier, forkortere. alt skjer i nettleseren.">
+<link rel="canonical" href="https://theboringtek.com/no/tools/check/">
 <link rel="alternate" hreflang="en" href="https://theboringtek.com/tools/check/">
 <link rel="alternate" hreflang="nb" href="https://theboringtek.com/no/tools/check/">
 <link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/tools/check/">
 <link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/tools/check/">
 <link rel="alternate" hreflang="x-default" href="https://theboringtek.com/tools/check/">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://theboringtek.com/ru/tools/check/">
-<meta property="og:locale" content="ru_RU">
-<meta property="og:title" content="проверка ссылки | the boring tek">
-<meta property="og:description" content="вставьте ссылку и посмотрите, что в ней скрыто, до того как открыть: настоящий адрес, похожие буквы, подделки брендов, сокращатели. всё в браузере.">
+<meta property="og:url" content="https://theboringtek.com/no/tools/check/">
+<meta property="og:locale" content="nb_NO">
+<meta property="og:title" content="lenkesjekk | the boring tek">
+<meta property="og:description" content="lim inn en lenke og se hva som skjuler seg i den før du åpner: den ekte adressen, falske bokstaver, merkekopier, forkortere. alt skjer i nettleseren.">
 <meta property="og:image" content="https://theboringtek.com/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -427,63 +427,63 @@ R.style.colorScheme=theme;
    {host}, {shown}, {scheme}, {a}, {word}, {brand}, {tld}, {list}, {url},
    {word} and {reason} are filled at runtime. ---- */
 var T={
- "h1": "проверка ссылки",
- "honest": "мы не можем сказать, что ссылка безопасна. мы можем показать, что выглядит подозрительно.",
- "ph": "вставьте ссылку сюда",
- "run": "проверить",
- "idle": "вставьте ссылку выше и нажмите проверить",
- "bad_link": "не могу прочитать это как ссылку. проверьте и попробуйте ещё раз.",
- "k_addr": "настоящий адрес",
- "v_addr_ok": "ссылка ведёт на {host}",
- "v_addr_at": "ссылка ведёт на {host}, но в тексте, который вы вставили, видно {shown}",
- "v_addr_scheme": "это не обычная ссылка на сайт, она начинается с {scheme}",
+ "h1": "lenkesjekk",
+ "honest": "vi kan ikke si at en lenke er trygg. vi kan vise deg hva som ser feil ut.",
+ "ph": "lim inn lenken her",
+ "run": "sjekk den",
+ "idle": "lim inn en lenke over og trykk sjekk den",
+ "bad_link": "jeg klarer ikke å lese dette som en lenke. sjekk den og prøv igjen.",
+ "k_addr": "ekte adresse",
+ "v_addr_ok": "lenken går til {host}",
+ "v_addr_at": "lenken går til {host}, men teksten du limte inn viser {shown}",
+ "v_addr_scheme": "dette er ikke en vanlig nettlenke, den starter med {scheme}",
  "k_https": "https",
- "v_https_ok": "да, соединение зашифровано",
- "v_https_no": "нет, соединение не зашифровано",
- "k_short": "сокращатель",
- "v_short_ok": "нет",
- "v_short_no": "да, {host} скрывает, куда ссылка ведёт на самом деле",
- "k_look": "похожие буквы",
- "v_look_ok": "нет",
- "v_look_no": "нашёл букву, которая похожа на {a}, но это не она, в слове {word}",
- "v_look_mix": "в слове {word} буквы из двух алфавитов",
- "k_brand": "подделка бренда",
- "v_brand_ok": "нет",
- "v_brand_no": "похоже на {brand}, но настоящий адрес {host}",
- "k_ip": "ip адрес",
- "v_ip_ok": "нет",
- "v_ip_no": "да, вместо имени цифры, это необычно",
- "k_odd": "странный адрес",
- "v_odd_ok": "всё в порядке",
- "o_long": "очень длинный",
- "o_dots": "много точек",
- "o_dash": "много дефисов",
- "o_tld": "необычное окончание {tld}",
- "k_lists": "списки опасных сайтов",
- "v_lists": "пока не проверяю, скоро",
- "last": "если вы не ждали эту ссылку, не открывайте её",
- "s_ok": "ничего не найдено",
- "s_warn": "будьте осторожны",
- "s_bad": "опасно",
- "r_ok": "ничего подозрительного",
- "r_addr": "адрес не тот, что показан",
- "r_scheme": "это не обычная ссылка",
- "r_https": "соединение не зашифровано",
- "r_short": "настоящий адрес скрыт",
- "r_look": "в адресе поддельная буква",
- "r_brand": "адрес копирует известный бренд",
- "r_ip": "вместо имени цифры",
- "r_odd": "адрес выглядит странно",
- "rep_link": "ссылка: {url}",
- "rep_sum": "итог: {word}, {reason}",
- "copy": "скопировать отчёт",
- "copied": "скопировано",
- "nocopy": "не удалось скопировать",
- "again": "проверить другую ссылку",
- "noscript": "этот инструмент работает прямо в браузере. без javascript он не запустится.",
- "home": "главная",
- "th_dark": "тёмная тема",
- "th_light": "светлая тема"
+ "v_https_ok": "ja, den er kryptert",
+ "v_https_no": "nei, den er ikke kryptert",
+ "k_short": "lenkeforkorter",
+ "v_short_ok": "nei",
+ "v_short_no": "ja, {host} skjuler hvor den egentlig går",
+ "k_look": "falske bokstaver",
+ "v_look_ok": "ingen",
+ "v_look_no": "fant en bokstav som ligner på {a}, men ikke er det, i ordet {word}",
+ "v_look_mix": "fant bokstaver fra to alfabeter i ordet {word}",
+ "k_brand": "merkekopi",
+ "v_brand_ok": "ingen",
+ "v_brand_no": "den ligner på {brand}, men den ekte adressen er {host}",
+ "k_ip": "ip-adresse",
+ "v_ip_ok": "nei",
+ "v_ip_no": "ja, et tall i stedet for et navn, det er uvanlig",
+ "k_odd": "rar adresse",
+ "v_odd_ok": "ok",
+ "o_long": "veldig lang",
+ "o_dots": "mange punktum",
+ "o_dash": "mange bindestreker",
+ "o_tld": "en uvanlig endelse som {tld}",
+ "k_lists": "kjente svartelister",
+ "v_lists": "ikke sjekket ennå, kommer snart",
+ "last": "hvis du ikke ventet denne lenken, ikke åpne den",
+ "s_ok": "ingenting funnet",
+ "s_warn": "vær forsiktig",
+ "s_bad": "fare",
+ "r_ok": "ingenting ser feil ut her",
+ "r_addr": "adressen er ikke det den viser",
+ "r_scheme": "dette er ikke en vanlig nettlenke",
+ "r_https": "lenken er ikke kryptert",
+ "r_short": "den ekte adressen er skjult",
+ "r_look": "en bokstav i adressen er falsk",
+ "r_brand": "adressen kopierer et kjent merke",
+ "r_ip": "et tall i stedet for et navn",
+ "r_odd": "adressen ser rar ut",
+ "rep_link": "lenke: {url}",
+ "rep_sum": "resultat: {word}, {reason}",
+ "copy": "kopier rapporten",
+ "copied": "kopiert",
+ "nocopy": "fikk ikke kopiert",
+ "again": "sjekk en annen lenke",
+ "noscript": "dette verktøyet kjører i nettleseren og trenger javascript.",
+ "home": "hjem",
+ "th_dark": "mørk modus",
+ "th_light": "lys modus"
 };
 function t(k){ return T[k]; }
 function fmt(str,vars){
@@ -1025,11 +1025,11 @@ else boot();
   <div class="left">
     <nav class="langs" aria-label="language">
       <a class="lang" href="/tools/check/">EN</a>
-      <a class="lang" href="/no/tools/check/">NO</a>
-      <a class="lang" href="/ru/tools/check/" aria-current="true">RU</a>
+      <a class="lang" href="/no/tools/check/" aria-current="true">NO</a>
+      <a class="lang" href="/ru/tools/check/">RU</a>
       <a class="lang" href="/lv/tools/check/">LV</a>
     </nav>
-    <a class="lang more" href="/ru/" data-k="home">главная</a>
+    <a class="lang more" href="/no/" data-k="home">hjem</a>
   </div>
   <nav class="socials" aria-label="socials">
     <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
@@ -1039,7 +1039,7 @@ else boot();
     <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
     <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
   </nav>
-  <button class="theme" type="button" aria-label="тёмная тема">
+  <button class="theme" type="button" aria-label="mørk modus">
     <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
     <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg>
   </button>
@@ -1047,13 +1047,13 @@ else boot();
 
 <main class="wrap">
  <div class="col">
-  <h1 class="cl" data-k="h1">проверка ссылки</h1>
-  <p class="honest" data-k="honest">мы не можем сказать, что ссылка безопасна. мы можем показать, что выглядит подозрительно.</p>
+  <h1 class="cl" data-k="h1">lenkesjekk</h1>
+  <p class="honest" data-k="honest">vi kan ikke si at en lenke er trygg. vi kan vise deg hva som ser feil ut.</p>
 
   <form class="ask" autocomplete="off">
-    <label class="sr" for="link" data-k="ph">вставьте ссылку сюда</label>
-    <input class="in" id="link" type="text" inputmode="url" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="вставьте ссылку сюда">
-    <button class="btn" type="submit" data-k="run">проверить</button>
+    <label class="sr" for="link" data-k="ph">lim inn lenken her</label>
+    <input class="in" id="link" type="text" inputmode="url" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="lim inn lenken her">
+    <button class="btn" type="submit" data-k="run">sjekk den</button>
   </form>
 
   <section class="term" aria-label="result">
@@ -1076,13 +1076,13 @@ else boot();
     <div class="resin">
       <p class="pill ok"><b></b><span></span></p>
       <div class="acts">
-        <button class="cp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></svg><span data-k="copy">скопировать отчёт</span></button>
-        <button class="again lnk" type="button" data-k="again">проверить другую ссылку</button>
+        <button class="cp" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></svg><span data-k="copy">kopier rapporten</span></button>
+        <button class="again lnk" type="button" data-k="again">sjekk en annen lenke</button>
       </div>
     </div>
   </div>
 
-  <noscript><p class="note" data-k="noscript">этот инструмент работает прямо в браузере. без javascript он не запустится.</p></noscript>
+  <noscript><p class="note" data-k="noscript">dette verktøyet kjører i nettleseren og trenger javascript.</p></noscript>
  </div>
 </main>
 

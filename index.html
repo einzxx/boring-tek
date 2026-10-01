@@ -7,6 +7,7 @@
 <meta name="description" content="we build custom ai agents, backend systems and workflow automation for businesses. websites, apps and bots too. tell us what you need.">
 <link rel="canonical" href="https://theboringtek.com/">
 <link rel="alternate" hreflang="en" href="https://theboringtek.com/">
+<link rel="alternate" hreflang="nb" href="https://theboringtek.com/no/">
 <link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/">
 <link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/">
 <link rel="alternate" hreflang="x-default" href="https://theboringtek.com/">
@@ -716,8 +717,9 @@ var D=document, R=D.documentElement;
    it is russian is russian, which is what its canonical claims and what a
    crawler is served. the switch in the header is three links, so changing
    language is a navigation and not a repaint. */
-var LANG={en:1,ru:1,lv:1};
-function href(l){ return l==='en' ? '/' : '/'+l+'/'; }
+var LANG={en:1,nb:1,ru:1,lv:1};
+/* norwegian is nb in the document and /no/ in the address. */
+function href(l){ return l==='en' ? '/' : l==='nb' ? '/no/' : '/'+l+'/'; }
 
 /* ---- bootstrap: the theme lands before first paint. it is the only thing a
    visitor still carries from page to page, and it is still a choice rather than
@@ -801,6 +803,62 @@ var T={
   e_net:'could not send. try again.',
   th_dark:'dark mode', th_light:'light mode',
   tools:'tools'
+ },
+ nb:{
+  sub:'vi bygger den kjedelige delen av fremtiden',
+  cta:'fortell oss hva du trenger',
+  hint:'noen få klikk. vi ser på det. vi svarer.',
+  v1l:'introen',
+  ch1:'hei', ch2:'hvem vi er', ch3:'hva vi lager', ch4:'slik funker det',
+  soon:'snart', play:'spill av', pause:'pause',
+  c1l:'hvem vi er',
+  c1t:'vi bygger med ai hver dag. betalinger. boter. systemer som går av seg selv. du snakker med den som bygger det.',
+  c2l:'den ærlige delen',
+  c2t:'alle bedrifter kommer til å bruke ai. de som starter tidlig, vinner. de som venter, havner bak. sånn er det bare.',
+  c3l:'så skriv',
+  c3t:'vet du hva du trenger, skriv. aner du ikke hva ai kan gjøre for deg, skriv. har du ikke tid til å tenke på det, skriv. vi ser på det og svarer med ekte forslag. det koster ingenting å spørre.',
+  idle:['kjedelig...','fortsatt kjedelig...','venter...','så stille...'],
+  open:'å. en kunde.',
+  notes:['mhm.','klassiker.','ok. notert.'],
+  last:'nesten ferdig.',
+  done:'ok. vi ser på det. gå og driv butikken.',
+  doneq:'skjønner. vi svarer snart.',
+  sent:'sendt',
+  again:'start på nytt',
+  back:'tilbake', next:'neste', send:'send', sending:'sender',
+  multi:'velg så mange du vil',
+  q_intent:'hva gjelder det',
+  i_check:'sjekk bedriften min',
+  i_problem:'jeg har et problem som må løses',
+  i_unsure:'jeg vet ikke helt hva jeg trenger',
+  i_question:'jeg har bare et spørsmål',
+  q_want:'hva vil du ha',
+  w_aibiz:'ai for bedriften min',
+  w_aime:'ai for meg personlig',
+  w_site:'nettside eller app',
+  w_auto:'gjøre jobben min automatisk',
+  w_explain:'jeg forklarer selv',
+  q_explain:'forklar med dine egne ord',
+  ph_explain:'skriv her',
+  q_size:'hvor stor er bedriften din',
+  z1:'bare meg', z2:'2 til 10 personer', z3:'11 til 50', z4:'over 50',
+  q_time:'hva tar mest av tiden din',
+  t1:'svare på meldinger', t2:'papirarbeid og dokumenter', t3:'finne kunder',
+  t4:'den samme oppgaven hver dag', t5:'noe annet',
+  q_reach:'hvordan tar kundene kontakt',
+  r1:'whatsapp eller telegram', r2:'e-post', r3:'telefon', r4:'sosiale medier', r5:'det gjør de ikke',
+  q_question:'skriv spørsmålet ditt her',
+  ph_question:'skriv her',
+  q_fields:'siste steg',
+  f_name:'bedriften eller navnet ditt', f_reg:'organisasjonsnummer (valgfritt)',
+  f_site:'nettside (valgfritt)', f_country:'land', f_email:'e-posten din',
+  e_name:'vi trenger et navn',
+  e_email:'vi trenger e-posten din for å svare',
+  e_pick:'velg minst én',
+  e_question:'skriv spørsmålet ditt først',
+  e_net:'fikk ikke sendt. prøv igjen.',
+  th_dark:'mørk modus', th_light:'lys modus',
+  tools:'verktøy'
  },
  ru:{
   sub:'строим скучную часть будущего',
@@ -1793,6 +1851,7 @@ else boot();
   <div class="left">
     <nav class="langs" aria-label="language">
       <a class="lang" href="/" aria-current="true">EN</a>
+      <a class="lang" href="/no/">NO</a>
       <a class="lang" href="/ru/">RU</a>
       <a class="lang" href="/lv/">LV</a>
     </nav>

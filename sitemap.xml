@@ -4,6 +4,9 @@
     <loc>https://theboringtek.com/</loc>
   </url>
   <url>
+    <loc>https://theboringtek.com/no/</loc>
+  </url>
+  <url>
     <loc>https://theboringtek.com/ru/</loc>
   </url>
   <url>
@@ -11,6 +14,9 @@
   </url>
   <url>
     <loc>https://theboringtek.com/tools/</loc>
+  </url>
+  <url>
+    <loc>https://theboringtek.com/no/tools/</loc>
   </url>
   <url>
     <loc>https://theboringtek.com/ru/tools/</loc>
@@ -22,6 +28,9 @@
     <loc>https://theboringtek.com/tools/clean/</loc>
   </url>
   <url>
+    <loc>https://theboringtek.com/no/tools/clean/</loc>
+  </url>
+  <url>
     <loc>https://theboringtek.com/ru/tools/clean/</loc>
   </url>
   <url>
@@ -29,6 +38,9 @@
   </url>
   <url>
     <loc>https://theboringtek.com/tools/check/</loc>
+  </url>
+  <url>
+    <loc>https://theboringtek.com/no/tools/check/</loc>
   </url>
   <url>
     <loc>https://theboringtek.com/ru/tools/check/</loc>

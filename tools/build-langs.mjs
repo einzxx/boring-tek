@@ -50,15 +50,18 @@ const SRC_CHECK = path.join(ROOT, 'tools', 'check', 'index.html');
 const CHECK_ONLY = process.argv.includes('--check');
 
 const ORIGIN = 'https://theboringtek.com';
-const LANGS = ['en', 'ru', 'lv'];
-const AT = { en: '/', ru: '/ru/', lv: '/lv/' };
-const AT_TOOLS = { en: '/tools/', ru: '/ru/tools/', lv: '/lv/tools/' };
-const AT_CLEAN = { en: '/tools/clean/', ru: '/ru/tools/clean/', lv: '/lv/tools/clean/' };
-const AT_CHECK = { en: '/tools/check/', ru: '/ru/tools/check/', lv: '/lv/tools/check/' };
+/* norwegian is bokmal: `nb` in `lang`, hreflang and the dictionaries, `/no/`
+   in the address. every output path comes off these maps, never off the code. */
+const LANGS = ['en', 'nb', 'ru', 'lv'];
+const AT = { en: '/', nb: '/no/', ru: '/ru/', lv: '/lv/' };
+const AT_TOOLS = { en: '/tools/', nb: '/no/tools/', ru: '/ru/tools/', lv: '/lv/tools/' };
+const AT_CLEAN = { en: '/tools/clean/', nb: '/no/tools/clean/', ru: '/ru/tools/clean/', lv: '/lv/tools/clean/' };
+const AT_CHECK = { en: '/tools/check/', nb: '/no/tools/check/', ru: '/ru/tools/check/', lv: '/lv/tools/check/' };
 /* where the cleaner lived until 2026-09-17. a stub at each forwards to the
-   same language's new address, so a link somebody shared keeps working. */
+   same language's new address, so a link somebody shared keeps working.
+   norwegian came after the move, so it never had one. */
 const AT_CLEAN_OLD = { en: '/clean/', ru: '/ru/clean/', lv: '/lv/clean/' };
-const OG_LOCALE = { en: 'en_US', ru: 'ru_RU', lv: 'lv_LV' };
+const OG_LOCALE = { en: 'en_US', nb: 'nb_NO', ru: 'ru_RU', lv: 'lv_LV' };
 
 /* the head copy. it is not painted by the page, so it does not live in `T` with
    the strings that are — it lives here, beside the thing that writes it. plain
@@ -70,6 +73,10 @@ const SEO = {
   en: {
     title: 'ai agents and automation for business | the boring tek',
     desc: 'we build custom ai agents, backend systems and workflow automation for businesses. websites, apps and bots too. tell us what you need.',
+  },
+  nb: {
+    title: 'ai-agenter og automatisering for bedrift | the boring tek',
+    desc: 'vi lager ai-agenter, backend-systemer og automatisering av arbeidsflyt for bedrifter. nettsider, apper og boter også. fortell oss hva du trenger.',
   },
   ru: {
     title: 'ai агенты и автоматизация для бизнеса | the boring tek',
@@ -84,6 +91,10 @@ const SEO_TOOLS = {
   en: {
     title: 'free tools | the boring tek',
     desc: 'free browser tools by the boring tek. a watermark remover for ai text and files, and a link checker. nothing leaves your browser.',
+  },
+  nb: {
+    title: 'gratis verktøy | the boring tek',
+    desc: 'gratis verktøy i nettleseren fra the boring tek. fjern vannmerker fra ai-tekst og filer, og sjekk lenker. ingenting forlater nettleseren din.',
   },
   ru: {
     title: 'бесплатные инструменты | the boring tek',
@@ -107,6 +118,17 @@ const TOOLS = {
     home: 'home',
     th_dark: 'dark mode',
     th_light: 'light mode',
+  },
+  nb: {
+    h1: 'gratis verktøy',
+    t_clean: 'fjern vannmerker',
+    d_clean: 'fjerner skjulte ai-merker fra teksten og filene dine',
+    t_check: 'lenkesjekk',
+    d_check: 'se hva som skjuler seg i en lenke før du åpner den',
+    open: 'åpne',
+    home: 'hjem',
+    th_dark: 'mørk modus',
+    th_light: 'lys modus',
   },
   ru: {
     h1: 'бесплатные инструменты',
@@ -135,6 +157,10 @@ const SEO_CLEAN = {
   en: {
     title: 'watermark remover for claude and chatgpt | the boring tek',
     desc: 'remove hidden watermarks from claude, chatgpt and other ai text: zero width characters, direction marks and file metadata. nothing leaves your browser.',
+  },
+  nb: {
+    title: 'fjern vannmerker fra claude og chatgpt | the boring tek',
+    desc: 'fjern skjulte vannmerker fra claude, chatgpt og annen ai-tekst: tegn med null bredde, retningstegn og metadata i filer. ingenting forlater nettleseren.',
   },
   ru: {
     title: 'удаление водяных знаков claude и chatgpt | the boring tek',
@@ -212,6 +238,67 @@ const CLEAN = {
     copied: 'copied',
     nocopy: 'could not copy',
     clear: 'clear all',
+  },
+  nb: {
+    h1: 'Fjern vannmerker fra Claude, ChatGPT og flere',
+    say: 'slipp en fil her, eller trykk for å velge en.',
+    zone_label: 'slipp en fil, eller trykk for å velge en',
+    ph: 'lim inn teksten din her',
+    run: 'rens teksten eller filen min',
+    ready: '{name} er klar.',
+    honest: 'dette verktøyet fjerner skjulte merker fra tekst og filer. det får ikke teksten til å virke menneskelig. ingen verktøy kan love hva en ai-sjekker kommer til å si.',
+    noscript: 'dette verktøyet kjører i nettleseren og trenger javascript.',
+    home: 'hjem',
+    th_dark: 'mørk modus',
+    th_light: 'lys modus',
+    clean_none: 'allerede rent, fant ingenting skjult.',
+    lbl_in: 'teksten din',
+    lbl_out: 'ren tekst',
+    found: 'fant {list}, {verb}.',
+    checked: 'sjekket igjen, {left}.',
+    n_left: ['skjult merke igjen', 'skjulte merker igjen'],
+    and: 'og',
+    v_removed: 'fjernet alt',
+    v_replaced: 'byttet ut alt',
+    v_fixed: 'fikset alt',
+    n_hidden: ['skjult tegn', 'skjulte tegn'],
+    n_space: ['rart mellomrom', 'rare mellomrom'],
+    n_curly: ['typografisk tegn', 'typografiske tegn'],
+    n_tag: ['metadatatagg', 'metadatatagger'],
+    n_field: ['metadatafelt', 'metadatafelt'],
+    l_zero: 'null bredde',
+    l_soft: 'myke bindestreker',
+    l_dir: 'retningstegn',
+    l_vs: 'variantvelgere',
+    l_tag: 'taggtegn',
+    l_sep: 'usynlige skilletegn',
+    l_sp: 'rare mellomrom',
+    l_punct: 'typografiske tegn',
+    m_icc: 'icc-profil',
+    m_c2pa: 'c2pa-manifest',
+    m_text: 'tekstbiter',
+    m_comment: 'kommentarer',
+    m_time: 'tidsstempel',
+    reenc: 'kodet på nytt uansett, så kopien har ingenting med seg',
+    chk_ok: 'sjekket kopien: ingenting igjen',
+    chk_left: 'sjekket kopien: {n} igjen, denne nettleseren skrev dem tilbake',
+    saved_as: 'lagret som {a}, denne nettleseren kan ikke lage {b}',
+    info_fields: 'infofelt',
+    docprops: 'dokumentegenskaper',
+    supported: 'jeg leser tekst, png, jpg, webp, pdf og docx.',
+    e_other: 'denne filtypen støttes ikke ennå.',
+    e_nolib: 'fikk ikke hentet verktøyet for denne filtypen. sjekk nettet og prøv igjen.',
+    e_locked: 'denne pdf-en er låst. jeg får ikke åpnet den.',
+    e_badpdf: 'denne pdf-en vil ikke åpne seg. den kan være ødelagt.',
+    e_decode: 'dette bildet lar seg ikke lese.',
+    e_encode: 'fikk ikke kodet bildet på nytt. det kan være for stort for denne nettleseren.',
+    e_canvas: 'denne nettleseren klarer ikke å tegne bildet.',
+    e_empty: 'ingenting å rense ennå. lim inn tekst eller slipp en fil.',
+    dl: 'last ned ren fil',
+    cp: 'kopier',
+    copied: 'kopiert',
+    nocopy: 'fikk ikke kopiert',
+    clear: 'tøm alt',
   },
   ru: {
     h1: 'Удаление водяных знаков для Claude, ChatGPT и других',
@@ -344,6 +431,10 @@ const SEO_CHECK = {
     title: 'link checker | the boring tek',
     desc: 'paste a link and see what is hiding in it before you open it: the real address, lookalike letters, brand copies, shorteners. nothing leaves your browser.',
   },
+  nb: {
+    title: 'lenkesjekk | the boring tek',
+    desc: 'lim inn en lenke og se hva som skjuler seg i den før du åpner: den ekte adressen, falske bokstaver, merkekopier, forkortere. alt skjer i nettleseren.',
+  },
   ru: {
     title: 'проверка ссылки | the boring tek',
     desc: 'вставьте ссылку и посмотрите, что в ней скрыто, до того как открыть: настоящий адрес, похожие буквы, подделки брендов, сокращатели. всё в браузере.',
@@ -420,6 +511,65 @@ const CHECK = {
     home: 'home',
     th_dark: 'dark mode',
     th_light: 'light mode',
+  },
+  nb: {
+    h1: 'lenkesjekk',
+    honest: 'vi kan ikke si at en lenke er trygg. vi kan vise deg hva som ser feil ut.',
+    ph: 'lim inn lenken her',
+    run: 'sjekk den',
+    idle: 'lim inn en lenke over og trykk sjekk den',
+    bad_link: 'jeg klarer ikke å lese dette som en lenke. sjekk den og prøv igjen.',
+    k_addr: 'ekte adresse',
+    v_addr_ok: 'lenken går til {host}',
+    v_addr_at: 'lenken går til {host}, men teksten du limte inn viser {shown}',
+    v_addr_scheme: 'dette er ikke en vanlig nettlenke, den starter med {scheme}',
+    k_https: 'https',
+    v_https_ok: 'ja, den er kryptert',
+    v_https_no: 'nei, den er ikke kryptert',
+    k_short: 'lenkeforkorter',
+    v_short_ok: 'nei',
+    v_short_no: 'ja, {host} skjuler hvor den egentlig går',
+    k_look: 'falske bokstaver',
+    v_look_ok: 'ingen',
+    v_look_no: 'fant en bokstav som ligner på {a}, men ikke er det, i ordet {word}',
+    v_look_mix: 'fant bokstaver fra to alfabeter i ordet {word}',
+    k_brand: 'merkekopi',
+    v_brand_ok: 'ingen',
+    v_brand_no: 'den ligner på {brand}, men den ekte adressen er {host}',
+    k_ip: 'ip-adresse',
+    v_ip_ok: 'nei',
+    v_ip_no: 'ja, et tall i stedet for et navn, det er uvanlig',
+    k_odd: 'rar adresse',
+    v_odd_ok: 'ok',
+    o_long: 'veldig lang',
+    o_dots: 'mange punktum',
+    o_dash: 'mange bindestreker',
+    o_tld: 'en uvanlig endelse som {tld}',
+    k_lists: 'kjente svartelister',
+    v_lists: 'ikke sjekket ennå, kommer snart',
+    last: 'hvis du ikke ventet denne lenken, ikke åpne den',
+    s_ok: 'ingenting funnet',
+    s_warn: 'vær forsiktig',
+    s_bad: 'fare',
+    r_ok: 'ingenting ser feil ut her',
+    r_addr: 'adressen er ikke det den viser',
+    r_scheme: 'dette er ikke en vanlig nettlenke',
+    r_https: 'lenken er ikke kryptert',
+    r_short: 'den ekte adressen er skjult',
+    r_look: 'en bokstav i adressen er falsk',
+    r_brand: 'adressen kopierer et kjent merke',
+    r_ip: 'et tall i stedet for et navn',
+    r_odd: 'adressen ser rar ut',
+    rep_link: 'lenke: {url}',
+    rep_sum: 'resultat: {word}, {reason}',
+    copy: 'kopier rapporten',
+    copied: 'kopiert',
+    nocopy: 'fikk ikke kopiert',
+    again: 'sjekk en annen lenke',
+    noscript: 'dette verktøyet kjører i nettleseren og trenger javascript.',
+    home: 'hjem',
+    th_dark: 'mørk modus',
+    th_light: 'lys modus',
   },
   ru: {
     h1: 'проверка ссылки',
@@ -872,12 +1022,14 @@ function buildSitemap() {
 
 /* ---------- write ---------- */
 
+/* the folder is the address, which for norwegian is not the code */
+const fileAt = (url) => path.join(ROOT, ...url.split('/').filter(Boolean), 'index.html');
 const out = [
-  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'index.html'), buildPage(l)]),
-  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'index.html'), buildTools(l)]),
-  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'clean', 'index.html'), buildClean(l)]),
-  ...LANGS.filter((l) => l !== 'en').map((l) => [path.join(ROOT, l, 'tools', 'check', 'index.html'), buildCheck(l)]),
-  ...LANGS.map((l) => [path.join(ROOT, ...AT_CLEAN_OLD[l].split('/').filter(Boolean), 'index.html'), buildRedirect(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT[l]), buildPage(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_TOOLS[l]), buildTools(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_CLEAN[l]), buildClean(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_CHECK[l]), buildCheck(l)]),
+  ...Object.keys(AT_CLEAN_OLD).map((l) => [fileAt(AT_CLEAN_OLD[l]), buildRedirect(l)]),
   [path.join(ROOT, 'sitemap.xml'), buildSitemap()],
 ];
 
