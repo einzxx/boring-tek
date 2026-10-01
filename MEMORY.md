@@ -6,6 +6,20 @@ names in here either.
 
 ## Status
 
+- **2026-10-01, SESSION SAVE. Caption and sound rules.**
+  - **Captions:** plain words about the clip's topic. A did you know style works
+    for true stories. No names of real companies or people are needed in the
+    caption. Never spoil the punchline.
+  - **Hashtags:** one broad tag like ai, plus 2 or 3 about the exact topic. Shorts
+    only on youtube. No fyp. 5 at most.
+  - **The lesson line** (like set up your ai the right way) is not in every clip,
+    only when it comes naturally, about 1 clip in 3.
+  - **post47's chat format works:** a real messenger, sender names, the bubble
+    slides into his spot when he leaves, the voice tells the true story.
+  - **The elevenlabs key in demo/.env now has sound effects on.**
+    `demo/lib/elevensfx.mjs` fetches them, best of three takes, cached in
+    `demo/out/sfx-postNN/`.
+
 - **2026-10-01. post48 is final and pushed: the delivery, 11.59s, sound
   effects only, no voice.** `demo/post48.mjs`, dark, 60fps. Out to
   `demo/out/post48-dark-1080x1920.mp4`, sheets, `frame0.jpg` and `review.md` in
