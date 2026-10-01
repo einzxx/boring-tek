@@ -33,8 +33,8 @@ off. Dark is where the identity lives. Light is where the customers are. Both sh
   to our own Cloudflare Worker at the same time. Nothing fetches on load, on scroll, on
   hover or on idle. If a page grows another endpoint, that's a decision, not an
   implementation detail.
-- **One file is the source; three documents ship.** `index.html` is still the only place
-  anything is written. `ru/index.html` and `lv/index.html` are generated out of it by
+- **One file is the source; four documents ship.** `index.html` is still the only place
+  anything is written. `no/index.html`, `ru/index.html` and `lv/index.html` are generated out of it by
   `node tools/build-langs.mjs` and are build output: editing one by hand is editing an
   artifact and the next run overwrites it. This is not a build step in the shipped
   sense - nothing is bundled, minified, compiled or fetched, the generated files are the
@@ -147,25 +147,25 @@ Rules:
 
 ## Languages
 
-EN, RU and LV, switched by three plain text buttons top left. Active is `--fg` at full
+EN, NO, RU and LV, in that order, switched by four plain text buttons top left. Active is `--fg` at full
 opacity; the others are `--muted` at `.5`.
 
-- **The language is the address and nothing else.** `/` is English, `/ru/` is Russian,
-  `/lv/` is Latvian, each is a real document, and each says so in its own `lang`
+- **The language is the address and nothing else.** `/` is English, `/no/` is Norwegian
+  bokmal, `/ru/` is Russian, `/lv/` is Latvian, each is a real document, and each says so in its own `lang`
   attribute and its own canonical. Nothing sniffs the browser, nothing reads a saved
   choice, nothing repaints on load. A document that says it is Russian is Russian.
 - The head script reads `<html lang>` rather than setting it. Only the theme is applied
   before paint now, because only the theme is still a visitor's to carry between pages.
 - **Every visible string lives in one `T` object**, keyed by language then by string
-  key. `tools/build-langs.mjs` reads that same object and paints the two other documents
+  key. `tools/build-langs.mjs` reads that same object and paints the three other documents
   from it at build time, so the markup that ships already carries its own language and
   a visitor with JS off reads a whole page rather than an English one.
-- A language switch is **three links, so it is a navigation**. The visual behaviour is
+- A language switch is **four links, so it is a navigation**. The visual behaviour is
   unchanged - the current one is `--fg` at full opacity, the others `--muted` at `.5` -
   but the state is `aria-current="true"` rather than `aria-pressed`, because a link that
   goes somewhere is not a toggle. **Switching mid-form loses the form**, which is the
   price of a crawlable address and was paid deliberately.
-- All three dictionaries carry **identical key sets**, including array lengths for
+- All four dictionaries carry **identical key sets**, including array lengths for
   `idle` and `notes`. A missing key falls back to English rather than rendering
   `undefined`, but the fallback is a safety net, not a translation strategy.
 - Copy rules apply in every language: lowercase, short, no exclamation marks, dry.
@@ -177,8 +177,15 @@ opacity; the others are `--muted` at `.5`.
 
 ### Language urls
 
-`/` is English, `/ru/` is Russian, `/lv/` is Latvian. Three documents, three canonicals,
-one source file.
+`/` is English, `/no/` is Norwegian bokmal, `/ru/` is Russian, `/lv/` is Latvian. Four
+documents, four canonicals, one source file.
+
+**Norwegian is `nb` everywhere but the address.** `<html lang="nb">`, `hreflang="nb"`,
+`og:locale` `nb_NO` and the `T.nb` key, served from `/no/`. The build maps the code to
+the folder through its `AT` constants, and the page script's `href()` does the same for
+the hash fallback. Norwegian came after the cleaner moved to `/tools/clean/`, so there
+is no `/no/clean/` stub. Æ, ø and å fail the Latin test like the Latvian diacritics, so a
+Norwegian subline or cta that carries one drops whole to Space Grotesk.
 
 **The mechanism, because GitHub Pages has no rewrites and the site is one file.**
 
@@ -218,7 +225,7 @@ came to crawl, and it was the direct cost of the old design being invisible to s
 
 **SEO.**
 
-- `hreflang` for `en`, `ru`, `lv` and `x-default` in all three documents, absolute urls,
+- `hreflang` for `en`, `nb`, `ru`, `lv` and `x-default` in all four documents, absolute urls,
   the same four lines everywhere: each document names every document including itself,
   which is what makes the group reciprocal.
 - **Each document is canonical to itself**, and og:url and og:locale follow it.
@@ -449,7 +456,7 @@ Order, top to bottom:
 ```css
 .wrap{ display:flex; justify-content:center; align-items:center;
        padding:clamp(84px,11vh,100px) 16px clamp(12px,2vh,18px) }
-/* above 560px, where the socials sit in the bar: */
+/* above 880px, where the socials sit in the bar: */
 .wrap{ padding-top:clamp(116px,11vh + 32px,132px) }
 .lockup{
   display:flex; flex-direction:column; align-items:center;
@@ -464,7 +471,7 @@ Order, top to bottom:
 - The top padding clears the fixed bar. The bar is `position: fixed`, so it adds no
   height — without that padding the mascot slides under the language buttons on short
   screens.
-- **Above `560px` that padding carries another `32px`**, because the socials row is in
+- **Above `880px` that padding carries another `32px`**, because the socials row is in
   the bar on that side of the line and lands right above the mascot's head. Clearing the
   controls is not the same as looking clear of them: at the old value the gap from the
   icons to the face was `35px` on a 720–768px tall laptop, which read as the row
@@ -1084,7 +1091,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 - Fluid-first: `clamp()`, `min()`, `max()` and intrinsic sizing over breakpoints.
   **Three width breakpoints exist and that is the ceiling:** `720px` for the card grid
   **and the video card's split**, `640px` for the stacked lockup (in JS, `mqS`), and
-  `560px` for the socials, which is the only one that moves a block from one end of the
+  `880px` for the socials, which is the only one that moves a block from one end of the
   page to the other. A fourth is a decision, not a convenience — the video card was
   asked for at 700px and was built at 720 for exactly this reason. When a new block
   wants a breakpoint, check whether one of these three already does the job.
@@ -1092,7 +1099,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 ### The socials row
 
 Six links: telegram, x, youtube, tiktok, instagram, facebook, in that order. **One row,
-in one of two places.** Above `560px` it sits in the fixed top bar. Below, it moves to a
+in one of two places.** Above `880px` it sits in the fixed top bar. Below, it moves to a
 footer at the bottom of the page and the bar goes back to the two controls it shipped
 with. Never both at once, and never a second bar row.
 
@@ -1138,7 +1145,7 @@ with. Never both at once, and never a second bar row.
   not `text-shadow`: these are strokes, not glyphs. Hover only — nothing in this row
   ever animates on its own. The CTA is still the page's one attention-seeker.
 - **`target="_blank"` and `rel="noopener"`** on all six, in both rows.
-- **The 32px the hero gains above 560px comes back off the bottom of the page.**
+- **The 32px the hero gains above 880px comes back off the bottom of the page.**
   `.below` drops to `padding-bottom: clamp(32px, 10vh - 32px, 64px)` in the same media
   query, so the document is exactly as tall as it was before the row existed and the
   landing state still fits one screen at 1440×900. Verified identical at 1024×768,
@@ -1155,13 +1162,15 @@ with. Never both at once, and never a second bar row.
   `position: absolute; top: 12px; left: 50%; transform: translateX(-50%)`. It is centred
   on the page, not in the gap between the language block and the toggle — those two are
   `100px` and `44px`, so a flex centre sits `28px` right of true centre, and on a wide
-  screen that reads as a mistake. Measured at 560 through 2560: centre error `0px`.
+  screen that reads as a mistake. Measured at 880 through 2560: centre error `0px`.
   Out of flow also means the bar cannot wrap, whatever is in it.
-- **`560px` is where it moves, and the number comes from the geometry.** Page-centred,
-  the row's left edge is `W/2 - 135`; it has to clear the language block's `112px` with
-  air to spare. That needs about `518px`, and `560` leaves a `32px` gap at the
-  narrowest desktop. The old wrap point (`464px`) is too early for a centred row: the
-  icons would sit on the language buttons.
+- **`880px` is where it moves, and the number comes from the geometry.** Page-centred,
+  the row's left edge is `W/2 - 135`; it has to clear the whole left block, the four
+  language buttons plus the tools link, with air to spare. The widest is Russian, whose
+  `инструменты` ends the block at `278px`, so `880` leaves `27px` between hit boxes and
+  `47px` between the ink at the narrowest desktop. It was `560` until the tools link and
+  the fourth language widened the block; at `560` the tools link sat on the telegram icon.
+  Swept 320 to 1440 in 10px steps on all sixteen pages: nothing touches.
 - **Below that the row is in the footer, and the bar keeps nothing new.** A second bar
   row was the first attempt and it is gone: at `320px` it left `2.9px` between the icons
   and the mascot's crown, and it pushed the theme toggle around. The footer has room,
@@ -1865,7 +1874,7 @@ The shape a new page starts from:
 ```
 <head>
   meta, canonical, og, twitter, favicon data URI     <- keep as they are
-  hreflang en / ru / lv / x-default                  <- all three documents
+  hreflang en / nb / ru / lv / x-default             <- all four documents
   <link> michroma + space grotesk                    <- the one load-time request
   <style>
     @property --ex --ey --blink --wide --beat --units --tu
@@ -1888,7 +1897,7 @@ The shape a new page starts from:
 <body>
   .vignette  .grain                                  <- aria-hidden
   svg.sprite                                         <- the six socials, once
-  header.bar     -> .langs (EN RU LV)  |  .socials (absolute, 560px+)  |  .theme
+  header.bar     -> .langs (EN NO RU LV) + a.more  |  .socials (absolute, 880px+)  |  .theme
   main.wrap > .lockup
     .m-zone   -> .m-wrap > svg.mascot  +  .bubble
     h1.hero   -> .sr + .sizer + .l-wide + .l-mid + .l-core
@@ -1901,7 +1910,7 @@ The shape a new page starts from:
       .chs  > button.ch                              <- built from CHAPTERS by JS
   section.below                                      <- sibling of main, not lockup
     .thread  +  .cards > article.cd > p.cl + p.ct
-  footer.foot    -> .socials  +  p.foot-t            <- under 560px only
+  footer.foot    -> .socials  +  p.foot-t            <- under 880px only
 </body>
 ```
 
@@ -2169,13 +2178,13 @@ Theme and language:
 - Pick the light-mode green with a colour picker against white: it must clear 4.5:1.
   So must `--muted`, `--sub` and the red, in both themes.
 - Set dark, reload. **No white flash.** If there is one, the bootstrap is deferred.
-- `node tools/build-langs.mjs --check` exits 0. If it does not, `ru/` and `lv/` are
-  stale and the commit would ship three documents that disagree.
+- `node tools/build-langs.mjs --check` exits 0. If it does not, `no/`, `ru/` and `lv/` are
+  stale and the commit would ship four documents that disagree.
 - Open `/ru/` in a clean profile with an English browser: Russian on the first frame,
-  no English flash, and `view-source` is Russian too. Same for `/lv/`.
+  no English flash, and `view-source` is Russian too. Same for `/no/` and `/lv/`.
 - Set the browser to Russian, clear site data, open `/`: English, and it stays English.
   The language is the address.
-- With JS off, all three pages read whole in their own language, and the switch still
+- With JS off, all four pages read whole in their own language, and the switch still
   works.
 - Every media path in the page starts with `/`. Load `/ru/` and confirm the poster and
   the mp4 come from `/assets/...` and not `/ru/assets/...`.
@@ -2237,16 +2246,16 @@ Mascot and bubble:
 
 The socials row:
 
-- Drag the window across `560px`: the row leaves the bar and appears in the footer, and
+- Drag the window across `880px`: the row leaves the bar and appears in the footer, and
   the footer line comes with it. Never two rows on screen at once, never zero.
-- Above `560px`, the gap from the bottom of the icons to the top of the mascot's face
+- Above `880px`, the gap from the bottom of the icons to the top of the mascot's face
   is never under `60px` — check it on a short laptop (1280×720, 1366×768), not just on
   a 900px-tall screen, because the hero's top padding is partly `vh`.
-- Above `560px`, measure it: the row's centre is the page's centre, to the pixel, at
-  560, 768, 1440 and 2560 — not the centre of the gap between the language block and the
-  toggle. At 560 it still clears the language buttons.
-- Below `560px`, the top bar is exactly what it was before the socials existed: three
-  language buttons and the toggle, one row.
+- Above `880px`, measure it: the row's centre is the page's centre, to the pixel, at
+  880, 1024, 1440 and 2560 — not the centre of the gap between the language block and the
+  toggle. At 880 it still clears the Russian tools link.
+- Below `880px`, the top bar is exactly what it was before the socials existed: four
+  language buttons, the tools link and the toggle, one row.
 - Scroll to the bottom at 320px in both themes: six icons centred, `theboringtek 2026`
   under them, comfortable air, no horizontal scroll.
 - Hover each of the six in both themes and in both places: it darkens to `--fg`, lifts,
@@ -2307,7 +2316,7 @@ Correctness:
 - One real form sent end to end and confirmed to arrive. A stubbed network proves the
   branching, not the delivery.
 - No secrets, no client names, no personal contact details - the repo is public.
-- Copy re-read once against the banned-words list, in all three languages.
+- Copy re-read once against the banned-words list, in all four languages.
 
 The video card:
 
@@ -2324,7 +2333,7 @@ The video card:
   there is more.
 - Only the chapter with a file is lit and pressable. The other three are greyed, carry
   a `soon` tag, and do not respond to a press or take focus.
-- Switch language over the card in EN, RU and LV at 320px: the label, all four chapter
+- Switch language over the card in EN, NO, RU and LV at 320px: the label, all four chapter
   names, the `soon` tags and the play label all change, and no pill clips its own text.
   Russian reads entirely in mono.
 - Dark mode: the white poster is a known, accepted glare. Anything else about the card
@@ -2353,5 +2362,5 @@ The section below the hero:
 - Switch language over the section: labels and copy all change, in one face per card.
   Russian reads entirely in mono, `ai` included.
 - Open the form and watch the section: it does not move, flicker or re-reveal.
-- The cta reads as one line in all three languages at 320px. If it wraps, `--cu` was
+- The cta reads as one line in all four languages at 320px. If it wraps, `--cu` was
   measured in the wrong face or against the wrong width.

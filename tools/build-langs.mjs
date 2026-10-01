@@ -895,6 +895,10 @@ function buildPage(lang) {
   /* --- every keyed string, painted --- */
   body = paintKeys(body, T, lang, 7, 'index.html');
 
+  /* --- the tools link opens this language's tools --- */
+  body = one(body, `<a class="lang more" href="${AT_TOOLS.en}" data-k="tools">`,
+                   `<a class="lang more" href="${AT_TOOLS[lang]}" data-k="tools">`, 'tools-link');
+
   /* --- the strings the script paints by hand, because they are measured,
          typed or spoken rather than just written --- */
   const sub = t('sub'), cta = t('cta');

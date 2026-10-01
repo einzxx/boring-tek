@@ -200,9 +200,11 @@ body{
    the sprite is why there are two rows of markup and one set of paths. */
 .sprite{display:none}
 .socials{display:flex;justify-content:center;gap:6px}
-/* under 560px the bar has no room for a centred row: 270px of icons plus the
+/* under 880px the bar has no room for a centred row: 270px of icons plus the
    language block plus the toggle do not fit without the row sliding off centre,
-   and a second bar row lands on the mascot. so the phone gets the footer copy
+   and a second bar row lands on the mascot. 880 is the widest language block,
+   russian with its tools link at 278px, plus the row's 135px half and 27px of
+   air, doubled. so the phone gets the footer copy
    and the bar keeps its two original controls. */
 .bar .socials{display:none}
 .soc{
@@ -675,7 +677,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
    is centred on the page rather than in the gap the language block and the
    toggle happen to leave - those two are different widths, and a flex centre
    between them is visibly off. */
-@media (min-width:560px){
+@media (min-width:880px){
   .bar .socials{
     display:flex; position:absolute; top:12px; left:50%;
     transform:translateX(-50%);

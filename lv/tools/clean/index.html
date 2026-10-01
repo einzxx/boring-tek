@@ -168,7 +168,7 @@ body{
   transform:translateY(-50%); background:var(--line);
 }
 
-/* socials, the site's row: six tabler icons, in the bar above 560px and in the
+/* socials, the site's row: six tabler icons, in the bar above 880px and in the
    footer under it, never both. */
 .sprite{display:none}
 .socials{display:flex;justify-content:center;gap:6px}
@@ -308,6 +308,14 @@ html[data-theme=dark] .theme .i-moon{display:none}
    site's form button, not the cta. */
 .row .btn{grid-column:2;white-space:nowrap;font-weight:400;padding:8px 16px;min-height:36px}
 .row .lnk{grid-column:3;justify-self:end;margin-left:0}
+/* the three columns need the button plus the link on each side of it. the
+   russian row runs out of room at 358px, so under 380px the row is one column:
+   the button centred, the link right under it at the right edge. */
+@media (max-width:379px){
+  .row{grid-template-columns:1fr;gap:4px}
+  .row .btn{grid-column:1;justify-self:center}
+  .row .lnk{grid-column:1}
+}
 .btn{
   appearance:none;cursor:pointer;font:inherit;font-size:var(--t-micro);
   font-weight:500;
@@ -438,9 +446,9 @@ html:not([lang=en]) .big{font-family:var(--body)}
   padding:clamp(24px,5vh,40px) 16px clamp(28px,6vh,44px);
 }
 
-/* the swap, the site's: above 560px the socials sit in the bar, centred on
+/* the swap, the site's: above 880px the socials sit in the bar, centred on
    the page, and the head gets 32px more sky; the footer keeps its lines. */
-@media (min-width:560px){
+@media (min-width:880px){
   .bar .socials{
     display:flex; position:absolute; top:12px; left:50%;
     transform:translateX(-50%);
