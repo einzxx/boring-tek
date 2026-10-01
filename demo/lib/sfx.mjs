@@ -1654,6 +1654,20 @@ export const PLAY = {
     for (let i = 0; i < b.length; i++) b[i] += 0.30 * thump[i];
     return ends(normalise(lp(b, 7000)), 8);
   },
+  /* a phone ringing, post47: one burst of the trill. two tones a major third
+     apart, 1320 and 1660 hertz, swapped `trill` times a second with a short
+     crossfade so the swap never clicks, a 5ms start and a 90ms curved tail. a ring is
+     two of these about half a second apart, the way a phone rings */
+  ring({ len = 0.40, f1 = 1320, f2 = 1660, trill = 18 } = {}) {
+    const b = n(len);
+    const mix = t => 0.5 + 0.5 * Math.tanh(4 * Math.sin(2 * Math.PI * trill * t));
+    const gate = t => Math.min(1, t / 0.005) * Math.pow(Math.min(1, Math.max(0, len - t) / 0.09), 2);
+    sine(b, () => f1, t => 0.6 * mix(t) * gate(t));
+    sine(b, () => f2, t => 0.6 * (1 - mix(t)) * gate(t));
+    /* a little body under it, so a phone speaker does not make it a whistle */
+    sine(b, () => f1 / 2, t => 0.12 * gate(t));
+    return soft(b);
+  },
 };
 Object.assign(VOICES, PLAY);
 /* the play set's levels, peak dBFS before the master, set against each other:
@@ -1662,7 +1676,7 @@ Object.assign(VOICES, PLAY);
 Object.assign(GAINS, {
   bounce: -14, toggle: -13, land: -14, riser: -16, tock: -21, chime: -13,
   bwop: -14, bubble: -15, tap: -16, whooshUp: -16, spin: -16, boing: -14,
-  sparkle: -15, zap: -15, bass: -13,
+  sparkle: -15, zap: -15, bass: -13, ring: -17,
 });
 
 /* a timing list, [{ t, kind, opts }], straight to a bus */

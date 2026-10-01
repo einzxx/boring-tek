@@ -40,6 +40,8 @@
        subsAt0: true,                   optional, the first subtitle already on at frame 0
        series: false,                   optional, a clip on this rig with no title and no ep tag
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
+       stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
+       sfx: { cues, gains, level, duck }, optional, effects from lib/sfx.mjs ducked under the read
      });
 
      DEMO_FPS=12 node postNN.mjs         the preview
@@ -61,7 +63,7 @@ import {
 import { brandTokens } from './captions.mjs';
 import { EASE as K } from './motion.mjs';
 import { speak, VOICE_OUT, elevenReady } from './voice.mjs';
-import { SR, decode, writeWav, applyGain, limit, loudness } from './sfx.mjs';
+import { SR, decode, writeWav, applyGain, limit, loudness, renderList, voiceEnvelope, mixdown, checkUnderVoice, describeMix } from './sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO = path.resolve(HERE, '..');
@@ -549,6 +551,29 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   const wr = await rect('#wm');
   if (wr && (wr.l < SB.l || wr.r > SB.r)) fails.push('the wordmark is past the margin');
 
+  /* `stills: [t...]`, optional, post47: one png per beat into
+     verify-postNN/stills and a sheet of them, then stop before the full
+     render. the house rule is a still per beat before any render. */
+  if (E.stills && E.stills.length) {
+    const DIR = path.join(VERIFY, 'stills');
+    fs.rmSync(DIR, { recursive: true, force: true }); fs.mkdirSync(DIR, { recursive: true });
+    const list = [...E.stills].sort((a, b) => a - b);
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i], f = Math.round(t * FPS);
+      await put(t, f);
+      await page.evaluate(now => window.__dmRaf(now), (f + 1) * STEP);
+      const shot = await cdp.send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF } });
+      fs.writeFileSync(path.join(DIR, String(i).padStart(2, '0') + '.png'), Buffer.from(shot.data, 'base64'));
+      console.log('    still ' + String(i).padStart(2, '0') + '  ' + t.toFixed(2) + 's');
+    }
+    await browser.close();
+    srv.close();
+    ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', path.join(DIR, '%02d.png'), '-vf', 'scale=270:-2,tile=6x' + Math.ceil(list.length / 6) + ':padding=4:color=0x303030', '-frames:v', '1', path.join(VERIFY, 'stills.png')]);
+    if (fails.length) console.error(['', 'FAILED', ...fails].join('\n  '));
+    console.log('\n  ' + list.length + ' stills, sheet ' + path.relative(ROOT, path.join(VERIFY, 'stills.png')));
+    return { stills: DIR, fails };
+  }
+
   const wall = Date.now();
   let glitched = 0;
   for (let f = 0; f < N; f++) {
@@ -583,6 +608,21 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
         if (i - a < fade) g = (i - a) / fade; else if (b - i < fade) g = (b - i) / fade;
         VTRACK[j] += T.pcm[i] * g;
       }
+    }
+    /* `sfx: { cues, gains, level, duck }`, optional, post47: a timing list for
+       lib/sfx.mjs under the read, trimmed by `level` dB, ducked under every
+       word, then mastered together with it. none may be louder than the speech
+       it sits under. */
+    if (E.sfx) {
+      const secs = VTRACK.length / SR;
+      const { buf, report } = renderList(E.sfx.cues, secs, { gains: E.sfx.gains || {} });
+      applyGain(buf, E.sfx.level ?? 0);
+      const mx = mixdown(VTRACK, buf, voiceEnvelope(TAKES.flatMap(T => T.W), secs), { duck: E.sfx.duck ?? 0.6 });
+      const under = checkUnderVoice(mx.voiceOut, mx.bus);
+      VTRACK.set(mx.out.subarray(0, VTRACK.length));
+      console.log('\n' + describeMix(report));
+      console.log('  under the voice: worst ' + under.worst.db + 'dB at ' + under.worst.at + 's, ' + under.over.length + ' windows over it');
+      if (under.over.length) fails.push('an effect is louder than the voice at ' + under.over.map(o => o.t).join(', '));
     }
     const WAV = path.join(OUT, NAME + '-mix.wav'), RAW = path.join(OUT, NAME + '-mix-raw.wav');
     const attempt = gdb => { const buf = Float32Array.from(VTRACK); applyGain(buf, gdb); const lim = limit(buf, -1.8); writeWav(RAW, buf); return { g: gdb, lim, r: loudness(ffmpeg, RAW) }; };

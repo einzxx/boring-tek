@@ -6,6 +6,22 @@ names in here either.
 
 ## Status
 
+- **2026-10-01. post47 is final and pushed: the one dollar car chatbot, 29.28s,
+  voiced.** `demo/post47.mjs`, dark, 60fps, on `lib/aiafter.mjs` with the series
+  off. Write up is **The forty seventh clip** in `demo/README.md`.
+  - **A real chat after the true 2023 story.** Customer right, bot left, sender
+    names `customer` and `ai agent`, every message on its word in the read, a
+    dots bubble for the customer writing, no input field. He is the avatar; a
+    row he leaves slides its bubble into his place and gets its name.
+  - **Seven narrator lines**, three takes each, kept by measurement, speed 1.0.
+    Over the 10s house max on purpose: a voiced clip runs as long as its read.
+  - **The rig gained two opt ins:** `stills` (a still per beat, then stop) and
+    `sfx` (effects ducked under the read, guarded so none is over the voice).
+    `lib/sfx.mjs` gained `ring`. Worst effect 19.8dB under the voice.
+  - **Critique:** all 8 but composition 7: the chat fills top down, so the lower
+    window is empty for the first half. The fix is bottom anchored messages.
+  - **Glitch:** 5 frames at 60fps, exactly the planned windows, by red count.
+
 - **2026-10-01, SESSION SAVE.**
   - **Clips, all final and pushed:** post40 trust me, post41 telegram channel,
     post42 claude 5.5, post43 dot com troll, post44 ai after ep 1 (`demo/lib/aiafter.mjs`

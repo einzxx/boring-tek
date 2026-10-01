@@ -8775,6 +8775,69 @@ bass. A later clip passes a timing list to `renderList()` and masters with
 fringe count on the mp4 finds frames 519 to 521 and 524 to 525, and nothing
 else.
 
+## The forty seventh clip — the one dollar car chatbot
+
+```
+cd demo
+node post47.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post47.mjs     # the fast preview pass
+node post47.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post47.mjs`, dark only, **29.28 seconds**,
+60fps, seven lines on the elevenlabs narrator with the effects ducked under
+them. Built on `lib/aiafter.mjs` with the series title and tag off. Out to
+`demo/out/post47-dark-1080x1920.mp4`, the stills, sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post47/`.
+
+After the real 2023 story of a car dealer's website chatbot that agreed to sell
+an suv for one dollar. No people, no dealer and no logos are named or shown; the
+car is a word. Frame 0 shows the label `ai chatbot on a car dealer website`, a
+plain chat window, him as the bot's avatar, and the customer already writing.
+
+### A real chat
+
+Messages stack top to bottom in order, the customer on the right under a
+`customer` sender name, the bot on the left. Every bubble lands on the word the
+voice says it on: message one on `agree`, `ok` on `ok`, message two on
+`brand`, and the reply types word by word from `deal` to `offer`. A
+messenger dots bubble shows the customer writing; there is no input field. The
+layout is fixed, 22px type on a 1.3 line, and a guard checks every bubble is as
+tall as its line count says.
+
+### He is the avatar
+
+He sits on the left beside his own bubble, and that row shows no sender name.
+When he leaves a row, its bubble slides left into his place on the spring from
+`lib/motion.mjs` in 0.35s and `ai agent` fades in over it in the last part.
+He hops down to the next row to answer, shows dots, then the reply. On line 6 a
+`manager is calling` card drops over the header and rings twice, and he slides
+slowly out under the window's edge: his layer is clipped to the window's
+rounded shape while he goes, so the window itself hides him. On line 7 the chat
+dims and he pops back up in the middle, calm and happy. Eyes calm, happy or
+squint, happy arcs 0.6s at most, no hands.
+
+### The read
+
+Seven lines, eleven_v3 on post44's settings, three takes a line, one whole take
+kept by measurement, speed 1.0, never stretched, 0.42s between lines. Post44's
+subtitles sit under the window and never cover the chat.
+
+### What the rig gained
+
+Two opt in options in `lib/aiafter.mjs`: `stills: [t...]`, one png per beat
+and a sheet before any render, the house rule; and `sfx: { cues, gains, level,
+duck }`, a `lib/sfx.mjs` timing list under the read, trimmed, ducked under
+every word, and checked so no effect is ever louder than the speech it sits
+under. `lib/sfx.mjs` gained `ring`, a phone's two tone trill, in the play set.
+Clips that pass neither are unchanged.
+
+### Glitch frames
+
+5 at 60fps around the cut at 28.18s: the burst at 1685 to 1687 and the residue
+at 1691 to 1692. The scene has no red, and the red count on the mp4 finds those
+five frames and nothing else.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
