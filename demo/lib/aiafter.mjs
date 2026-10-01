@@ -42,6 +42,8 @@
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
        stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
        sfx: { cues, gains, level, duck }, optional, effects from lib/sfx.mjs ducked under the read
+                                        with no read, post48: the effects alone are the track, mastered
+                                        to -14 LUFS, and the clip counts as not silent
      });
 
      DEMO_FPS=12 node postNN.mjs         the preview
@@ -63,7 +65,7 @@ import {
 import { brandTokens } from './captions.mjs';
 import { EASE as K } from './motion.mjs';
 import { speak, VOICE_OUT, elevenReady } from './voice.mjs';
-import { SR, decode, writeWav, applyGain, limit, loudness, renderList, voiceEnvelope, mixdown, checkUnderVoice, describeMix } from './sfx.mjs';
+import { SR, decode, writeWav, applyGain, limit, loudness, renderList, voiceEnvelope, mixdown, checkUnderVoice, describeMix, master } from './sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO = path.resolve(HERE, '..');
@@ -236,6 +238,8 @@ export async function runEpisode(E) {
   const TITLES = SERIES ? E.title : [];
 
   const TAKES = E.voice || null;
+  /* sound effects and no read: the effects are the whole track */
+  const FXONLY = !TAKES && !!E.sfx;
   const CARDS = TAKES && E.subs ? subCards(TAKES, E.subs) : [];
   if (E.subsAt0 && CARDS.length && CARDS[0].from < 0.3) CARDS[0].from = -ST.fadeIn;
   function subAt(t) {
@@ -592,7 +596,28 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
 
   /* silent unless there is a read: then the bus, post43's, to -14 LUFS */
   const TARGET_LUFS = -14;
-  if (!TAKES) {
+  let FXMIX = null;
+  if (FXONLY) {
+    /* post48: the effects alone, mastered to -14 LUFS and -1 dBTP, the target
+       brought down by whatever the aac encode adds to the true peak */
+    const WAV = path.join(OUT, NAME + '-sfx.wav');
+    const { buf, report } = renderList(E.sfx.cues, SECONDS, { gains: E.sfx.gains || {} });
+    console.log('\n' + describeMix(report));
+    let tp = -1, m, lu;
+    for (let pass = 0; pass < 3; pass++) {
+      m = master(Float32Array.from(buf), ffmpeg, WAV, { lufs: TARGET_LUFS, tp });
+      ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'), '-i', WAV,
+        '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+        '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-t', String(SECONDS), '-movflags', '+faststart', FILE]);
+      lu = loudness(ffmpeg, FILE);
+      if (lu.ok && lu.truePeak <= -1 && Math.abs(lu.lufs - TARGET_LUFS) <= 0.3) break;
+      tp -= Math.max(0.1, lu.truePeak + 1 + 0.05);
+    }
+    FXMIX = { master: m, lu, wav: WAV };
+    console.log('  master gain ' + m.gain + 'dB, limiter ' + m.reduction + 'dB, loudness ' + lu.lufs + ' LUFS, true peak ' + lu.truePeak + ' dBTP, on the mp4');
+    if (Math.abs(lu.lufs - TARGET_LUFS) > 0.5) fails.push('the effects are ' + lu.lufs + ' LUFS, not ' + TARGET_LUFS);
+    if (lu.truePeak > -1) fails.push('the true peak is ' + lu.truePeak + ' dBTP');
+  } else if (!TAKES) {
     ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'),
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', '-movflags', '+faststart', FILE]);
   } else {
@@ -664,7 +689,8 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   const seconds = dur ? +dur[1] * 3600 + +dur[2] * 60 + parseFloat(dur[3]) : 0;
   if (!/1080x1920/.test(probe)) fails.push('the file is not 1080x1920');
   if (Math.abs(seconds - SECONDS) > 0.15) fails.push('the file runs ' + seconds.toFixed(2) + 's, not ' + SECONDS);
-  if (!TAKES && /Audio:/.test(probe)) fails.push('the file has sound and no read was asked for');
+  if (!TAKES && !FXONLY && /Audio:/.test(probe)) fails.push('the file has sound and no read was asked for');
+  if (FXONLY && !/Audio:/.test(probe)) fails.push('the file has no audio track');
   if (TAKES) {
     if (!/Audio:/.test(probe)) fails.push('the file has no audio track');
     for (let i = 0; i + 1 < TAKES.length; i++) {
@@ -679,7 +705,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
     console.log('\n  loudness ' + (lu && lu.lufs) + ' LUFS integrated, true peak ' + (lu && lu.truePeak) + ' dBFS, on the mp4');
   }
   /* the house max is 10s, a read the brief asks for may run past it */
-  if (SECONDS > 10 && !TAKES) fails.push('over the 10s house max');
+  if (SECONDS > 10 && !TAKES && !FXONLY) fails.push('over the 10s house max');
   /* the eyes: shut only inside a sleep window, happy arcs 0.6s at most */
   const inSleep = t => (G.sleep || []).some(([a, b]) => t >= a && t <= b);
   for (let f = 0, run = 0, arc = 0; f < CUT * 60; f++) {
@@ -696,10 +722,10 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
 
   console.log('\n  ' + glitched + ' glitched frames, sheets in ' + path.relative(ROOT, VERIFY));
   console.log('  title lines ' + built.title.map(s => s.toFixed(1) + 'px').join(', ') + ', title bottom ' + (t0 ? t0.b.toFixed(1) : '?') + ' css');
-  console.log('  length ' + seconds.toFixed(2) + 's, ' + (TAKES ? TAKES.length + ' reads on the bus' : 'silent') + ', ' + path.relative(ROOT, FILE));
+  console.log('  length ' + seconds.toFixed(2) + 's, ' + (TAKES ? TAKES.length + ' reads on the bus' : FXONLY ? E.sfx.cues.length + ' effects on the bus' : 'silent') + ', ' + path.relative(ROOT, FILE));
   if (fails.length) { console.error(['', 'FAILED', ...fails].join('\n  ')); process.exit(1); }
   console.log('  guards: all green');
-  return { seconds, file: FILE, verify: VERIFY };
+  return { seconds, file: FILE, verify: VERIFY, fx: FXMIX };
 }
 
 function injected() {

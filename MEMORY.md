@@ -6,6 +6,31 @@ names in here either.
 
 ## Status
 
+- **2026-10-01. post48 is final and pushed: the delivery, 11.59s, sound
+  effects only, no voice.** `demo/post48.mjs`, dark, 60fps. Out to
+  `demo/out/post48-dark-1080x1920.mp4`, sheets, `frame0.jpg` and `review.md` in
+  `demo/out/verify-post48/`. Write up is **The forty eighth clip** in
+  `demo/README.md`. Two briefs. Every critique score is 8 or more.
+  - **The switch knob is him.** Eyes shut at frame 0 so the knob reads as a plain
+    disc, inside a sleep window. He slides as the knob, the eyes open, the knob jumps
+    out as him and the track stays empty. The rig's idle drift is taken back out
+    while he is the knob, read off the same plan, so he sits locked in the track.
+  - **elevenlabs can now make sound effects:** `demo/lib/elevensfx.mjs`, plain
+    fetch, the key in demo/.env only (the key there now has the sound_generation
+    permission), never printed. Three takes cached in `demo/out/sfx-postNN/`, one
+    kept by measurement: hits by punch, beds by steadiness. Beds can be high
+    passed. The kept take becomes a sound kind in `lib/sfx.mjs`. Takes kept for
+    post48: click t1, fold t1, wind t1, slam t1, rumble t3.
+  - **The rig gained a sound only mode:** `sfx` with no `voice` masters the effects
+    alone to -14 LUFS and counts as not silent, so the 10s silent guard does not apply.
+  - A sparse track of short hits only reaches -14 LUFS under 8dB of limiting with a
+    bed under it: the wind bed carries the loudness. -14.2 LUFS, -1.3 dBTP, sync
+    0.0ms, every struck sound 7dB or more over its bed.
+  - **Glitch frames: 5 at 60fps**, 624 to 626 and 629 to 630 around the cut at
+    10.49s, by the fringe count on the mp4.
+  - Still left uncommitted on instruction: the skills/ working tree, the two clap
+    svgs, `demo/post33.mjs`, `demo/hf/`, `demo/lib/scene3d.mjs`, the motion tests.
+
 - **2026-10-01. post47 is final and pushed: the one dollar car chatbot, 29.28s,
   voiced.** `demo/post47.mjs`, dark, 60fps, on `lib/aiafter.mjs` with the series
   off. Write up is **The forty seventh clip** in `demo/README.md`.

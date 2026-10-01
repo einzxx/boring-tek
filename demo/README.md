@@ -8838,6 +8838,81 @@ Clips that pass neither are unchanged.
 at 1691 to 1692. The scene has no red, and the red count on the mp4 finds those
 five frames and nothing else.
 
+## The forty eighth clip, the delivery
+
+```
+cd demo
+node post48.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post48.mjs     # the fast preview pass
+node post48.mjs --stills        # one still per beat and a sheet, no render
+node post48.mjs --kit           # the five elevenlabs sounds from kit stand ins
+node post48.mjs --bus           # the loudest moments of the bus before the master
+```
+
+**Where it stands, final.** `demo/post48.mjs`, dark only, **11.59 seconds**,
+60fps, no voice, sound effects only. Built on `lib/aiafter.mjs` with the series
+title and tag off. Out to `demo/out/post48-dark-1080x1920.mp4`, the stills,
+sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post48/`. Over the 10s
+house max on instruction: the brief asked for about 12.
+
+A small action film with him as the hero. Frame 0 is a switch, off, `ai agent`
+under it, and the knob is him with his eyes shut, a plain white disc. Click, he
+slides across as the knob and the track goes green, his eyes open, and the knob
+jumps up and out as him with a squash and a stretch, leaving the track empty.
+`new job` in the house bubble. An envelope arcs in and folds itself into a
+paper plane in three folds, he hops on, and the world scrolls past while he
+stays left of centre with wind lines off his back. A popup, `you won a free
+phone`, slams in front of him and he dives under it. A wave of grey mail cards,
+`spam`, `act now`, `urgent`, `free money`, rolls up and he pulls up over it. A
+wall of grey blocks rises, he jumps off the plane over it while the plane slips
+through a slot under it, and he lands back on. The inbox slides in, he hops onto
+its rim, the plane flies in, a green tick lands, `delivered`, his eyes go to the
+lens, a wink, the glitch cut and the end card for 1.1s.
+
+### Planned, then checked
+
+A node check walks the flight at 120 steps a second before anything renders and
+fails the run if he or the plane touches the popup, a spam card or a wall block.
+It moved the pull up over the wave from 6.00 to 5.62. As the knob, the rig's idle
+drift is taken back out, read off the same plan the rig draws him from, so he
+sits locked in the track; it fades back in over the jump. Guards check he is the
+knob at frame 0, at the far end after the slide, and standing on the empty track
+after the jump. Eyes calm, happy or squint, shut only on the knob inside a sleep
+window, happy arcs 0.6s at most, no hands, every landing squashes.
+
+### The sound
+
+26 effects. 21 from the `lib/sfx.mjs` kit, 5 from elevenlabs: the switch click,
+the paper fold, the wind bed, the popup slam and the spam rumble. The effects are
+the whole track, mastered to -14 LUFS, -1.3 dBTP on the mp4. Sync is checked by
+cross correlating the mp4's audio with the mastered bus, 0.0ms off, and every
+cue is on its sample in the bus. Every struck sound stands 7dB or more over
+whatever else plays in its first 80ms. The beds are high passed, wind at 180Hz
+and rumble at 60Hz: below that a phone plays nothing and the low end only ate
+the limiter's headroom.
+
+### What the rig gained
+
+`lib/aiafter.mjs`: `sfx` with no `voice` is a sound only mode. The effects alone
+are mastered to -14 LUFS and muxed, and the clip counts as not silent, so the
+10s silent guard does not apply. Clips that pass a voice, or no sfx, are
+unchanged.
+
+`lib/elevensfx.mjs` is new: sound effects from the elevenlabs sound generation
+endpoint by plain fetch, no package. The key is read from `demo/.env` only,
+never from the shell, and never printed. Three takes a sound are cached in
+`demo/out/sfx-postNN/` with a sidecar of the prompt, so a rerun spends nothing.
+One is kept by measurement: a hit by punch, the loudest 50ms after the strike
+against the level 0.3 to 0.5s later, trimmed so the strike lands on the cue; a
+bed by steadiness. The kept take is registered as a sound kind in `lib/sfx.mjs`
+with its level, so a timing list plays it like any other.
+
+### Glitch frames
+
+5 at 60fps around the cut at 10.49s: the burst at 624 to 626 and the residue at
+629 to 630. The scene has no red or blue, and the fringe count on the mp4 finds
+those five frames and nothing else.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
