@@ -85,6 +85,9 @@ state or makes a decision.
 
 ### Public repo — treat every tracked file as published
 
+- **This repo is public and GitHub Pages serves every tracked file on the site**,
+  MEMORY.md included. Never write client names, people names, prices, private plans
+  or personal info in any tracked file.
 - Never commit secrets: API keys, tokens, `.env` contents, credentials, private URLs,
   webhook endpoints, server IPs, mnemonics.
 - Never commit client names, client logos, contract terms, pricing quotes, invoices,

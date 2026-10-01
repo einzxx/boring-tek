@@ -5,8 +5,9 @@ theboringtek.com. one file, no build step, no dependencies. see `CLAUDE.md`.
 ## the tools hub
 
 [theboringtek.com/tools](https://theboringtek.com/tools/): one card per free
-tool, in english, russian and latvian. the source is `tools/index.html`; the
-russian and latvian pages are written by `node tools/build-langs.mjs`.
+tool, in english, norwegian, russian and latvian. the source is
+`tools/index.html`; the other three pages are written by
+`node tools/build-langs.mjs`.
 
 ## the cleaner
 
@@ -19,9 +20,9 @@ file back. everything runs in the browser: nothing is uploaded, there is no
 account, and the two libraries it borrows (pdf-lib, jszip) are fetched only when
 a pdf or a docx arrives.
 
-three addresses, one source: `/tools/clean/`, `/ru/tools/clean/` and
-`/lv/tools/clean/`, the last two written by `node tools/build-langs.mjs` out of
-`tools/clean/index.html`. the old `/clean/` addresses are stubs that forward.
+four addresses, one source: `/tools/clean/`, `/no/tools/clean/`,
+`/ru/tools/clean/` and `/lv/tools/clean/`, the last three written by
+`node tools/build-langs.mjs` out of `tools/clean/index.html`. the old `/clean/` addresses are stubs that forward.
 
 ## the link checker
 
@@ -35,6 +36,6 @@ known bad lists are not checked yet. everything runs in the browser: nothing
 is sent anywhere, and it cannot promise a link is safe, it only shows what to
 look at.
 
-three addresses, one source: `/tools/check/`, `/ru/tools/check/` and
-`/lv/tools/check/`, the last two written by `node tools/build-langs.mjs` out of
-`tools/check/index.html`.
+four addresses, one source: `/tools/check/`, `/no/tools/check/`,
+`/ru/tools/check/` and `/lv/tools/check/`, the last three written by
+`node tools/build-langs.mjs` out of `tools/check/index.html`.

@@ -190,7 +190,8 @@ Norwegian subline or cta that carries one drops whole to Space Grotesk.
 **The mechanism, because GitHub Pages has no rewrites and the site is one file.**
 
 - `node tools/build-langs.mjs` reads `index.html`, pulls `T` out of the script it
-  already ships, and writes `ru/index.html`, `lv/index.html` and `sitemap.xml`. Same
+  already ships, and writes `no/index.html`, `ru/index.html`, `lv/index.html` and
+  `sitemap.xml`, and the same for the tools hub, both tools and the privacy page. Same
   markup, same stylesheet, same script; `lang`, `title`, `description`, `canonical` and
   the og tags swapped, and every string painted. `--check` verifies without writing and
   exits non-zero if the folders are stale.
@@ -239,7 +240,8 @@ came to crawl, and it was the direct cost of the old design being invisible to s
   the first, and a canonical that points at a redirect is a canonical pointing at the
   wrong url. The sitemap is generated off the same two constants as the canonicals, so
   they cannot disagree.
-- `sitemap.xml` carries all three urls, `robots.txt` points at it.
+- `sitemap.xml` carries all twenty urls, five pages in four languages, and
+  `robots.txt` points at it.
 - **The limitation this closed:** the stubs used to redirect, so a crawler saw one page
   of content in English and the site was multilingual for people only. It is now
   multilingual for both.
@@ -1125,8 +1127,8 @@ with. Never both at once, and never a second bar row.
   the cloned content and `currentColor` still follows the theme.
 - **Two rows of markup, one glyph set, no JS.** CSS cannot move a node from a fixed
   header to the end of the document, and moving it with a `matchMedia` listener buys
-  nothing: the footer has to be hidden on desktop either way, so the breakpoint exists
-  regardless. The hidden row is `display: none`, so it is out of the accessibility tree
+  nothing: the footer's row has to be hidden on desktop either way, so the breakpoint
+  exists regardless. The hidden row is `display: none`, so it is out of the accessibility tree
   and out of the tab order — there is never a duplicate landmark or a phantom stop.
 - **`stroke-linecap: round` is load-bearing, not decoration.** Instagram's shutter dot
   is `M16.5 7.5v.01`, a zero-length line that only renders as a dot because of the cap.
@@ -1151,13 +1153,15 @@ with. Never both at once, and never a second bar row.
   landing state still fits one screen at 1440×900. Verified identical at 1024×768,
   1280×720, 1366×768, 1440×900, 1920×1080 and 2560×1200. The air below the cards is the
   cheapest 32px on the page; the air above the mascot is not.
-- **The footer is the phone's version of the row, and nothing else.** `<footer class=
-  "foot">`, a sibling after `section.below`, holding the row and one line:
-  `theboringtek 2026`, mono, `--t-micro`, `--muted` at `.75`, tracked `.14em`,
-  lowercase, no full stop, no dash between name and year. It is column-flex, centred,
-  `16px` between the two, and `clamp(32px, 6vh, 48px)` of bottom air — the gap above it
-  is `.below`'s own bottom padding, not a margin of its own. It does not exist on
-  desktop: `display: none`, not a stretched-out variant.
+- **The footer holds the phone's row and one line on every screen.** `<footer class=
+  "foot">`, a sibling after `section.below`, holding the row and `p.foot-t`:
+  `hello@theboringtek.com` as a mailto, `© 2026 THE BORING TEK`, and a link to this
+  language's privacy page, split by middle dots. Mono, `--t-micro`, `--muted` at `.75`,
+  tracked `.14em`. Under `640px` the email takes its own line and its dot goes. It is
+  column-flex, centred, `16px` between the two, and `clamp(32px, 6vh, 48px)` of bottom
+  air — the gap above it is `.below`'s own bottom padding, not a margin of its own.
+  Above `880px` only the row is hidden (`.foot .socials`); the line stays. Every page
+  carries the same line: home, tools hub, both tools and the privacy page.
 - **In the bar the row is absolutely positioned, not a flex item:**
   `position: absolute; top: 12px; left: 50%; transform: translateX(-50%)`. It is centred
   on the page, not in the gap between the language block and the toggle — those two are
@@ -1607,6 +1611,9 @@ Promise.allSettled([post(W3_URL, mail), post(TG_URL, fields)])
 - **Key order is the field order in the email**, so it reads top to bottom the way the
   visitor answered: path, choices, free text, name, registration number, website,
   country, email, then language as a footnote.
+- **Under send, one line:** `f_note` and a link to this language's privacy page. The link
+  opens a new tab, because leaving this one loses the form. The privacy page lists these
+  fields and both endpoints, so a change to either is a change to that page too.
 - Only the fields that path collected are sent. A question-path submission carries a
   question and an email, not five blank business fields.
 - **Never log the payload.** Not to `console`, not on failure, not "just while
@@ -1910,7 +1917,7 @@ The shape a new page starts from:
       .chs  > button.ch                              <- built from CHAPTERS by JS
   section.below                                      <- sibling of main, not lockup
     .thread  +  .cards > article.cd > p.cl + p.ct
-  footer.foot    -> .socials  +  p.foot-t            <- under 880px only
+  footer.foot    -> .socials  +  p.foot-t            <- row under 880px, line always
 </body>
 ```
 
@@ -2009,7 +2016,7 @@ Added with Michroma:
 - **Michroma on a non-Latin string.** It has no Cyrillic and no Latvian diacritics, so
   the line falls back per glyph and breaks a word across two faces. Test the string and
   drop the whole line to `--mono`.
-- **One `--tu` for all three languages.** Different lengths in different faces cannot
+- **One `--tu` for all four languages.** Different lengths in different faces cannot
   share a divisor. Re-measure on every switch.
 - **Michroma at small sizes without caps and the `0.18em` tracking.** Lowercase,
   default-tracked Michroma under 1rem is a smudge. All three ship together.
@@ -2246,8 +2253,8 @@ Mascot and bubble:
 
 The socials row:
 
-- Drag the window across `880px`: the row leaves the bar and appears in the footer, and
-  the footer line comes with it. Never two rows on screen at once, never zero.
+- Drag the window across `880px`: the row leaves the bar and appears in the footer
+  above the footer line, which never moves. Never two rows on screen at once, never zero.
 - Above `880px`, the gap from the bottom of the icons to the top of the mascot's face
   is never under `60px` — check it on a short laptop (1280×720, 1366×768), not just on
   a 900px-tall screen, because the hero's top padding is partly `vh`.
@@ -2256,8 +2263,8 @@ The socials row:
   toggle. At 880 it still clears the Russian tools link.
 - Below `880px`, the top bar is exactly what it was before the socials existed: four
   language buttons, the tools link and the toggle, one row.
-- Scroll to the bottom at 320px in both themes: six icons centred, `theboringtek 2026`
-  under them, comfortable air, no horizontal scroll.
+- Scroll to the bottom at 320px in both themes: six icons centred, the email on one
+  line and `© 2026 THE BORING TEK · privacy` on the next under them, comfortable air, no horizontal scroll.
 - Hover each of the six in both themes and in both places: it darkens to `--fg`, lifts,
   flicks once, and settles. Leave the pointer on one for ten seconds — nothing repeats.
 - Reduced motion: no lift, no flick, colour only.

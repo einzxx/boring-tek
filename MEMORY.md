@@ -6,6 +6,23 @@ names in here either.
 
 ## Status
 
+- **2026-10-01, SESSION SAVE.**
+  - **Clips, all final and pushed:** post40 trust me, post41 telegram channel,
+    post42 claude 5.5, post43 dot com troll, post44 ai after ep 1 (`demo/lib/aiafter.mjs`
+    is the series template), post45 bouncing ai agent, silent plus a sound version.
+  - **Sound:** `demo/lib/sfx.mjs` makes the sound effects in code from a timing list.
+    Reuse it for every clip. ElevenLabs only for a sound that would sound fake in code.
+  - **What works, from the analytics:** about 2 of 3 viewers swipe away in the first
+    second, so the hook must read in 1 second. Short mascot jokes about ai win. The
+    clips are for ordinary people: a plain voice or clear text has to explain the
+    story. Captions are plain words about the clip itself, no series talk.
+  - **Site:** norwegian added, languages EN NO RU LV. Footer with
+    `hello@theboringtek.com` on every page. Privacy page in four languages, brand
+    name only, no person name. Norwegian seo title and local line done.
+  - **Parked:** post46 the paper that never dies, beat sheet ready. A plush mascot,
+    for later. Cloudflare analytics needs a privacy page update first. GitHub Pro
+    skipped until the first real client.
+
 - **2026-10-01. Footer and privacy page, committed, not pushed.** Every page (home,
   hub, cleaner, checker, privacy, all four languages) ends on one footer line:
   `hello@theboringtek.com` as a mailto, `© 2026 THE BORING TEK`, and a link to that
