@@ -47,6 +47,7 @@ const SRC = path.join(ROOT, 'index.html');
 const SRC_TOOLS = path.join(ROOT, 'tools', 'index.html');
 const SRC_CLEAN = path.join(ROOT, 'tools', 'clean', 'index.html');
 const SRC_CHECK = path.join(ROOT, 'tools', 'check', 'index.html');
+const SRC_PRIVACY = path.join(ROOT, 'privacy', 'index.html');
 const CHECK_ONLY = process.argv.includes('--check');
 
 const ORIGIN = 'https://theboringtek.com';
@@ -57,6 +58,7 @@ const AT = { en: '/', nb: '/no/', ru: '/ru/', lv: '/lv/' };
 const AT_TOOLS = { en: '/tools/', nb: '/no/tools/', ru: '/ru/tools/', lv: '/lv/tools/' };
 const AT_CLEAN = { en: '/tools/clean/', nb: '/no/tools/clean/', ru: '/ru/tools/clean/', lv: '/lv/tools/clean/' };
 const AT_CHECK = { en: '/tools/check/', nb: '/no/tools/check/', ru: '/ru/tools/check/', lv: '/lv/tools/check/' };
+const AT_PRIVACY = { en: '/privacy/', nb: '/no/privacy/', ru: '/ru/privacy/', lv: '/lv/privacy/' };
 /* where the cleaner lived until 2026-09-17. a stub at each forwards to the
    same language's new address, so a link somebody shared keeps working.
    norwegian came after the move, so it never had one. */
@@ -116,6 +118,7 @@ const TOOLS = {
     d_check: 'see what is hiding in a link before you open it',
     open: 'open',
     home: 'home',
+    privacy: 'privacy',
     th_dark: 'dark mode',
     th_light: 'light mode',
   },
@@ -127,6 +130,7 @@ const TOOLS = {
     d_check: 'se hva som skjuler seg i en lenke før du åpner den',
     open: 'åpne',
     home: 'hjem',
+    privacy: 'personvern',
     th_dark: 'mørk modus',
     th_light: 'lys modus',
   },
@@ -138,6 +142,7 @@ const TOOLS = {
     d_check: 'посмотрите, что скрыто в ссылке, до того как её открыть',
     open: 'открыть',
     home: 'главная',
+    privacy: 'конфиденциальность',
     th_dark: 'тёмная тема',
     th_light: 'светлая тема',
   },
@@ -149,6 +154,7 @@ const TOOLS = {
     d_check: 'redziet, kas slēpjas saitē, pirms to atverat',
     open: 'atvērt',
     home: 'sākums',
+    privacy: 'privātums',
     th_dark: 'tumšais režīms',
     th_light: 'gaišais režīms',
   },
@@ -188,6 +194,7 @@ const CLEAN = {
     honest: 'this tool removes hidden marks from your text and files. it does not make text look human. no tool can promise an ai checker will pass or fail.',
     noscript: 'this tool runs in your browser and needs javascript on.',
     home: 'home',
+    privacy: 'privacy',
     th_dark: 'dark mode',
     th_light: 'light mode',
     clean_none: 'already clean, nothing hidden found.',
@@ -249,6 +256,7 @@ const CLEAN = {
     honest: 'dette verktøyet fjerner skjulte merker fra tekst og filer. det får ikke teksten til å virke menneskelig. ingen verktøy kan love hva en ai-sjekker kommer til å si.',
     noscript: 'dette verktøyet kjører i nettleseren og trenger javascript.',
     home: 'hjem',
+    privacy: 'personvern',
     th_dark: 'mørk modus',
     th_light: 'lys modus',
     clean_none: 'allerede rent, fant ingenting skjult.',
@@ -310,6 +318,7 @@ const CLEAN = {
     honest: 'этот инструмент убирает скрытые метки из текста и файлов. он не делает текст похожим на человеческий. ни один инструмент не может обещать, что проверка на ии пройдёт или нет.',
     noscript: 'этот инструмент работает прямо в браузере. без javascript он не запустится.',
     home: 'главная',
+    privacy: 'конфиденциальность',
     th_dark: 'тёмная тема',
     th_light: 'светлая тема',
     clean_none: 'уже чисто, скрытых меток нет.',
@@ -371,6 +380,7 @@ const CLEAN = {
     honest: 'šis rīks noņem slēptās zīmes no teksta un failiem. tas nepadara tekstu cilvēcīgāku. neviens rīks nevar solīt, ka mi pārbaude tiks izturēta vai nē.',
     noscript: 'šis rīks strādā tieši pārlūkā. bez javascript tas nedarbojas.',
     home: 'sākums',
+    privacy: 'privātums',
     th_dark: 'tumšais režīms',
     th_light: 'gaišais režīms',
     clean_none: 'jau tīrs, slēptu zīmju nav.',
@@ -509,6 +519,7 @@ const CHECK = {
     again: 'check another link',
     noscript: 'this tool runs in your browser and needs javascript on.',
     home: 'home',
+    privacy: 'privacy',
     th_dark: 'dark mode',
     th_light: 'light mode',
   },
@@ -568,6 +579,7 @@ const CHECK = {
     again: 'sjekk en annen lenke',
     noscript: 'dette verktøyet kjører i nettleseren og trenger javascript.',
     home: 'hjem',
+    privacy: 'personvern',
     th_dark: 'mørk modus',
     th_light: 'lys modus',
   },
@@ -627,6 +639,7 @@ const CHECK = {
     again: 'проверить другую ссылку',
     noscript: 'этот инструмент работает прямо в браузере. без javascript он не запустится.',
     home: 'главная',
+    privacy: 'конфиденциальность',
     th_dark: 'тёмная тема',
     th_light: 'светлая тема',
   },
@@ -686,6 +699,181 @@ const CHECK = {
     again: 'pārbaudīt citu saiti',
     noscript: 'šis rīks strādā tieši pārlūkā. bez javascript tas nedarbojas.',
     home: 'sākums',
+    privacy: 'privātums',
+    th_dark: 'tumšais režīms',
+    th_light: 'gaišais režīms',
+  },
+};
+
+const SEO_PRIVACY = {
+  en: {
+    title: 'privacy | the boring tek',
+    desc: 'how the boring tek handles what you send through the contact form. what we collect, why, where it goes and how to have it deleted.',
+  },
+  nb: {
+    title: 'personvern | the boring tek',
+    desc: 'hvordan the boring tek behandler det du sender i kontaktskjemaet. hva vi samler inn, hvorfor, hvor det går og hvordan du får det slettet.',
+  },
+  ru: {
+    title: 'конфиденциальность | the boring tek',
+    desc: 'как the boring tek обращается с данными из формы. что мы собираем, зачем, куда это уходит и как это удалить.',
+  },
+  lv: {
+    title: 'privātums | the boring tek',
+    desc: 'kā the boring tek rīkojas ar to, ko sūtāt kontaktformā. ko mēs vācam, kāpēc, kur tas nonāk un kā to izdzēst.',
+  },
+};
+
+/* the privacy page's copy. the english is the page's own `T`, repeated here
+   so the build can assert the two agree; the other three exist only here.
+   it says what the code does and nothing more: if the form, the storage or a
+   request changes, this changes with it. */
+const PRIVACY = {
+  en: {
+    h1: 'privacy',
+    intro: 'short version. we collect only what you type into the form, we use it only to reply to you, and we never sell it.',
+    s_who: 'who runs this site',
+    who: 'Gatis Bramanis, THE BORING TEK. questions about your data go to the email below.',
+    s_form: 'what the form collects',
+    form: 'only what you type or pick. depending on your answers, that is:',
+    f1: 'what brought you here, and the options you picked',
+    f2: 'your own words, if you explain something or ask a question',
+    f3: 'how big your business is, what takes most of your time, how customers reach you',
+    f4: 'business or your name, registration number and website, both optional, and country',
+    f5: 'your email',
+    f6: 'which language the page was in',
+    form_none: 'nothing is sent until you press send.',
+    s_why: 'why',
+    why: 'only to reply to you and talk about your request. we never sell it, and it never goes on a marketing list.',
+    s_where: 'where it goes',
+    where: 'when you press send, the same answers go to two places at once:',
+    w1: 'web3forms, which turns them into an email to us',
+    w2: 'our own worker on cloudflare, which sends them to us on telegram',
+    s_keep: 'how long we keep it',
+    keep: 'if we do not end up working together, we delete it within 12 months. sooner if you ask.',
+    s_device: 'what the site stores on your device',
+    device: 'one thing: whether you picked dark or light mode, saved in local storage in your browser. no cookies, no tracking, no ads, no analytics. your language is the address you are on, so nothing is saved for it.',
+    s_loads: 'what loads from elsewhere',
+    loads: 'the site is hosted on github pages, and the fonts come from google fonts. like on any website, your browser connects to them when a page opens.',
+    s_tools: 'the free tools',
+    tools: 'the watermark remover and the link checker run in your browser. your text, files and links are never uploaded. when you drop a pdf or docx into the watermark remover, it fetches a helper library from jsdelivr, but your file stays with you.',
+    s_rights: 'your rights',
+    rights: 'you can ask to see, fix or delete what we have about you. write to the email below.',
+    complain: 'if you think we handle your data wrong, you can complain to datatilsynet, the norwegian data protection authority.',
+    updated: 'last updated 1 october 2026',
+    home: 'home',
+    privacy: 'privacy',
+    th_dark: 'dark mode',
+    th_light: 'light mode',
+  },
+  nb: {
+    h1: 'personvern',
+    intro: 'kort fortalt. vi samler bare inn det du skriver i skjemaet, vi bruker det bare til å svare deg, og vi selger det aldri.',
+    s_who: 'hvem som står bak',
+    who: 'Gatis Bramanis, THE BORING TEK. spørsmål om dataene dine sender du til e-posten under.',
+    s_form: 'hva skjemaet samler inn',
+    form: 'bare det du skriver eller velger. avhengig av svarene dine er det:',
+    f1: 'hva du kom for, og valgene du tok',
+    f2: 'dine egne ord, hvis du forklarer noe eller stiller et spørsmål',
+    f3: 'hvor stor bedriften er, hva som tar mest tid, hvordan kundene tar kontakt',
+    f4: 'bedriften eller navnet ditt, organisasjonsnummer og nettside, begge valgfrie, og land',
+    f5: 'e-posten din',
+    f6: 'hvilket språk siden var på',
+    form_none: 'ingenting sendes før du trykker send.',
+    s_why: 'hvorfor',
+    why: 'bare for å svare deg og snakke om det du spør om. vi selger det aldri, og det havner aldri på en markedsføringsliste.',
+    s_where: 'hvor det går',
+    where: 'når du trykker send, går de samme svarene til to steder samtidig:',
+    w1: 'web3forms, som gjør dem om til en e-post til oss',
+    w2: 'vår egen worker hos cloudflare, som sender dem til oss på telegram',
+    s_keep: 'hvor lenge vi tar vare på det',
+    keep: 'hvis vi ikke ender opp med å jobbe sammen, sletter vi det innen 12 måneder. før, hvis du ber om det.',
+    s_device: 'hva siden lagrer på enheten din',
+    device: 'én ting: om du valgte mørk eller lys modus, lagret i local storage i nettleseren. ingen cookies, ingen sporing, ingen reklame, ingen analyse. språket er adressen du er på, så det lagres ikke.',
+    s_loads: 'hva som lastes fra andre steder',
+    loads: 'siden ligger på github pages, og skriftene kommer fra google fonts. som på alle nettsider kobler nettleseren seg til dem når en side åpnes.',
+    s_tools: 'gratisverktøyene',
+    tools: 'vannmerkefjerneren og lenkesjekken kjører i nettleseren din. tekst, filer og lenker lastes aldri opp. når du slipper en pdf eller docx i vannmerkefjerneren, henter den et hjelpebibliotek fra jsdelivr, men filen din blir hos deg.',
+    s_rights: 'rettighetene dine',
+    rights: 'du kan be om å se, rette eller slette det vi har om deg. skriv til e-posten under.',
+    complain: 'mener du at vi behandler dataene dine feil, kan du klage til datatilsynet.',
+    updated: 'sist oppdatert 1. oktober 2026',
+    home: 'hjem',
+    privacy: 'personvern',
+    th_dark: 'mørk modus',
+    th_light: 'lys modus',
+  },
+  ru: {
+    h1: 'конфиденциальность',
+    intro: 'коротко. мы собираем только то, что вы пишете в форме, используем это только чтобы ответить вам и никогда это не продаём.',
+    s_who: 'кто ведёт сайт',
+    who: 'Gatis Bramanis, THE BORING TEK. вопросы о ваших данных пишите на почту ниже.',
+    s_form: 'что собирает форма',
+    form: 'только то, что вы пишете или выбираете. в зависимости от ответов это:',
+    f1: 'зачем вы пришли и какие варианты выбрали',
+    f2: 'ваши слова, если вы что-то объясняете или задаёте вопрос',
+    f3: 'размер бизнеса, на что уходит больше всего времени, как с вами связываются клиенты',
+    f4: 'бизнес или ваше имя, регистрационный номер и сайт, оба необязательны, и страна',
+    f5: 'ваша почта',
+    f6: 'на каком языке была страница',
+    form_none: 'ничего не отправляется, пока вы не нажмёте отправить.',
+    s_why: 'зачем',
+    why: 'только чтобы ответить вам и обсудить ваш запрос. мы никогда их не продаём и не добавляем в рассылки.',
+    s_where: 'куда это уходит',
+    where: 'когда вы нажимаете отправить, одни и те же ответы уходят сразу в два места:',
+    w1: 'web3forms, который превращает их в письмо нам',
+    w2: 'наш собственный worker на cloudflare, который присылает их нам в telegram',
+    s_keep: 'как долго мы храним',
+    keep: 'если мы в итоге не работаем вместе, мы удаляем их в течение 12 месяцев. раньше, если вы попросите.',
+    s_device: 'что сайт хранит на вашем устройстве',
+    device: 'одно: выбрали ли вы тёмную или светлую тему, в local storage вашего браузера. никаких cookies, слежки, рекламы и аналитики. язык определяется адресом страницы, поэтому он не сохраняется.',
+    s_loads: 'что загружается с других сайтов',
+    loads: 'сайт размещён на github pages, а шрифты загружаются с google fonts. как и на любом сайте, ваш браузер подключается к ним, когда открывается страница.',
+    s_tools: 'бесплатные инструменты',
+    tools: 'удаление водяных знаков и проверка ссылки работают в вашем браузере. текст, файлы и ссылки никуда не загружаются. если вы перетащите pdf или docx в удаление водяных знаков, оно скачает вспомогательную библиотеку с jsdelivr, но ваш файл остаётся у вас.',
+    s_rights: 'ваши права',
+    rights: 'вы можете попросить показать, исправить или удалить то, что у нас есть о вас. напишите на почту ниже.',
+    complain: 'если вы считаете, что мы обращаемся с вашими данными неправильно, вы можете пожаловаться в datatilsynet, норвежскую службу по защите данных.',
+    updated: 'обновлено 1 октября 2026',
+    home: 'главная',
+    privacy: 'конфиденциальность',
+    th_dark: 'тёмная тема',
+    th_light: 'светлая тема',
+  },
+  lv: {
+    h1: 'privātums',
+    intro: 'īsumā. mēs vācam tikai to, ko jūs ierakstāt formā, izmantojam to tikai, lai jums atbildētu, un nekad to nepārdodam.',
+    s_who: 'kas uztur šo lapu',
+    who: 'Gatis Bramanis, THE BORING TEK. jautājumus par saviem datiem rakstiet uz e-pastu zemāk.',
+    s_form: 'ko forma savāc',
+    form: 'tikai to, ko jūs ierakstāt vai izvēlaties. atkarībā no atbildēm tas ir:',
+    f1: 'kāpēc jūs atnācāt un kādus variantus izvēlējāties',
+    f2: 'jūsu pašu vārdi, ja kaut ko paskaidrojat vai uzdodat jautājumu',
+    f3: 'cik liels ir jūsu bizness, kas aizņem visvairāk laika, kā klienti ar jums sazinās',
+    f4: 'bizness vai jūsu vārds, reģistrācijas numurs un mājaslapa, abi nav obligāti, un valsts',
+    f5: 'jūsu e-pasts',
+    f6: 'kādā valodā bija lapa',
+    form_none: 'nekas netiek nosūtīts, kamēr jūs nenospiežat sūtīt.',
+    s_why: 'kāpēc',
+    why: 'tikai lai jums atbildētu un runātu par jūsu pieprasījumu. mēs tos nekad nepārdodam un neliekam mārketinga sarakstos.',
+    s_where: 'kur tas nonāk',
+    where: 'kad nospiežat sūtīt, tās pašas atbildes vienlaikus nonāk divās vietās:',
+    w1: 'web3forms, kas tās pārvērš e-pastā mums',
+    w2: 'mūsu pašu worker uz cloudflare, kas tās nosūta mums telegram',
+    s_keep: 'cik ilgi mēs tos glabājam',
+    keep: 'ja mēs galu galā nesadarbojamies, mēs tos izdzēšam 12 mēnešu laikā. ātrāk, ja jūs palūdzat.',
+    s_device: 'ko lapa saglabā jūsu ierīcē',
+    device: 'vienu lietu: vai izvēlējāties tumšo vai gaišo režīmu, jūsu pārlūka local storage. nekādu sīkdatņu, izsekošanas, reklāmu vai analītikas. valodu nosaka adrese, kurā esat, tāpēc tā netiek saglabāta.',
+    s_loads: 'kas ielādējas no citurienes',
+    loads: 'lapa atrodas github pages, un fonti nāk no google fonts. kā jebkurā mājaslapā, jūsu pārlūks pieslēdzas tiem, kad lapa atveras.',
+    s_tools: 'bezmaksas rīki',
+    tools: 'ūdenszīmju noņemšana un saites pārbaude strādā jūsu pārlūkā. teksts, faili un saites nekad netiek augšupielādēti. ja ievelkat pdf vai docx ūdenszīmju noņemšanā, tā ielādē palīgbibliotēku no jsdelivr, bet jūsu fails paliek pie jums.',
+    s_rights: 'jūsu tiesības',
+    rights: 'jūs varat lūgt parādīt, labot vai dzēst to, kas mums par jums ir. rakstiet uz e-pastu zemāk.',
+    complain: 'ja uzskatāt, ka mēs ar jūsu datiem rīkojamies nepareizi, varat sūdzēties datatilsynet, norvēģijas datu aizsardzības iestādē.',
+    updated: 'atjaunināts 2026. gada 1. oktobrī',
+    home: 'sākums',
+    privacy: 'privātums',
     th_dark: 'tumšais režīms',
     th_light: 'gaišais režīms',
   },
@@ -721,6 +909,7 @@ const { src, cut } = readPage(SRC);
 const { src: srcClean, cut: cutClean } = readPage(SRC_CLEAN);
 const { src: srcTools, cut: cutTools } = readPage(SRC_TOOLS);
 const { src: srcCheck, cut: cutCheck } = readPage(SRC_CHECK);
+const { src: srcPrivacy, cut: cutPrivacy } = readPage(SRC_PRIVACY);
 
 /* the copy comes out of the page's own dictionary. `new Function` on an object
    literal we wrote ourselves, in a script that only ever runs on this machine.
@@ -743,6 +932,10 @@ const T_TOOLS_EN = new Function('return ' + dictTools[1])();
 const dictCheck = srcCheck.match(/\nvar T=(\{[\s\S]*?\n\});\nfunction t\(k\)/);
 if (!dictCheck) throw new Error('could not find `var T={...}` in tools/check/index.html');
 const T_CHECK_EN = new Function('return ' + dictCheck[1])();
+/* and the privacy page's, laid out like the hub's */
+const dictPrivacy = srcPrivacy.match(/\nvar T=(\{[\s\S]*?\n\});\nfunction t\(k\)/);
+if (!dictPrivacy) throw new Error('could not find `var T={...}` in privacy/index.html');
+const T_PRIVACY_EN = new Function('return ' + dictPrivacy[1])();
 
 function checkDict(name, dict, seo) {
   for (const l of LANGS) {
@@ -765,6 +958,7 @@ checkDict('T', T, SEO);
 checkDict('CLEAN', CLEAN, SEO_CLEAN);
 checkDict('TOOLS', TOOLS, SEO_TOOLS);
 checkDict('CHECK', CHECK, SEO_CHECK);
+checkDict('PRIVACY', PRIVACY, SEO_PRIVACY);
 
 /* the cleaner's english is written in two places, the page and CLEAN.en, and
    they have to be the same object: a key or a word that drifts in one of them
@@ -793,6 +987,14 @@ checkDict('CHECK', CHECK, SEO_CHECK);
   }
   if (bad.length) throw new Error(`tools/check/index.html T and CHECK.en disagree about: ${bad.join(', ')}`);
 }
+{
+  const bad = [];
+  const keys = new Set([...Object.keys(T_PRIVACY_EN), ...Object.keys(PRIVACY.en)]);
+  for (const k of keys) {
+    if (JSON.stringify(T_PRIVACY_EN[k]) !== JSON.stringify(PRIVACY.en[k])) bad.push(k);
+  }
+  if (bad.length) throw new Error(`privacy/index.html T and PRIVACY.en disagree about: ${bad.join(', ')}`);
+}
 
 /* the same document is served from /, /ru/ and /lv/, so a document-relative url
    resolves against whichever folder the visitor is in and 404s from two of the
@@ -815,6 +1017,7 @@ noRelativeUrls(src, 'index.html');
 noRelativeUrls(srcClean, 'tools/clean/index.html');
 noRelativeUrls(srcTools, 'tools/index.html');
 noRelativeUrls(srcCheck, 'tools/check/index.html');
+noRelativeUrls(srcPrivacy, 'privacy/index.html');
 
 /* english is written by hand in index.html and by this file for the other two.
    assert they are the same sentence, so changing one without the other stops
@@ -833,6 +1036,7 @@ assertEnglishHead(src, SEO, 'index.html');
 assertEnglishHead(srcClean, SEO_CLEAN, 'tools/clean/index.html');
 assertEnglishHead(srcTools, SEO_TOOLS, 'tools/index.html');
 assertEnglishHead(srcCheck, SEO_CHECK, 'tools/check/index.html');
+assertEnglishHead(srcPrivacy, SEO_PRIVACY, 'privacy/index.html');
 
 /* ---------- the transforms ---------- */
 
@@ -869,6 +1073,11 @@ function swapSwitch(body, lang, at) {
   body = one(body, ' aria-current="true"', '', 'lang-current-off');
   body = one(body, `<a class="lang" href="${at[lang]}">`, `<a class="lang" href="${at[lang]}" aria-current="true">`, 'lang-current-on');
   return body;
+}
+
+/* the footer's privacy link, on every page, goes to this language's privacy page */
+function swapFoot(body, lang, label) {
+  return one(body, `<a class="fl" href="${AT_PRIVACY.en}" data-k="privacy">`, `<a class="fl" href="${AT_PRIVACY[lang]}" data-k="privacy">`, label + ' privacy-link');
 }
 
 /* every keyed string, painted. the same keys the page paints at runtime,
@@ -918,6 +1127,7 @@ function buildPage(lang) {
   body = one(body, `<button class="pv-b" type="button" aria-label="${escAttr(T.en.play)}">`,
                    `<button class="pv-b" type="button" aria-label="${escAttr(t('play'))}">`, 'play-label');
 
+  body = swapFoot(body, lang, 'index.html');
   return head + body;
 }
 
@@ -946,6 +1156,7 @@ function buildClean(lang) {
   body = one(body, `<button class="theme" type="button" aria-label="${escAttr(CLEAN.en.th_dark)}">`,
                    `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
 
+  body = swapFoot(body, lang, 'tools/clean/index.html');
   return head + body;
 }
 
@@ -971,6 +1182,7 @@ function buildTools(lang) {
   body = one(body, `<button class="theme" type="button" aria-label="${escAttr(TOOLS.en.th_dark)}">`,
                    `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
 
+  body = swapFoot(body, lang, 'tools/index.html');
   return head + body;
 }
 
@@ -995,6 +1207,29 @@ function buildCheck(lang) {
   body = one(body, `<button class="theme" type="button" aria-label="${escAttr(CHECK.en.th_dark)}">`,
                    `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
 
+  body = swapFoot(body, lang, 'tools/check/index.html');
+  return head + body;
+}
+
+function buildPrivacy(lang) {
+  let head = swapHead(srcPrivacy.slice(0, cutPrivacy), lang, SEO_PRIVACY, AT_PRIVACY);
+  let body = swapSwitch(srcPrivacy.slice(cutPrivacy), lang, AT_PRIVACY);
+  const t = (k) => PRIVACY[lang][k];
+
+  /* --- the dictionary itself, swapped the way the hub's is --- */
+  head = one(head, dictPrivacy[1], JSON.stringify(PRIVACY[lang], null, 1), 'privacy-dict');
+
+  /* --- every keyed string, painted --- */
+  body = paintKeys(body, PRIVACY, lang, 20, 'privacy/index.html');
+
+  /* --- the link home goes to this language's home --- */
+  body = one(body, `<a class="lang more" href="/" data-k="home">`, `<a class="lang more" href="${AT[lang]}" data-k="home">`, 'home-link');
+
+  /* --- the label a screen reader gets before the script has run --- */
+  body = one(body, `<button class="theme" type="button" aria-label="${escAttr(PRIVACY.en.th_dark)}">`,
+                   `<button class="theme" type="button" aria-label="${escAttr(t('th_dark'))}">`, 'theme-label');
+
+  body = swapFoot(body, lang, 'privacy/index.html');
   return head + body;
 }
 
@@ -1021,6 +1256,7 @@ function buildSitemap() {
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_TOOLS[l]}</loc>\n  </url>\n`).join('')
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_CLEAN[l]}</loc>\n  </url>\n`).join('')
     + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_CHECK[l]}</loc>\n  </url>\n`).join('')
+    + LANGS.map((l) => `  <url>\n    <loc>${ORIGIN}${AT_PRIVACY[l]}</loc>\n  </url>\n`).join('')
     + '</urlset>\n';
 }
 
@@ -1033,6 +1269,7 @@ const out = [
   ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_TOOLS[l]), buildTools(l)]),
   ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_CLEAN[l]), buildClean(l)]),
   ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_CHECK[l]), buildCheck(l)]),
+  ...LANGS.filter((l) => l !== 'en').map((l) => [fileAt(AT_PRIVACY[l]), buildPrivacy(l)]),
   ...Object.keys(AT_CLEAN_OLD).map((l) => [fileAt(AT_CLEAN_OLD[l]), buildRedirect(l)]),
   [path.join(ROOT, 'sitemap.xml'), buildSitemap()],
 ];

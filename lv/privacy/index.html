@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="lv" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>free tools | the boring tek</title>
-<meta name="description" content="free browser tools by the boring tek. a watermark remover for ai text and files, and a link checker. nothing leaves your browser.">
-<link rel="canonical" href="https://theboringtek.com/tools/">
-<link rel="alternate" hreflang="en" href="https://theboringtek.com/tools/">
-<link rel="alternate" hreflang="nb" href="https://theboringtek.com/no/tools/">
-<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/tools/">
-<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/tools/">
-<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/tools/">
+<title>privātums | the boring tek</title>
+<meta name="description" content="kā the boring tek rīkojas ar to, ko sūtāt kontaktformā. ko mēs vācam, kāpēc, kur tas nonāk un kā to izdzēst.">
+<link rel="canonical" href="https://theboringtek.com/lv/privacy/">
+<link rel="alternate" hreflang="en" href="https://theboringtek.com/privacy/">
+<link rel="alternate" hreflang="nb" href="https://theboringtek.com/no/privacy/">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/privacy/">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/privacy/">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://theboringtek.com/tools/">
-<meta property="og:locale" content="en_US">
-<meta property="og:title" content="free tools | the boring tek">
-<meta property="og:description" content="free browser tools by the boring tek. a watermark remover for ai text and files, and a link checker. nothing leaves your browser.">
+<meta property="og:url" content="https://theboringtek.com/lv/privacy/">
+<meta property="og:locale" content="lv_LV">
+<meta property="og:title" content="privātums | the boring tek">
+<meta property="og:description" content="kā the boring tek rīkojas ar to, ko sūtāt kontaktformā. ko mēs vācam, kāpēc, kur tas nonāk un kā to izdzēst.">
 <meta property="og:image" content="https://theboringtek.com/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -161,7 +161,7 @@ body{
 }
 .lang:hover{opacity:.85}
 .lang[aria-current=true]{color:var(--fg);opacity:1}
-/* the site's fourth slot. there it goes to this page; here it goes home. */
+/* the site's fourth slot. here it goes home. */
 .more{position:relative;margin-left:4px;padding-left:16px}
 .more::before{
   content:""; position:absolute; left:0; top:50%; width:1px; height:11px;
@@ -223,45 +223,26 @@ html[data-theme=dark] .theme .i-moon{display:none}
 }
 .cl::before{content:"// "}
 
-/* ---- the tools hub ----
-   the site's cards, `.cd` from index.html: 1px --line border, 16px radius,
-   --field background, the same padding, the same lift on hover. one card a
-   tool, in a grid that takes a second column at 720px: two side by side on
-   a desktop, stacked on a phone. */
-.cards{display:grid;gap:12px;width:100%;text-align:left}
-@media (min-width:720px){
-  .cards{grid-template-columns:1fr 1fr}
-}
+/* ---- the privacy page ----
+   the site's cards, one a section: 1px --line border, 16px radius, --field
+   background, a mono // label over plain reading text. left aligned, because
+   this is read, not glanced at. */
+.cards{display:flex;flex-direction:column;gap:12px;width:100%;text-align:left}
 .cd{
-  display:flex; flex-direction:column; align-items:flex-start; gap:12px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:10px;
   border:1px solid var(--line); border-radius:16px;
   background:var(--field);
   padding:clamp(16px,3.6vw,22px);
-  transition:border-color .24s ease-out,background-color .5s ease,
-             transform .38s var(--ease);
+  transition:border-color .24s ease-out,background-color .5s ease;
 }
-.cd:hover{border-color:var(--muted);transform:translate3d(0,-3px,0)}
-/* the mascot as the tool's icon: the site's own face, small */
-.ico{display:block;width:40px;height:40px;flex:0 0 auto}
-.ico .m-face{fill:var(--face)}
-.ico .m-eye{fill:var(--eye)}
-.tt{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
-.ct{margin:-4px 0 0;font-size:var(--t-body);color:var(--sub);max-width:52ch}
-
-/* the site's form button, as a link */
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  margin-top:4px; text-decoration:none;
-  cursor:pointer;font:inherit;font-size:var(--t-micro);font-weight:500;
-  letter-spacing:.1em;text-transform:uppercase;
-  padding:8px 16px;min-height:36px;
-  border:1px solid var(--line);border-radius:999px;
-  background:transparent;color:var(--fg);
-  transition:background-color .22s ease-out,color .22s ease-out,
-             border-color .5s ease,transform .28s var(--spring);
-}
-.btn:hover{background:var(--fg);color:var(--bg)}
-.btn:active{transform:scale(.97)}
+.cd .cl{margin:0}
+.ct{margin:0;font-size:var(--t-body);color:var(--sub);max-width:62ch}
+.ct a{color:var(--fg);text-underline-offset:3px}
+.ul{margin:0;padding:0 0 0 18px;color:var(--sub);font-size:var(--t-body)}
+.ul li{margin:2px 0}
+.ul li::marker{color:var(--muted)}
+.intro{margin:0 0 4px;color:var(--fg);font-size:var(--t-body);text-align:left}
+.upd{margin:4px 0 0;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;color:var(--muted);text-align:left}
 .foot{
   position:relative; z-index:2;
   display:flex; flex-direction:column; align-items:center; gap:6px;
@@ -302,7 +283,6 @@ html[data-theme=dark] .theme .i-moon{display:none}
     transition-duration:.5s!important;
   }
   .soc:hover{transform:none}
-  .cd:hover{transform:none}
 }
 </style>
 <script>
@@ -322,18 +302,43 @@ R.style.colorScheme=theme;
 
 /* ---- copy. every visible string lives here, english. tools/build-langs.mjs
    holds the same keys in ru and lv, asserts this block against its english,
-   and writes the two other documents with this object swapped. ---- */
+   and writes the three other documents with this object swapped. ---- */
 var T={
- "h1": "free tools",
- "t_clean": "watermark remover",
- "d_clean": "clean hidden ai marks from your text and files",
- "t_check": "link checker",
- "d_check": "see what is hiding in a link before you open it",
- "open": "open",
- "home": "home",
- "privacy": "privacy",
- "th_dark": "dark mode",
- "th_light": "light mode"
+ "h1": "privātums",
+ "intro": "īsumā. mēs vācam tikai to, ko jūs ierakstāt formā, izmantojam to tikai, lai jums atbildētu, un nekad to nepārdodam.",
+ "s_who": "kas uztur šo lapu",
+ "who": "Gatis Bramanis, THE BORING TEK. jautājumus par saviem datiem rakstiet uz e-pastu zemāk.",
+ "s_form": "ko forma savāc",
+ "form": "tikai to, ko jūs ierakstāt vai izvēlaties. atkarībā no atbildēm tas ir:",
+ "f1": "kāpēc jūs atnācāt un kādus variantus izvēlējāties",
+ "f2": "jūsu pašu vārdi, ja kaut ko paskaidrojat vai uzdodat jautājumu",
+ "f3": "cik liels ir jūsu bizness, kas aizņem visvairāk laika, kā klienti ar jums sazinās",
+ "f4": "bizness vai jūsu vārds, reģistrācijas numurs un mājaslapa, abi nav obligāti, un valsts",
+ "f5": "jūsu e-pasts",
+ "f6": "kādā valodā bija lapa",
+ "form_none": "nekas netiek nosūtīts, kamēr jūs nenospiežat sūtīt.",
+ "s_why": "kāpēc",
+ "why": "tikai lai jums atbildētu un runātu par jūsu pieprasījumu. mēs tos nekad nepārdodam un neliekam mārketinga sarakstos.",
+ "s_where": "kur tas nonāk",
+ "where": "kad nospiežat sūtīt, tās pašas atbildes vienlaikus nonāk divās vietās:",
+ "w1": "web3forms, kas tās pārvērš e-pastā mums",
+ "w2": "mūsu pašu worker uz cloudflare, kas tās nosūta mums telegram",
+ "s_keep": "cik ilgi mēs tos glabājam",
+ "keep": "ja mēs galu galā nesadarbojamies, mēs tos izdzēšam 12 mēnešu laikā. ātrāk, ja jūs palūdzat.",
+ "s_device": "ko lapa saglabā jūsu ierīcē",
+ "device": "vienu lietu: vai izvēlējāties tumšo vai gaišo režīmu, jūsu pārlūka local storage. nekādu sīkdatņu, izsekošanas, reklāmu vai analītikas. valodu nosaka adrese, kurā esat, tāpēc tā netiek saglabāta.",
+ "s_loads": "kas ielādējas no citurienes",
+ "loads": "lapa atrodas github pages, un fonti nāk no google fonts. kā jebkurā mājaslapā, jūsu pārlūks pieslēdzas tiem, kad lapa atveras.",
+ "s_tools": "bezmaksas rīki",
+ "tools": "ūdenszīmju noņemšana un saites pārbaude strādā jūsu pārlūkā. teksts, faili un saites nekad netiek augšupielādēti. ja ievelkat pdf vai docx ūdenszīmju noņemšanā, tā ielādē palīgbibliotēku no jsdelivr, bet jūsu fails paliek pie jums.",
+ "s_rights": "jūsu tiesības",
+ "rights": "jūs varat lūgt parādīt, labot vai dzēst to, kas mums par jums ir. rakstiet uz e-pastu zemāk.",
+ "complain": "ja uzskatāt, ka mēs ar jūsu datiem rīkojamies nepareizi, varat sūdzēties datatilsynet, norvēģijas datu aizsardzības iestādē.",
+ "updated": "atjaunināts 2026. gada 1. oktobrī",
+ "home": "sākums",
+ "privacy": "privātums",
+ "th_dark": "tumšais režīms",
+ "th_light": "gaišais režīms"
 };
 function t(k){ return T[k]; }
 
@@ -376,12 +381,12 @@ else boot();
 <header class="bar">
   <div class="left">
     <nav class="langs" aria-label="language">
-      <a class="lang" href="/tools/" aria-current="true">EN</a>
-      <a class="lang" href="/no/tools/">NO</a>
-      <a class="lang" href="/ru/tools/">RU</a>
-      <a class="lang" href="/lv/tools/">LV</a>
+      <a class="lang" href="/privacy/">EN</a>
+      <a class="lang" href="/no/privacy/">NO</a>
+      <a class="lang" href="/ru/privacy/">RU</a>
+      <a class="lang" href="/lv/privacy/" aria-current="true">LV</a>
     </nav>
-    <a class="lang more" href="/" data-k="home">home</a>
+    <a class="lang more" href="/lv/" data-k="home">sākums</a>
   </div>
   <nav class="socials" aria-label="socials">
     <a class="soc" href="https://t.me/boringtek" target="_blank" rel="noopener" aria-label="telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg></a>
@@ -391,7 +396,7 @@ else boot();
     <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
     <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
   </nav>
-  <button class="theme" type="button" aria-label="dark mode">
+  <button class="theme" type="button" aria-label="tumšais režīms">
     <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
     <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></svg>
   </button>
@@ -399,30 +404,65 @@ else boot();
 
 <main class="wrap">
  <div class="col">
-  <h1 class="cl" data-k="h1">free tools</h1>
+  <h1 class="cl" data-k="h1">privātums</h1>
+  <p class="intro" data-k="intro">īsumā. mēs vācam tikai to, ko jūs ierakstāt formā, izmantojam to tikai, lai jums atbildētu, un nekad to nepārdodam.</p>
 
   <div class="cards">
-    <article class="cd">
-      <svg class="ico" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
-        <circle class="m-face" cx="32" cy="32" r="30"/>
-        <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
-        <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
-      </svg>
-      <h2 class="tt" data-k="t_clean">watermark remover</h2>
-      <p class="ct" data-k="d_clean">clean hidden ai marks from your text and files</p>
-      <a class="btn" href="/tools/clean/" data-k="open">open</a>
-    </article>
-    <article class="cd">
-      <svg class="ico" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
-        <circle class="m-face" cx="32" cy="32" r="30"/>
-        <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
-        <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
-      </svg>
-      <h2 class="tt" data-k="t_check">link checker</h2>
-      <p class="ct" data-k="d_check">see what is hiding in a link before you open it</p>
-      <a class="btn" href="/tools/check/" data-k="open">open</a>
-    </article>
+    <section class="cd">
+      <h2 class="cl" data-k="s_who">kas uztur šo lapu</h2>
+      <p class="ct" data-k="who">Gatis Bramanis, THE BORING TEK. jautājumus par saviem datiem rakstiet uz e-pastu zemāk.</p>
+      <p class="ct"><a href="mailto:hello@theboringtek.com">hello@theboringtek.com</a></p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_form">ko forma savāc</h2>
+      <p class="ct" data-k="form">tikai to, ko jūs ierakstāt vai izvēlaties. atkarībā no atbildēm tas ir:</p>
+      <ul class="ul">
+        <li data-k="f1">kāpēc jūs atnācāt un kādus variantus izvēlējāties</li>
+        <li data-k="f2">jūsu pašu vārdi, ja kaut ko paskaidrojat vai uzdodat jautājumu</li>
+        <li data-k="f3">cik liels ir jūsu bizness, kas aizņem visvairāk laika, kā klienti ar jums sazinās</li>
+        <li data-k="f4">bizness vai jūsu vārds, reģistrācijas numurs un mājaslapa, abi nav obligāti, un valsts</li>
+        <li data-k="f5">jūsu e-pasts</li>
+        <li data-k="f6">kādā valodā bija lapa</li>
+      </ul>
+      <p class="ct" data-k="form_none">nekas netiek nosūtīts, kamēr jūs nenospiežat sūtīt.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_why">kāpēc</h2>
+      <p class="ct" data-k="why">tikai lai jums atbildētu un runātu par jūsu pieprasījumu. mēs tos nekad nepārdodam un neliekam mārketinga sarakstos.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_where">kur tas nonāk</h2>
+      <p class="ct" data-k="where">kad nospiežat sūtīt, tās pašas atbildes vienlaikus nonāk divās vietās:</p>
+      <ul class="ul">
+        <li data-k="w1">web3forms, kas tās pārvērš e-pastā mums</li>
+        <li data-k="w2">mūsu pašu worker uz cloudflare, kas tās nosūta mums telegram</li>
+      </ul>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_keep">cik ilgi mēs tos glabājam</h2>
+      <p class="ct" data-k="keep">ja mēs galu galā nesadarbojamies, mēs tos izdzēšam 12 mēnešu laikā. ātrāk, ja jūs palūdzat.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_device">ko lapa saglabā jūsu ierīcē</h2>
+      <p class="ct" data-k="device">vienu lietu: vai izvēlējāties tumšo vai gaišo režīmu, jūsu pārlūka local storage. nekādu sīkdatņu, izsekošanas, reklāmu vai analītikas. valodu nosaka adrese, kurā esat, tāpēc tā netiek saglabāta.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_loads">kas ielādējas no citurienes</h2>
+      <p class="ct" data-k="loads">lapa atrodas github pages, un fonti nāk no google fonts. kā jebkurā mājaslapā, jūsu pārlūks pieslēdzas tiem, kad lapa atveras.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_tools">bezmaksas rīki</h2>
+      <p class="ct" data-k="tools">ūdenszīmju noņemšana un saites pārbaude strādā jūsu pārlūkā. teksts, faili un saites nekad netiek augšupielādēti. ja ievelkat pdf vai docx ūdenszīmju noņemšanā, tā ielādē palīgbibliotēku no jsdelivr, bet jūsu fails paliek pie jums.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_rights">jūsu tiesības</h2>
+      <p class="ct" data-k="rights">jūs varat lūgt parādīt, labot vai dzēst to, kas mums par jums ir. rakstiet uz e-pastu zemāk.</p>
+      <p class="ct"><a href="mailto:hello@theboringtek.com">hello@theboringtek.com</a></p>
+      <p class="ct" data-k="complain">ja uzskatāt, ka mēs ar jūsu datiem rīkojamies nepareizi, varat sūdzēties datatilsynet, norvēģijas datu aizsardzības iestādē.</p>
+      <p class="ct"><a href="https://www.datatilsynet.no/" target="_blank" rel="noopener">datatilsynet.no</a></p>
+    </section>
   </div>
+  <p class="upd" data-k="updated">atjaunināts 2026. gada 1. oktobrī</p>
  </div>
 </main>
 
@@ -435,7 +475,7 @@ else boot();
     <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
     <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
   </nav>
-  <p class="foot-t"><a class="fl" href="mailto:hello@theboringtek.com">hello@theboringtek.com</a><span class="fs" aria-hidden="true">·</span><span>© 2026 THE BORING TEK</span><span class="fs" aria-hidden="true">·</span><a class="fl" href="/privacy/" data-k="privacy">privacy</a></p>
+  <p class="foot-t"><a class="fl" href="mailto:hello@theboringtek.com">hello@theboringtek.com</a><span class="fs" aria-hidden="true">·</span><span>© 2026 THE BORING TEK</span><span class="fs" aria-hidden="true">·</span><a class="fl" href="/lv/privacy/" data-k="privacy">privātums</a></p>
 </footer>
 </body>
 </html>

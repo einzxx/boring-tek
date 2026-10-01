@@ -446,6 +446,21 @@ html:not([lang=en]) .big{font-family:var(--body)}
   padding:clamp(24px,5vh,40px) 16px clamp(28px,6vh,44px);
 }
 
+/* the footer line: the public email, the name, the privacy page. one line on a
+   wide screen; under 640px the email takes its own line and its dot goes. */
+.foot-t{
+  margin:0; display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+  gap:4px 10px; text-align:center;
+  font-family:var(--mono); font-size:var(--t-micro);
+  letter-spacing:.14em; color:var(--muted); opacity:.75;
+}
+.foot-t .fl{color:inherit;text-decoration:none;transition:color .22s ease-out}
+.foot-t .fl:hover{color:var(--fg);text-decoration:underline;text-underline-offset:4px}
+@media (max-width:639px){
+  .foot-t .fs:first-of-type{display:none}
+  .foot-t > .fl:first-child{flex-basis:100%}
+}
+
 /* the swap, the site's: above 880px the socials sit in the bar, centred on
    the page, and the head gets 32px more sky; the footer keeps its lines. */
 @media (min-width:880px){
@@ -761,6 +776,7 @@ var T={
  "honest": "dette verktøyet fjerner skjulte merker fra tekst og filer. det får ikke teksten til å virke menneskelig. ingen verktøy kan love hva en ai-sjekker kommer til å si.",
  "noscript": "dette verktøyet kjører i nettleseren og trenger javascript.",
  "home": "hjem",
+ "privacy": "personvern",
  "th_dark": "mørk modus",
  "th_light": "lys modus",
  "clean_none": "allerede rent, fant ingenting skjult.",
@@ -1495,6 +1511,7 @@ else boot();
     <a class="soc" href="https://www.instagram.com/boringtek" target="_blank" rel="noopener" aria-label="instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
     <a class="soc" href="https://www.facebook.com/boringtek" target="_blank" rel="noopener" aria-label="facebook"><svg aria-hidden="true"><use href="#i-facebook"/></svg></a>
   </nav>
+  <p class="foot-t"><a class="fl" href="mailto:hello@theboringtek.com">hello@theboringtek.com</a><span class="fs" aria-hidden="true">·</span><span>© 2026 THE BORING TEK</span><span class="fs" aria-hidden="true">·</span><a class="fl" href="/no/privacy/" data-k="privacy">personvern</a></p>
 </footer>
 </body>
 </html>

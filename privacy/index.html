@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>free tools | the boring tek</title>
-<meta name="description" content="free browser tools by the boring tek. a watermark remover for ai text and files, and a link checker. nothing leaves your browser.">
-<link rel="canonical" href="https://theboringtek.com/tools/">
-<link rel="alternate" hreflang="en" href="https://theboringtek.com/tools/">
-<link rel="alternate" hreflang="nb" href="https://theboringtek.com/no/tools/">
-<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/tools/">
-<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/tools/">
-<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/tools/">
+<title>privacy | the boring tek</title>
+<meta name="description" content="how the boring tek handles what you send through the contact form. what we collect, why, where it goes and how to have it deleted.">
+<link rel="canonical" href="https://theboringtek.com/privacy/">
+<link rel="alternate" hreflang="en" href="https://theboringtek.com/privacy/">
+<link rel="alternate" hreflang="nb" href="https://theboringtek.com/no/privacy/">
+<link rel="alternate" hreflang="ru" href="https://theboringtek.com/ru/privacy/">
+<link rel="alternate" hreflang="lv" href="https://theboringtek.com/lv/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://theboringtek.com/privacy/">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://theboringtek.com/tools/">
+<meta property="og:url" content="https://theboringtek.com/privacy/">
 <meta property="og:locale" content="en_US">
-<meta property="og:title" content="free tools | the boring tek">
-<meta property="og:description" content="free browser tools by the boring tek. a watermark remover for ai text and files, and a link checker. nothing leaves your browser.">
+<meta property="og:title" content="privacy | the boring tek">
+<meta property="og:description" content="how the boring tek handles what you send through the contact form. what we collect, why, where it goes and how to have it deleted.">
 <meta property="og:image" content="https://theboringtek.com/assets/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -161,7 +161,7 @@ body{
 }
 .lang:hover{opacity:.85}
 .lang[aria-current=true]{color:var(--fg);opacity:1}
-/* the site's fourth slot. there it goes to this page; here it goes home. */
+/* the site's fourth slot. here it goes home. */
 .more{position:relative;margin-left:4px;padding-left:16px}
 .more::before{
   content:""; position:absolute; left:0; top:50%; width:1px; height:11px;
@@ -223,45 +223,26 @@ html[data-theme=dark] .theme .i-moon{display:none}
 }
 .cl::before{content:"// "}
 
-/* ---- the tools hub ----
-   the site's cards, `.cd` from index.html: 1px --line border, 16px radius,
-   --field background, the same padding, the same lift on hover. one card a
-   tool, in a grid that takes a second column at 720px: two side by side on
-   a desktop, stacked on a phone. */
-.cards{display:grid;gap:12px;width:100%;text-align:left}
-@media (min-width:720px){
-  .cards{grid-template-columns:1fr 1fr}
-}
+/* ---- the privacy page ----
+   the site's cards, one a section: 1px --line border, 16px radius, --field
+   background, a mono // label over plain reading text. left aligned, because
+   this is read, not glanced at. */
+.cards{display:flex;flex-direction:column;gap:12px;width:100%;text-align:left}
 .cd{
-  display:flex; flex-direction:column; align-items:flex-start; gap:12px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:10px;
   border:1px solid var(--line); border-radius:16px;
   background:var(--field);
   padding:clamp(16px,3.6vw,22px);
-  transition:border-color .24s ease-out,background-color .5s ease,
-             transform .38s var(--ease);
+  transition:border-color .24s ease-out,background-color .5s ease;
 }
-.cd:hover{border-color:var(--muted);transform:translate3d(0,-3px,0)}
-/* the mascot as the tool's icon: the site's own face, small */
-.ico{display:block;width:40px;height:40px;flex:0 0 auto}
-.ico .m-face{fill:var(--face)}
-.ico .m-eye{fill:var(--eye)}
-.tt{margin:0;font-size:var(--t-body);font-weight:500;color:var(--fg)}
-.ct{margin:-4px 0 0;font-size:var(--t-body);color:var(--sub);max-width:52ch}
-
-/* the site's form button, as a link */
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  margin-top:4px; text-decoration:none;
-  cursor:pointer;font:inherit;font-size:var(--t-micro);font-weight:500;
-  letter-spacing:.1em;text-transform:uppercase;
-  padding:8px 16px;min-height:36px;
-  border:1px solid var(--line);border-radius:999px;
-  background:transparent;color:var(--fg);
-  transition:background-color .22s ease-out,color .22s ease-out,
-             border-color .5s ease,transform .28s var(--spring);
-}
-.btn:hover{background:var(--fg);color:var(--bg)}
-.btn:active{transform:scale(.97)}
+.cd .cl{margin:0}
+.ct{margin:0;font-size:var(--t-body);color:var(--sub);max-width:62ch}
+.ct a{color:var(--fg);text-underline-offset:3px}
+.ul{margin:0;padding:0 0 0 18px;color:var(--sub);font-size:var(--t-body)}
+.ul li{margin:2px 0}
+.ul li::marker{color:var(--muted)}
+.intro{margin:0 0 4px;color:var(--fg);font-size:var(--t-body);text-align:left}
+.upd{margin:4px 0 0;font-family:var(--mono);font-size:var(--t-micro);letter-spacing:.14em;color:var(--muted);text-align:left}
 .foot{
   position:relative; z-index:2;
   display:flex; flex-direction:column; align-items:center; gap:6px;
@@ -302,7 +283,6 @@ html[data-theme=dark] .theme .i-moon{display:none}
     transition-duration:.5s!important;
   }
   .soc:hover{transform:none}
-  .cd:hover{transform:none}
 }
 </style>
 <script>
@@ -322,14 +302,39 @@ R.style.colorScheme=theme;
 
 /* ---- copy. every visible string lives here, english. tools/build-langs.mjs
    holds the same keys in ru and lv, asserts this block against its english,
-   and writes the two other documents with this object swapped. ---- */
+   and writes the three other documents with this object swapped. ---- */
 var T={
- "h1": "free tools",
- "t_clean": "watermark remover",
- "d_clean": "clean hidden ai marks from your text and files",
- "t_check": "link checker",
- "d_check": "see what is hiding in a link before you open it",
- "open": "open",
+ "h1": "privacy",
+ "intro": "short version. we collect only what you type into the form, we use it only to reply to you, and we never sell it.",
+ "s_who": "who runs this site",
+ "who": "Gatis Bramanis, THE BORING TEK. questions about your data go to the email below.",
+ "s_form": "what the form collects",
+ "form": "only what you type or pick. depending on your answers, that is:",
+ "f1": "what brought you here, and the options you picked",
+ "f2": "your own words, if you explain something or ask a question",
+ "f3": "how big your business is, what takes most of your time, how customers reach you",
+ "f4": "business or your name, registration number and website, both optional, and country",
+ "f5": "your email",
+ "f6": "which language the page was in",
+ "form_none": "nothing is sent until you press send.",
+ "s_why": "why",
+ "why": "only to reply to you and talk about your request. we never sell it, and it never goes on a marketing list.",
+ "s_where": "where it goes",
+ "where": "when you press send, the same answers go to two places at once:",
+ "w1": "web3forms, which turns them into an email to us",
+ "w2": "our own worker on cloudflare, which sends them to us on telegram",
+ "s_keep": "how long we keep it",
+ "keep": "if we do not end up working together, we delete it within 12 months. sooner if you ask.",
+ "s_device": "what the site stores on your device",
+ "device": "one thing: whether you picked dark or light mode, saved in local storage in your browser. no cookies, no tracking, no ads, no analytics. your language is the address you are on, so nothing is saved for it.",
+ "s_loads": "what loads from elsewhere",
+ "loads": "the site is hosted on github pages, and the fonts come from google fonts. like on any website, your browser connects to them when a page opens.",
+ "s_tools": "the free tools",
+ "tools": "the watermark remover and the link checker run in your browser. your text, files and links are never uploaded. when you drop a pdf or docx into the watermark remover, it fetches a helper library from jsdelivr, but your file stays with you.",
+ "s_rights": "your rights",
+ "rights": "you can ask to see, fix or delete what we have about you. write to the email below.",
+ "complain": "if you think we handle your data wrong, you can complain to datatilsynet, the norwegian data protection authority.",
+ "updated": "last updated 1 october 2026",
  "home": "home",
  "privacy": "privacy",
  "th_dark": "dark mode",
@@ -376,10 +381,10 @@ else boot();
 <header class="bar">
   <div class="left">
     <nav class="langs" aria-label="language">
-      <a class="lang" href="/tools/" aria-current="true">EN</a>
-      <a class="lang" href="/no/tools/">NO</a>
-      <a class="lang" href="/ru/tools/">RU</a>
-      <a class="lang" href="/lv/tools/">LV</a>
+      <a class="lang" href="/privacy/" aria-current="true">EN</a>
+      <a class="lang" href="/no/privacy/">NO</a>
+      <a class="lang" href="/ru/privacy/">RU</a>
+      <a class="lang" href="/lv/privacy/">LV</a>
     </nav>
     <a class="lang more" href="/" data-k="home">home</a>
   </div>
@@ -399,30 +404,65 @@ else boot();
 
 <main class="wrap">
  <div class="col">
-  <h1 class="cl" data-k="h1">free tools</h1>
+  <h1 class="cl" data-k="h1">privacy</h1>
+  <p class="intro" data-k="intro">short version. we collect only what you type into the form, we use it only to reply to you, and we never sell it.</p>
 
   <div class="cards">
-    <article class="cd">
-      <svg class="ico" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
-        <circle class="m-face" cx="32" cy="32" r="30"/>
-        <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
-        <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
-      </svg>
-      <h2 class="tt" data-k="t_clean">watermark remover</h2>
-      <p class="ct" data-k="d_clean">clean hidden ai marks from your text and files</p>
-      <a class="btn" href="/tools/clean/" data-k="open">open</a>
-    </article>
-    <article class="cd">
-      <svg class="ico" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
-        <circle class="m-face" cx="32" cy="32" r="30"/>
-        <rect class="m-eye" x="15" y="36.3" width="13" height="4.4" rx="2.2"/>
-        <rect class="m-eye" x="36" y="36.3" width="13" height="4.4" rx="2.2"/>
-      </svg>
-      <h2 class="tt" data-k="t_check">link checker</h2>
-      <p class="ct" data-k="d_check">see what is hiding in a link before you open it</p>
-      <a class="btn" href="/tools/check/" data-k="open">open</a>
-    </article>
+    <section class="cd">
+      <h2 class="cl" data-k="s_who">who runs this site</h2>
+      <p class="ct" data-k="who">Gatis Bramanis, THE BORING TEK. questions about your data go to the email below.</p>
+      <p class="ct"><a href="mailto:hello@theboringtek.com">hello@theboringtek.com</a></p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_form">what the form collects</h2>
+      <p class="ct" data-k="form">only what you type or pick. depending on your answers, that is:</p>
+      <ul class="ul">
+        <li data-k="f1">what brought you here, and the options you picked</li>
+        <li data-k="f2">your own words, if you explain something or ask a question</li>
+        <li data-k="f3">how big your business is, what takes most of your time, how customers reach you</li>
+        <li data-k="f4">business or your name, registration number and website, both optional, and country</li>
+        <li data-k="f5">your email</li>
+        <li data-k="f6">which language the page was in</li>
+      </ul>
+      <p class="ct" data-k="form_none">nothing is sent until you press send.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_why">why</h2>
+      <p class="ct" data-k="why">only to reply to you and talk about your request. we never sell it, and it never goes on a marketing list.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_where">where it goes</h2>
+      <p class="ct" data-k="where">when you press send, the same answers go to two places at once:</p>
+      <ul class="ul">
+        <li data-k="w1">web3forms, which turns them into an email to us</li>
+        <li data-k="w2">our own worker on cloudflare, which sends them to us on telegram</li>
+      </ul>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_keep">how long we keep it</h2>
+      <p class="ct" data-k="keep">if we do not end up working together, we delete it within 12 months. sooner if you ask.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_device">what the site stores on your device</h2>
+      <p class="ct" data-k="device">one thing: whether you picked dark or light mode, saved in local storage in your browser. no cookies, no tracking, no ads, no analytics. your language is the address you are on, so nothing is saved for it.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_loads">what loads from elsewhere</h2>
+      <p class="ct" data-k="loads">the site is hosted on github pages, and the fonts come from google fonts. like on any website, your browser connects to them when a page opens.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_tools">the free tools</h2>
+      <p class="ct" data-k="tools">the watermark remover and the link checker run in your browser. your text, files and links are never uploaded. when you drop a pdf or docx into the watermark remover, it fetches a helper library from jsdelivr, but your file stays with you.</p>
+    </section>
+    <section class="cd">
+      <h2 class="cl" data-k="s_rights">your rights</h2>
+      <p class="ct" data-k="rights">you can ask to see, fix or delete what we have about you. write to the email below.</p>
+      <p class="ct"><a href="mailto:hello@theboringtek.com">hello@theboringtek.com</a></p>
+      <p class="ct" data-k="complain">if you think we handle your data wrong, you can complain to datatilsynet, the norwegian data protection authority.</p>
+      <p class="ct"><a href="https://www.datatilsynet.no/" target="_blank" rel="noopener">datatilsynet.no</a></p>
+    </section>
   </div>
+  <p class="upd" data-k="updated">last updated 1 october 2026</p>
  </div>
 </main>
 
