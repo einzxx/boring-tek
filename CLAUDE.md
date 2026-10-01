@@ -175,12 +175,20 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
   bottom 300px stays clear of anything important, for the TikTok and Shorts buttons.
 - On screen text has no dashes, apostrophes or quotes.
 
+### Beat sheet, stills, loop
+
+- Before any code, show Einz the beat sheet, each beat with its second and its
+  sound, and wait for the ok.
+- Render one still per beat before the full render.
+- When the clip can loop, the last frame matches the first.
+- The hook reads in the first 1 second, not 2.
+
 ### Critique loop, before Einz sees any preview
 
 1. Render a contact sheet, one frame per half second, 6 across, to
    `demo/out/verify-postNN/contact.png`, and a phone test sheet at 360px wide.
 2. Look at both properly, as a harsh motion director, and score 1 to 10:
-   hook in the first 2 seconds, readable at phone size, motion quality, something new
+   hook in the first 1 second, readable at phone size, motion quality, something new
    every 2 to 4 seconds, composition, mascot rules followed, sound sync if there is
    sound.
 3. Write the scores and the 3 worst problems with timestamps to
