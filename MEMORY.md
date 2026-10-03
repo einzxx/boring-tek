@@ -6,6 +6,15 @@ names in here either.
 
 ## Status
 
+- **2026-10-03, SESSION SAVE. A parked clip and the claims rule.**
+  - **Parked: good morning coffee.** He says good morning in the house bubble,
+    dives into a big coffee cup, jumps out full of energy, hops onto the keyboard
+    and types have a nice day on the monitor, then the glitch and the end card.
+    Silent with sfx, evergreen, good for a morning post.
+  - **Rule for news and political clips:** say only what the sources confirm,
+    mark claims as claims, never show or say that a person committed a crime when
+    it is not proven, keep it neutral and funny.
+
 - **2026-10-03. post49 is final and pushed: the super intelligence domains,
   34.48s, voiced.** `demo/post49.mjs`, dark, 60fps, on `lib/aiafter.mjs` with the
   series off. Out to `demo/out/post49-dark-1080x1920.mp4`, sheets, stills,
