@@ -8913,6 +8913,77 @@ with its level, so a timing list plays it like any other.
 629 to 630. The scene has no red or blue, and the fringe count on the mp4 finds
 those five frames and nothing else.
 
+## The forty ninth clip, the super intelligence domains
+
+```
+cd demo
+node post49.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post49.mjs     # the fast preview pass
+node post49.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post49.mjs`, dark only, **34.48 seconds**,
+60fps, seven lines on the elevenlabs narrator with the effects ducked under
+them. Built on `lib/aiafter.mjs` with the series title and tag off. Out to
+`demo/out/post49-dark-1080x1920.mp4`, the stills, sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post49/`. Over the 10s house max because a
+voiced clip runs as long as its read.
+
+Based on the september 2026 news: trump said artificial intelligence sounds fake,
+the us government now calls it super intelligence, si, and .si is slovenia's
+internet ending, so .si registrations jumped. The read sticks to what was
+reported. Line 6 attributes its claim to one analyst and says nobody has proven
+who. No on screen text accuses anyone of anything.
+
+### The beats
+
+Frame 0 is the speech photo, a big `AI` and its label. A strike crosses `AI` on
+`fake`, `SI` slams into the same spot on `super`, and S and I flash on the spoken
+`s i`. The photo goes, and on `dot` `SI` becomes `.si` in the same place and the
+same green, with an address bar drawn round it. A simplified slovenian flag waves
+in, its shield included, because white, blue and red stripes alone read as another
+country. A label card says `melania was born here`. The chart builds empty, then
+`3930` in one day grows past `3515` in the whole month before, each bar on its
+word. Four `for sale` domain cards pop in and a big question mark lands on
+`nobody`. The punchline picture pops in on `slovenia`, he thinks `i need
+boring.si` in the house bubble, laughs, then the glitch cut and the end card for 1.15s.
+
+He sits small in the lower right the whole clip and reacts: he looks at whatever
+is new, squints at the strike, the one day bar and the question mark, hops on
+`s i`, tilts his head on `nobody has proven who`. Eyes calm, happy or squint, no
+hands.
+
+### The pictures
+
+`demo/assets/trump.png` and `demo/assets/trump-si.png` are local only and never
+committed. The script cuts them to jpegs in `demo/out/post49-assets/` and inlines
+them, because the rig serves one page and nothing else. It stops with a message
+if either is missing. The speech photo is cropped above the lectern so the
+emblem on its front is gone. Both get post40's white outline and soft glow.
+
+### The sound
+
+Seven lines, three takes each, kept by measurement, speed 1.0, 0.42s gaps. 55
+effects from `lib/sfx.mjs` under the read, every one off a word time. -14 LUFS
+and -1.0 dBTP on the mp4.
+
+### What the rig gained
+
+`lib/aiafter.mjs`: `tp: -1`, an opt in true peak ceiling for voiced clips. The aac
+encode adds to the peak, so the bus is rebuilt from the read with the limiter
+ceiling moved by the overshoot, and the gain moved to stay on -14 LUFS, until the
+mp4 measures under it. A guard fails the run if it does not. Clips without `tp`
+are unchanged.
+
+### Checked
+
+Every critique score is 8 or more: hook 8, readable 8, motion 8, something new
+every 2 to 4s 8, composition 8, mascot rules 9, sound sync 8. The thought bubble
+is checked against the picture and the subtitles at five moments from its pop to
+the cut. Glitch: 5 frames at 60fps, 1995 to 1997 and 2000 to 2001, exactly the
+planned windows, by the fringe count on the mp4. Nothing else in the 2069 frames
+has a fringe.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

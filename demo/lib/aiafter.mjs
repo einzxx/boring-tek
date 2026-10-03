@@ -41,6 +41,7 @@
        series: false,                   optional, a clip on this rig with no title and no ep tag
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
        stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
+       tp: -1,                          optional, post49: a true peak ceiling on the voiced mp4
        sfx: { cues, gains, level, duck }, optional, effects from lib/sfx.mjs ducked under the read
                                         with no read, post48: the effects alone are the track, mastered
                                         to -14 LUFS, and the clip counts as not silent
@@ -664,14 +665,35 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
     ff(['-y', '-hide_banner', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(FRAMES, 'f%05d.jpg'), '-i', WAV,
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-r', String(FPS),
       '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', FILE]);
+    let vol = 0;
     for (let i = 0; i < 2; i++) {
       const got = loudness(ffmpeg, FILE);
       if (!got || !got.ok || Math.abs(got.lufs - TARGET_LUFS) <= 0.2) break;
+      vol += TARGET_LUFS - got.lufs;
       const fixed = path.join(OUT, NAME + '-mix-fix.wav'), tmp = path.join(OUT, NAME + '-tmp.mp4');
       ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', WAV, '-af', 'volume=' + (TARGET_LUFS - got.lufs).toFixed(2) + 'dB', fixed]);
       fs.renameSync(fixed, WAV);
       ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', FILE, '-i', WAV, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', tmp]);
       fs.renameSync(tmp, FILE);
+    }
+    /* `tp: -1`, optional, post49: a true peak ceiling on the mp4, as post48's
+       effects only master has. the aac encode adds to the peak, so the bus is
+       rebuilt from the read with the limiter lower by the overshoot, and the
+       gain moved to stay on -14 LUFS, until the file measures under it */
+    if (E.tp != null) {
+      let ceil = -1.8, g = best.g + vol;
+      for (let i = 0; i < 6; i++) {
+        const got = loudness(ffmpeg, FILE);
+        if (!got || !got.ok) break;
+        if (got.truePeak <= E.tp && Math.abs(got.lufs - TARGET_LUFS) <= 0.3) break;
+        g += TARGET_LUFS - got.lufs;
+        ceil = Math.min(-1, ceil + (E.tp - 0.05) - got.truePeak);
+        console.log('  true peak pass ' + (i + 1) + ': ' + got.lufs + ' LUFS, ' + got.truePeak + ' dBTP, limiter to ' + ceil.toFixed(2) + ' dB');
+        const buf = Float32Array.from(VTRACK); applyGain(buf, g); limit(buf, ceil); writeWav(WAV, buf);
+        const tmp = path.join(OUT, NAME + '-tmp.mp4');
+        ff(['-y', '-hide_banner', '-loglevel', 'error', '-i', FILE, '-i', WAV, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', tmp]);
+        fs.renameSync(tmp, FILE);
+      }
     }
   }
 
@@ -702,6 +724,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
     const lu = loudness(ffmpeg, FILE);
     if (!lu || !lu.ok) fails.push('the loudness could not be measured');
     else if (Math.abs(lu.lufs - TARGET_LUFS) > 0.5) fails.push('the bus is ' + lu.lufs + ' LUFS, not ' + TARGET_LUFS);
+    if (lu && lu.ok && E.tp != null && lu.truePeak > E.tp) fails.push('the true peak is ' + lu.truePeak + ' dBTP, over ' + E.tp);
     console.log('\n  loudness ' + (lu && lu.lufs) + ' LUFS integrated, true peak ' + (lu && lu.truePeak) + ' dBFS, on the mp4');
   }
   /* the house max is 10s, a read the brief asks for may run past it */

@@ -6,6 +6,31 @@ names in here either.
 
 ## Status
 
+- **2026-10-03. post49 is final and pushed: the super intelligence domains,
+  34.48s, voiced.** `demo/post49.mjs`, dark, 60fps, on `lib/aiafter.mjs` with the
+  series off. Out to `demo/out/post49-dark-1080x1920.mp4`, sheets, stills,
+  `frame0.jpg` and `review.md` in `demo/out/verify-post49/`. Write up is **The
+  forty ninth clip** in `demo/README.md`.
+  - **After the september 2026 news,** the read sticks to what was reported.
+    Line 6 attributes its claim to one analyst and says nobody has proven who.
+    No on screen text accuses anyone.
+  - **Seven narrator lines**, three takes each, kept by measurement, speed 1.0.
+    55 effects from `lib/sfx.mjs` under the read.
+  - **The pictures are local only:** `demo/assets/trump.png` and
+    `demo/assets/trump-si.png`, cut to jpegs in `demo/out/post49-assets/` and
+    inlined. The speech photo is cropped above the lectern so the emblem is gone.
+  - **SI and .si share one spot and one green,** checked by the run. A plain
+    white, blue and red flag reads as another country, so the flag carries a
+    simplified shield.
+  - **The house thought bubble** `i need boring.si` pops after the punchline
+    picture lands and is checked clear of the picture and the subtitles.
+  - **The rig gained `tp: -1`:** an opt in true peak ceiling for voiced clips,
+    the limiter moved by the overshoot until the mp4 measures under it. post49 is
+    -14.0 LUFS, -1.0 dBTP. Clips without it are unchanged.
+  - **Critique:** all 8 or more, mascot rules 9.
+  - **Glitch:** 5 frames at 60fps, 1995 to 1997 and 2000 to 2001, exactly the
+    planned windows, by the fringe count on the mp4.
+
 - **2026-10-01, SESSION SAVE. Caption and sound rules.**
   - **Captions:** plain words about the clip's topic. A did you know style works
     for true stories. No names of real companies or people are needed in the
