@@ -6,6 +6,30 @@ names in here either.
 
 ## Status
 
+- **2026-10-04. post50 is final and pushed: good morning, 8.37s, sound
+  effects only, no voice.** `demo/post50.mjs`, dark, 60fps, on `lib/aiafter.mjs`
+  with the series off. Out to `demo/out/post50-dark-1080x1920.mp4`, sheets,
+  `frame0.jpg` and `review.md` in `demo/out/verify-post50/`. Write up is **The
+  fiftieth clip** in `demo/README.md`. Four critique rounds, all 8 or more.
+  - **Story:** he jumps up sleepy, good morning and a yawn, a cup slides in under
+    his jump, he drops in, the coffee drains with him in it, he shoots out, the
+    cup slides off, fully charged with a battery filling green, the same bubble
+    turns into have a nice day, the glitch cuts straight off it, the card 1.16s.
+  - **He is drawn at 1.1, not 0.8,** because he is alone on the stage.
+  - **elevenlabs splash t3 and slurp t3, cached.** No bed: once the slurp is not
+    the loudest peak the hits alone reach -14 LUFS. The slurp take has 0.1s of
+    soft lead in, its cue sits 0.1s early. -14 LUFS, -1.3 dBTP, sync 0.0ms,
+    worst struck sound +9.2dB.
+  - **Glitch frames: 5 at 60fps,** 427 to 429 and 432 to 433, by the blue
+    fringe count on the mp4, nothing else fringes.
+  - **The rig's stills sheet drops the first ten stills** (the tile filter on
+    the png sequence). Rebuild it with xstack until the rig is fixed.
+  - **Style lesson, from this clip: keep the house look.** Dark background with
+    the faint dot grid, the mascot alive, clean motion, color only as small
+    accents. No full illustrated scenes: the first post50, a colour room with a
+    window, desk, monitor and keyboard, was thrown out for it. No cheap
+    sparkles: every star was cut in the fix round.
+
 - **2026-10-03, SESSION SAVE. A parked clip and the claims rule.**
   - **Parked: good morning coffee.** He says good morning in the house bubble,
     dives into a big coffee cup, jumps out full of energy, hops onto the keyboard

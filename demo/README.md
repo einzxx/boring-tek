@@ -8984,6 +8984,68 @@ the cut. Glitch: 5 frames at 60fps, 1995 to 1997 and 2000 to 2001, exactly the
 planned windows, by the fringe count on the mp4. Nothing else in the 2069 frames
 has a fringe.
 
+## The fiftieth clip, good morning
+
+```
+cd demo
+node post50.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post50.mjs     # the fast preview pass
+node post50.mjs --stills        # one still per beat, no render
+node post50.mjs --kit           # the two elevenlabs sounds from kit stand ins
+node post50.mjs --bus           # the loudest moments of the bus before the master
+```
+
+**Where it stands, final.** `demo/post50.mjs`, dark only, **8.37 seconds**, 60fps,
+no voice, sound effects only. Built on `lib/aiafter.mjs` with the series title
+and tag off. Out to `demo/out/post50-dark-1080x1920.mp4`, the stills, sheets,
+`frame0.jpg` and `review.md` in `demo/out/verify-post50/`. Evergreen, made for a
+morning post.
+
+He jumps up from below into the middle of the dark stage with a sleepy squint
+and lands with a squash. `good morning` in the house bubble, a small yawn bob. He
+jumps up and a coffee cup slides in under him: a white outline, one warm orange
+handle, brown coffee with cream foam and a little white steam. He drops in, a
+small brown splash, and the coffee drains with him in it until he sits in the
+empty cup, a slurp. He shoots out with happy eyes, the empty cup slides off, he
+lands in the middle. `fully charged` with a small battery that fills green, cell
+by cell, a chime. The same bubble turns into `have a nice day`, the battery goes
+with it, he floats calm under it for 1.6s, the glitch cuts straight off the
+bubble and the end card holds 1.16s.
+
+### The look, and what it took to get there
+
+The first build was a full colour room: a window with a sunrise, a wooden desk,
+a monitor and a keyboard he typed on. It was rejected for the house look, the
+dark stage and the faint dot grid. The rebuild keeps colour to small accents:
+the coffee brown, the orange handle and the green battery, nothing else. He is
+drawn at 1.1 rather than post45 and post48's 0.8, because here he is alone on
+the stage and at 0.8 the frame read as empty. Two fix rounds after the rebuild
+took out every sparkle and star, and the happy bounce at the end.
+
+The cup is drawn as an outline over its coffee, so the drain is the coffee
+level falling inside the outline, top to bottom. The coffee is in front of him
+and the cup's back rim and foam are behind him, so he sinks into the coffee and
+is revealed by it as it drains. The rig's idle drift is taken back out for the
+whole clip, every place he stands is planned. Eyes calm, happy or squint,
+sleepy is a squint, happy arcs 0.6s at most, no hands, every landing squashes.
+
+### The sound
+
+22 effects. 20 from the `lib/sfx.mjs` kit, 2 from elevenlabs: the splash and
+the slurp, takes cached in `demo/out/sfx-post50/`. No bed: once the slurp is not
+the loudest peak, the hits alone reach -14 LUFS, -1.3 dBTP on the mp4, with
+7.4dB of limiting. The kept slurp take has 0.1s of soft lead in, so its cue sits
+0.1s early and its body lands on the drain, and it is measured on its body. The
+bubble swap is a `bwop` rather than a bubble pop, which sat under the chime's
+tail. Sync 0.0ms by cross correlation, every struck sound 9.2dB or more over
+whatever else plays in its first 80ms.
+
+### Glitch frames
+
+5 at 60fps around the cut at 7.20s: the burst at 427 to 429 and the residue at
+432 to 433. The scene has no blue, and the count of blue dominant pixels on the
+mp4 finds those five frames and nothing else.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
