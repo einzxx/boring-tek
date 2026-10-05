@@ -6,6 +6,22 @@ names in here either.
 
 ## Status
 
+- **2026-10-05. The intro's how it works slot plays post45, committed, not
+  pushed.** `demo/post45-landscape.mjs` is post45 at 1920x1080: the tiktok
+  layout untouched, put through the rig's camera at 0.76 and centred, the sides
+  the dark stage and dot grid only. Same timing, post45's 32 cues from
+  `lib/sfx.mjs`, -14 LUFS, sync 0.0ms. A first wide layout with a left to right
+  journey was rejected for this. The site files are
+  `/assets/video/how-it-works.mp4` (h264, faststart, crf 24, 475 KB, SSIM 0.999
+  against the master) and `how-it-works-poster.jpg` (1280x720, him landing on
+  the first card, so the play sign sits clear of the story).
+  - **The intro's CHAPTERS entries carry their own poster** and a chapter
+    switch sets it; before, every chapter showed the intro's poster. ch2 and
+    ch3 stay soon, the labels are unchanged in all four languages.
+  - **The rig gained `stage: { w, h, appZone, file }`,** opt in, for a wide
+    clip. The frame 0 size guard reads the camera scale, and the empty series
+    title is only checked when the series is on. Portrait clips are unchanged.
+
 - **2026-10-05. post51 is final and pushed: the ai minister, 35.67s,
   voiced, with a sung end.** `demo/post51.mjs`, dark, 60fps, on
   `lib/aiafter.mjs` with the series off. Out to

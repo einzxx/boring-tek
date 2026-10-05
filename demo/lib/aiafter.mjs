@@ -41,6 +41,9 @@
        series: false,                   optional, a clip on this rig with no title and no ep tag
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
        stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
+       stage: { w, h, appZone, file },  optional, the website video: another stage in css px at the
+                                        same device scale, 960x540 is 1920x1080. appZone is the bottom
+                                        band kept clear, file the mp4's name in demo/out
        tp: -1,                          optional, post49: a true peak ceiling on the voiced mp4
        coda: TAKE,                      optional, post51: one more take from readLines(), placed with
                                         place() after the cut, on the end card. on the bus, under no
@@ -78,9 +81,11 @@ const OUT = path.join(DEMO, 'out');
 
 export const FPS = Number(process.env.DEMO_FPS || 60);
 const STEP = 1000 / FPS;
-export const DSF = STAGE.dsf, VW = STAGE.w, VH = STAGE.h;
+export const DSF = STAGE.dsf;
+/* live bindings: `stage` below can set them for one run, a landscape clip */
+export let VW = STAGE.w, VH = STAGE.h;
 export const MARGIN = 120 / DSF;
-export const APP_ZONE = 300 / DSF;
+export let APP_ZONE = 300 / DSF;
 const KEEP = process.argv.slice(2).includes('--keep-frames');
 const CHROME = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -242,7 +247,9 @@ export async function runEpisode(E) {
   const NAME = 'post' + E.post;
   const FRAMES = path.join(OUT, 'frames-' + NAME);
   const VERIFY = path.join(OUT, 'verify-' + NAME);
-  const FILE = path.join(OUT, NAME + '-dark-1080x1920.mp4');
+  if (E.stage) { VW = E.stage.w; VH = E.stage.h; APP_ZONE = E.stage.appZone ?? APP_ZONE; }
+  const RES = VW * DSF + 'x' + VH * DSF;
+  const FILE = path.join(OUT, E.stage && E.stage.file ? E.stage.file : NAME + '-dark-' + RES + '.mp4');
   /* the end card holds a second at least, every episode */
   const CUT = E.cut, END_HOLD = Math.max(1.0, E.hold ?? 1.0);
   const SECONDS = +(CUT + END_HOLD).toFixed(4);
@@ -541,7 +548,8 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
     if (!r || r.o < 0.99) fails.push('frame 0: ' + sel + ' is not fully on (' + (r ? r.o.toFixed(2) : 'hidden') + ')');
   }
   const m0 = await rect('#m-card');
-  const drawn = M.size * (M.scale ?? 1);
+  /* through a camera at frame 0, post45 landscape: the whole stage drawn smaller */
+  const drawn = M.size * (M.scale ?? 1) * ((G.camera && G.camera(0)) || { s: 1 }).s;
   if (m0 && Math.abs(m0.w - drawn) > drawn * 0.06) fails.push('frame 0: he is ' + m0.w.toFixed(1) + ' wide, not ' + drawn);
   /* the title lockup and the tag stay apart, and he stays under the title */
   const t0 = await rect('#aa-title'), g0 = await rect('#aa-tag');
@@ -550,7 +558,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   for (let t = 0; t < CUT - 0.05; t += 0.1) {
     const o = await put(t, Math.round(t * FPS));
     if (o.cam.s > 1.0001) continue;
-    for (const sel of ['#aa-title', '#aa-tag', '#m-card', '#subt', ...(G.checks || [])]) {
+    for (const sel of [...(SERIES ? ['#aa-title', '#aa-tag'] : []), '#m-card', '#subt', ...(G.checks || [])]) {
       const r = await rect(sel);
       if (r && r.w && outside(r)) fails.push(sel + ' past the margin at ' + t.toFixed(1) + 's: ' + box(r));
     }
@@ -560,7 +568,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
       if (sb && sb.w && g && g.w && g.b > sb.t - 4 && g.r > sb.l && g.l < sb.r) fails.push(sel + ' reaches the subtitles at ' + t.toFixed(1) + 's');
     }
     const m = await rect('#m-card');
-    if (m && t0 && m.t < t0.b + 4) fails.push('he reaches the title at ' + t.toFixed(1) + 's');
+    if (SERIES && m && t0 && m.t < t0.b + 4) fails.push('he reaches the title at ' + t.toFixed(1) + 's');
   }
   for (const v of G.verify || []) {
     await put(v.at, Math.round(v.at * FPS));
@@ -724,7 +732,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   const probe = ff(['-hide_banner', '-i', FILE], true) || '';
   const dur = probe.match(/Duration:\s*(\d+):(\d+):([\d.]+)/);
   const seconds = dur ? +dur[1] * 3600 + +dur[2] * 60 + parseFloat(dur[3]) : 0;
-  if (!/1080x1920/.test(probe)) fails.push('the file is not 1080x1920');
+  if (!new RegExp(RES).test(probe)) fails.push('the file is not ' + RES);
   if (Math.abs(seconds - SECONDS) > 0.15) fails.push('the file runs ' + seconds.toFixed(2) + 's, not ' + SECONDS);
   if (!TAKES && !FXONLY && /Audio:/.test(probe)) fails.push('the file has sound and no read was asked for');
   if (FXONLY && !/Audio:/.test(probe)) fails.push('the file has no audio track');
