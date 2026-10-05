@@ -46,6 +46,7 @@
                                         bottom band kept clear, file the mp4's name in demo/out, subTop
                                         where the subtitles sit on it
        name: 'site-who-we-are',         optional, a clip that is not a post: its frames, sheets and mix
+       lufs: -16,                       optional, the loudness the mix is mastered to, -14 by default
        tp: -1,                          optional, post49: a true peak ceiling on the voiced mp4
        coda: TAKE,                      optional, post51: one more take from readLines(), placed with
                                         place() after the cut, on the end card. on the bus, under no
@@ -174,10 +175,11 @@ async function oneTake(post, L, i, n, model = V.model) {
   let g = null;
   if (fs.existsSync(cached)) {
     const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
-    if (j.text === want && j.provider === 'elevenlabs' && j.elevenId === 'narrator' && j.model === model && j.speed === V.speed && fs.existsSync(j.file)) g = j;
+    if (j.text === want && j.provider === 'elevenlabs' && j.elevenId === 'narrator' && j.model === model && j.speed === (L.speed ?? V.speed) && fs.existsSync(j.file)) g = j;
   }
   if (!g) {
-    try { g = await speak(want, { voice: V.voice, name, speed: V.speed, model, ...V.set }); }
+    /* a line may ask for its own `speed`, site what we build's slower first line */
+    try { g = await speak(want, { voice: V.voice, name, speed: L.speed ?? V.speed, model, ...V.set }); }
     catch (e) { console.error('\nSTOPPED. elevenlabs failed on ' + name + ': ' + (e && e.message || e)); process.exit(1); }
   }
   if (g.provider !== 'elevenlabs' || g.elevenId !== 'narrator' || g.model !== model) { console.error('\nSTOPPED. ' + name + ' came back from ' + g.provider + ' ' + g.model + '.'); process.exit(1); }
@@ -625,7 +627,8 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   srv.close();
 
   /* silent unless there is a read: then the bus, post43's, to -14 LUFS */
-  const TARGET_LUFS = -14;
+  /* `lufs`, optional: the site videos master to -16, every clip else to -14 */
+  const TARGET_LUFS = E.lufs ?? -14;
   let FXMIX = null;
   if (FXONLY) {
     /* post48: the effects alone, mastered to -14 LUFS and -1 dBTP, the target

@@ -6,6 +6,22 @@ names in here either.
 
 ## Status
 
+- **2026-10-05. The intro's what we build slot plays its own site video, pushed.
+  No soon slots are left.** `demo/site-what-we-build.mjs`, 1920x1080 on the
+  wide stage, 23.08s, who we are's style, five lines on eleven_v4 with the
+  emotion tags acted, one big word a line, three house bubbles from him one
+  at a time (`me too`, `ai ai ai`, `life is good`). Site files
+  `/assets/video/what-we-build.mp4` and `what-we-build-poster.jpg`.
+  - **The music is Einz's own track,** `demo/assets/music-what-we-build.mp3`,
+    local only, never committed, cut from its start and faded over the end
+    card. It is busier than an elevenlabs bed, so it sits lower per word.
+  - **The site mix is -16 LUFS** (the rig's new `lufs`), the voice relaxed
+    under a louder bed: music -17dB under the read and ducked 75% under words.
+  - **He keeps moving on the site videos:** hops to the sides between the big
+    words, back in the middle for each one, guarded.
+  - **eleven_v4 barely slows at speed 0.9** (the rig's new per line `speed`):
+    3.98s against 3.92s. A slower read needs different text, not the setting.
+
 - **2026-10-05. The intro's who we are slot plays its own site video, pushed.**
   `demo/site-who-we-are.mjs`, 1920x1080 on the wide stage, 16.50s, five lines
   on eleven_v4, one big glowing word a line (a white outline and post49's three
