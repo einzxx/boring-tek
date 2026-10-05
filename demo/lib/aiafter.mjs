@@ -42,6 +42,9 @@
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
        stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
        tp: -1,                          optional, post49: a true peak ceiling on the voiced mp4
+       coda: TAKE,                      optional, post51: one more take from readLines(), placed with
+                                        place() after the cut, on the end card. on the bus, under no
+                                        subtitle, outside the gap guard, and the card must outlast it
        sfx: { cues, gains, level, duck }, optional, effects from lib/sfx.mjs ducked under the read
                                         with no read, post48: the effects alone are the track, mastered
                                         to -14 LUFS, and the clip counts as not silent
@@ -149,23 +152,29 @@ function audioEdges(pcm) {
   while (b > a && !loud(b)) b--;
   return { start: +(a * 0.005).toFixed(4), end: +((b + 1) * 0.005).toFixed(4) };
 }
-async function oneTake(post, L, i, n) {
-  const want = L.text, name = 'post' + post + '-' + L.key + '-v3t' + n;
+/* post51: an audio tag like [curious] is acted, not read. it comes back in
+   the alignment as a word of its own, so it is dropped from the words and
+   from the count */
+const isTag = w => /^\[[^\]]*\]$/.test(String(w).trim());
+async function oneTake(post, L, i, n, model = V.model) {
+  /* v3 keeps its old names so every cached take still matches */
+  const tagOf = model === 'eleven_v3' ? 'v3' : model.replace(/^eleven_/, '');
+  const want = L.text, name = 'post' + post + '-' + L.key + '-' + tagOf + 't' + n;
   const cached = path.join(VOICE_OUT, name + '-' + V.voice + '.json');
   let g = null;
   if (fs.existsSync(cached)) {
     const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
-    if (j.text === want && j.provider === 'elevenlabs' && j.elevenId === 'narrator' && j.model === V.model && j.speed === V.speed && fs.existsSync(j.file)) g = j;
+    if (j.text === want && j.provider === 'elevenlabs' && j.elevenId === 'narrator' && j.model === model && j.speed === V.speed && fs.existsSync(j.file)) g = j;
   }
   if (!g) {
-    try { g = await speak(want, { voice: V.voice, name, speed: V.speed, model: V.model, ...V.set }); }
+    try { g = await speak(want, { voice: V.voice, name, speed: V.speed, model, ...V.set }); }
     catch (e) { console.error('\nSTOPPED. elevenlabs failed on ' + name + ': ' + (e && e.message || e)); process.exit(1); }
   }
-  if (g.provider !== 'elevenlabs' || g.elevenId !== 'narrator' || g.model !== V.model) { console.error('\nSTOPPED. ' + name + ' came back from ' + g.provider + ' ' + g.model + '.'); process.exit(1); }
+  if (g.provider !== 'elevenlabs' || g.elevenId !== 'narrator' || g.model !== model) { console.error('\nSTOPPED. ' + name + ' came back from ' + g.provider + ' ' + g.model + '.'); process.exit(1); }
   if (g.timing !== 'engine') { console.error('\nSTOPPED. ' + name + ' has estimated timings and the picture is cut to the read.'); process.exit(1); }
   const pcm = decode(ffmpeg, g.file);
-  const words = g.words.filter(w => letters(w.word)).map(w => ({ word: w.word, start: +w.start, end: +w.end }));
-  const count = want.split(/\s+/).filter(x => letters(x)).length;
+  const words = g.words.filter(w => !isTag(w.word) && letters(w.word)).map(w => ({ word: w.word, start: +w.start, end: +w.end }));
+  const count = want.split(/\s+/).filter(x => !isTag(x) && letters(x)).length;
   const edge = audioEdges(pcm);
   const t = { i, n, name, pcm, words, edge, ok: true, why: [] };
   if (count !== words.length) { t.ok = false; t.why.push(words.length + ' words'); return t; }
@@ -176,12 +185,15 @@ async function oneTake(post, L, i, n) {
   if (t.tail > 0.5) { t.ok = false; t.why.push('sound ' + t.tail + 's after the last word'); }
   return t;
 }
-export async function readLines(post, LINES, tries = 3) {
+/* `opts.model`, optional, post51: another elevenlabs model, eleven_v4 for
+   the tags. v3 by default, so every earlier clip reads exactly as before */
+export async function readLines(post, LINES, tries = 3, opts = {}) {
+  const model = opts.model || V.model;
   if (!elevenReady('narrator')) { console.error('\nSTOPPED. elevenlabs is not set up for the narrator in demo/.env.'); process.exit(1); }
   const out = [];
   for (let i = 0; i < LINES.length; i++) {
     const all = [];
-    for (let n = 1; n <= tries; n++) all.push(await oneTake(post, LINES[i], i, n));
+    for (let n = 1; n <= tries; n++) all.push(await oneTake(post, LINES[i], i, n, model));
     const good = all.filter(x => x.ok);
     if (!good.length) { console.error('\nSTOPPED. no usable take of line ' + (i + 1) + ': ' + all.map(x => x.why.join(', ')).join(' | ')); process.exit(1); }
     const mid = good.map(x => x.dur).sort((x, y) => x - y)[Math.floor((good.length - 1) / 2)];
@@ -239,6 +251,8 @@ export async function runEpisode(E) {
   const TITLES = SERIES ? E.title : [];
 
   const TAKES = E.voice || null;
+  const CODA = TAKES && E.coda ? E.coda : null;
+  const BUS = CODA ? [...TAKES, CODA] : TAKES;
   /* sound effects and no read: the effects are the whole track */
   const FXONLY = !TAKES && !!E.sfx;
   const CARDS = TAKES && E.subs ? subCards(TAKES, E.subs) : [];
@@ -466,6 +480,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
 
   console.log('\n' + NAME + ', ai after ep ' + E.ep + '. ' + SECONDS + 's, ' + FPS + 'fps.');
   if (TAKES) for (const T of TAKES) console.log('    line ' + (T.i + 1) + ' at ' + T.at.toFixed(2) + 's, ' + T.all.join(', '));
+  if (CODA) console.log('    coda at ' + CODA.at.toFixed(2) + 's, ' + CODA.all.join(', '));
   for (const [t, what] of [...(G.log || []), [CUT, 'the glitch cut, the end card'], [SECONDS, 'the end']].sort((a, b) => a[0] - b[0])) {
     console.log('    ' + t.toFixed(2).padStart(5) + 's  ' + what);
   }
@@ -624,7 +639,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   } else {
     const PRE = 0.06, POST = 0.10, EDGE_FADE = 0.012;
     const VTRACK = new Float32Array(Math.ceil((SECONDS + 0.5) * SR));
-    for (const T of TAKES) {
+    for (const T of BUS) {
       const a = Math.max(0, Math.round((T.edge.start - PRE) * SR)), b = Math.min(T.pcm.length, Math.round((T.edge.end + POST) * SR));
       const at = Math.round((T.at - T.edge.start) * SR), fade = Math.round(EDGE_FADE * SR);
       for (let i = a; i < b; i++) {
@@ -643,7 +658,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
       const secs = VTRACK.length / SR;
       const { buf, report } = renderList(E.sfx.cues, secs, { gains: E.sfx.gains || {} });
       applyGain(buf, E.sfx.level ?? 0);
-      const mx = mixdown(VTRACK, buf, voiceEnvelope(TAKES.flatMap(T => T.W), secs), { duck: E.sfx.duck ?? 0.6 });
+      const mx = mixdown(VTRACK, buf, voiceEnvelope(BUS.flatMap(T => T.W), secs), { duck: E.sfx.duck ?? 0.6 });
       const under = checkUnderVoice(mx.voiceOut, mx.bus);
       VTRACK.set(mx.out.subarray(0, VTRACK.length));
       console.log('\n' + describeMix(report));
@@ -721,6 +736,8 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
       if (gap > 0.6) fails.push('a ' + gap.toFixed(2) + 's gap in the voice before line ' + (i + 2));
     }
     if (TAKES[TAKES.length - 1].end > CUT) fails.push('the read runs past the cut');
+    if (CODA && CODA.at < CUT) fails.push('the coda starts before the cut');
+    if (CODA && CODA.end > SECONDS - 0.2) fails.push('the coda runs to the end of the card');
     const lu = loudness(ffmpeg, FILE);
     if (!lu || !lu.ok) fails.push('the loudness could not be measured');
     else if (Math.abs(lu.lufs - TARGET_LUFS) > 0.5) fails.push('the bus is ' + lu.lufs + ' LUFS, not ' + TARGET_LUFS);

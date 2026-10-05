@@ -6,6 +6,32 @@ names in here either.
 
 ## Status
 
+- **2026-10-05. post51 is final and pushed: the ai minister, 35.67s,
+  voiced, with a sung end.** `demo/post51.mjs`, dark, 60fps, on
+  `lib/aiafter.mjs` with the series off. Out to
+  `demo/out/post51-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post51/`. Write up is **The fifty first clip**
+  in `demo/README.md`. Three briefs, every critique score 8 or more.
+  - **After the true 2025 story:** albania's ai minister diella. The two
+    claims sit in bubbles tagged `opposition` and `online`.
+  - **The voice is now eleven_v4, the newest model on the key.** It acts the
+    emotion tags (`[curious]`, `[playful]`, `[laughs]`, `[warmly]`) and never
+    reads them, and it can sing a short line with `[sings]`: the end card
+    sings `the boring tek`. The sung take is about 4dB louder than a read.
+  - **The rig gained two opt ins:** `readLines(..., { model })` with the tags
+    filtered out of the words, and `coda`, one take on the end card after the
+    cut. v3 takes keep their cache names, earlier clips are unchanged.
+  - **Diella is a dot hologram** sampled from `demo/assets/diella.png` (a
+    transparent cutout), and line 1 is `demo/assets/diella-half.png` in a
+    white outline and glow, cropped right of the flag's eagle. Both local only,
+    never committed, the script stops if one is missing.
+  - **The first look, a drawn orb with rings, was replaced** on Einz's brief by
+    the hologram face. No thinking orbs skill exists on this machine.
+  - **Bubbles come off his head, one at a time, never both,** guarded.
+  - -14.2 LUFS, -1.8 dBTP, sync 0.0ms. One elevenlabs paper slide, take 3.
+  - **Glitch frames: 5 at 60fps,** 1971 to 1973 and 1976 to 1977, by the
+    fringe count on the mp4.
+
 - **2026-10-04. post50 is final and pushed: good morning, 8.37s, sound
   effects only, no voice.** `demo/post50.mjs`, dark, 60fps, on `lib/aiafter.mjs`
   with the series off. Out to `demo/out/post50-dark-1080x1920.mp4`, sheets,

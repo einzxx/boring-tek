@@ -9046,6 +9046,97 @@ whatever else plays in its first 80ms.
 432 to 433. The scene has no blue, and the count of blue dominant pixels on the
 mp4 finds those five frames and nothing else.
 
+## The fifty first clip, the ai minister
+
+```
+cd demo
+node post51.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post51.mjs     # the fast preview pass
+node post51.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post51.mjs`, dark only, **35.67 seconds**,
+60fps, seven lines on the elevenlabs narrator and a sung `the boring tek` on the
+end card, the effects ducked under them. Built on `lib/aiafter.mjs` with the
+series title and tag off. Out to `demo/out/post51-dark-1080x1920.mp4`, the
+stills, sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post51/`. Over
+the 10s house max because a voiced clip runs as long as its read.
+
+After the true 2025 story: albania made an ai, diella, a minister for public
+procurement. The opposition said it broke the constitution, people online joked
+she would get corrupted too, and the prime minister said she is pregnant with 83
+children, one assistant for each member of parliament in his party. The two
+claims sit in bubbles tagged `opposition` and `online`, so they read as quotes.
+
+### The beats
+
+Frame 0 is her half human, half machine picture in a white outline and a deep
+white glow, her `minister` desk sign under it, him looking up. The glow flares
+on `ai`, the sign bounces on `minister`. On line 2 a scan line sweeps down the
+picture and turns it into her hologram, `albania` pops at the top, `diella`
+types, `sun` types and she warms. Four `contract` papers slide in, a light line
+scans them, a green check lands on each. On line 4 the house speech bubbles come
+off his head, one at a time, never both: `it broke the constitution`, gone, then
+`even diella will get corrupted`, and she dims. On `then` she glides to the
+middle at 0.55, pulses like a heartbeat from `pregnant`, faster from `83`, and he
+squints. 83 tiny warm orbs fly out of her into a parliament half circle, 17,
+19, 22 and 25 seats, a counter runs to 83, the half circle glows on `party`. It
+all settles, he looks into the lens and tilts on `government`, the glitch cut,
+and the end card holds 2.73s for the sung line.
+
+He sits small in the lower right at 0.75. Eyes calm, happy or squint, no hands.
+
+### Diella, the hologram
+
+`demo/assets/diella.png`, a cutout with a transparent background, is sampled
+into a 46 by 61 grid of warm dots, alpha as the mask. Each dot's size and
+brightness follow the picture's brightness, and a floor keeps her dark hair
+drawn, so her outline reads. An oval falloff fades her edges, so she never ends
+in the crop's rectangle. A slow breath runs down her face, a few dots flicker
+each frame, and a thin scan line loops over her every 2.6s. The warmth on `sun`,
+the dim on `corrupted`, the heartbeat and the glow on `party` all drive the dots.
+One warm sun colour, the only colour on screen that is not green.
+
+### The pictures
+
+`demo/assets/diella-half.png` and `demo/assets/diella.png` are local only and
+never committed. The script cuts them in `demo/out/post51-assets/` and inlines
+them, and stops with a message if either is missing. The half picture is cropped
+right of the albanian flag's eagle, so only a little red sky shows until the
+turn at about 5s.
+
+### The sound
+
+Seven lines and the coda on `eleven_v4`, three takes each, kept by measurement,
+speed 1.0, 0.42s gaps. **eleven_v4 acts the emotion tags** (`[curious]`,
+`[playful]`, `[laughs]`, `[warmly]`) and never reads them: the tags come back in
+the alignment as words of their own and are filtered out. **It can sing a short
+line with `[sings]`**: the probe measured the pitch about 7 semitones up and held
+notes, and Einz approved it by ear. The sung take is about 4dB louder than a
+read. 73 effects from `lib/sfx.mjs` under the read, every one off a word time,
+and one paper slide from elevenlabs, take 3, cached in `demo/out/sfx-post51/`.
+-14.2 LUFS and -1.8 dBTP on the mp4, sync 0.0ms by cross correlation.
+
+### What the rig gained
+
+`lib/aiafter.mjs`, both opt in, every earlier clip unchanged:
+
+- `readLines(post, LINES, tries, { model })`: another elevenlabs model. v3 keeps
+  its old cache names, so every earlier take still matches. Audio tags are
+  dropped from the words and the word count.
+- `coda`: one more take, placed after the cut, on the end card. It is on the
+  bus and the voice envelope, under no subtitle, outside the gap guard, and a
+  guard fails the run if the card does not outlast it.
+
+### Checked
+
+Every critique score is 8 or more: hook 9, readable 8 at phone size, motion 8,
+something new every 2 to 4s 8, composition 8, mascot rules 9, sound sync 8.
+Guards check one bubble at a time, the half circle inside the margins and clear
+of him, the sign and the count clear. Glitch: 5 frames at 60fps, 1971 to 1973
+and 1976 to 1977, exactly the planned windows, by the fringe count on the mp4.
+Nothing else in the 2140 frames has a fringe.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
