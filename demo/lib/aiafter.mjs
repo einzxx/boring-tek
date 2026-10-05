@@ -41,13 +41,18 @@
        series: false,                   optional, a clip on this rig with no title and no ep tag
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
        stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
-       stage: { w, h, appZone, file },  optional, the website video: another stage in css px at the
-                                        same device scale, 960x540 is 1920x1080. appZone is the bottom
-                                        band kept clear, file the mp4's name in demo/out
+       stage: { w, h, appZone, file, subTop },  optional, the website video: another stage in css px
+                                        at the same device scale, 960x540 is 1920x1080. appZone is the
+                                        bottom band kept clear, file the mp4's name in demo/out, subTop
+                                        where the subtitles sit on it
+       name: 'site-who-we-are',         optional, a clip that is not a post: its frames, sheets and mix
        tp: -1,                          optional, post49: a true peak ceiling on the voiced mp4
        coda: TAKE,                      optional, post51: one more take from readLines(), placed with
                                         place() after the cut, on the end card. on the bus, under no
                                         subtitle, outside the gap guard, and the card must outlast it
+       music: { pcm, level, duck, under, fx },  optional, a bed from lib/elevenmusic.mjs under the
+                                        read and the effects, ducked further under every word,
+                                        guarded under the voice and under every struck effect
        sfx: { cues, gains, level, duck }, optional, effects from lib/sfx.mjs ducked under the read
                                         with no read, post48: the effects alone are the track, mastered
                                         to -14 LUFS, and the clip counts as not silent
@@ -244,7 +249,8 @@ function subCards(TAKES, SUBS) {
 
 export async function runEpisode(E) {
   const G = E.gag;
-  const NAME = 'post' + E.post;
+  /* `name`, optional: a clip that is not a post, the site videos */
+  const NAME = E.name || 'post' + E.post;
   const FRAMES = path.join(OUT, 'frames-' + NAME);
   const VERIFY = path.join(OUT, 'verify-' + NAME);
   if (E.stage) { VW = E.stage.w; VH = E.stage.h; APP_ZONE = E.stage.appZone ?? APP_ZONE; }
@@ -417,7 +423,7 @@ ${mascotCss(plan)}
 ${G.css || ''}
 
 /* ---- the subtitles, post43's ---- */
-.subt{position:absolute;left:${MARGIN}px;right:${MARGIN}px;top:${ST.top}px;text-align:center;z-index:9;
+.subt{position:absolute;left:${MARGIN}px;right:${MARGIN}px;top:${(E.stage && E.stage.subTop) || ST.top}px;text-align:center;z-index:9;
   font-family:var(--read);font-weight:${ST.weight};font-size:${ST.size}px;line-height:1.3;color:var(--sub);white-space:nowrap;opacity:0;will-change:transform,opacity}
 
 /* ---- the end card ---- */
@@ -662,16 +668,49 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
        lib/sfx.mjs under the read, trimmed by `level` dB, ducked under every
        word, then mastered together with it. none may be louder than the speech
        it sits under. */
+    /* the read alone, before anything is mixed into it, for the music below */
+    const VOICE = E.music ? Float32Array.from(VTRACK) : null;
+    let FXBUS = null;
     if (E.sfx) {
       const secs = VTRACK.length / SR;
       const { buf, report } = renderList(E.sfx.cues, secs, { gains: E.sfx.gains || {} });
       applyGain(buf, E.sfx.level ?? 0);
       const mx = mixdown(VTRACK, buf, voiceEnvelope(BUS.flatMap(T => T.W), secs), { duck: E.sfx.duck ?? 0.6 });
       const under = checkUnderVoice(mx.voiceOut, mx.bus);
+      FXBUS = mx.bus;
       VTRACK.set(mx.out.subarray(0, VTRACK.length));
       console.log('\n' + describeMix(report));
       console.log('  under the voice: worst ' + under.worst.db + 'dB at ' + under.worst.at + 's, ' + under.over.length + ' windows over it');
       if (under.over.length) fails.push('an effect is louder than the voice at ' + under.over.map(o => o.t).join(', '));
+    }
+    /* `music: { pcm, level, duck, under }`, optional, the site videos: a bed
+       under everything. `level` puts its rms that many dB under the read's rms
+       while it speaks, `duck` takes it down further under every word, and a
+       guard fails the run unless it stays `under` dB below the voice in every
+       spoken window. the effects are left as they are, so they stay audible */
+    if (E.music) {
+      const secs = VTRACK.length / SR, m = E.music.pcm;
+      const env = voiceEnvelope(BUS.flatMap(T => T.W), secs, { release: 0.35 });
+      let ve = 0, vn = 0, me = 0;
+      for (let i = 0; i < VOICE.length; i++) if (env[i] > 0.5) { ve += VOICE[i] * VOICE[i]; vn++; }
+      for (let i = 0; i < m.length; i++) me += m[i] * m[i];
+      const vr = Math.sqrt(ve / Math.max(1, vn)), mr = Math.sqrt(me / Math.max(1, m.length));
+      const g = vr / Math.max(1e-9, mr) * Math.pow(10, (E.music.level ?? -17) / 20), duck = E.music.duck ?? 0.55;
+      const bed = new Float32Array(VTRACK.length);
+      for (let i = 0; i < Math.min(m.length, bed.length); i++) bed[i] = m[i] * g * (1 - duck * env[i]);
+      const under = checkUnderVoice(VOICE, bed);
+      for (let i = 0; i < bed.length; i++) VTRACK[i] += bed[i];
+      /* the effects stay audible: every struck one at least `fx` dB over the
+         bed in its own first 60ms, both after their ducks */
+      if (FXBUS) {
+        const r = (b, t) => { let e = 0, n = 0; for (let i = Math.max(0, Math.round(t * SR)); i < Math.min(b.length, Math.round((t + 0.06) * SR)); i++) { e += b[i] * b[i]; n++; } return Math.sqrt(e / Math.max(1, n)) + 1e-9; };
+        const struck = E.sfx.cues.filter(c => !/whoosh|sweep|riser|bass|hum/.test(c.kind));
+        const rows = struck.map(c => ({ c, d: +(20 * Math.log10(r(FXBUS, c.t) / r(bed, c.t))).toFixed(1) })).sort((a, b) => a.d - b.d);
+        console.log('  effects over the music: worst ' + rows[0].d + 'dB, ' + rows[0].c.from + ' at ' + rows[0].c.t + 's, median ' + rows[rows.length >> 1].d + 'dB');
+        for (const x of rows) if (x.d < (E.music.fx ?? 6)) fails.push(x.c.from + ' is only ' + x.d + 'dB over the music at ' + x.c.t + 's');
+      }
+      console.log('  music: ' + (E.music.level ?? -17) + 'dB under the read, ducked ' + Math.round(100 * duck) + '% under words, worst ' + under.worst.db + 'dB under the voice at ' + under.worst.at + 's');
+      if (under.worst.db > (E.music.under ?? -12)) fails.push('the music is only ' + under.worst.db + 'dB under the voice at ' + under.worst.at + 's');
     }
     const WAV = path.join(OUT, NAME + '-mix.wav'), RAW = path.join(OUT, NAME + '-mix-raw.wav');
     const attempt = gdb => { const buf = Float32Array.from(VTRACK); applyGain(buf, gdb); const lim = limit(buf, -1.8); writeWav(RAW, buf); return { g: gdb, lim, r: loudness(ffmpeg, RAW) }; };

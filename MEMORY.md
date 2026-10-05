@@ -6,6 +6,22 @@ names in here either.
 
 ## Status
 
+- **2026-10-05. The intro's who we are slot plays its own site video, pushed.**
+  `demo/site-who-we-are.mjs`, 1920x1080 on the wide stage, 16.50s, five lines
+  on eleven_v4, one big glowing word a line (a white outline and post49's three
+  layer glow), four small copies of him from `assets/mascot.svg` as the team.
+  Site files `/assets/video/who-we-are.mp4` and `who-we-are-poster.jpg`. Only
+  ch3, what we build, still says soon.
+  - **The first music bed: `lib/elevenmusic.mjs`,** the elevenlabs music api
+    (allowed on the key), three instrumental takes at the clip's exact length,
+    cached in `demo/out/music-NAME/`, one kept by measurement: least energy in
+    the voice band, steadiest, a clean tail. Never commit the audio.
+  - **The rig gained `music`, `stage.subTop` and `name`,** all opt in. The bed
+    sits 19dB under the read and 62% further under every word; guards fail the
+    run if it comes within 12dB of the voice or within 6dB of a struck effect.
+  - The site video's first word lands at about 1.1s on purpose: people press
+    play, so the hook is the voice.
+
 - **2026-10-05. The intro's how it works slot plays post45, committed, not
   pushed.** `demo/post45-landscape.mjs` is post45 at 1920x1080: the tiktok
   layout untouched, put through the rig's camera at 0.76 and centred, the sides
