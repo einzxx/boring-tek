@@ -6,6 +6,25 @@ names in here either.
 
 ## Status
 
+- **2026-10-05, SESSION SAVE.**
+  - **Clips, final and pushed:** post50 good morning coffee, rebuilt in the
+    house dark style after the full scene version was rejected. post51 the ai
+    minister: diella as a dot hologram face from local pictures, the voice on
+    eleven_v4 with emotion tags, a sung `the boring tek` on the end card.
+  - **The site intro is complete, all four slots live:** hello, who we are,
+    what we build, ai at work. ai at work is post45 in landscape, centred like
+    the tiktok version. who we are has music from the elevenlabs music api via
+    `lib/elevenmusic.mjs`. what we build uses our own local music file, never
+    committed, mixed at -16 LUFS for the website.
+  - **Voice:** eleven_v4 acts tags like excited, warmly, laughs and sings. The
+    tags never show in the subtitles. Speed 0.9 barely slows v4: for slower
+    speech change the text or the lead in.
+  - **Site video rule:** website videos are 1920x1080, everything centred, the
+    mix at -16 LUFS, the web file h264 with faststart, and a poster.
+  - **Deploy:** when github actions has an outage, pages deploys queue or get
+    cancelled. Re-run from the actions tab, or push an empty commit, `redeploy
+    site`, once github is back.
+
 - **2026-10-05. The intro's what we build slot plays its own site video, pushed.
   No soon slots are left.** `demo/site-what-we-build.mjs`, 1920x1080 on the
   wide stage, 23.08s, who we are's style, five lines on eleven_v4 with the
