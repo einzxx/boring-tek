@@ -6,6 +6,17 @@ names in here either.
 
 ## Status
 
+- **2026-10-06. The rig gains a cinematic kit, all opt in.** From reading two
+  public film skills as research (no code taken, no new dependency, no
+  remotion). `lib/aiafter.mjs`: `livingCamera` (push on holds, punch on the
+  payoff, capped at 6% together, the margin guard measures with it switched
+  off), `planTransitions` (zoom through and whip pan, a fresh blurred clone per
+  frame, each type twice a clip at most), `wordIn` and `wordStyle` (spring,
+  rise, slam), `peakAt` and `CURVE`. Rules in CLAUDE.md under Motion. post51's
+  25 stills are byte identical before and after. Test preview with the camera
+  and the slam on: `demo/out/post52-cinematic-test.mp4`, 12fps, guards green,
+  from a scratch copy; the final post52 is unchanged.
+
 - **2026-10-06. post52 is final and pushed: what is an api, 26.52s, voiced,
   with the sung end.** `demo/post52.mjs`, dark, 60fps, on `lib/aiafter.mjs` with
   the series off. Out to `demo/out/post52-dark-1080x1920.mp4`, sheets, stills,

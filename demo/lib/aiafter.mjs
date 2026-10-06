@@ -76,7 +76,7 @@ import {
   STAGE, HEAD, GRID, EYE_CX, TURN, GLOW,
 } from './mascot.mjs';
 import { brandTokens } from './captions.mjs';
-import { EASE as K } from './motion.mjs';
+import { EASE as K, bezier } from './motion.mjs';
 import { speak, VOICE_OUT, elevenReady } from './voice.mjs';
 import { SR, decode, writeWav, applyGain, limit, loudness, renderList, voiceEnvelope, mixdown, checkUnderVoice, describeMix, master } from './sfx.mjs';
 
@@ -126,6 +126,134 @@ export function focus(p, F, S, z) {
   const x = lerp(F.x, S.x, p), y = lerp(F.y, S.y, p);
   return { s: +s.toFixed(5), tx: +(x - F.x * s).toFixed(3), ty: +(y - F.y * s).toFixed(3) };
 }
+
+/* ---------- the cinematic kit, post52's research. every piece is opt in ----------
+   nothing below runs unless a clip calls it, so every earlier clip renders the
+   same. the curves are heavy and smooth on purpose: a camera is held, not thrown */
+export const CURVE = {
+  cam: bezier(0.48, 0.1, 0, 0.9),       /* camera, velocity peak about 27% in */
+  dolly: bezier(0.35, 0, 0.65, 1),      /* a slow push through a hold */
+  out: bezier(0.16, 1, 0.3, 1),         /* arrivals */
+  exit: bezier(0.55, 0.055, 0.675, 0.19), /* accelerating into a cut */
+  inOut: bezier(0.87, 0, 0.13, 1),      /* whips */
+};
+/* the time a move is fastest, for a whoosh: sampled, the curve's own peak */
+export function peakAt(a, b, curve) {
+  let best = 0, at = a;
+  for (let i = 1; i <= 200; i++) {
+    const u0 = (i - 1) / 200, u1 = i / 200, v = curve(u1) - curve(u0);
+    if (v > best) { best = v; at = a + (b - a) * (u0 + u1) / 2; }
+  }
+  return +at.toFixed(4);
+}
+
+/* the living camera. `holds: [[a, b]]` are the stretches where nothing else
+   moves: the frame pushes in 2 to 5% through each on the dolly curve and lets go
+   over 0.6s after it. `punches: [t]` is a small punch in on a payoff word, up on
+   the camera curve, held, and let go slowly. `F` is the stage point that stays
+   put, `also(t)` an optional { s } a transition adds, the whip's dip. returns
+   gag.camera(t). it is marked `live`, so the margin guard still measures the
+   layout under it rather than skipping the frame */
+export function livingCamera({ F = { x: 270, y: 480 }, holds = [], push = 0.035, punches = [], punch = 0.045, also = null } = {}) {
+  if (push < 0.02 || push > 0.05) throw new Error('the living camera pushes 2 to 5%, not ' + push);
+  if (punch > 0.06) throw new Error('a punch in is small, 6% at most, not ' + punch);
+  return t => {
+    let p = 0;
+    for (const [a, b] of holds) {
+      if (t < a) continue;
+      p = Math.max(p, push * (t < b ? CURVE.dolly(span(t, a, b)) : 1 - CURVE.inOut(span(t, b, b + 0.6))));
+    }
+    let q = 0;
+    for (const a of punches) {
+      if (t < a) continue;
+      q = Math.max(q, punch * (t < a + 0.18 ? CURVE.cam(span(t, a, a + 0.18)) : t < a + 0.43 ? 1 : 1 - CURVE.dolly(span(t, a + 0.43, a + 1.13))));
+    }
+    const x = (also && also(t)) || { s: 1 };
+    /* a punch on top of a push never takes the two past 6% */
+    const c = focus(1, F, F, (1 + p + Math.min(q, 0.06 - p)) * (x.s ?? 1));
+    return { ...c, live: true };
+  };
+}
+
+/* scene transitions. each scene is a full stage wrapper inside the camera,
+   `position:absolute;inset:0`, named by a selector. a clip plans them once:
+     const TX = planTransitions([{ type: 'zoom', at, from: '#a', to: '#b' }, { type: 'whip', at, from, to, dir: 1 }]);
+   `at` is the cut. TX.frame(t) goes into gag.frame's return as `tx`, and
+   TX.dip(t) into livingCamera's `also`. the plan owns both wrappers' opacity
+   and transform for the whole clip: before its window the outgoing scene is
+   whole and the incoming hidden, after it the reverse.
+     zoom   the old scene grows 1 to 1.2 and blurs over 0.2s into the cut, the new
+            one arrives from 0.75 on the out curve over 0.5s, sharp by 60% of it
+     whip   0.45s, the old scene accelerates off one side, the new one decelerates
+            in from the other, blurred most at the cut, the camera dips 5%
+   the blur is the pre blurred copy: the page clones the scene with its ids
+   stripped and a constant 14px blur, and fades the copy in over the sharp one,
+   because animating a blur on a big layer steps. no crossfade, and each type at
+   most twice a clip, by throw */
+const TX_KIND = { zoom: { pre: 0.2, post: 0.5 }, whip: { pre: 0.225, post: 0.225 } };
+export function planTransitions(list) {
+  const n = {};
+  for (const x of list) {
+    if (!TX_KIND[x.type]) throw new Error('no transition called ' + x.type + ', there is zoom and whip');
+    n[x.type] = (n[x.type] || 0) + 1;
+    if (n[x.type] > 2) throw new Error('the ' + x.type + ' transition is used ' + n[x.type] + ' times, twice a clip at most');
+  }
+  const r4 = v => +v.toFixed(4);
+  const one = (x, t) => {
+    const K = TX_KIND[x.type], a = x.at - K.pre, b = x.at + K.post, busy = t >= a && t < b;
+    if (t < x.at) {
+      if (x.type === 'zoom') { const u = span(t, a, x.at), e = CURVE.exit(u); return [{ sel: x.from, s: r4(1 + 0.2 * e), x: 0, o: 1, w: r4(e), busy }, { sel: x.to, s: 1, x: 0, o: 0, w: 0, busy }]; }
+      const u = span(t, a, x.at), e = u * u * u;
+      return [{ sel: x.from, s: 1, x: r4(-(x.dir || 1) * 360 * e), o: 1, w: r4(Math.sin(Math.PI / 2 * u) ** 2), busy }, { sel: x.to, s: 1, x: 0, o: 0, w: 0, busy }];
+    }
+    if (x.type === 'zoom') {
+      const u = span(t, x.at, b), e = CURVE.out(u);
+      return [{ sel: x.from, s: 1, x: 0, o: 0, w: 0, busy }, { sel: x.to, s: r4(0.75 + 0.25 * e), x: 0, o: r4(smooth(span(t, x.at, x.at + 0.08))), w: r4(1 - CURVE.out(span(t, x.at, x.at + 0.6 * K.post))), busy }];
+    }
+    const u = span(t, x.at, b), e = 1 - (1 - u) ** 3;
+    return [{ sel: x.from, s: 1, x: 0, o: 0, w: 0, busy }, { sel: x.to, s: 1, x: r4((x.dir || 1) * 360 * (1 - e)), o: 1, w: r4(Math.cos(Math.PI / 2 * u) ** 2), busy }];
+  };
+  return {
+    list,
+    /* every wrapper the plan owns: it follows the latest transition of its own
+       that has begun, or its first one if none has */
+    frame(t) {
+      const sorted = [...list].sort((p, q) => p.at - q.at), out = [];
+      for (const sel of new Set(sorted.flatMap(x => [x.from, x.to]))) {
+        const mine = sorted.filter(x => x.from === sel || x.to === sel);
+        const began = mine.filter(x => t >= x.at - TX_KIND[x.type].pre);
+        const x = began.length ? began[began.length - 1] : mine[0];
+        out.push(one(x, t).find(e => e.sel === sel));
+      }
+      return out;
+    },
+    dip(t) {
+      let s = 1;
+      for (const x of list) if (x.type === 'whip') s *= 1 - 0.05 * Math.sin(Math.PI * span(t, x.at - 0.225, x.at + 0.225)) ** 2;
+      return { s: +s.toFixed(5) };
+    },
+  };
+}
+
+/* big words come in three ways. `spring` is the house pop, `rise` blurs in from
+   12px while it rises 24px on the out curve, sharp by 60% of it, `slam` drops
+   from 1.2 with a 20px blur in 0.25s and then grows 3% slowly. returns
+   { o, s, y, blur }, and wordStyle() turns it into a transform and a filter. a
+   blur under 0.75px draws sharp in chromium, so it is zeroed there */
+export function wordIn(t, at, mode = 'spring') {
+  const r = v => +v.toFixed(4);
+  if (mode === 'spring') return { o: r(smooth(span(t, at, at + 0.1))), s: r(lerp(0.6, 1, SPRING(span(t, at, at + 0.4)))), y: 0, blur: 0 };
+  if (mode === 'rise') {
+    const k = CURVE.out(span(t, at, at + 0.45)), bl = 12 * (1 - CURVE.out(span(t, at, at + 0.27)));
+    return { o: r(smooth(span(t, at, at + 0.15))), s: 1, y: r(24 * (1 - k)), blur: r(t < at ? 12 : bl < 0.75 ? 0 : bl) };
+  }
+  if (mode === 'slam') {
+    const k = CURVE.out(span(t, at, at + 0.25)), bl = 20 * (1 - k);
+    return { o: r(smooth(span(t, at, at + 0.05))), s: r(lerp(1.2, 1, k) * (1 + 0.03 * CURVE.dolly(span(t, at + 0.25, at + 1.45)))), y: 0, blur: r(t < at ? 20 : bl < 0.75 ? 0 : bl) };
+  }
+  throw new Error('a big word comes in as spring, rise or slam, not ' + mode);
+}
+export const wordStyle = w => ({ transform: 'translateY(' + w.y + 'px) scale(' + w.s + ')', filter: w.blur > 0 ? 'blur(' + w.blur + 'px)' : 'none', opacity: w.o });
 
 /* ---------- the series look ---------- */
 export const TITLE = { top: MARGIN + 30, w: VW - 2 * MARGIN, lh: 1.22, gap: 6 };
@@ -565,7 +693,14 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   /* the margins, while the camera is still */
   for (let t = 0; t < CUT - 0.05; t += 0.1) {
     const o = await put(t, Math.round(t * FPS));
-    if (o.cam.s > 1.0001) continue;
+    /* a living camera is measured with the camera off, so the guard still
+       checks the layout under the push. it may never pass 6%. a frame inside a
+       scene transition is a move, not a layout, and is skipped */
+    if (o.cam.live) {
+      if (o.cam.s > 1.06 + 1e-6) fails.push('the living camera is at ' + o.cam.s + ' at ' + t.toFixed(1) + 's, 6% at most');
+      await page.evaluate(() => { document.getElementById('cam').style.transform = 'none'; });
+    } else if (o.cam.s > 1.0001) continue;
+    if (o.gag && o.gag.tx && o.gag.tx.some(e => e.busy)) continue;
     for (const sel of [...(SERIES ? ['#aa-title', '#aa-tag'] : []), '#m-card', '#subt', ...(G.checks || [])]) {
       const r = await rect(sel);
       if (r && r.w && outside(r)) fails.push(sel + ' past the margin at ' + t.toFixed(1) + 's: ' + box(r));
@@ -836,6 +971,32 @@ function seriesPage() {
   const chans = ['r', 'g', 'b'].map(k => $('gl-' + k));
   const slices = [], sliceImgs = [];
   for (let i = 0; i < P.SLICES; i++) { slices.push($('sl' + i)); sliceImgs.push($('sl' + i + 'i')); }
+  /* scene transitions, opt in: only a gag that returns `tx` reaches this. the
+     blurred copy is a fresh clone each frame of the move, ids stripped so
+     nothing finds it by id, a constant 14px blur, faded in over the sharp one */
+  const soft = new Map();
+  function txApply(list) {
+    for (const e of list) {
+      const el = document.querySelector(e.sel);
+      if (!el) continue;
+      const tf = 'translateX(' + e.x + 'px) scale(' + e.s + ')';
+      el.style.transformOrigin = '50% 50%';
+      el.style.transform = tf;
+      el.style.opacity = e.o * (1 - 0.85 * e.w);
+      const old = soft.get(e.sel);
+      if (old) { old.remove(); soft.delete(e.sel); }
+      if (e.w > 0.001 && e.o > 0) {
+        const c = el.cloneNode(true);
+        c.removeAttribute('id');
+        for (const n of c.querySelectorAll('[id]')) n.removeAttribute('id');
+        c.style.filter = 'blur(14px)';
+        c.style.opacity = e.o * e.w;
+        c.setAttribute('aria-hidden', 'true');
+        el.after(c);
+        soft.set(e.sel, c);
+      }
+    }
+  }
   window.__aa = {
     /* each title line set to the full width between the margins, a block lockup */
     fit() {
@@ -865,6 +1026,7 @@ function seriesPage() {
       main.style.display = o.main ? 'block' : 'none';
       cam.style.transform = 'translate(' + o.cam.tx + 'px,' + o.cam.ty + 'px) scale(' + o.cam.s + ')';
       window.__gag.apply(o.gag, o.t);
+      if (o.gag && o.gag.tx) txApply(o.gag.tx);
       if (o.subt.i !== lastSub) { lastSub = o.subt.i; subt.textContent = o.subt.i < 0 ? '' : P.SUBS[o.subt.i]; }
       subt.style.opacity = o.subt.o; subt.style.transform = 'translateY(' + o.subt.y + 'px)';
       stage.style.setProperty('--wm-o', o.wm.o);

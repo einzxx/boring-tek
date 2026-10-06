@@ -186,6 +186,22 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
 - When the clip can loop, the last frame matches the first.
 - The hook reads in the first 1 second, not 2.
 
+### Camera, transitions, type and sound
+
+Opt in helpers in `demo/lib/aiafter.mjs`. Earlier clips render the same without them.
+
+- Camera: `livingCamera`. A slow 2 to 5% push on every hold where nothing else
+  moves, a small punch in on the payoff word, heavy smooth easing. Push and
+  punch together never pass 6%, and the margin guard still checks under it.
+- Transitions: `planTransitions`, zoom through (old scene to 1.2 and blurred,
+  new one in from 0.75) and whip pan (with a small dip). Blur is the pre
+  blurred copy, never an animated blur. No crossfade by default. Each type at
+  most twice a clip.
+- Big words: `wordIn` with `spring`, `rise` (blur in from 12px while rising)
+  or `slam` (1.2 to 1, blur 20 to 0).
+- Sound: about 5 effects per 10 seconds. Whooshes on the fastest frame of a
+  move (`peakAt`), hits on contact. One short planned silence before the payoff.
+
 ### Critique loop, before Einz sees any preview
 
 1. Render a contact sheet, one frame per half second, 6 across, to
