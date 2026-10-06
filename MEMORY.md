@@ -6,6 +6,24 @@ names in here either.
 
 ## Status
 
+- **2026-10-07. post53 is final and pushed: what is an ai agent, 26.58s,
+  voiced, the plain end card.** `demo/post53.mjs`, dark, 60fps, on
+  `lib/aiafter.mjs` with the series off. Out to
+  `demo/out/post53-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post53/`. Write up is **The fifty third
+  clip** in `demo/README.md`. Three critique rounds, all 8 or more.
+  - **The second short word explainer and the first clip on the cinematic
+    kit:** living camera on six holds with a punch on DOES, one whip, one zoom
+    through, slam and rise for the big words.
+  - **`AI` in capitals reads as letters on eleven_v4,** checked by speech to
+    text on every take of lines 1 to 3.
+  - **The silence before the last line is 0.58s,** the most the gap guard
+    allows, no effect inside it, a guard in the script throws if one lands.
+  - **The whip lands on an empty stage unless something starts at once:**
+    start the next scene's first draw 0.3s after the cut.
+  - -14.1 LUFS, -1.1 dBTP, sync 0.0ms, 11 effects plus glitch and card. Glitch
+    frames: 5 at 60fps, 1518 to 1520 and 1523 to 1524.
+
 - **2026-10-06. The rig gains a cinematic kit, all opt in.** From reading two
   public film skills as research (no code taken, no new dependency, no
   remotion). `lib/aiafter.mjs`: `livingCamera` (push on holds, punch on the

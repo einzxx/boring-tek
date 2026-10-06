@@ -9209,6 +9209,62 @@ at 1427 to 1428, exactly the planned windows around the cut at 23.77s, by a
 count of pure red fringe pixels on the mp4. Nothing in the clip is red, and
 nothing else in the 1591 frames has a fringe.
 
+## The fifty third clip, what is an ai agent
+
+```
+cd demo
+node post53.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post53.mjs     # the fast preview pass
+node post53.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post53.mjs`, dark only, **26.58 seconds**,
+60fps, six lines on the elevenlabs narrator, the plain end card with no singing.
+Built on `lib/aiafter.mjs` with the series off. Out to
+`demo/out/post53-dark-1080x1920.mp4`, the stills, sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post53/`. The second short word explainer, and
+**the first clip on the rig's cinematic kit**.
+
+### The beats
+
+Frame 0 is `AI` over `AGENT`, big, glowing and sharp, him under it looking up.
+It slams again on the spoken `AI`. On line 2 a house bubble tagged `chat` comes
+off him, three tip lines write in, and `TELLS` slams above. A **whip pan** to
+line 3: a lanyard draws on him and an `intern` badge pops, a happy hop. A
+**zoom through** into a line art browser: he drops to 0.55, a green load line
+runs the address bar on `opens`, he hops onto `fri`, onto `19 00`, onto
+`book`, it presses and a green tick lands. On line 5 the browser drops,
+`TELLS` rises back on the left over `chat`, `DOES` slams in 1.3 times bigger on
+the right over `agent`, and the camera punches in. Then 0.58s of true silence
+with a `pay 200 euro` pop up arriving in it, he looks into the lens, a question
+mark on `asks`, a calm happy nod on `money`, the glitch cut and the card.
+
+### The kit in use
+
+`livingCamera` pushes 3.5% through six holds and punches 4.5% on `DOES`.
+`planTransitions` plans one whip and one zoom on four scene wrappers, and the
+whip's dip feeds the camera. `wordIn` slams AI AGENT, TELLS and DOES and rises
+TELLS back. The voice writes `AI` in capitals, which read as `AI` in all three
+takes of lines 1 to 3 by the elevenlabs speech to text.
+
+### The sound
+
+11 effects from `lib/sfx.mjs` in 25.4s, plus the glitch and the card, about 4.3
+per 10 seconds: hits on slam contact, whooshes on the fastest frame of the whip
+and the zoom, tocks on his landings, a chime on the tick. Nothing between line
+5 and line 6, and the script throws if a cue lands there. -14.1 LUFS and
+-1.1 dBTP on the mp4, sync 0.0ms by cross correlation.
+
+### Checked
+
+Three critique rounds, the last all 8 or more: hook 8, readable 8 at phone
+size, motion 8, something new every 2 to 4s 8, composition 8, mascot rules 9,
+sound sync 9. Round 1 found the whip landing on an empty stage, a 2.4s stall
+on `fri` and small chip labels. Round 2 moved line 3 to the middle with a push.
+Glitch: 5 frames at 60fps, the burst at 1518 to 1520 and the residue at 1523
+to 1524 around the cut at 25.39s, by the red fringe count on the mp4. Nothing
+else in the 1595 frames has a fringe.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
