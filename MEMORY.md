@@ -6,6 +6,25 @@ names in here either.
 
 ## Status
 
+- **2026-10-06. post52 is final and pushed: what is an api, 26.52s, voiced,
+  with the sung end.** `demo/post52.mjs`, dark, 60fps, on `lib/aiafter.mjs` with
+  the series off. Out to `demo/out/post52-dark-1080x1920.mp4`, sheets, stills,
+  `frame0.jpg` and `review.md` in `demo/out/verify-post52/`. Write up is **The
+  fifty second clip** in `demo/README.md`. Three critique rounds, all 8 or more.
+  - **A new format: the short word explainer.** One tech word, one everyday
+    picture, explained like to a friend. A big glowing word, simple line art
+    that morphs into the real thing, the mascot inside the picture. Next words
+    could be ai agent, prompt, mcp, skills, hallucination.
+  - **Spell acronyms for eleven_v4, and check them with speech to text.**
+    `a p i` at the start of a question read as `a PI` in all three takes;
+    `A. P. I.` read as `API`. The elevenlabs speech to text on each take is the
+    check, and the clearest take is pinned with `take: n`.
+  - **He cannot enter from off screen:** the margin guard holds `#m-card` 120px
+    inside every edge, so a vehicle draws round him at the edge instead.
+  - -14.2 LUFS, -1.6 dBTP, sync 0.0ms, 62 effects from `lib/sfx.mjs`, nothing
+    from elevenlabs. Glitch frames: 5 at 60fps, 1421 to 1423 and 1427 to 1428,
+    by a pure red fringe count on the mp4.
+
 - **2026-10-05, SESSION SAVE.**
   - **Clips, final and pushed:** post50 good morning coffee, rebuilt in the
     house dark style after the full scene version was rejected. post51 the ai

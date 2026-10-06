@@ -9137,6 +9137,78 @@ of him, the sign and the count clear. Glitch: 5 frames at 60fps, 1971 to 1973
 and 1976 to 1977, exactly the planned windows, by the fringe count on the mp4.
 Nothing else in the 2140 frames has a fringe.
 
+## The fifty second clip, what is an api
+
+```
+cd demo
+node post52.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post52.mjs     # the fast preview pass
+node post52.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post52.mjs`, dark only, **26.52 seconds**,
+60fps, six lines on the elevenlabs narrator and post51's sung `the boring tek`
+on the end card, the effects ducked under them. Built on `lib/aiafter.mjs` with
+the series title and tag off. Out to `demo/out/post52-dark-1080x1920.mp4`, the
+stills, sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post52/`.
+
+**A new format: the short word explainer.** One tech word, explained in plain
+words to a friend, with one everyday picture that does the explaining. No
+story, no news. Here the picture is a drive through: you order at the window,
+you never go into the kitchen, the food comes back out.
+
+### The beats
+
+Frame 0 is a big glowing `API` with him under it, looking up. Each letter
+pulses as it is said, and he hops on `means`. On line 2 the word floats up and
+dims, he hops to the left edge, a building with a window draws itself in line
+art, then a little car draws round him, and a `drive through` sign ticks on. He
+rolls up to the window, a house bubble says `burger please`. On `never` the
+kitchen shows behind the window and he shakes his head. Two gears turn, steam
+rises, a tray with a burger slides out to him. On line 5 he hops out, the car
+morphs into one `app` box and the building into the other, the window stays
+between them, and `API` drops onto the window. A green arrow out with
+`order` and a big green `ORDER`, then a white arrow back with `answer` and a
+big `ANSWER`. On line 6 a phone and a `weather kitchen` draw, the order arrow
+goes out first, then the tray comes back with a small rain cloud, a big `RAIN`
+pops, the cloud hops onto the phone and it rains, he squints, then laughs on
+the second `weather`. The glitch cut, and the card holds 2.75s for the sung line.
+
+The approved beats with two changes. He cannot drive in from off screen,
+because the margin guard holds him 120px inside every edge, so the car draws
+round him at the left edge. `RAIN` was added in the critique, so line 6 has a
+big word like every other line. He is drawn at 0.9. No hands, no logos, no
+sparkles. Green is the one accent, a small cool blue on the rain only.
+
+### The voice
+
+`api` has to be spelled for the voice. As `a p i` in line 1 the transcript heard
+`a PI` in all three takes: the first letter read as the article. As `A. P. I.` it
+came back `API` in all three, and take 1 is pinned, the longest letters. Line 5
+reads `a p i` after `an`, came back `API` in all three, and take 3 is pinned,
+the only one the transcript ends with a full stop. The check is the elevenlabs
+speech to text on each take. Six lines and the coda on `eleven_v4`, three takes
+each, speed 1.0, 0.42s gaps, the emotion tags acted and never shown.
+
+### The sound
+
+62 effects from `lib/sfx.mjs`, every one off a word time: a putt putt under the
+car, servos under the gears, a sweep under each line drawing, bubble dots,
+drips, a titter on the laugh. Nothing from elevenlabs. -14.2 LUFS and -1.6 dBTP
+on the mp4, the worst effect 10.1dB under the voice, sync 0.0ms by cross
+correlation of the mp4 against the mix.
+
+### Checked
+
+Three critique rounds, the last all 8 or more: hook 8, readable 8 at phone
+size, motion 8, something new every 2 to 4s 8, composition 8, mascot rules 9,
+sound sync 9. Round 1 found the labels too small at phone size and the head
+shake on `never` looking at an empty building. Round 2 found line 6's empty
+top half. Glitch: 5 frames at 60fps, the burst at 1421 to 1423 and the residue
+at 1427 to 1428, exactly the planned windows around the cut at 23.77s, by a
+count of pure red fringe pixels on the mp4. Nothing in the clip is red, and
+nothing else in the 1591 frames has a fringe.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
