@@ -6,6 +6,15 @@ names in here either.
 
 ## Status
 
+- **2026-10-07, SESSION SAVE.**
+  - **End card rule: no sung `the boring tek` any more.** Every clip ends with
+    the glitch cut and the plain THE BORING TEK end card.
+  - **Word explainers so far:** api in post52, ai agent in post53. Next words
+    could be prompt, mcp, skills, hallucination.
+  - **Free tool ideas talked about, none chosen yet:** explain this letter with
+    ai in four languages, a free invoice maker for small firms. Still looking
+    for a better idea.
+
 - **2026-10-07. post53 is final and pushed: what is an ai agent, 26.58s,
   voiced, the plain end card.** `demo/post53.mjs`, dark, 60fps, on
   `lib/aiafter.mjs` with the series off. Out to
