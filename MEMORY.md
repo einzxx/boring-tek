@@ -6,6 +6,16 @@ names in here either.
 
 ## Status
 
+- **2026-10-07, SEO SESSION SAVE.**
+  - **Search Console, duplicate, google chose different canonical than user:**
+    the only url was `https://theboringtek.com/lv/`, from an old crawl on
+    2026-09-29. Every canonical, hreflang group and sitemap entry was checked
+    across all four languages and the `/clean/` stubs, all correct. Validation
+    started and indexing requested on 2026-10-07. Google rechecks by itself,
+    nothing to change in the repo.
+  - **GitHub Pages: enforce https is now on,** so http always goes to https.
+  - **`CNAME` is saved as utf 16.** It works. Leave it alone.
+
 - **2026-10-07, SESSION SAVE.**
   - **End card rule: no sung `the boring tek` any more.** Every clip ends with
     the glitch cut and the plain THE BORING TEK end card.
