@@ -48,6 +48,8 @@
        name: 'site-who-we-are',         optional, a clip that is not a post: its frames, sheets and mix
        lufs: -16,                       optional, the loudness the mix is mastered to, -14 by default
        tp: -1,                          optional, post49: a true peak ceiling on the voiced mp4
+       maxGap: 2.0,                     optional, post54: the longest gap allowed between two lines of
+                                        the read, 0.6s by default. for a gag with a silent run of action
        coda: TAKE,                      optional, post51: one more take from readLines(), placed with
                                         place() after the cut, on the end card. on the bus, under no
                                         subtitle, outside the gap guard, and the card must outlast it
@@ -918,7 +920,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
     for (let i = 0; i + 1 < TAKES.length; i++) {
       const gap = TAKES[i + 1].at - TAKES[i].end;
       if (gap < 0.25) fails.push('line ' + (i + 2) + ' starts on top of line ' + (i + 1));
-      if (gap > 0.6) fails.push('a ' + gap.toFixed(2) + 's gap in the voice before line ' + (i + 2));
+      if (gap > (E.maxGap ?? 0.6)) fails.push('a ' + gap.toFixed(2) + 's gap in the voice before line ' + (i + 2));
     }
     if (TAKES[TAKES.length - 1].end > CUT) fails.push('the read runs past the cut');
     if (CODA && CODA.at < CUT) fails.push('the coda starts before the cut');

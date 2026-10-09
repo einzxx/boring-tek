@@ -6,6 +6,24 @@ names in here either.
 
 ## Status
 
+- **2026-10-09. post54 is final and pushed: captcha fail, 9.38s, voiced, the
+  plain end card.** `demo/post54.mjs`, dark, 60fps, on `lib/aiafter.mjs` with
+  the series off. Out to `demo/out/post54-dark-1080x1920.mp4`, sheets, stills,
+  `frame0.jpg` and `review.md` in `demo/out/verify-post54/`. Write up is **The
+  fifty fourth clip** in `demo/README.md`. Two critique rounds, all 8 or more.
+  - **A new format: the short gag.** About 8 to 10 seconds, three short lines,
+    a silent run of action in the middle carried by effects, one punch in on
+    the payoff. Not an explainer.
+  - **The rig's gap guard is per clip now:** `maxGap` on `runEpisode`, 0.6s
+    unset. A gag with a silent run sets it, post54 uses 2.0. Earlier clips
+    render byte identical, checked on post51 and post53 stills.
+  - **An acted `[sighs]` makes a line long on eleven_v4:** `[sighs] ...too
+    easy, apparently.` came back 2.7s in all three takes, which is why the
+    clip is 9.4s and not 8. Drop the `...` or the tag for a shorter read.
+  - **Red is allowed as the reject colour in this clip only,** Einz's call.
+    Green stays the single accent everywhere else.
+  - -14.2 LUFS, -1.1 dBTP, 13 effects, 5 glitch frames at 60fps.
+
 - **2026-10-09. song1, the ai ai ai music clip.** 34.0s, 1080x1920, 60fps, the
   song is the whole soundtrack, the mascot acts out every line, karaoke words
   light on the sung frame, effects sit under the vocal, glitch cut on the 32.15

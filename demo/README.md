@@ -9265,6 +9265,61 @@ Glitch: 5 frames at 60fps, the burst at 1518 to 1520 and the residue at 1523
 to 1524 around the cut at 25.39s, by the red fringe count on the mp4. Nothing
 else in the 1595 frames has a fringe.
 
+## The fifty fourth clip, captcha fail
+
+```
+cd demo
+node post54.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post54.mjs     # the fast preview pass
+node post54.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post54.mjs`, dark only, **9.38 seconds**,
+60fps, three lines on the elevenlabs narrator, eleven_v4, the plain end card.
+Built on `lib/aiafter.mjs` with the series off, on the cinematic kit. Out to
+`demo/out/post54-dark-1080x1920.mp4`, the stills, sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post54/`. A short gag, not an explainer.
+
+### The beats
+
+Frame 0 is a generic captcha card in line art, glowing and sharp, a checkbox
+and `I AM NOT` over `A ROBOT`, him under it looking at the box. No brand, no
+logo. Line 1, `can AI pass this test?`, a curious tilt on `AI`. On `this` he
+hops onto the box, a green tick lands, the card rises to the top and turns
+into `select all` over `TRAFFIC` `LIGHTS`, slammed, while a 3x3 line art grid
+unfolds under it. Line 2, `easy.`, then three hops over the three traffic
+lights in 0.5s, each tile going green with a click, a timer counting up live
+and stopping at `0.4s`. 0.55s of true silence, proud and happy. Then the punch
+in: the card and the grid turn red, `TOO PERFECT.` slams over the grid on a
+dark plate, `YOU ARE A ROBOT.` slams smaller under it, he freezes, turns slowly
+to the lens and squints. Line 3, `[sighs] ...too easy, apparently.`, and on
+`apparently` the tick comes off the box. The glitch cut and the card.
+
+### The rig change
+
+`runEpisode` takes `maxGap`, the longest gap allowed between two lines of the
+read, 0.6s when it is not set. post54 passes 2.0: its middle is a silent run
+of action carried by effects, and the gap before line 3 is 1.6s. The option
+only touches a guard after the render, and post51's 25 and post53's 20 stills
+render byte identical with and without it.
+
+### The sound
+
+13 effects from `lib/sfx.mjs`, the glitch and the card included: a whoosh on
+the hop, a land, a chime on the tick, a whoosh up as the grid opens, popDeep on
+both slams, three tight tocks rising in pitch on the tiles, a low hum under the
+reject, a low tock as the tick comes off. Nothing between the last tile and the
+reject, and the script throws if a cue lands there. -14.2 LUFS and -1.1 dBTP on
+the mp4, post53's mix.
+
+### Checked
+
+Two critique rounds, the last all 8 or more: hook 8, readable 8 at phone size,
+motion 8, something new every 2 to 4s 8, composition 8, mascot rules 9, sound
+sync 8. Round 1 found the card too high with the bottom half empty on frame 0,
+the timer unreadable at 360px (22px, now 30px), and 3.2s with nothing new
+under line 3. Glitch: 5 frames at 60fps around the cut at 8.18s.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
