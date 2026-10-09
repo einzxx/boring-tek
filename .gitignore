@@ -72,7 +72,7 @@ demo/music/
 # as demo/music/ and stay on this machine for the same reason. everything the
 # generators write is regenerable and stays out too: the composition folders
 # (with their rendered main.mp4), the snapshots, the end cards, the lab pages.
-# the word timings inside promo1/ and promo1-ru/ are source, and so is the
+# the word timings inside promo1/, promo1-ru/ and promo1-lv/ are source, and so is the
 # Michroma file the end card copies, so those three are let back in.
 demo/hf/music/
 demo/hf/package-lock.json
@@ -83,6 +83,9 @@ demo/hf/promo1-ru/*
 !demo/hf/promo1-ru/words.json
 demo/hf/promo1-end/
 demo/hf/promo1-ru-end/
+demo/hf/promo1-lv/*
+!demo/hf/promo1-lv/words.json
+demo/hf/promo1-lv-end/
 demo/hf/cinetic-test/
 demo/hf/lab/lab-*/
 demo/hf/project/*

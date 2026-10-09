@@ -63,6 +63,9 @@ names in here either.
     part 3 scales `cam3` about its centre while the maths assumes a 0 0
     origin, so it misses the O of GLOW. Fixed in russian only; English was
     off limits that round.
+  - **Latvian version promo1-lv** (`demo/hf/promo1-lv.mjs`, 43.05s, nothing or
+    `--music`): `demo/hf/fonts-lv/` adds the latin-ext cuts of the same five
+    fonts for the latvian letters, and the music setup is the same as russian.
 
   **open, next:** push promo1 when Einz says; the skills/, post33, motion
   test, scene3d and clap svg changes from earlier sessions are still
