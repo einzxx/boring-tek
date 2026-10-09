@@ -6,6 +6,68 @@ names in here either.
 
 ## Status
 
+- **2026-10-09. promo1 is final and committed, not pushed: the video editing
+  service promo, english and russian, each with and without music.** A
+  hyperframes composition per language, frame driven like the cinetic labs,
+  joined after the glitch cut to `cinetic-test` as the end card with the url
+  taken out. 1080x1920, 60fps. Generators: `demo/hf/promo1.mjs` (english)
+  and `demo/hf/promo1-ru.mjs` (russian). Four outputs in `demo/out/`:
+  `promo1-nomusic` (35.85s), `promo1-music` (35.85s), `promo1-ru-nomusic` and
+  `promo1-ru-music` (39.48s), all `-1080x1920.mp4`. Run with `--no-music` or
+  `--music` (english), nothing or `--music` (russian).
+
+  **What a later session needs and cannot get from the code:**
+  - **The voice is the file, untouched.** No limiter, compressor or eq, same
+    level, whole take. Einz asked for this after the -14 LUFS master was
+    squashing her. So the outputs sit at -18 (english) and -21 LUFS
+    (russian), not -14, on purpose. Peaks stay under -1 dB through a soft
+    limiter on the effects bus (and on music plus effects in `--music`),
+    solved against her sample by sample, never on her.
+  - **Effects:** every cue is levelled against her talking level, 3 dB under,
+    the big ones (build, booms, bass slams, stamp) level with her, then all of
+    them 4 dB up. No ducking. Five tonal transition sounds are made in code
+    and kept in `demo/hf/sfx/`. Einz rejected every noise based whoosh,
+    swoosh and riser, code or elevenlabs, as air or static.
+  - **Music (`--music`):** three runs, no switch inside one. music-2 from its
+    build, its drop at 107.745s on the colour snap, through parts 1 to 3;
+    music-3 from 10.98s on the part 4 cut, through 4 to 6; music-1 from the
+    full phrase downbeat at 98.69s on the part 7 cut, under the glitch and the
+    end card, faded to zero on the last frame. About level with her in the
+    gaps, about 3 dB under while she talks (a 4.5 dB duck). english and
+    russian use identical code; only the music-2 start (the snap's time) and
+    the absolute gain (each voice's own level) differ. **The tracks in
+    `demo/hf/music/` are licensed pixabay beds and are gitignored**, like
+    `demo/music/`.
+  - **The part 3 equalizer bars follow the music:** a per frame fft of the
+    bed in 24 log bands, 45 hertz to 12k, kick on the left bars, hats on the
+    right, written into the page at build time.
+  - **The russian page swaps every latin only font:** jetbrains mono and ibm
+    plex mono in their cyrillic builds, montserrat 900 for archivo black,
+    unbounded 900 for archivo wide, geologica 800 for bricolage, all in
+    `demo/hf/fonts-ru/`. Michroma stays for the THE BORING TEK wordmark,
+    which is the only english left on screen. ZOOM became ЗУУМ with both У
+    flipping into the mini mascots; the smooth zoom dives through the lower
+    bowl of В in СВЕЧЕНИЕ.
+  - **The russian file is generated from the english one** by a scratch
+    script, so a change to `promo1.mjs` has to be carried into
+    `promo1-ru.mjs` by hand or by regenerating it.
+  - **Word timings are source:** `promo1/words.json` (the second english
+    take), `promo1/words-take1.json` (the first take, kept for reference) and
+    `promo1-ru/words.json`. The rest of those folders is build output and
+    gitignored.
+  - **Both generators read cinetic's `motion.js` from
+    `~/.claude/skills/cinetic/assets/hyperframes-starter/`**, outside the
+    repo, so a fresh clone needs the cinetic skill installed. They also need
+    `demo/hf/node_modules` (hyperframes, approved as a demo dependency).
+  - **Known bug left in the english cut:** the smooth zoom at the end of
+    part 3 scales `cam3` about its centre while the maths assumes a 0 0
+    origin, so it misses the O of GLOW. Fixed in russian only; English was
+    off limits that round.
+
+  **open, next:** push promo1 when Einz says; the skills/, post33, motion
+  test, scene3d and clap svg changes from earlier sessions are still
+  uncommitted on purpose, to be handled separately.
+
 - **2026-10-07, SEO SESSION SAVE.**
   - **Search Console, duplicate, google chose different canonical than user:**
     the only url was `https://theboringtek.com/lv/`, from an old crawl on
