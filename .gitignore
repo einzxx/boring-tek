@@ -90,3 +90,9 @@ demo/hf/cinetic-test/
 demo/hf/lab/lab-*/
 demo/hf/project/*
 !demo/hf/project/fonts/
+demo/hf/song1/*
+!demo/hf/song1/words.json
+!demo/hf/song1/fonts/
+demo/hf/song1/fonts/*
+!demo/hf/song1/fonts/silkscreen-*.woff2
+!demo/hf/song1/vocal.mp3

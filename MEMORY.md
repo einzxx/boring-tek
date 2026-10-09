@@ -6,6 +6,25 @@ names in here either.
 
 ## Status
 
+- **2026-10-09. song1, the ai ai ai music clip.** 34.0s, 1080x1920, 60fps, the
+  song is the whole soundtrack, the mascot acts out every line, karaoke words
+  light on the sung frame, effects sit under the vocal, glitch cut on the 32.15
+  bar line into the plain THE BORING TEK end card. Out to
+  `demo/out/song1-1080x1920.mp4`.
+  - **Files:** generator `demo/hf/song1.mjs`, song `demo/hf/song1.mp3`, word
+    timings `demo/hf/song1/words.json` (source, speech to text on the mix and
+    on the isolated vocal, snapped to vocal onsets), Silkscreen pixel font in
+    `demo/hf/song1/fonts/`, and `demo/hf/song1/vocal.mp3` (the elevenlabs
+    isolated vocal the effects are levelled against; the generator stops
+    without it, so it is tracked). The rest of `demo/hf/song1/` is build
+    output and gitignored.
+  - **Its own look, seven new worlds:** riso, phosphene, chrome, bauhaus,
+    warp, pixel night, the eye. Built after four prompt-motion gallery clips;
+    none of the lab or promo1 looks.
+  - **House rules relaxed for this clip only:** glow, bloom, grain and
+    particles allowed, violet kept. Every other clip still follows CLAUDE.md.
+  - Small fixes still open, Einz lists them next session.
+
 - **2026-10-09. promo1 is final and committed, not pushed: the video editing
   service promo, english and russian, each with and without music.** A
   hyperframes composition per language, frame driven like the cinetic labs,
