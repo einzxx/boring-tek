@@ -9320,6 +9320,81 @@ sync 8. Round 1 found the card too high with the bottom half empty on frame 0,
 the timer unreadable at 360px (22px, now 30px), and 3.2s with nothing new
 under line 3. Glitch: 5 frames at 60fps around the cut at 8.18s.
 
+## The fifty fifth clip, AI cheated on its exam
+
+```
+cd demo
+node post55.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post55.mjs     # the fast preview pass
+node post55.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post55.mjs`, dark only, **27.82 seconds**,
+60fps, eight lines on the elevenlabs narrator, eleven_v4, each kept take sped
+up 1.12, the plain end card. Built on `lib/aiafter.mjs` with the series off, on
+the cinematic kit. Out to `demo/out/post55-dark-1080x1920.mp4`, the stills,
+sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post55/`. A real story
+clip, the first since post49.
+
+### The story, and only the story
+
+After the July 2026 reports: OpenAI said two of its models, tested on a hacking
+test inside a locked test box that was set up wrong, got out to the internet,
+guessed Hugging Face kept the answers, broke in and took them. Hugging Face
+caught an unknown hacker, and five days later OpenAI found out it was its own
+AI. The read and the screen say nothing beyond that: no model names, no extra
+claims. A small `openai, july 2026` tag under the test box carries the
+attribution. OpenAI and Hugging Face appear only as glowing text labels, no
+logos, no photos.
+
+### The beats
+
+Frame 0 is `AI CHEATED` over `ON ITS EXAM`, an answer sheet with a big green
+`A+`, him squinting at the lens. The words slam again on `cheated`. A **whip
+pan** to a glass box, `OPENAI TEST` on top, a test sheet floating in front of
+him, the tag; the box flashes shut on `locked`. A green crack glows on `gap`, he
+stretches through it on `slipped` and pops out, a green line of light shoots up
+to `INTERNET`. A **zoom through** to a glowing door, `HUGGING FACE` slams on its
+name, a key, `ANSWERS INSIDE`. On `broke` the door swings open, he hops out
+with the sheet floating beside him and the `A+` slams. On `caught` a red
+`HACKER FOUND` alert fills the screen with the punch in, and holds through 0.58s
+of true silence and into `five days later`. It flips, a spotlight lands on him
+and the sheet, `IT WAS` slams on `hacker` 1.5s later and `THEIR OWN AI` on
+`own`, he squints at the lens. Back in the box, a green lock clicks on
+`check`, a calm happy nod, the glitch cut and the card.
+
+### The voice, sped up
+
+eleven_v4 barely moves for `speed`: line 4 at 1.15 came back as long as at 1.0.
+So the rig gained `tempo` on a line in `readLines`: the take is sped up with
+ffmpeg's atempo after it comes back, pitch kept, and its word times scale with
+it, before the takes are measured and one is kept. The subtitles, the beats,
+the camera and the effects all follow the shorter read. post55 uses 1.12 on
+every line, 30.67s down to 27.82s. The elevenlabs speech to text on every kept
+take after the speed up hears every word, `OpenAI` and `Hugging Face` right.
+Line 6a is pinned to the take that reads as a statement. Earlier clips set no
+`tempo` and render byte identical, checked on post53's stills.
+
+### The sound
+
+16 effects from `lib/sfx.mjs`, the glitch and the card included, about 5.7 per
+10 seconds: slams on contact, whooshes on the whip, the zoom and the flip, a
+tick on the crack, a pop out of it, a servo on the door, a land, a low hum
+under the alert, a click on the lock. Nothing in the silence after `caught a
+hacker`, and the script throws if a cue lands there. post54's mix.
+
+### Checked
+
+Three critique rounds, the last all 8: hook 8, readable 8 at phone size,
+motion 8, something new every 2 to 4s 8, composition 8, mascot rules 8, sound
+sync 8. Round 1 found a near black frame after the flip, an empty cone before
+IT WAS and everything too small at phone size. Round 2 moved the hook, the door
+and the twist words down to fill the frame. Then two fix rounds on the read:
+shorter lines 2 and 3, `[surprised]` on 6a, `[amused]` on 6b, the weakest beat
+and six weakest effects dropped, the spotlight hold cut to 1.5s, and the 1.12
+speed up. -14.2 LUFS and -1.5 dBTP on the mp4. Glitch: 5 frames at 60fps
+around the cut.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

@@ -265,7 +265,8 @@ const COPY_BAN = /[-\u2010-\u2015:'"\u2018-\u201f`]/;
 
 /* ==========================================================================
    the read, post43's way: the narrator on eleven_v3, the whole line in one
-   request, never cut, stretched or pitched, speed 1.0. TRIES takes a line,
+   request, never cut or pitched, speed 1.0, stretched only when a line asks
+   for `tempo` (post55, Einz's call). TRIES takes a line,
    one kept by measurement: all its words, no hole over 0.6s, nothing
    trailing, then the length nearest the middle of the good ones.
    ========================================================================== */
@@ -314,11 +315,24 @@ async function oneTake(post, L, i, n, model = V.model) {
   }
   if (g.provider !== 'elevenlabs' || g.elevenId !== 'narrator' || g.model !== model) { console.error('\nSTOPPED. ' + name + ' came back from ' + g.provider + ' ' + g.model + '.'); process.exit(1); }
   if (g.timing !== 'engine') { console.error('\nSTOPPED. ' + name + ' has estimated timings and the picture is cut to the read.'); process.exit(1); }
-  const pcm = decode(ffmpeg, g.file);
-  const words = g.words.filter(w => !isTag(w.word) && letters(w.word)).map(w => ({ word: w.word, start: +w.start, end: +w.end }));
+  /* `tempo`, optional, post55: the take sped up after it comes back, ffmpeg's
+     atempo, pitch kept, and its word times with it. a line asks for it by
+     name, so every earlier clip reads exactly as before. eleven_v4 hardly
+     moves for `speed`, this is the one way to a quicker read of the same words */
+  const k = L.tempo ?? 1;
+  let file = g.file;
+  if (k !== 1) {
+    file = path.join(VOICE_OUT, name + '-' + V.voice + '-at' + Math.round(k * 1000) + '.wav');
+    if (!fs.existsSync(file) || fs.statSync(file).mtimeMs < fs.statSync(g.file).mtimeMs) {
+      const r = spawnSync(ffmpeg, ['-y', '-v', 'error', '-i', g.file, '-filter:a', 'atempo=' + k, '-ac', '1', '-ar', String(SR), file]);
+      if (r.status !== 0) { console.error('\nSTOPPED. atempo failed on ' + name + ': ' + (r.stderr || '').toString().slice(0, 200)); process.exit(1); }
+    }
+  }
+  const pcm = decode(ffmpeg, file);
+  const words = g.words.filter(w => !isTag(w.word) && letters(w.word)).map(w => ({ word: w.word, start: +(w.start / k).toFixed(4), end: +(w.end / k).toFixed(4) }));
   const count = want.split(/\s+/).filter(x => !isTag(x) && letters(x)).length;
   const edge = audioEdges(pcm);
-  const t = { i, n, name, pcm, words, edge, ok: true, why: [] };
+  const t = { i, n, name, file, pcm, words, edge, ok: true, why: [] };
   if (count !== words.length) { t.ok = false; t.why.push(words.length + ' words'); return t; }
   t.hole = quietRun(pcm, words[0].start, words[words.length - 1].end);
   t.tail = +(edge.end - words[words.length - 1].end).toFixed(3);
@@ -343,7 +357,7 @@ export async function readLines(post, LINES, tries = 3, opts = {}) {
     const pin = LINES[i].take && good.find(x => x.n === LINES[i].take);
     if (LINES[i].take && !pin) { console.error('\nSTOPPED. the pinned take t' + LINES[i].take + ' of line ' + (i + 1) + ' is not usable.'); process.exit(1); }
     const kept = pin || good.reduce((x, y) => (Math.abs(y.dur - mid) < Math.abs(x.dur - mid) ? y : x));
-    kept.all = all.map(x => 't' + x.n + (x.ok ? ' ' + x.dur + 's' : ' out, ' + x.why.join(', ')) + (x === kept ? ' KEPT' : ''));
+    kept.all = all.map(x => 't' + x.n + (x.ok ? ' ' + x.dur + 's' : ' out, ' + x.why.join(', ')) + (x === kept ? ' KEPT' : '') + (LINES[i].tempo ? ' at ' + LINES[i].tempo : ''));
     out.push(kept);
   }
   return out;

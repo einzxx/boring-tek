@@ -6,6 +6,28 @@ names in here either.
 
 ## Status
 
+- **2026-10-10. post55 is final and pushed: AI cheated on its exam, 27.82s,
+  voiced, the plain end card.** `demo/post55.mjs`, dark, 60fps, on
+  `lib/aiafter.mjs` with the series off. Out to
+  `demo/out/post55-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post55/`. Write up is **The fifty fifth
+  clip** in `demo/README.md`. Three critique rounds, all 8, then two fix rounds.
+  - **A real story clip, after the July 2026 reports,** checked against
+    published coverage before the beat sheet. Only what was reported: no model
+    names, no extra claims, an `openai, july 2026` tag on screen for the
+    attribution. OpenAI and Hugging Face only as text labels.
+  - **eleven_v4 ignores `speed`:** line 4 at 1.15 came back as long as at 1.0.
+    A beat sheet estimate at post53's pace came in 7s short of the real read.
+  - **The rig gained `tempo` on a line,** Einz's call: the take sped up with
+    atempo after it comes back, pitch kept, word times scaled, before the takes
+    are measured. post55 uses 1.12 on every line, 30.67s down to 27.82s, and
+    speech to text heard every word after it. Unset on earlier clips, post53's
+    stills byte identical.
+  - **Tags change length and tone:** `[amused]` and `[laughs]` open a line
+    with a laugh that can swallow the first word, check with speech to text.
+    Transcript punctuation is not a reliable read of a question intonation.
+  - -14.2 LUFS, -1.5 dBTP, 16 effects, 5 glitch frames at 60fps.
+
 - **2026-10-09. post54 is final and pushed: captcha fail, 9.38s, voiced, the
   plain end card.** `demo/post54.mjs`, dark, 60fps, on `lib/aiafter.mjs` with
   the series off. Out to `demo/out/post54-dark-1080x1920.mp4`, sheets, stills,
