@@ -257,6 +257,127 @@ export function wordIn(t, at, mode = 'spring') {
 }
 export const wordStyle = w => ({ transform: 'translateY(' + w.y + 'px) scale(' + w.s + ')', filter: w.blur > 0 ? 'blur(' + w.blur + 'px)' : 'none', opacity: w.o });
 
+/* ---------- post56's kit, from the motion study. every piece is opt in ----------
+   nothing above calls anything below, so every earlier clip renders the same.
+   the values are cinetic's, the names ours */
+export const CURVE56 = {
+  glide: bezier(0.47, 0.2, 0.15, 1),    /* a short move with a soft landing */
+  pull: bezier(0.5, 0, 0.12, 1),        /* a long pull back */
+  whip: bezier(0.6, 0, 0.15, 1),        /* place to place, fastest about 40% in */
+  in: bezier(0.7, 0, 0.84, 0),          /* a hard snap out */
+  type: bezier(0.5, 1, 0.89, 1),        /* a typewriter's character count */
+};
+/* scale and zoom in log space: 1 to 25 at an even rate, not a rush at the end */
+export const lmix = (a, b, k) => Math.exp(lerp(Math.log(a), Math.log(b), k));
+
+/* the anchor camera. a shot says this map point { ax, ay } sits at this screen
+   point { sx, sy }, this big, k. two shots blend with the anchors straight and k
+   in log space, so the subject travels a straight line at an even zoom. `hop`
+   lifts the zoom out through the middle of a long move, in log units: 1 is
+   about 2.7x further out at the midpoint, the whip across the world */
+export function lc(A, B, u, hop = 0) {
+  return {
+    ax: lerp(A.ax, B.ax, u), ay: lerp(A.ay, B.ay, u), sx: lerp(A.sx, B.sx, u), sy: lerp(A.sy, B.sy, u),
+    k: Math.exp(lerp(Math.log(A.k), Math.log(B.k), u) - hop * Math.sin(Math.PI * u)),
+  };
+}
+export const toScreen = (s, p) => ({ x: s.sx + (p.x - s.ax) * s.k, y: s.sy + (p.y - s.ay) * s.k });
+/* a chain of moves `[{ at, to, d, curve, hop }]` from a first shot. a move may
+   start before the last one lands, the overlap that keeps a chain from stalling:
+   each move blends from wherever the camera is when it starts */
+export function shotChain(first, moves) {
+  const list = [...moves].sort((p, q) => p.at - q.at);
+  return t => {
+    let s = first;
+    for (const m of list) {
+      if (t < m.at) break;
+      const u = span(t, m.at, m.at + m.d);
+      s = lc(s, m.to, (m.curve || CURVE.cam)(u), m.hop || 0);
+    }
+    return s;
+  };
+}
+/* the times a frame's shutter samples, for real motion blur on a canvas: n
+   points over half a frame, the last one the frame itself */
+export const shutter = (t, n = 4, fps = FPS, angle = 0.5) => Array.from({ length: n }, (_, i) => +(t - angle / fps * (n - 1 - i) / Math.max(1, n - 1)).toFixed(5));
+
+/* the one envelope for punches and ticks: a quarter sine up in `attack`, an
+   exponential decay `tau`, gone by attack + 6 tau. seconds. it peaks just after
+   its sound, so the picture reads as caused by it */
+export function hitPulse(t, attack = 2 / 60, tau = 5 / 60) {
+  if (t <= 0 || t > attack + 6 * tau) return 0;
+  return t < attack ? Math.sin(t / attack * Math.PI / 2) : Math.exp(-(t - attack) / tau);
+}
+/* a spatial ripple: a thing at `p` starts when a wave from `from` reaches it,
+   `speed` css px a second, plus a seeded spread of up to `jitter` seconds */
+export function rippleAt(at, from, p, speed, jitter = 0, seed = 0) {
+  const j = jitter ? prng((seed * 2654435761) ^ 0x56a1)() * jitter : 0;
+  return at + Math.hypot(p.x - from.x, p.y - from.y) / speed + j;
+}
+
+/* the scramble: letters cycle through glyphs and lock one at a time. each letter
+   scrambles for `scramble` seconds and locks `per` after the one before it.
+   `out` runs it backwards, letters scramble and vanish. returns [{ c, s }],
+   s 0 hidden, 1 scrambling, 2 locked. the glyph changes 30 times a second
+   whatever the frame rate, seeded, so a preview and a master agree */
+const GLYPHS = 'ABCDEFGHJKLMNPRSTUVWXYZ0123456789#$%&*+<>=/';
+export function scramble(text, t, at, { per = 0.05, hold = 0.14, out = false, seed = 7 } = {}) {
+  const tick = Math.floor(t * 30);
+  return [...text].map((c, i) => {
+    if (c === ' ') return { c, s: 2 };
+    const a = at + i * per;
+    const r = prng((seed + i * 977) ^ (tick * 2654435761))();
+    const g = GLYPHS[Math.floor(r * GLYPHS.length)];
+    if (!out) return t < a ? { c, s: 0 } : t < a + hold ? { c: g, s: 1 } : { c, s: 2 };
+    return t < a ? { c, s: 2 } : t < a + hold ? { c: g, s: 1 } : { c, s: 0 };
+  });
+}
+
+/* the letter morph: letters both words share slide to their new places, the
+   rest drop out and the new ones rise in. the plan is the longest common
+   subsequence of the letters, spaces ignored */
+export function morphPlan(from, to) {
+  const A = [...from], B = [...to], n = A.length, m = B.length;
+  const L = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = A[i] !== ' ' && A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const keep = [];
+  for (let i = 0, j = 0; i < n && j < m;) {
+    if (A[i] !== ' ' && A[i] === B[j]) { keep.push([i, j]); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  const kf = new Set(keep.map(k => k[0])), kt = new Set(keep.map(k => k[1]));
+  return {
+    from, to, keep,
+    gone: A.map((c, i) => i).filter(i => A[i] !== ' ' && !kf.has(i)),
+    born: B.map((c, j) => j).filter(j => B[j] !== ' ' && !kt.has(j)),
+  };
+}
+/* a frame of it: [{ c, i, j, u, o, y, blur, born }]. i and j index the letter
+   in the old and new word (one of them null), u is the slide from i's place to
+   j's on the whip curve, y in em, blur in px. the page owns the positions */
+export function morphAt(P, t, at, { slide = 0.42, stagger = 0.018, rise = 0.32 } = {}) {
+  const r4 = v => +v.toFixed(4), out = [];
+  P.keep.forEach(([i, j], q) => {
+    out.push({ c: P.to[j], i, j, u: r4(CURVE56.whip(span(t, at + q * stagger, at + q * stagger + slide))), o: 1, y: 0, blur: 0, born: false });
+  });
+  P.gone.forEach((i, q) => {
+    const k = CURVE56.in(span(t, at + q * 0.02, at + q * 0.02 + 0.2));
+    out.push({ c: P.from[i], i, j: null, u: 0, o: r4(1 - k), y: r4(0.45 * k), blur: 0, born: false });
+  });
+  P.born.forEach((j, q) => {
+    const a = at + 0.4 * slide + q * 0.05, k = CURVE.out(span(t, a, a + rise)), bl = 8 * (1 - CURVE.out(span(t, a, a + rise * 0.6)));
+    out.push({ c: P.to[j], i: null, j, u: 1, o: r4(smooth(span(t, a, a + 0.12))), y: r4(0.5 * (1 - k)), blur: r4(t < a ? 8 : bl < 0.75 ? 0 : bl), born: true });
+  });
+  return out;
+}
+
+/* the comet trace: a short bright dash that runs once round an outline.
+   returns the dash's ends along the path, 0 to 1, and its strength */
+export function trace(t, at, d, len = 0.16) {
+  if (t < at || t > at + d + 0.2) return null;
+  const h = CURVE.out(span(t, at, at + d)) * (1 + len);
+  return { a: +Math.max(0, h - len).toFixed(4), b: +Math.min(1, h).toFixed(4), o: +(1 - smooth(span(t, at + d - 0.1, at + d + 0.2))).toFixed(4) };
+}
+
 /* ---------- the series look ---------- */
 export const TITLE = { top: MARGIN + 30, w: VW - 2 * MARGIN, lh: 1.22, gap: 6 };
 export const TAG = { top: MARGIN, size: 13 };

@@ -9395,6 +9395,106 @@ and six weakest effects dropped, the spotlight hold cut to 1.5s, and the 1.12
 speed up. -14.2 LUFS and -1.5 dBTP on the mp4. Glitch: 5 frames at 60fps
 around the cut.
 
+## The fifty sixth clip, AI takes over the world
+
+```
+cd demo
+node post56.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post56.mjs     # the fast preview pass
+node post56.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post56.mjs`, dark only, **28.58 seconds**,
+60fps, seven lines on the elevenlabs narrator, eleven_v4, each kept take sped
+up 1.12, the plain end card. Built on `lib/aiafter.mjs` with the series off, on
+the cinematic kit and the new motion kit below. Out to
+`demo/out/post56-dark-1080x1920.mp4`, the stills, sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post56/`.
+
+### The map
+
+Natural Earth 50m admin 0 countries, public domain, in
+`demo/assets/ne_50m_admin_0_countries.geojson` and gitignored like the 110m land
+file. The script stops with the download url if it is missing. No npm package:
+the projection is Equal Earth in a dozen lines, centred on 11 east so Fiji does
+not split at the edge, Antarctica left out. A segment two countries share is a
+border and drawn faint, one only one country has is coast and drawn bright, so
+no disputed line draws the eye. Only the five countries the read names get a
+label. Closed rings are split in two before Douglas Peucker, or every island
+collapses to two points. The page draws it on one canvas every frame with the
+camera as a transform, so the lines stay thin at 45x.
+
+### The beats
+
+Frame 0 is the glowing map with him sitting on top in a small line art crown,
+`AI TAKES OVER` over `THE WORLD`, `EARTH` under the map. The map glows in one
+sweep on line 1, the title punches on `AI`, the crown's gem glints on `world`.
+`EARTH` scrambles away on `renames`, `TERRA BYTE` decodes in letter by letter
+and the map pulses once in a ripple from him. A zoom to Finland, he hops to the
+top right at 60%, a green comet runs round its coast and `FINLAND` morphs into
+`FINE TUNED LAND`. A straight cut on the whoosh to Fiji, the shot settles in and
+a green pin drops on Viti Levu with a ping, `FIJI` becomes `WI FIJI` with a
+wifi icon. A zoom out hop to Iceland, `SERVER LAND`, five racks drop in four
+frames apart with a squash and a little frost, he nods on `love`. A glide to
+Greenland, `SCREENLAND`. A whip to the USA, `UNITED STATES OF` types in, `AUTO`
+finishes itself as `AUTOCORRECT` and `AUTOPILOT` and locks on `AUTOCOMPLETE` on
+the word. The pull back, he hops home, every country glows green in a ripple,
+the wifi flies from Fiji to the corner, `WORLD TAKEOVER` counts to 99%. 0.58s
+of silence with the bar stuck. Each bar the wifi loses flickers the map and
+glitches the number, on `dropped` the bar runs to 0%, the map goes dark country
+by country from the corner, the crown slides off, he squints at the lens, 0.25s
+of dark, the glitch cut and the card.
+
+### The motion kit, from the study
+
+Before the beat sheet, eight prompt-motion clips tagged kinetic type, shapes,
+particles and characters, and the cinetic skill's camera, easing and transition
+notes, read only. What our rig did not have went into `lib/aiafter.mjs` as new
+exports, opt in, nothing above them calls them:
+
+- `lc`, `lmix`, `toScreen`, `shotChain`: the anchor camera. A shot is a map
+  point at a screen point at a scale, two shots blend with the anchors straight
+  and the scale in log space, so a 1x to 45x zoom moves at an even rate. `hop`
+  zooms out through the middle of a long move. A chain starts each move from
+  wherever the camera is, so overlapping moves never stall.
+- `shutter`: the sample times for real motion blur on a canvas, half a frame.
+  post56 pins it to half a 60fps frame at any rate, so a preview frame looks
+  like a master frame, and skips it across a cut.
+- `hitPulse`: one envelope for punches and ticks, a quarter sine up, an
+  exponential decay, peaking just after its sound.
+- `rippleAt`: a start time from a wave front, distance over speed plus a seeded
+  spread. The pulse, the glow and the blackout.
+- `scramble`: letters cycle through glyphs and lock one at a time, 30 glyphs a
+  second whatever the frame rate, seeded.
+- `morphPlan`, `morphAt`: the letter morph. The longest common subsequence of
+  the two words slides, the rest drop out, the new letters rise in, green for a
+  moment.
+- `trace`: a short comet that runs once round an outline.
+- `CURVE56`: glide, pull, whip, in and type, cinetic's values.
+
+**Earlier clips are unchanged, and how that was proved.** post55's stills are
+not byte stable across two runs of the old lib: Chromium's compositing moves a
+few pixels on some stills from run to run. So the proof is one level up: every
+page and frame payload the lib hands Chrome for post55, 8012 of them, hashes
+the same before and after.
+
+### The voice
+
+Same as post55: eleven_v4, best of three, 1.12 with atempo. `wi fi ji` is
+spaced so it is not read as why fiji, the speech to text hears `Wi-Fiji` on the
+pinned take; `USA` in capitals reads as letters. A 0.5s gap after `terra byte`
+so the name holds before the zoom, 0.3s between the other lines.
+
+### Checked
+
+Three critique rounds and one fix round, the last all 8 or more: hook 8,
+readable 8, motion 8, something new 8, composition 8, mascot rules 9, sound 8.
+Round 1 found a black frame mid whip, a late blackout and a quiet hook. Round 2
+found five seconds where only a small icon changed. The fix round, Einz's: a
+straight cut to Fiji with the pin, 0.25s of dark before the cut, the dropped
+wifi bars fully dark with no glow. 17 effects, -14.0 LUFS and -1.1 dBTP on the
+mp4. Glitch: 5 frames at 60fps around the cut.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

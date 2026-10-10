@@ -6,6 +6,32 @@ names in here either.
 
 ## Status
 
+- **2026-10-10. post56 is final and pushed: AI takes over the world, 28.58s,
+  voiced, the plain end card.** `demo/post56.mjs`, dark, 60fps, on
+  `lib/aiafter.mjs` with the series off. Out to
+  `demo/out/post56-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post56/`. Write up is **The fifty sixth
+  clip** in `demo/README.md`. Three critique rounds and one fix round, all 8.
+  - **A motion study came first,** Einz's call: prompt-motion clips and the
+    cinetic notes, read only. Eight tricks went into `lib/aiafter.mjs` as opt
+    in exports: the anchor camera with log space zoom (`lc`, `shotChain`),
+    canvas shutter blur (`shutter`), `hitPulse`, `rippleAt`, `scramble`, the
+    letter morph (`morphPlan`, `morphAt`), the comet `trace`, `CURVE56`.
+  - **post55's stills are not byte stable run to run** with the old lib:
+    Chromium compositing moves a few pixels. Prove a lib change by hashing what
+    the lib sends Chrome (the page and every evaluate payload), not the pngs.
+  - **The world map is Natural Earth 50m countries** in `demo/assets/`,
+    gitignored, no npm. Douglas Peucker collapses closed rings unless they are
+    split first. Faint shared borders, bright coasts, labels only on named
+    countries, for neutrality.
+  - **A world spanning whip reads as a dim smear,** even with a zoom out hop.
+    Einz chose a straight cut on the whoosh with a settle and a pin.
+  - **Shutter blur needs about one sample per 1.5px of travel,** or it strobes,
+    and must be pinned to the master's frame time or previews lie.
+  - **The read runs long at 1.12:** seven lines came to 23.9s of voice,
+    28.58s in all against a 24s target. Einz kept the copy and the tempo.
+  - -14.0 LUFS, -1.1 dBTP, 17 effects, 5 glitch frames at 60fps.
+
 - **2026-10-10. post55 is final and pushed: AI cheated on its exam, 27.82s,
   voiced, the plain end card.** `demo/post55.mjs`, dark, 60fps, on
   `lib/aiafter.mjs` with the series off. Out to
