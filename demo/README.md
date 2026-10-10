@@ -9495,6 +9495,74 @@ straight cut to Fiji with the pin, 0.25s of dark before the cut, the dropped
 wifi bars fully dark with no glow. 17 effects, -14.0 LUFS and -1.1 dBTP on the
 mp4. Glitch: 5 frames at 60fps around the cut.
 
+## The fifty seventh clip, AI vs AI, the gym membership
+
+```
+cd demo
+node post57.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post57.mjs     # the fast preview pass
+node post57.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post57.mjs`, dark only, **19.08 seconds**,
+60fps, six lines on the elevenlabs narrator, eleven_v4, each kept take sped up
+1.12, the plain end card. Built on `lib/aiafter.mjs` with the series off, on
+the cinematic kit and post56's kit. Out to `demo/out/post57-dark-1080x1920.mp4`,
+the stills, sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post57/`.
+
+### Two heads
+
+The rig draws one mascot. The second head, the gym AI, is drawn by the clip in
+the rig's own 64 unit head: the same white plate, the same pill eyes with flat
+lids, the same two blurred glows, and the rig's gaze maths (the far eye
+foreshortens, the near one travels further, the head tilts into the turn).
+The rig's eye rules, happy arcs 0.6s at most and no eye shut over 0.3s, are run
+on it by the clip before every render. It wears a thin line art sweatband with
+an orange stripe. Both heads wear a line art headset with a small mic: ours is
+put inside the rig's own `#m-card` at load, so it follows every nod, tilt and
+the turn to the lens without a second transform. Green is our side, orange
+theirs, and orange only on the sweatband stripe, the GYM AI label, their
+bubbles and their mic light.
+
+### The beats
+
+Frame 0 is both heads facing each other in their headsets, one small wave arc
+pulsing from each mic, `AI VS AI` over them. The title punches on `AI`, `YOUR AI`
+springs in under ours and `CANCEL GYM MEMBERSHIP` decodes in over him, a happy
+nod. On `calls` the ring plays, both mic lights come on and wave arcs pulse out
+of his mic, the call timer starts at 00:00. On `AI` the gym AI bounces, `GYM AI`
+slams, a line art dumbbell pops in, he squints. Line 4 is the bubble ping pong
+in the house style, six polite bubbles, each sending short wave arcs from the
+speaker's mic toward the other head, gone before the middle, then a loop of
+nine flicks, faster each time. On line 5 the bubbles become a ring of pills
+spinning round both heads with trailing copies, the timer races in log time and
+lands on 03:00:00 on `later`, both squint. The ring snaps away into 0.6s of
+silence. `GYM MEMBERSHIP 1` slams in from the left on `signed`, `GYM MEMBERSHIP
+2` from the right on `twice`, each with `FOR YOU`, `SIGNED` stamps under both
+with the punch in, both nod happily, he turns to the lens quickly and squints,
+the glitch cut half a second later.
+
+### The copy exception
+
+The call timer is the one place a colon is allowed, a named exception for this
+clip only: it is left off the copy guard list and the header says so.
+
+### The voice
+
+Same as post56: eleven_v4, best of three, 1.12 with atempo, `AI` in capitals.
+0.3s between lines, the bubble run before line 5 is silent action under
+`maxGap: 2.0`, post54's allowance.
+
+### Checked
+
+Three critique rounds, the last all 8 or more: hook 8, readable 8, motion 8,
+something new 8, composition 8, mascot rules 9, sound 8. Round 1 found the
+scene small in the upper middle and a quiet first second. Round 2 found the
+stamp clipping the `2`. Then two fix rounds, Einz's: the phone line between the
+heads replaced by headsets and wave arcs, and a quicker turn with the cut 0.5s
+after the squint. 26 effects, 15 of them soft bubble blips, ours higher, theirs
+lower. -13.9 LUFS and -1.2 dBTP on the mp4. Glitch: 5 frames at 60fps around the cut.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

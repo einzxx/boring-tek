@@ -6,6 +6,29 @@ names in here either.
 
 ## Status
 
+- **2026-10-11. post57 is final and pushed: AI vs AI, the gym membership,
+  19.08s, voiced, the plain end card.** `demo/post57.mjs`, dark, 60fps, on
+  `lib/aiafter.mjs` with the series off. Out to
+  `demo/out/post57-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post57/`. Write up is **The fifty seventh
+  clip** in `demo/README.md`. Three critique rounds, all 8, then two fix rounds.
+  - **A second head is drawn by the clip, not the rig.** The rig plans one
+    mascot. The gym AI copies the 64 unit head (plate, pill eyes, flat lids,
+    glows, the rig's gaze maths), and the clip runs the rig's eye rules on it
+    before every render. No lib change.
+  - **Props that must move with our mascot go inside `#m-card`.** The
+    headset is an svg in the head's 64 units, inserted into the rig's card on
+    the first apply via `data`, so it inherits every nod, tilt and scale.
+  - **A phone line between two heads read as a cable, not a call.** Einz
+    swapped it for headsets with mic lights and short wave arcs out of the
+    speaker's mic, fading before the middle.
+  - **Orange is the gym's accent in this clip only:** sweatband stripe, GYM AI
+    label, their bubbles, their mic light. Colons only in the call timer, a
+    named exception left off the copy guard.
+  - **An end hold after the turn to the lens wants to be short:** a 0.35s turn
+    and the cut 0.5s after the squint lands, Einz's call.
+  - -13.9 LUFS, -1.2 dBTP, 26 effects (15 soft bubble blips), 5 glitch frames.
+
 - **2026-10-10. post56 is final and pushed: AI takes over the world, 28.58s,
   voiced, the plain end card.** `demo/post56.mjs`, dark, 60fps, on
   `lib/aiafter.mjs` with the series off. Out to
