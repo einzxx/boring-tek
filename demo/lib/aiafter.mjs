@@ -33,6 +33,9 @@
          hook: ['#sel'],                must be fully on screen at frame 0
          copy: ['text on screen'],      checked for dashes, quotes, colons
          verify: [{ at, sel, test(r) }],  gag checks on the page, test returns a fail or null
+         prepare(t, gag), ready: true,  optional, post58: an async layer. prepare is awaited in node per
+                                        frame and lands as gag.pre, then window.__gag.ready() is awaited in
+                                        the page before the frame is measured or shot
          log: [[t, 'what']],
        },
        voice: TAKES,                    optional, from readLines(), each placed with place()
@@ -799,8 +802,15 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   const put = async (t, f) => {
     const mas = compose(t);
     const o = frameAt(t, f);
+    /* `gag.prepare(t, gag)`, optional, post58: awaited in node before the frame
+       goes to the page, and what it returns rides along as gag.pre. a layer
+       drawn somewhere else, three.js in its own browser */
+    if (G.prepare) o.gag = { ...o.gag, pre: await G.prepare(t, o.gag) };
     await page.evaluate(fr => window.__mas.apply(fr), mas);
     await page.evaluate(fr => window.__aa.apply(fr), o);
+    /* `window.__gag.ready()`, optional, post58: awaited in the page after the
+       frame is applied and before anything is measured or shot, an image decode */
+    if (G.ready) await page.evaluate(() => window.__gag.ready());
     if (o.g.heat > 0) {
       const clean = await cdp.send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: VW, height: VH, scale: DSF } });
       if (!await page.evaluate((src, g) => window.__aa.glitch(src, g), 'data:image/png;base64,' + clean.data, o.g)) throw new Error('the glitch image did not decode at ' + t);

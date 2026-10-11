@@ -6,6 +6,59 @@ names in here either.
 
 ## Status
 
+- **2026-10-11. post58 is final and pushed: floor plan to home, a test of
+  property promo videos made with AI, 23.05s, voiced, the plain end card.**
+  `demo/post58.mjs`, dark, 60fps, on `lib/aiafter.mjs` with the series off. Out
+  to `demo/out/post58-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post58/`. Write up is **The fifty eighth
+  clip** in `demo/README.md`. Two critique rounds, all 8, then one fix round,
+  Einz's: evening that reads on a phone (bigger window glow, a warm spill on the
+  ground, the grid to 15%), a straight hero rise with no turn back, speech to
+  text back. -14 LUFS, -1.4 dBTP, 38 effects, 5 glitch frames.
+  - **three.js is the fourth demo dependency,** Einz's call: `three` pinned
+    exact at 0.186.1 (published 2026-09-24, over two weeks old), in
+    `demo/package.json` and named in CLAUDE.md.
+  - **three 0.186 is esm only.** `lib/three-inline.mjs` rewrites
+    `build/three.core.js`, `build/three.module.js` and the fat line addon
+    (`LineSegments2`, `LineMaterial`, `LineSegmentsGeometry`) into classic
+    scripts, `window.THREE` and `window.THREE_LINES`. Nothing is fetched.
+  - **Swiftshader cannot run in the rig's browser.** With
+    `--use-angle=swiftshader` every screenshot under paused virtual time hangs
+    with `--run-all-compositor-stages-before-draw`, and at random without it
+    once a clip is passed. Without the flag, webgl lands on the Intel gpu.
+  - **So webgl draws in its own browser:** `lib/gl-layer.mjs` starts a second
+    headless chrome on swiftshader, no virtual time, and checks the renderer
+    string. Node works out the whole scene from t, that browser renders it once
+    and returns a png, and the rig shows it as an image under everything else.
+    The rig's browser keeps its flags untouched.
+  - **The rig gained two opt in gag hooks:** `prepare(t, gag)`, awaited in
+    node per frame and handed on as `gag.pre`, and `ready`, which awaits
+    `window.__gag.ready()` in the page before a frame is measured or shot.
+    Proved unchanged on post56 and post57 by hashing everything the lib sends
+    Chrome (args, page, 5299 and 8058 evaluates, cdp), with the random port and
+    the glitch's own screenshot masked.
+  - **Determinism:** the gl layer's pngs are byte identical across two
+    browser launches for all 23 stills. Two clean `--stills` runs of the whole
+    clip gave 23 of 23 byte identical. One earlier pair gave 20 of 23, the
+    rig page's own compositing on a word mid animation, not webgl.
+  - **The look:** white Line2 edges on near black faces for hidden lines, the
+    glow is two wider passes of the same lines. Each see through line layer
+    uses a stencil ref so a pixel is lit once and joints never bead. A plan
+    wall is a 2cm slab drawing its top only.
+  - **A portrait house fills the frame by turning toward its short side:** an
+    orbit from 20 to 68 degrees grows a 12 by 8 metre house from 306 to about
+    380px tall at the same 420px width.
+  - **Speech to text is back,** Einz's ok on the new host. The faster-whisper
+    base weights redirect from huggingface.co to `us.aws.cdn.hf.co`, where
+    Windows TLS cannot reach the revocation server, so python's download fails.
+    Fetched with curl and `--ssl-no-revoke` into
+    `demo/out/whisper-models/faster-whisper-base/` (gitignored), the weights'
+    sha256 checked against the `x-linked-etag` huggingface.co publishes
+    (d01c3014...a0a6a9, a match). Load it by that path, not by name, and
+    nothing goes to the hub. Connections there reset at random, so retry.
+  - All six kept post58 takes, at 1.12, transcribe word for word to the script:
+    no tag word spoken, no extra word.
+
 - **2026-10-11. Lessons from the post56 and post57 session.**
   - **Storage clean up.** The repo folder went from 2.2 GB to 1.4 GB.
     - Deleted: the contents of every `demo/out/verify-*` folder except

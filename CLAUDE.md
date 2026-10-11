@@ -125,8 +125,9 @@ state or makes a decision.
   `package.json` and local npm dependencies**, provided anything a rendered page
   needs is inlined from `node_modules` at render time rather than fetched, and
   nothing in `demo/` is loaded by, linked from or referenced by `index.html`.
-  Currently `puppeteer-core`, `ffmpeg-static` and `gsap`. Adding a fourth is a
-  conversation, not a decision to make while working.
+  Currently `puppeteer-core`, `ffmpeg-static`, `gsap` and `three` (pinned exact,
+  0.186.1, added for post58 and inlined by `demo/lib/three-inline.mjs`). Adding a
+  fifth is a conversation, not a decision to make while working.
 - **Exactly one external request at load, carrying exactly two families: Michroma
   and Space Grotesk, from Google Fonts.** One `<link>`,
   `css2?family=Michroma&family=Space+Grotesk:wght@400;500&display=swap`. That is the

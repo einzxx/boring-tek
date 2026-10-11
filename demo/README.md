@@ -9563,6 +9563,103 @@ heads replaced by headsets and wave arcs, and a quicker turn with the cut 0.5s
 after the squint. 26 effects, 15 of them soft bubble blips, ours higher, theirs
 lower. -13.9 LUFS and -1.2 dBTP on the mp4. Glitch: 5 frames at 60fps around the cut.
 
+## The fifty eighth clip, floor plan to home
+
+```
+cd demo
+node post58.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post58.mjs     # the fast preview pass
+node post58.mjs --stills        # one still per beat and a sheet, no render
+BBOX=1 node post58.mjs          # the house's screen box per shot, no render
+GLTEST=1 node post58.mjs        # a hash of the gl layer per still, to prove it repeats
+```
+
+**Where it stands, final.** `demo/post58.mjs`, dark only, **23.05 seconds**,
+60fps, a test of property promo videos made with AI. Six lines on the elevenlabs
+narrator, eleven_v4, each kept take sped up 1.12, the plain end card. Built on
+`lib/aiafter.mjs` with the series off. Out to `demo/out/post58-dark-1080x1920.mp4`,
+the stills, sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post58/`.
+
+### The house
+
+Made up: one floor, 12 by 8 metres, three bedrooms, a bath, a kitchen and a
+living room off a short hall. No address, no logos, no real property. Every
+area on screen is the room's own width times depth, rounded. White line art on
+the dark dot grid with hidden lines: near black faces, white edges, the glow two
+wider faint passes of the same edges. Green only on the area counters, warm
+yellow only in the windows and their spill on the ground.
+
+### The beats
+
+Frame 0 is the whole plan from straight above, `FLOOR PLAN TO PROMO`, him small
+in the bottom left, a comet already running round the outside walls. A happy
+arc on `new`, the plan flashes out from the front door on `AI`. On line 2 the
+plan drops to a ghost and a comet redraws it wall by wall, the room names pop in
+one after another, each area counting up in green. On `watch` the camera tilts
+into 3D in one move, the title leaves with it and the labels fade. On `home` the
+walls rise in a ripple from the front door outward. `walls` pulses the edges,
+`windows` cuts the door and window gaps in ripple order, `every` drops the
+furniture in with a squash, beds and sofa bold. A slow orbit turns 20 to 68
+degrees toward the house's short side, so the house grows taller as it turns,
+a push and a turn in one move. 0.6s of silence. On `lights` the windows warm
+room by room with a soft spill on the ground and the dot grid dims to 15%. On
+`built` the 2D plan flashes on the ground for 0.4s. Line 6 is a straight rise
+to the hero view, no turn back, `PLAN TO PROMO VIDEO` rises in under the house,
+he hops beside it, nods and squints at the lens, the glitch cut half a second
+later.
+
+### three.js, and why it draws in its own browser
+
+`three` is the fourth `demo/` dependency, pinned exact at 0.186.1 (published
+2026-09-24). It ships esm only, so **`lib/three-inline.mjs`** reads
+`build/three.core.js`, `build/three.module.js` and the fat line addon
+(`LineSegments2`, `LineMaterial`, `LineSegmentsGeometry`) out of `node_modules`
+and rewrites their import and export statements into plain classic scripts,
+`window.THREE` and `window.THREE_LINES`. Nothing is fetched.
+
+**Swiftshader cannot run in the rig's browser.** With chrome's cpu webgl forced
+on, every screenshot under paused virtual time hangs alongside
+`--run-all-compositor-stages-before-draw`, and at random without it once a
+clip is passed. Without it, webgl lands on the gpu and a pixel depends on a
+driver. So **`lib/gl-layer.mjs`** starts a second headless chrome forced onto
+swiftshader, with no virtual time, and checks the renderer string says so.
+Node works out the whole scene from t: the camera, every wall piece's rise and
+cut, every furniture drop, every window's light, the comet, the ghost. That
+browser builds the house once, renders each state once and hands back a png.
+three never runs a clock or a loop.
+
+The rig gained two opt in gag hooks for it, `prepare(t, gag)`, awaited in node
+per frame and passed on as `gag.pre`, and `ready`, which awaits
+`window.__gag.ready()` in the page, here the png's decode, before a frame is
+measured or shot. The rig's own browser keeps every flag. Proved unchanged on
+post56 and post57 by hashing everything the lib sends chrome, the args, the
+page, 8058 and 5299 evaluates and the cdp commands, with the random port and the
+glitch's own screenshot masked: identical before and after.
+
+**It repeats.** The gl layer's pngs are byte identical across two browser
+launches for all 23 stills, and two clean `--stills` runs of the whole clip gave
+23 of 23 byte identical. One earlier pair gave 20 of 23, the rig page's own
+compositing on a word mid animation, never the webgl.
+
+Two details that cost time. A see through line layer stencils each pixel once,
+its own ref, so where two segments meet the glow never beads. A plan wall is a
+2cm slab drawing its top edges only, or every joint is a dot.
+
+### The voice
+
+Same as post57: eleven_v4, best of three, 1.12 with atempo, `AI` in capitals,
+the tags acted. Speech to text on all six kept takes, faster-whisper base, heard
+every line word for word, no tag word and no word outside the script.
+
+### Checked
+
+Two critique rounds, the last all 8: hook 8, readable 8, motion 8, something new
+8, composition 8, mascot rules 8, sound 8. Round 1 found the 3D house small in a
+flat band and the labels unreadable on the phone sheet. Then one fix round,
+Einz's: evening that reads on a phone, a straight hero rise, and speech to text
+back. 38 effects. -14 LUFS and -1.4 dBTP on the mp4. Glitch: 5 frames at 60fps
+around the cut.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
