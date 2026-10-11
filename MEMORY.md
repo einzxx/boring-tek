@@ -6,6 +6,59 @@ names in here either.
 
 ## Status
 
+- **2026-10-11. Lessons from the post56 and post57 session.**
+  - **Storage clean up.** The repo folder went from 2.2 GB to 1.4 GB.
+    - Deleted: the contents of every `demo/out/verify-*` folder except
+      `review.md`, the leftover `frames-*` and `subframes-*`, the logs in
+      `demo/out`, the `*-mix.wav`, `*-mix-raw.wav` and `*-sfx.wav` bounces,
+      the hyperframes renders `demo/hf/*/main.mp4` and `*-end/end.mp4`, and
+      the motion study downloads in session scratch.
+    - **Every `review.md` is kept.** It is the only record of a clip's
+      critique rounds.
+    - **Always stays:**
+      - every final 60fps mp4 in `demo/out/`
+      - the voice take cache `demo/out/voice/`, and voice wavs that are takes
+        rather than mixes
+      - `demo/assets/`, `demo/music/` and `demo/hf/music/`
+      - both `node_modules`, `demo/lib/`, every `post*.mjs`, the `words.json`
+        timing files and the hf fonts
+      - the whisper environment and models, which the transcriber needs
+      - anything git tracks, `.env`, the uncommitted skills and tests
+    - No 12fps previews pile up: the preview and the final write the same mp4
+      name, so the final replaces the preview.
+    - Check `git ls-files` on every target first, and remove with literal
+      paths, never with shell variables.
+  - **Voice.**
+    - Positive, happy emotion tags work best: `[excited]`, `[cheerful]`,
+      `[amused]`, `[playful]`.
+    - eleven_v4 ignores `speed`, so every line takes `tempo: 1.12`, which runs
+      ffmpeg's atempo per line with the pitch kept.
+    - The read always runs longer than the estimate. Plan on about 0.32s a
+      word at 1.12, plus the gaps.
+  - **Motion.**
+    - prompt-motion.com is the reference for new motion ideas.
+    - Read only: nothing from it, or from any study source, is installed or
+      run without asking first.
+    - The post56 tricks, opt in from `lib/aiafter.mjs`:
+      - `CURVE56` and `lmix`
+      - the anchor camera `lc`, `toScreen` and `shotChain`
+      - `shutter` blur
+      - `hitPulse`
+      - `rippleAt`
+      - `scramble`
+      - the letter morph, `morphPlan` and `morphAt`
+      - the comet `trace`
+  - **Clip lessons.**
+    - No cables between two heads: a phone line reads as a cable, not a call.
+    - The heads have no hands, so a call is a headset with a small mic light,
+      plus short wave arcs out of the speaker's mic.
+    - A second head is drawn by the clip itself, in the rig's 64 unit head.
+      The clip runs the same eye checks on it as the rig: happy arcs 0.6s at
+      most, never shut over 0.3s.
+    - Keep the end hold short: about 0.5s after the last squint, then the
+      glitch cut.
+    - The first second must already move. Frame 0 alone is not a hook.
+
 - **2026-10-11. post57 is final and pushed: AI vs AI, the gym membership,
   19.08s, voiced, the plain end card.** `demo/post57.mjs`, dark, 60fps, on
   `lib/aiafter.mjs` with the series off. Out to
