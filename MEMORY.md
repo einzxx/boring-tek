@@ -6,6 +6,31 @@ names in here either.
 
 ## Status
 
+- **2026-10-13. post59 is final and pushed: AI takes over the world, round
+  two, 24.87s, voiced, the plain end card.** `demo/post59.mjs`, dark, 60fps, on
+  `lib/aiafter.mjs` with the series off, no lib change. Out to
+  `demo/out/post59-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post59/`. Write up is **The fifty ninth
+  clip** in `demo/README.md`. Three critique rounds, all 8, then one fix round,
+  Einz's: line 4 shortened, tempo 1.16, a bigger opening sweep. -14.1 LUFS,
+  -1.0 dBTP, 25 effects, 5 glitch frames.
+  - **Tempo 1.16 is the new house speed for this clip.** At 1.12 the seven
+    lines alone were 23.0s and the clip 26.75s against a 20 to 24s brief.
+    1.16 and a shorter line 4 took it to 24.87s, Einz's ok.
+  - **A faster tempo changes which takes pass speech to text.** At 1.16 line
+    one's t2 and line six's t1 swallowed a word that was fine at 1.12. Re run
+    speech to text on every take after any tempo change, then pin with
+    `take: n`.
+  - **`dub AI` reads as two words** on eleven_v4 written exactly so, all
+    three takes, no respelling needed.
+  - **A camera move leaves in the gap after its line, never before the payoff
+    word.** Starting a move 0.1s before a line ended cut `BIG BRAIN` to 0.4s
+    on screen.
+  - **Landmarks are line art overlays**, sized in screen px, riding the map
+    with the zoom and clamped, revealed by a clip path with a scan line. A
+    slam on a full width box breaks the margin guard at 1.2, so the popup
+    slams from 1.12 at 370px wide.
+
 - **2026-10-11. post58 is final and pushed: floor plan to home, a test of
   property promo videos made with AI, 23.05s, voiced, the plain end card.**
   `demo/post58.mjs`, dark, 60fps, on `lib/aiafter.mjs` with the series off. Out

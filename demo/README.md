@@ -9660,6 +9660,75 @@ Einz's: evening that reads on a phone, a straight hero rise, and speech to text
 back. 38 effects. -14 LUFS and -1.4 dBTP on the mp4. Glitch: 5 frames at 60fps
 around the cut.
 
+## The fifty ninth clip, AI takes over the world, round two
+
+```
+cd demo
+node post59.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post59.mjs     # the fast preview pass
+node post59.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post59.mjs`, dark only, **24.87 seconds**,
+60fps, post56's sequel. Seven lines on the elevenlabs narrator, eleven_v4, each
+kept take sped up 1.16, the plain end card. Built on `lib/aiafter.mjs` with the
+series off, no lib change. Out to `demo/out/post59-dark-1080x1920.mp4`, the
+stills, sheets, `frame0.jpg` and `review.md` in `demo/out/verify-post59/`.
+
+### The map and the landmarks
+
+post56's map, natural earth 50m on equal earth centred on 11e, copied in, not
+shared. Three landmarks drawn here as line art, near black faces and white
+edges, no photos, no logos, no flags: big ben, a dubai skyline with the burj
+khalifa stepped to its needle, and a short run of great wall on a ridge with
+two towers. Each stands on its spot on the map, scaled up well past true size,
+and rides the camera. Big ben and the skyline rise from their feet with a green
+scan line, the wall reveals left to right. Green only on the brain, the
+download bar, the AI letters, the tick, the wall's text and the four glows.
+
+### The beats
+
+Frame 0 is the glowing map, him on top of it with the crown back from round
+one, `AI TAKES OVER THE WORLD` and a small `ROUND 2` tag. A ripple out of him
+at 0.12s, a big green tinted sweep across the map and the dot grid by 0.6s,
+title punches on `AI` and `world`, `ROUND 2` slams on `round`. The anchor zoom
+to london, he hops off with the title, big ben rises as the zoom lands, `BIG
+BEN` on `big`, the clock face springs into a green brain on `brain`. A whip
+across the world to australia, `DOWN UNDER` morphs into `DOWNLOAD UNDER` and a
+bar fills across the continent. A whip to the emirates, the skyline rises,
+`DUBAI` splits into `DUB AI` on `dub`, the AI goes green, he pops into the top
+right on `already`, nods happy and a tick lands on `done`. A glide to china,
+the wall draws on, three rows of tiny text scroll along it, `OF TEXT` types in
+under `THE GREAT WALL`. The pull back, he hops home, the four renamed places
+glow green, `TAKEOVER` fills to 99%. 0.5s of silence. `UPDATE REQUIRED TO
+FINISH TAKEOVER` slams in with `UPDATE NOW` and `REMIND ME TOMORROW` stacked,
+an arrow cursor with a small `EARTH` tag clicks the second on `remind`, the
+popup shuts, the bar drops to 0, the glows go out, the crown slides off, he
+turns to the lens and squints, the glitch cut half a second later.
+
+Each camera move leaves in the gap after its line, never before the payoff
+word, or the joke is gone before it reads. That was round 2's worst problem:
+`BIG BRAIN` held 0.4s.
+
+### The voice
+
+eleven_v4, best of three, every line at 1.16 with atempo, `AI` in capitals,
+the tags acted. Line 4 is `dubai? wait... dub AI. already done.`, Einz's, with
+the wait pause kept. Speech to text on all 21 takes, faster-whisper base: every
+take says `dub AI` as two words and none reads a tag. Three lines are pinned by
+it, `take: n`: line one's t2 and t3 came back as `hey, I is`, line six's t1 as
+`hake over`, line seven's t2 and t3 without the `but`.
+
+### Checked
+
+Three critique rounds, the last all 8 or more: hook 8, readable 8, motion 8,
+something new 8, composition 8, mascot rules 9, sound 8. Round 1 found a still
+opening, an empty london before big ben and a brain too small for a phone.
+Round 2 found every move leaving before its payoff. Then one fix round, Einz's:
+the new line 4, tempo 1.16 and a bigger sweep, which took the clip from 26.75s
+to 24.87s. 25 effects. -14.1 LUFS and -1.0 dBTP on the mp4. Glitch: 5
+frames at 60fps around the cut.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
