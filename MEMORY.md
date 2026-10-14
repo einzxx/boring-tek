@@ -6,6 +6,53 @@ names in here either.
 
 ## Status
 
+- **2026-10-14. post60 is final and pushed: how AI motion videos are really
+  made, 27.35s, voiced, the plain end card.** `demo/post60.mjs`, dark, 60fps,
+  on `lib/aiafter.mjs` with the series off, no lib change. Out to
+  `demo/out/post60-dark-1080x1920.mp4`, sheets, stills, `frame0.jpg` and
+  `review.md` in `demo/out/verify-post60/`. Write up is **The sixtieth clip**
+  in `demo/README.md`. Three critique rounds, all 8, then two sound rounds,
+  Einz's. -14.2 LUFS, -1.2 dBTP, 33 effects, 5 glitch frames.
+  - **The media layer: real repo things as cards, never screen recordings.**
+    A 1.5s super cut of our own final mp4s, post59's code as a syntax
+    coloured card, post59's stills as a flipbook, its contact sheet, this
+    clip's own waveform, post59's review.md scores. Checked for keys, paths,
+    emails and names first. The clip asserts the code block and the score
+    lines still match their files.
+  - **Burned in subtitles in old clips are cropped out, not covered.** Only
+    one of four super cut moments sat between subtitles; the rest are
+    cropped 1.45 to 1.5x so the subtitle line is out of frame. Frames go in
+    one at a time through post58's `prepare`/`ready`, from
+    `demo/out/post60-src/`, which must stay (gitignored).
+  - **Real code breaks the copy guard** (colons, a minus). The code card is
+    a picture of the file and is left off the guard on purpose.
+  - **One accent per clip may be hot magenta `#ff3ea5`**, Einz's ok; green
+    stays inside our own footage.
+  - **Speech to text cannot verify Claude.** faster-whisper base writes
+    `cloud` on every take. Six control takes saying cloud on purpose scored
+    0.67 to 0.73 as Cloud, ours 0.35 to 0.44: a consistent gap, not proof.
+    The control takes are deleted. Line 1 needed six takes for `everyone`.
+  - **New house sound, Einz's call: elevenlabs sound effects in one family
+    plus a quiet elevenmusic bed.** Noted in CLAUDE.md. Every effect best of
+    3, the prompts sharing one descriptor (clean modern minimal interface
+    sound, crisp and bright, no bass), high passed for phones, placed on its
+    loudest sample. The bed 24dB under the read, ducked 60% under words, out
+    for the planned silence. Takes cached in `demo/out/sfx-post60/` and
+    `demo/out/music-post60/`, both kept.
+  - **Why the old sounds read cheap:** `lib/sfx.mjs` is synthesised and
+    deliberately dull, low passed under 4 kHz, pops are sines at 54 to 150
+    Hz. A phone plays them as a thud or nothing. `sfx.mjs` stays for the
+    mix, the ducking and the guards.
+  - **The rig's music guard skips kinds named with whoosh, sweep or riser**
+    (case sensitive). Name moves so; everything else must sit 6dB over the
+    bed in its first 60ms. Ticks under words needed -7dB to pass.
+  - **The glitch sound is frame locked** with onGrid's maths at the render's
+    own FPS: a crackle under both windows, a stutter of one grain a frame
+    from the loudest frames of an elevenlabs glitch take, a click when the
+    residue ends.
+  - **It runs 27.35s, not the 25.5s planned.** Seven trimmed lines still read
+    22.4s at 1.16, the gaps at the rig floor of 0.25s, plus a 1.5s hook.
+
 - **2026-10-13. post59 is final and pushed: AI takes over the world, round
   two, 24.87s, voiced, the plain end card.** `demo/post59.mjs`, dark, 60fps, on
   `lib/aiafter.mjs` with the series off, no lib change. Out to

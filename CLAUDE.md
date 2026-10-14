@@ -202,6 +202,12 @@ Opt in helpers in `demo/lib/aiafter.mjs`. Earlier clips render the same without 
   or `slam` (1.2 to 1, blur 20 to 0).
 - Sound: about 5 effects per 10 seconds. Whooshes on the fastest frame of a
   move (`peakAt`), hits on contact. One short planned silence before the payoff.
+- From post60, new clips use elevenlabs sound effects (`lib/elevensfx.mjs`,
+  best of 3) in one sound family for the whole clip, high passed for phone
+  speakers, each placed on its loudest sample, plus a quiet music bed from
+  `lib/elevenmusic.mjs` ducked under the voice and out for the planned
+  silence. Not the old synthesised `lib/sfx.mjs` voices: on a phone they are
+  dull thuds. `sfx.mjs` stays for the mix, the ducking and the guards.
 
 ### Critique loop, before Einz sees any preview
 

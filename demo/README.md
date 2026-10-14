@@ -9729,6 +9729,93 @@ the new line 4, tempo 1.16 and a bigger sweep, which took the clip from 26.75s
 to 24.87s. 25 effects. -14.1 LUFS and -1.0 dBTP on the mp4. Glitch: 5
 frames at 60fps around the cut.
 
+## The sixtieth clip, how AI motion videos are really made
+
+```
+cd demo
+node post60.mjs                 # 1080x1920, 60fps (the final)
+DEMO_FPS=12 node post60.mjs     # the fast preview pass
+node post60.mjs --stills        # one still per beat and a sheet, no render
+```
+
+**Where it stands, final.** `demo/post60.mjs`, dark only, **27.35 seconds**,
+60fps, a behind the scenes clip. Seven lines on the elevenlabs narrator,
+eleven_v4, every kept take at 1.16, the plain end card. Built on
+`lib/aiafter.mjs` with the series off, no lib change. Out to
+`demo/out/post60-dark-1080x1920.mp4`, the stills, sheets, `frame0.jpg` and
+`review.md` in `demo/out/verify-post60/`. One accent for this clip, hot
+magenta `#ff3ea5`; green stays only inside our own footage.
+
+### The media layer
+
+Real things from this repo shown as cards that fly in, tilt, zoom slowly and
+glow, never a raw screen recording. Each was checked for keys, `.env` values,
+local paths, emails and names before use, and the clip stops if two of them
+drift from their source.
+
+- **The super cut**, 0 to 1.5s: four shots of 0.375s from the final mp4s of
+  post58 (the walls rising), post59 (the zoom to london, then `DUB AI`) and
+  post57 (the headsets, a window with no subtitle). The other three moments
+  are mid line in their clips, so they are cropped 1.45 to 1.5x, which takes
+  their burned in subtitles out of frame; no floor band was needed. They come
+  in one frame at a time through post58's `prepare` and `ready` hooks, from
+  `demo/out/post60-src/` (gitignored, cut by ffmpeg, needed to render).
+- **The code card**: `post59.mjs` lines 242 to 248, the living camera block,
+  word for word and syntax coloured, decoding with `scramble`. The clip
+  asserts the block still matches post59.mjs. Code has colons and a minus, so
+  the card is left off the copy guard on purpose, like the contact sheet.
+- **The flipbook**: twelve of post59's beat stills, peeling off the card.
+- **The contact sheet**: post59's, flying in tilted and panning down.
+- **The waveform**: this clip's own line 4 take, 80 bars of rms, drawn with the
+  playhead, a tick per word from the take's timing.
+- **The review card**: post59's `review.md`, round 1 and round 3 score lines
+  word for word, one score a row, the 7s scrambling to 8, stamped `NONE UNDER
+  8`, the review's own words. The clip asserts the lines are still in the file.
+
+### The voice
+
+Speech to text on every take, faster-whisper base. Line 1's first three takes
+came back as `you won't say`, so it asked for six; t4 to t6 say `everyone`.
+The base model writes Claude as `cloud` on every take, so six control takes
+that said cloud on purpose were read the same way: they score `Cloud` 0.67 to
+0.73, ours 0.35 to 0.44, and the lowest was kept. A consistent gap, not proof.
+`VS Code` comes back right on all takes. Line 7's t2 heard `pot`, its t3
+dropped `and`. Read is 22.4s; the gaps sit at the rig floor of 0.25s, so the
+clip lands at 27.35s, not the 25.5s planned.
+
+### The sound family and the bed
+
+Einz's sound pass replaced every sound. All of it is elevenlabs sound effects,
+best of 3, in one family, the prompts sharing one descriptor: clean modern
+minimal interface sound, crisp and bright, no bass. Crisp swishes for moves, a
+bigger whoosh for the sheet and the window, soft clicks and ticks for text, a
+punchy hit for the title and the slams, paper flutter for the flipbook, a
+chime on 60, a blip on the scramble, a rubber stamp for the score, a pop with
+the hit under it on `pop`. The hook's riser is kept for how much it climbs,
+not how steady it is. The glitch end is the rig's two glitch windows: a static
+crackle under both, a stutter on each built from one grain of an elevenlabs
+glitch take repeated once a frame, a click as the card lands clean.
+
+Every take is high passed for phone speakers and placed on its loudest
+sample, so a swish peaks on its cut and a hit lands on contact. No
+synthesised `lib/sfx.mjs` voice is left in the clip: its pops are sines at 54
+to 150 Hz, which a phone plays as a dull thud or not at all.
+
+The bed is `lib/elevenmusic.mjs`, best of 3: quiet minimal electronic, light
+and upbeat, high passed at 110 Hz, 24dB under the read and ducked 60% under
+every word, out for the half second before line 7 and back on it, faded over
+the end card. Kinds named with `whoosh`, `sweep` or `riser` are moves, so the
+rig's struck over the bed guard skips them.
+
+### Checked
+
+Three critique rounds, the last all 8 or more: hook 8, readable 8, motion 8,
+something new 8, composition 8, mascot rules 9, sound 8. Then two sound
+rounds, Einz's. 33 effects. -14.2 LUFS and -1.2 dBTP on the mp4. The voice on
+top everywhere, the loudest effect 12.7dB under it, the bed 19dB under it,
+every struck effect at least 6.1dB over the bed. Under 150 Hz the whole mix
+sits 11.5dB under its full level. Glitch: 5 frames at 60fps around the cut.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.
