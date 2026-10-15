@@ -6,6 +6,29 @@ names in here either.
 
 ## Status
 
+- **2026-10-15. Skills and retention audit, no new clip.**
+  - **Audit of post51 to post61.** Hook, pacing and ending sheets for each
+    clip. Four faults shared by all eleven:
+    - title card openings, static for the first 1.5s
+    - tiny captions, about 40px, thin, grey
+    - empty dark frames, line art on near black, almost no scene change
+    - logo card endings that break the loop
+  - Views stop near 850 on almost every clip. Our read, not yet backed by
+    retention data: clips over 15s get stuck at the first test audience.
+    post54, at 9.4s, scored best.
+  - **The 13 retention rules now live in CLAUDE.md** under Motion, as
+    "Retention rules, from the post51 to post61 audit". 9 to 15s is the normal
+    length, longer only on Einz's say.
+  - **The end card glitch flash is a test from 2026-10-15:** THE BORING TEK
+    for under 0.5s instead of the end card, last frame matching frame 0.
+    Compare its numbers against the end card clips before making it permanent.
+  - **Installed at user level** (`~/.claude/skills/`, outside the repo):
+    short-form-video and caption-animation from iart-ai/tiktok-video-skills,
+    pinned at 2a77533. Read in full first: markdown only, no hooks, no network,
+    no keys. Its `scripts/` was not installed. Also anatomy, for post61.
+  - **Open next:** the first clip made with the new rules, and a review of the
+    new skills Einz will send.
+
 - **2026-10-15. post61 is final and pushed: the machine inside AI, 23.82s,
   voiced, the plain end card held 0.5s.** `demo/post61.mjs`, dark, 60fps, out
   to `demo/out/post61-dark-1080x1920.mp4`, sheets and `review.md` in
