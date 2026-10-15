@@ -9816,6 +9816,67 @@ top everywhere, the loudest effect 12.7dB under it, the bed 19dB under it,
 every struck effect at least 6.1dB over the bed. Under 150 Hz the whole mix
 sits 11.5dB under its full level. Glitch: 5 frames at 60fps around the cut.
 
+## The sixty first clip, the machine inside AI
+
+`demo/post61.mjs`. How AI answers you, explained like to a kid, as one
+isometric machine: a funnel, a chopper, a belt, a gear train driven by a big
+GUESS gear, a chute, and a lever panel with no I DO NOT KNOW lever.
+
+### lib/anatomy, where it comes from
+
+`lib/anatomy/iso-kit.mjs` and `lib/anatomy/lathe.mjs` are copied from the
+anatomy skill, github.com/wheresryan22/anatomy, `kit/` at commit
+`bc943e40c59998be5da61f9d39c6a983b1116099`, byte for byte under a three line
+header naming the commit. MIT, the full notice in `lib/anatomy/LICENSE`. Plain
+esm, no dependencies, no network, nothing fetched: node imports them and
+draws strings of svg. They are copied rather than read from the skill's
+install folder so the repo rebuilds the clip on its own. To update, copy the
+two files again from a newer commit, change the hash here and in the headers,
+and re render the stills to see what moved.
+
+### How the kit gets into the rig
+
+The machine is a wall mounted board facing the lens, every part a kit solid
+in the kit's isometric camera: plinth on feet, board, funnel, chopper with a
+guillotine blade, belt on rollers, hopper, four small gears in a train driven
+by the 22 tooth GUESS gear, a window over each small gear, tray and chute, and
+a lever panel on a pedestal. Node builds the svg from t every frame in four
+layers, static back, moving middle, static front, moving front, so the panel
+paints over the gears and the levers over the panel. The page only sets
+innerHTML. No webgl, no second browser, and every still hashes the same run
+to run (`HASH=1 node post61.mjs`).
+
+- **The kit's `ISO_CSS` goes into the gag css first**, then our tokens on
+  `#mach.iso`: near black faces, white lines, the dark green as the one
+  accent. Without it every solid paints as a black silhouette.
+- **Gears are drawn by hand.** The kit's prisms are convex only, so a gear
+  is one concave outline pushed out along y with the kit's own facing rule
+  and four tones.
+- **The anatomy line check** runs on the machine alone:
+  `node post61.mjs --machine` writes `out/verify-post61/machine.html`, and the
+  skill's `scripts/lines.mjs` on it reports 0 floating line ends.
+- **The camera on the drawing** is a `shotChain` inside the gag, so the
+  mascot stays put while the machine zooms: in to the belt for line 3, the
+  gears for line 4, out for line 5, 3.2x on the panel for the silence, a
+  medium shot on GUESS for line 7. A screen space mask fades the drawing out
+  above the subtitle band.
+
+### The read
+
+eleven_v4, tempo 1.16, three takes a line, every take through speech to
+text. `[cheerful] and out comes` lost its `and` in six takes of six, 30ms in
+the alignment, so the script says `and...`. Line 7's `guess gear` came back
+as `guest gear` on every take, so it says `the guess... gear`, Einz's call.
+Same words both times, so the subtitles still match.
+
+### The rig
+
+One opt in, `shortHold`, lets the end card hold 0.5s. The sound is post60's
+house: 13 elevenlabs effects in one small mechanical toy family plus post60's
+cached glitch takes, a quiet elevenmusic bed out for the silence before line
+6. 27 effects, -14 LUFS, -1.3 dBTP, 5 glitch frames, 23.82s. Three critique
+rounds, all 8.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

@@ -18,6 +18,7 @@
        post: 44, ep: 1, title: ['line one', 'line two'],
        cut: 6.3,                        the glitch cut to the end card
        hold: 1.0,                       the end card, 1s at least, never less
+       shortHold: true,                 optional, post61: lets hold go down to 0.4s
        mascot: { cx, cy, size },        where he sits, css px of the 540x960 stage
        gag: {
          css, markup,                   inside the camera, under him
@@ -526,8 +527,9 @@ export async function runEpisode(E) {
   if (E.stage) { VW = E.stage.w; VH = E.stage.h; APP_ZONE = E.stage.appZone ?? APP_ZONE; }
   const RES = VW * DSF + 'x' + VH * DSF;
   const FILE = path.join(OUT, E.stage && E.stage.file ? E.stage.file : NAME + '-dark-' + RES + '.mp4');
-  /* the end card holds a second at least, every episode */
-  const CUT = E.cut, END_HOLD = Math.max(1.0, E.hold ?? 1.0);
+  /* the end card holds a second at least, every episode. `shortHold`, optional,
+     post61: Einz's short end, the card may hold down to 0.4s */
+  const CUT = E.cut, END_HOLD = Math.max(E.shortHold ? 0.4 : 1.0, E.hold ?? 1.0);
   const SECONDS = +(CUT + END_HOLD).toFixed(4);
   const SERIES = E.series !== false;
   const TAGTEXT = SERIES ? 'ep ' + E.ep : '';

@@ -6,6 +6,35 @@ names in here either.
 
 ## Status
 
+- **2026-10-15. post61 is final and pushed: the machine inside AI, 23.82s,
+  voiced, the plain end card held 0.5s.** `demo/post61.mjs`, dark, 60fps, out
+  to `demo/out/post61-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post61/`. Write up is **The sixty first clip** in
+  `demo/README.md`. Three critique rounds, all 8. -14 LUFS, -1.3 dBTP, 27
+  effects, 5 glitch frames.
+  - **A 60fps render outlives one foreground tool call** (about 11 minutes
+    here). Run it detached with nohup and wait on its log; a harness
+    background task can be reaped under memory pressure.
+  - **The 12fps preview does not prove every frame.** An index that went to
+    -1 within 0.02s of a beat only crashed at 60fps. Clamp beat indices.
+  - **The anatomy skill is installed** (`~/.claude/skills/anatomy`), read
+    first: no network in the kit, only `publish.mjs` pushes, and only with
+    `--submit`. Its `kit/iso-kit.mjs` and `kit/lathe.mjs` are vendored into
+    `demo/lib/anatomy/` at bc943e4 with the MIT notice, Einz's ok, noted in
+    `demo/README.md`. The machine is kit svg built in node from t, so stills
+    hash identically run to run. No webgl.
+  - **The kit's `ISO_CSS` must go into the gag css**, or every kit solid
+    paints as a black silhouette. Kit gears are drawn by hand: its prisms
+    are convex only.
+  - **Line ends: the anatomy line check runs on `node post61.mjs --machine`.**
+  - **eleven_v4 swallows a short word right after a tag:** `[cheerful] and
+    out comes` lost `and` in 6 of 6 takes. `and...` fixed it. Speech to text
+    heard `guess gear` as `guest gear` on every take; `the guess... gear`
+    fixed it, Einz's call.
+  - **Rig opt in `shortHold`:** the end card may hold under 1s, 0.5s here.
+  - **A drawing zoom inside the gag needs a screen space mask** over the
+    subtitle band, or the zoomed machine runs under the subtitles.
+
 - **2026-10-14. post60 is final and pushed: how AI motion videos are really
   made, 27.35s, voiced, the plain end card.** `demo/post60.mjs`, dark, 60fps,
   on `lib/aiafter.mjs` with the series off, no lib change. Out to
