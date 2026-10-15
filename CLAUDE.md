@@ -166,7 +166,7 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
 
 - Centered title on a gradient, everything just fading in, corner labels, frame
   borders, generic particle bursts, heavy glow, bloom or grain.
-- Dead time. Something new must happen every 2 to 4 seconds.
+- Dead time. Something new must happen every 1.5 to 3 seconds.
 - Code drawn hands. Hands come only from pngs or `demo/assets/hands/`.
 - Pacman shapes for eating. Eating is the post25 bite and chews.
 
@@ -175,7 +175,8 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
 - Eyes calm, happy, neutral or squint only. Never wide, never angry. Open and alive
   most of the time. Happy arcs last 0.6s at most.
 - Speech bubbles in the house style, with the two dots, equal gaps.
-- Max 10 seconds unless Einz says otherwise. 120px safe margin on every edge. The
+- 9 to 15 seconds is the normal length. Longer only when Einz says so for that
+  clip. 120px safe margin on every edge. The
   bottom 300px stays clear of anything important, for the TikTok and Shorts buttons.
 - On screen text has no dashes, apostrophes or quotes.
 
@@ -186,6 +187,53 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
 - Render one still per beat before the full render.
 - When the clip can loop, the last frame matches the first.
 - The hook reads in the first 1 second, not 2.
+
+### Retention rules, from the post51 to post61 audit
+
+Every clip from post51 to post61 opened on a static title card, used captions too
+small for a phone, stayed dark and sparse, and ended on a logo card. Views stopped
+near 850 on almost all of them. These rules replace that template.
+
+Hook
+1. Frame 0 is the payoff image or the strangest frame of the clip, already moving.
+   No title card, no topic label as the opener.
+2. The first line is a claim or a conflict, never "did you know", "do you know" or
+   "we are testing". Voice and the first caption land by 0.3s.
+3. Something big moves in the first 0.5s: a punch in, a drop or a slam. A blink
+   does not count.
+
+Pacing
+4. 9 to 15 seconds, as above.
+5. A pattern interrupt every 1.5 to 3s, at uneven intervals: a cut, a punch in, a
+   colour flip or a hit. Gate: no 3s stretch where every half second scores under
+   0.02 on the ffmpeg scene score.
+6. One idea, one payoff. The payoff lands by 70% of the runtime.
+
+Karaoke captions
+7. One to three words per page. Space Grotesk 500, lowercase, 64 to 72px, white,
+   the active word in the clip's accent. Each page pops in over 0.15s with a small
+   overshoot.
+8. Captions sit at 60 to 65% of the height, never in the bottom 300px. Word timing
+   comes from the real voice timestamps, never an even split.
+
+Colour
+9. One bright second colour per clip, as post60 used magenta, alongside green, plus
+   one full screen colour flash at the payoff that flips straight back. Clips only:
+   the site keeps green as its single accent.
+
+Ending and loop
+10. No full end card. **Test, from 2026-10-15:** a short glitch flash of THE
+    BORING TEK, under 0.5s, after the last word. Compare the numbers against the
+    end card clips before making it permanent.
+11. The last frame matches frame 0, and the last line runs straight back into
+    the first.
+12. The brand lives inside the clip: the mascot, plus a small wordmark during the
+    hook.
+
+Check
+13. The critique loop below carries four retention scores: hook reads in the first
+    second, longest dead stretch, captions readable on the 360px phone sheet, loop
+    seam invisible.
 
 ### Camera, transitions, type and sound
 
@@ -215,8 +263,9 @@ Opt in helpers in `demo/lib/aiafter.mjs`. Earlier clips render the same without 
    `demo/out/verify-postNN/contact.png`, and a phone test sheet at 360px wide.
 2. Look at both properly, as a harsh motion director, and score 1 to 10:
    hook in the first 1 second, readable at phone size, motion quality, something new
-   every 2 to 4 seconds, composition, mascot rules followed, sound sync if there is
-   sound.
+   every 1.5 to 3 seconds, composition, mascot rules followed, sound sync if there is
+   sound. Plus the four retention scores: hook reads in the first second, longest
+   dead stretch, captions readable on the 360px phone sheet, loop seam invisible.
 3. Write the scores and the 3 worst problems with timestamps to
    `demo/out/verify-postNN/review.md`. Fix them, re render, repeat until every score
    is 8 or more. Max 3 rounds.
