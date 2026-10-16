@@ -19,6 +19,8 @@
        cut: 6.3,                        the glitch cut to the end card
        hold: 1.0,                       the end card, 1s at least, never less
        shortHold: true,                 optional, post61: lets hold go down to 0.4s
+       flash: { at, for },              optional, post62: no end card, the wordmark glitches in at
+                                        `at` for under 0.5s and the clip runs on to `cut`, its end
        mascot: { cx, cy, size },        where he sits, css px of the 540x960 stage
        gag: {
          css, markup,                   inside the camera, under him
@@ -529,7 +531,15 @@ export async function runEpisode(E) {
   const FILE = path.join(OUT, E.stage && E.stage.file ? E.stage.file : NAME + '-dark-' + RES + '.mp4');
   /* the end card holds a second at least, every episode. `shortHold`, optional,
      post61: Einz's short end, the card may hold down to 0.4s */
-  const CUT = E.cut, END_HOLD = Math.max(E.shortHold ? 0.4 : 1.0, E.hold ?? 1.0);
+  /* `flash: { at, for }`, optional, post62, the 2026-10-15 test: no end card.
+     the wordmark glitches in over the clip at `at` for `for` seconds, under
+     0.5s, and the clip runs on to `cut`, its end, so the last frame can match
+     frame 0 and the clip loops */
+  const FLASH = E.flash || null;
+  if (FLASH && !(FLASH.for > 0 && FLASH.for <= 0.5)) throw new Error('the flash holds under 0.5s, not ' + FLASH.for);
+  if (FLASH && FLASH.at + FLASH.for > E.cut) throw new Error('the flash runs past the end');
+  const inFlash = t => !!FLASH && t >= FLASH.at && t < FLASH.at + FLASH.for;
+  const CUT = E.cut, END_HOLD = FLASH ? 0 : Math.max(E.shortHold ? 0.4 : 1.0, E.hold ?? 1.0);
   const SECONDS = +(CUT + END_HOLD).toFixed(4);
   const SERIES = E.series !== false;
   const TAGTEXT = SERIES ? 'ep ' + E.ep : '';
@@ -614,7 +624,11 @@ export async function runEpisode(E) {
     offsets: [{ d: 0.09, for: 3 / 60, heat: 1.0 }, { d: 0, for: 2 / 60, heat: 0.45, residue: true }],
     jumpX: 22, jumpY: 12, split: 11, slices: 3, sliceH: [24, 110], sliceDx: 70,
   };
-  const GL_WINDOWS = GL.offsets.map((o, i) => ({ ...onGrid(CUT - o.d, o.for, FPS), heat: o.heat, residue: !!o.residue, seed: 0x5c1a + i * 977 }));
+  /* with a flash: a burst into the wordmark and the residue out of it */
+  const GL_AT = FLASH
+    ? [{ t: FLASH.at - 0.05, for: 3 / 60, heat: 1.0 }, { t: FLASH.at + FLASH.for - 2 / 60, for: 2 / 60, heat: 0.6, residue: true }]
+    : GL.offsets.map(o => ({ t: CUT - o.d, for: o.for, heat: o.heat, residue: o.residue }));
+  const GL_WINDOWS = GL_AT.map((o, i) => ({ ...onGrid(o.t, o.for, FPS), heat: o.heat, residue: !!o.residue, seed: 0x5c1a + i * 977 }));
   function glitchAt(f) {
     const g = { heat: 0, jx: 0, jy: 0, split: 0, slices: [] };
     const t = f / FPS;
@@ -631,16 +645,16 @@ export async function runEpisode(E) {
     }
     return g;
   }
-  const WM1 = { at: CUT, for: 0.09 };
+  const WM1 = { at: FLASH ? FLASH.at : CUT, for: 0.09 };
 
   function frameAt(t, f) {
     const cam = (G.camera && G.camera(t)) || { s: 1, tx: 0, ty: 0 };
     return {
-      t: +t.toFixed(4), f, main: t < CUT ? 1 : 0, cam,
+      t: +t.toFixed(4), f, main: FLASH ? (inFlash(t) ? 0 : 1) : t < CUT ? 1 : 0, cam,
       gag: G.frame(t),
       subt: subAt(t),
       g: glitchAt(f),
-      wm: { o: t >= WM1.at ? 1 : 0, sc: +(1 + (1 - EASE(span(t, WM1.at, WM1.at + WM1.for))) * 0.085).toFixed(4), glow: +phosphor(t, 0.055, 2.3, 0.83, 1.7).toFixed(4) },
+      wm: { o: FLASH ? (inFlash(t) ? 1 : 0) : t >= WM1.at ? 1 : 0, sc: +(1 + (1 - EASE(span(t, WM1.at, WM1.at + WM1.for))) * 0.085).toFixed(4), glow: +phosphor(t, 0.055, 2.3, 0.83, 1.7).toFixed(4) },
     };
   }
 
@@ -766,7 +780,7 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   console.log('\n' + NAME + ', ai after ep ' + E.ep + '. ' + SECONDS + 's, ' + FPS + 'fps.');
   if (TAKES) for (const T of TAKES) console.log('    line ' + (T.i + 1) + ' at ' + T.at.toFixed(2) + 's, ' + T.all.join(', '));
   if (CODA) console.log('    coda at ' + CODA.at.toFixed(2) + 's, ' + CODA.all.join(', '));
-  for (const [t, what] of [...(G.log || []), [CUT, 'the glitch cut, the end card'], [SECONDS, 'the end']].sort((a, b) => a[0] - b[0])) {
+  for (const [t, what] of [...(G.log || []), ...(FLASH ? [[FLASH.at, 'the glitch flash']] : [[CUT, 'the glitch cut, the end card']]), [SECONDS, 'the end']].sort((a, b) => a[0] - b[0])) {
     console.log('    ' + t.toFixed(2).padStart(5) + 's  ' + what);
   }
 
@@ -867,7 +881,8 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
     const why = v.test(await rect(v.sel));
     if (why) fails.push(why);
   }
-  await put(CUT + 0.3, Math.round((CUT + 0.3) * FPS));
+  const WM_AT = FLASH ? FLASH.at + FLASH.for / 2 : CUT + 0.3;
+  await put(WM_AT, Math.round(WM_AT * FPS));
   const wr = await rect('#wm');
   if (wr && (wr.l < SB.l || wr.r > SB.r)) fails.push('the wordmark is past the margin');
 

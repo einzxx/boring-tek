@@ -9877,6 +9877,62 @@ cached glitch takes, a quiet elevenmusic bed out for the silence before line
 6. 27 effects, -14 LUFS, -1.3 dBTP, 5 glitch frames, 23.82s. Three critique
 rounds, all 8.
 
+## The sixty second clip, the flying tesla
+
+`demo/post62.mjs`. A news reaction clip, and the first one made with the
+retention rules in CLAUDE.md. Tesla showed the new roadster at a spacex test
+site in texas: up a ramp, upside down, a flip in the air, a landing on air
+jets, nobody inside. The read says only that, as reported.
+
+### The footage
+
+Tesla's own livestream, `demo/assets/roadster.mp4`, 1398x782 at 60fps. It is
+ignored by git like every asset that is not ours, and its sound is never read.
+Seven source ranges are cut to 60fps jpegs in `demo/out/post62-src/`, named by
+source frame. Post58's prepare and ready hooks show them one real frame at a
+time. The 16:9 picture runs full width across the middle, with a thin green
+edge that flashes red on cuts and hits, and our dot grid round it.
+
+- **No source frame is used twice.** Line 1 is one continuous drone shot,
+  26.65 to 30.90: the car drives at the truck and takes off at normal speed,
+  then the flip plays at 0.7, each in between frame blended with the next. The
+  loop is 13.30 to 15.01, the drop 15.80 to 16.94, the jets 16.95 to a freeze
+  on 18.32, the track 0.05 to 0.92 and leaving the loop 36.25 to 37.84.
+- **TESLA LIVE stays visible as the source credit.** Every punch in has its
+  origin clamped toward the bottom right, so the mark never leaves the box.
+- **A shot with no cut still needs interrupts.** As one smooth drone move the
+  run up failed the scene score gate for 4s. A punch in at frame 0, a hard
+  pull out on fly, and snaps in on crowd and on AI carry it.
+- **A whip carries both shots**, the next one riding in beside the old, so
+  the box is never half black.
+
+### On screen
+
+Karaoke captions are drawn by the gag, not the rig's subtitles. Each page is
+one to three words, Space Grotesk 500 at 68px, at 65% of the height, timed
+off the read's own word times. The word being said is in the clip's one
+second colour, hot red `#ff2e4d`, taken from the stage light strips. `2028`
+is read as `twenty twenty eight` and shown as 2028. The big and small words
+sit above the picture and never on it. One full screen red flash lands on
+jets, the payoff, at 55% of the runtime.
+
+### The read and the sound
+
+eleven_v4, tempo 1.16, three takes a line. All twelve transcribe word for
+word with faster-whisper base, no tag read out. The shortest take of each
+line is pinned, for length. The effects are elevenlabs, best of 3, in one
+family, compressed air and pneumatic jets, with one quiet crowd swell under
+the flip. It drops out for the 0.3s before jets and comes back with the hit.
+There is no music bed, Einz adds it, so the effects sit lighter, at level -12.
+
+### The rig
+
+One opt in, `flash: { at, for }`, the 2026-10-15 end card test. There is no
+end card: THE BORING TEK glitches in for 0.4s after the last word, and the
+clip runs on through a 0.3s run up into frame 0, so the last frame matches the
+first and it loops. 15.32s, 14 effects, -14 LUFS, -1.7 dBTP, 5 glitch frames.
+Two critique rounds, all 8, then three fix rounds, Einz's.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

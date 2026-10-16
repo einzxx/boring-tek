@@ -6,6 +6,42 @@ names in here either.
 
 ## Status
 
+- **2026-10-16. post62 is final and pushed: the flying tesla, 15.32s, voiced,
+  no end card.** `demo/post62.mjs`, dark, 60fps, out to
+  `demo/out/post62-dark-1080x1920.mp4`, with the sheets and `review.md` in
+  `demo/out/verify-post62/`. The write up is **The sixty second clip** in
+  `demo/README.md`. Two critique rounds, all 8, then three fix rounds,
+  Einz's. -14 LUFS, -1.7 dBTP, 14 effects, 5 glitch frames. It is the first
+  clip on the retention rules and the first run of the end card test:
+  compare its numbers against the end card clips.
+  - **The footage is Tesla's livestream**, `demo/assets/roadster.mp4`
+    (ignored, its sound never read), cut to 60fps jpegs in
+    `demo/out/post62-src/`, which must stay. The source is 1398x782, not
+    1920x1080.
+  - **Einz's rule from the fix rounds: no shot may repeat, no replays of the
+    same moment, anywhere in a clip.** Slow motion only on the payoff itself,
+    0.7 at most. Line 1 is one continuous drone run up, 26.65 to 30.90.
+  - **A shot with no cut fails the scene score gate.** The smooth drone move
+    scored under 0.02 for 4s. Moves inside the box fixed it without a cut:
+    a punch in, a pull out, two snaps in.
+  - **Einz's eye on a phone: a wide drone shot of a crowd reads as a dark
+    empty stage.** It was cut.
+  - **The rig has a new opt in, `flash: { at, for }`** in `lib/aiafter.mjs`.
+    There is no end card: the wordmark glitches in mid clip for under 0.5s,
+    and the clip runs on to `cut`, so a run up into frame 0 can close the
+    loop. Earlier clips render the same.
+  - **Karaoke captions are drawn by the gag**, not the rig's subtitles. Each
+    page is one to three words timed off the read, with a display alias for
+    `2028` read as `twenty twenty eight`.
+  - **The second colour is hot red `#ff2e4d`**, taken from the stage light
+    strips. Einz's ok.
+  - **Keeping a source credit in frame:** every punch in clamps its origin
+    toward the mark's corner. The cost is that frame 0 cannot push in on a
+    subject in the far corner.
+  - **Flex text boxes of height 0 need `align-items:flex-start`**, or
+    translateY(-50%) works on a stretched zero height box and the text sits
+    half its height low.
+
 - **2026-10-15. Skills and retention audit, no new clip.**
   - **Audit of post51 to post61.** Hook, pacing and ending sheets for each
     clip. Four faults shared by all eleven:
