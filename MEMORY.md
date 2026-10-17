@@ -6,6 +6,35 @@ names in here either.
 
 ## Status
 
+- **2026-10-18. post64 is final and pushed: the fart fact, 11.40s, voiced,
+  a 1.4s card.** `demo/post64.mjs`, 60fps, out to
+  `demo/out/post64-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post64/`. Write up is **The sixty fourth clip** in
+  `demo/README.md`. Two critique rounds, all 8, then two fix rounds, Einz's.
+  -14 LUFS, -1.1 dBTP, 10 effects, music bed at -27.
+  - **The bright full colour look was tested here, as a break from the dark
+    grid:** flat cobalt `#2448FF`, huge white kinetic words filling the top,
+    the mascot big in the middle with the dark clips' white glow, green cloud
+    and active word, pink only for the blush. Captions at 73.5% for this clip,
+    Einz's call. Compare its numbers against the dark clips.
+  - **Reuse: post25 is the fart cloud, post32 is the shy face.** post25's six
+    soft fields scale up well; on a bright ground they need a plain blend, not
+    post25's screen blend. post32's shy: arcs squinted to 0.93 by 0.72 and
+    dropped 1.4, 9 degree tilt, 6px drop, 2 degree wobble, pink blush to 0.62.
+  - **Did you know stays as a named exception to retention rule 2** in this
+    clip only: the clip mocks did you know facts.
+  - **The end is a 1.4s card, not the 0.4s flash,** Einz's call. Rig opt in
+    `flash.card` allows up to 1.5s; without it the 0.5s test cap stands.
+  - **Rig opt in `esx`, `esy`, `ey` on the face**, the eye scales and drop,
+    for post32's squint without it counting as a happy arc.
+  - **eleven_v4 refuses a tag alone.** `[laughs]` is a 400; `[laughs] ...` is
+    a 0.1s chuckle; `[laughs warmly] hahaha!` is a real laugh. Capped at 0.8s.
+  - **A line that opens on AI is heard as I** by speech to text, and maybe by
+    a viewer: AI solved it, spelled AI or A.I., six takes of six. an AI
+    transcribes clean.
+  - **elevenlabs music answered 429 once** under load. A rerun picks up the
+    cached effects; just retry.
+
 - **2026-10-16. post62 is final and pushed: the flying tesla, 15.32s, voiced,
   no end card.** `demo/post62.mjs`, dark, 60fps, out to
   `demo/out/post62-dark-1080x1920.mp4`, with the sheets and `review.md` in

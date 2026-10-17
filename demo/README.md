@@ -9933,6 +9933,64 @@ clip runs on through a 0.3s run up into frame 0, so the last frame matches the
 first and it loops. 15.32s, 14 effects, -14 LUFS, -1.7 dBTP, 5 glitch frames.
 Two critique rounds, all 8, then three fix rounds, Einz's.
 
+## The sixty fourth clip, the fart fact
+
+`demo/post64.mjs`. A stupid fun gag. A fake did you know fact, an AI agent
+farts about sixty seven times a day, then he farts, goes shy, and asks how old
+you are if you believed it. 11.40s, 60fps, out to
+`demo/out/post64-dark-1080x1920.mp4`, sheets and `review.md` in
+`demo/out/verify-post64/`.
+
+### A break from the dark grid
+
+The first clip off the dark dot grid, a test: a flat cobalt `#2448FF`, huge
+white Michroma words filling the top, each set one size with the widest line
+across the margins, and him big in the middle, at 1.55 his size, a clean white
+plate with the dark clips' own white glow, its radii divided by his scale. The
+cloud and the active caption word are bright green, the blush is the only
+pink. Karaoke captions sit at 73.5% of the height for this clip, Einz's call,
+past the house 60 to 65%.
+
+**A named exception to retention rule 2.** The rule bans did you know as an
+opener. Here it stays: the clip mocks did you know facts, so the opener is
+the joke and line 2 is its payoff.
+
+### Two borrowed pieces, to reuse
+
+- **The cloud is post25's**, the bug clip: six soft radial fields, the same
+  seed, timing and curves, out from under him and away to screen left, gone
+  in about 0.9s. Fields, rise and slide out are three times post25's, the
+  origin under him at his size, the blur twice. post25 screen blends at 0.42
+  onto near black; on cobalt that is a faint cyan haze, so here it is a plain
+  blend at 0.95.
+- **The shy face is post32's**, the i love you clip: the happy arcs squinted
+  further to 0.93 by 0.72 and dropped 1.4 grid units, a 9 degree tilt and a
+  6px drop over 0.45s, a 2 degree wobble every 0.46s, two soft radial pink
+  blush spots to 0.62. It starts once the cloud has gone and lets go as he
+  peeks back on how old. The squint is written on the eye's own scales, not
+  as an arc, so the 0.6s cap on happy arcs does not hold it.
+
+### The read and the sound
+
+eleven_v4, tempo 1.16, three takes a line, every take word for word with
+faster-whisper base. 67 is read as sixty seven and shown as 67. The laugh is
+`[laughs warmly] hahaha!`: eleven_v4 refuses a tag with no text, and
+`[laughs] ...` came back as one 0.1s chuckle. Take 3, capped at 0.8s from its
+first sound, holds three whole bursts. Effects are elevenlabs, best of 3, one
+family, bright cartoon foley: pops on the words, a boing on 67, one big
+cartoon fart, a blush chime, a swish, post62's glitch. A light ukulele bed at
+-27 drops out for the 0.33s before the fart.
+
+### The rig
+
+Two opt ins in `lib/aiafter.mjs`, earlier clips render the same: `esx`, `esy`,
+`ey` on the face, post32's squint; and `flash.card`, which lets the flash hold
+up to 1.5s. THE BORING TEK holds 1.4s here as a short card, Einz's call, then
+a 0.3s pre roll runs back into frame 0. The bed is asked at the preview's
+length so its cached take is the one kept, and it ends inside the card.
+11.40s, 10 effects, -14 LUFS, -1.1 dBTP, 5 glitch frames. Two critique rounds,
+all 8, then two fix rounds, Einz's.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

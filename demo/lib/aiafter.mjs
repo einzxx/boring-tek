@@ -536,7 +536,10 @@ export async function runEpisode(E) {
      0.5s, and the clip runs on to `cut`, its end, so the last frame can match
      frame 0 and the clip loops */
   const FLASH = E.flash || null;
-  if (FLASH && !(FLASH.for > 0 && FLASH.for <= 0.5)) throw new Error('the flash holds under 0.5s, not ' + FLASH.for);
+  /* `flash.card`, optional, post64, Einz's call: the flash held as a short
+     card, up to 1.5s. without it the 0.5s test cap stands */
+  const FLASH_MAX = FLASH && FLASH.card ? 1.5 : 0.5;
+  if (FLASH && !(FLASH.for > 0 && FLASH.for <= FLASH_MAX)) throw new Error('the flash holds under ' + FLASH_MAX + 's, not ' + FLASH.for);
   if (FLASH && FLASH.at + FLASH.for > E.cut) throw new Error('the flash runs past the end');
   const inFlash = t => !!FLASH && t >= FLASH.at && t < FLASH.at + FLASH.for;
   const CUT = E.cut, END_HOLD = FLASH ? 0 : Math.max(E.shortHold ? 0.4 : 1.0, E.hold ?? 1.0);
@@ -612,6 +615,11 @@ export async function runEpisode(E) {
       e.sx = +(e.sx * lerp(1, 1.28, arc)).toFixed(4);
       e.y = +(e.y + 0.9 * arc).toFixed(4);
       e.lid = +lerp(lid, 0, arc).toFixed(4);
+      /* `esx`, `esy`, `ey`, optional, post64: post32's shy squint, the arcs
+         scaled again and dropped, in grid units. earlier clips render the same */
+      if (F.esx != null) e.sx = +(e.sx * F.esx).toFixed(4);
+      if (F.esy != null) e.sy = +(e.sy * F.esy).toFixed(4);
+      if (F.ey != null) e.y = +(e.y + F.ey).toFixed(4);
     });
     mas.card = { ...mas.card, x: +(mas.card.x + F.dx).toFixed(4), y: +(mas.card.y + F.dy).toFixed(4), rot: +(mas.card.rot + F.rot).toFixed(4),
       sx: +(mas.card.sx * F.s * (1 + F.sq)).toFixed(5), sy: +(mas.card.sy * F.s * (1 - F.sq)).toFixed(5) };
