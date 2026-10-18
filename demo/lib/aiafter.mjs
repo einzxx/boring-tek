@@ -632,9 +632,11 @@ export async function runEpisode(E) {
     offsets: [{ d: 0.09, for: 3 / 60, heat: 1.0 }, { d: 0, for: 2 / 60, heat: 0.45, residue: true }],
     jumpX: 22, jumpY: 12, split: 11, slices: 3, sliceH: [24, 110], sliceDx: 70,
   };
-  /* with a flash: a burst into the wordmark and the residue out of it */
+  /* with a flash: a burst into the wordmark and the residue out of it.
+     `flash.out: false`, optional, post65: no residue, the clip ends on the
+     card, so there is nothing to glitch out into. earlier clips render the same */
   const GL_AT = FLASH
-    ? [{ t: FLASH.at - 0.05, for: 3 / 60, heat: 1.0 }, { t: FLASH.at + FLASH.for - 2 / 60, for: 2 / 60, heat: 0.6, residue: true }]
+    ? [{ t: FLASH.at - 0.05, for: 3 / 60, heat: 1.0 }, ...(FLASH.out === false ? [] : [{ t: FLASH.at + FLASH.for - 2 / 60, for: 2 / 60, heat: 0.6, residue: true }])]
     : GL.offsets.map(o => ({ t: CUT - o.d, for: o.for, heat: o.heat, residue: o.residue }));
   const GL_WINDOWS = GL_AT.map((o, i) => ({ ...onGrid(o.t, o.for, FPS), heat: o.heat, residue: !!o.residue, seed: 0x5c1a + i * 977 }));
   function glitchAt(f) {

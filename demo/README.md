@@ -9991,6 +9991,71 @@ length so its cached take is the one kept, and it ends inside the card.
 11.40s, 10 effects, -14 LUFS, -1.1 dBTP, 5 glitch frames. Two critique rounds,
 all 8, then two fix rounds, Einz's.
 
+## The sixty fifth clip, AI got a phone
+
+`demo/post65.mjs`. A very short explainer: Manus 2.0 shipped Cue on
+2026-09-28, an app where each AI agent gets its own email, phone number,
+wallet and computer. The source is Manus's own launch post,
+manus.im/blog/introducing-manus-2-0. 9.97s, 60fps, out to
+`demo/out/post65-dark-1080x1920.mp4`, sheets and `review.md` in
+`demo/out/verify-post65/`.
+
+### The look: black kinetic text won
+
+Three looks were rendered on the same motion. Hot magenta `#FF2E8A` read
+cheap. Warm off white paper `#F4F1EA` with near black type was clean but
+flat. Black won: deep black `#050506` with a very soft dark vignette and no
+dot grid, huge white Michroma words that slam, stretch and stack, white line
+icons, both with the end card's deep glow, and him with the dark clips' white
+glow at 70% of post64's size. Green `#3dff6e` is only the active caption
+word, the answer button, the AI and PHONE kicks in the hook, and the one full
+screen flash. The incoming call screen is dark with a thin white glow edge.
+
+### The real graphics
+
+Ignored in `demo/assets/`, never pushed. The clip stops if a file is missing
+rather than drawing a stand in.
+
+- **The Manus logo** is `manus-logo-white.svg` from the official brand kit,
+  manus.im/brand, the `Manus Brand Assets.zip` it links. It sits straight on
+  the black exactly as it ships: no card, no glow, no recolour.
+- **The Cue image** is `cue-launch.webp`, the Cue launch image from the
+  official launch post, as it ships, in a white framed card behind him.
+
+### The sound: real Mixkit effects, the new default
+
+Every effect is a real recorded Mixkit sound, no elevenlabs effects. The
+method is the dropchad promos': Mixkit's own preview mp3s, each trimmed to its
+first sound, its hit measured as its loudest 10ms and placed on the moment, a
+whoosh layered into an impact for a slam. A ring, a thud, two whooshes, three
+pops, a swoosh, a short bass hit on the flash, a digital glitch. The files and
+their sources are in `demo/assets/sfx-mixkit/LICENSES.md`, ignored: the Mixkit
+Sound Effects Free License allows social video and commercial use but not
+redistributing the files. Mixkit has no real phone vibration, so the ring
+carries the phone alone. The elevenlabs music bed stays, at -27, out for the
+0.25s before line 3.
+
+### The read
+
+eleven_v4, tempo 1.16, three takes a line, checked with elevenlabs speech to
+text. Line 1's t1 transcribed as [outro jingle], so t3 is pinned. Line 3's
+[amused] opens on a short laugh in two takes and dropped so in the third; t2
+is kept, laugh and all. Line 2 was cut to their own email, wallet and
+computer to bring the clip near 10s.
+
+### The ending, an exception to the loop rule
+
+THE BORING TEK holds 1.5s and the clip ends on it, Einz's call: no run back
+into frame 0, no glitch out of the card. The one glitch is the burst into the
+card, and its sound is cut to exactly the rig's own glitch frames at any frame
+rate. The rig has one new opt in, `flash.out: false`, which drops the residue
+glitch out of the card. Earlier clips render the same.
+
+9.97s, 12 effects, -14 LUFS, -1.7 dBTP, 3 glitch frames with 0.05s of glitch
+sound on them. Two critique rounds, all 8, then five fix rounds, Einz's: the
+list layout, line 2 and the retime, two colour rounds, the Mixkit sound and
+the smaller mascot, the ending.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

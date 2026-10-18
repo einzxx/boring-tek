@@ -6,6 +6,43 @@ names in here either.
 
 ## Status
 
+- **2026-10-18. post65 is final and pushed: AI got a phone, 9.97s, voiced,
+  ends on a 1.5s card.** `demo/post65.mjs`, 60fps, out to
+  `demo/out/post65-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post65/`. Write up is **The sixty fifth clip** in
+  `demo/README.md`. Manus 2.0 shipped Cue on 2026-09-28 (not early October,
+  as the brief had it), each agent with its own email, phone number, wallet
+  and computer; source manus.im/blog/introducing-manus-2-0. -14 LUFS,
+  -1.7 dBTP, 12 Mixkit effects, music bed at -27, 3 glitch frames.
+  - **The black kinetic text look won** over hot magenta `#FF2E8A` (read
+    cheap) and warm off white `#F4F1EA` (clean but flat), both rendered and
+    turned down by Einz. Deep black `#050506`, a very soft dark vignette, no
+    dot grid, white Michroma words and white line icons with the end card's
+    deep glow, him with the white glow at 70% of post64's size, green
+    `#3dff6e` only on the active caption word, the answer button, the hook
+    kicks and the one flash.
+  - **The logo comes from the official Manus brand kit**, manus.im/brand
+    (`Manus Brand Assets.zip`), `demo/assets/manus-logo-white.svg`, straight
+    on the black as it ships. The Cue image is from the official launch post,
+    `demo/assets/cue-launch.webp`. Both ignored, never pushed.
+  - **Real Mixkit sound effects are the new default for clips**, elevenlabs
+    effects only when Mixkit has nothing that fits; noted in CLAUDE.md. The
+    method is the dropchad promos'. Files in `demo/assets/sfx-mixkit/`,
+    ignored (the licence forbids redistribution), sources and the licence in
+    its `LICENSES.md`. Mixkit has no real phone vibration.
+  - **The new ending, a named exception to the loop rule:** the glitch sound
+    on exactly the glitch frames into the card, THE BORING TEK held 1.5s, the
+    clip ends on it, no run back into frame 0, no glitch out. Rig opt in
+    `flash.out: false` drops the residue glitch; earlier clips render the
+    same.
+  - **Mixkit files start with silence.** The rig measures each effect from
+    its cue time, so every file is trimmed to its first sound, with at most a
+    short run up before its hit.
+  - **The rig's move filter is lowercase:** `/whoosh|sweep|riser|bass|hum/`.
+    A kind named `mkFastWhoosh` is not a move to it; name kinds in lowercase.
+  - **Speech to text can hear a clean take as [outro jingle]** (line 1 t1).
+    Pin a take that transcribes word for word.
+
 - **2026-10-18. post64 is final and pushed: the fart fact, 11.40s, voiced,
   a 1.4s card.** `demo/post64.mjs`, 60fps, out to
   `demo/out/post64-dark-1080x1920.mp4`, sheets and `review.md` in

@@ -256,6 +256,15 @@ Opt in helpers in `demo/lib/aiafter.mjs`. Earlier clips render the same without 
   `lib/elevenmusic.mjs` ducked under the voice and out for the planned
   silence. Not the old synthesised `lib/sfx.mjs` voices: on a phone they are
   dull thuds. `sfx.mjs` stays for the mix, the ducking and the guards.
+- **From post65, real recorded Mixkit sound effects are the default for
+  clips.** ElevenLabs sound effects only when Mixkit has nothing that fits.
+  The method is the dropchad promos': Mixkit's own preview mp3s, each file
+  trimmed to its first sound, its hit measured as its loudest 10ms and placed
+  on the moment, layered where a move needs it (a whoosh into an impact). The
+  files live in `demo/assets/sfx-mixkit/`, ignored, never pushed: the Mixkit
+  Sound Effects Free License allows social video and commercial use but not
+  redistributing the files. Each file is listed with its id, title and source
+  page in that folder's `LICENSES.md`. The ElevenLabs music bed stays.
 
 ### Critique loop, before Einz sees any preview
 
