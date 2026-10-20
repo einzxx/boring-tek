@@ -175,6 +175,10 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
 - Eyes calm, happy, neutral or squint only. Never wide, never angry. Open and alive
   most of the time. Happy arcs last 0.6s at most.
 - Speech bubbles in the house style, with the two dots, equal gaps.
+- The mascot speaks with its own voice, `MASCOT_VOICE_ID` in `demo/.env`, on
+  `eleven_v4` with the emotion tags acted. Cheeky and fun, talking straight to the
+  camera. The id lives only in `demo/.env`, never in a tracked file or in chat.
+  The narrator voice is only for news stories.
 - 9 to 15 seconds is the normal length. Longer only when Einz says so for that
   clip. 120px safe margin on every edge. The
   bottom 300px stays clear of anything important, for the TikTok and Shorts buttons.
