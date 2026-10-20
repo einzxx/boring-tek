@@ -117,6 +117,10 @@ const ELEVEN_IDS = {
      line a customer says. added for post38. a premade elevenlabs voice, but it
      lives in .env with the other two anyway, so no id is ever in a tracked file. */
   human: process.env.ELEVENLABS_VOICE_ID_HUMAN || ENV.ELEVENLABS_VOICE_ID_HUMAN || '',
+  /* the mascot's own designed voice, from post66: him hosting, talking to the
+     camera. a fourth id beside the old mascot clone, which stays for the clips
+     that used it. */
+  host: process.env.MASCOT_VOICE_ID || ENV.MASCOT_VOICE_ID || '',
 };
 
 /* the key must not reach a terminal, a sidecar or a stack trace. an http error
@@ -137,13 +141,29 @@ const redact = s => {
    filled file rather than a decision to use edge, so it says so once per slot
    and then stops: speak() is called per line and a warning per line is noise. */
 const warnedHalf = new Set();
+/* post66: what a take actually says, elevenlabs speech to text, cached beside
+   the take as <file>.stt.json so a rerun costs nothing. a clip asks for it by
+   name, nothing earlier calls it. */
+export async function hear(file) {
+  const cache = file + '.stt.json';
+  if (fs.existsSync(cache) && fs.statSync(cache).mtimeMs >= fs.statSync(file).mtimeMs) return JSON.parse(fs.readFileSync(cache, 'utf8')).text;
+  if (!ELEVEN_KEY) throw new Error('no elevenlabs key in demo/.env to hear ' + path.basename(file));
+  const fd = new FormData();
+  fd.append('model_id', 'scribe_v1');
+  fd.append('file', new Blob([fs.readFileSync(file)]), path.basename(file));
+  const r = await fetch('https://api.elevenlabs.io/v1/speech-to-text', { method: 'POST', headers: { 'xi-api-key': ELEVEN_KEY }, body: fd });
+  if (!r.ok) throw new Error(redact('speech to text ' + r.status + ': ' + (await r.text()).slice(0, 200)));
+  const text = (await r.json()).text || '';
+  fs.writeFileSync(cache, JSON.stringify({ text }));
+  return text;
+}
 export function elevenReady(which = 'narrator') {
   const id = ELEVEN_IDS[which] || '';
   if (ELEVEN_KEY && id) return true;
   if ((ELEVEN_KEY || id) && !warnedHalf.has(which)) {
     warnedHalf.add(which);
     console.error('  demo/.env carries only half of elevenlabs\' ' + which + ' — '
-      + (ELEVEN_KEY ? ({ mascot: 'ELEVENLABS_VOICE_ID_MASCOT', human: 'ELEVENLABS_VOICE_ID_HUMAN' }[which] || 'ELEVENLABS_VOICE_ID')
+      + (ELEVEN_KEY ? ({ mascot: 'ELEVENLABS_VOICE_ID_MASCOT', human: 'ELEVENLABS_VOICE_ID_HUMAN', host: 'MASCOT_VOICE_ID' }[which] || 'ELEVENLABS_VOICE_ID')
         : 'ELEVENLABS_API_KEY')
       + ' is empty. reading with edge instead.');
   }
@@ -282,6 +302,18 @@ export const VOICES = {
     eleven: { stability: 0.30, similarity: 0.75, style: 0, speakerBoost: true },
     note: 'somebody who is not the agency and not the mascot. a premade voice, '
       + 'casual and a bit lazy, for one line a customer would say.',
+  },
+  /* **the host**, added for post66: the mascot speaking for himself, cheeky
+     and fun, straight to the camera, in his own voice from MASCOT_VOICE_ID.
+     the narrator is for news stories only from here. stability mid, so the
+     eleven_v4 tags are acted rather than flattened. `character: true` keeps
+     him out of NARRATORS. */
+  host: {
+    id: 'en-US-AndrewMultilingualNeural', rate: '0%', pitch: '+4Hz', character: true,
+    elevenId: 'host',
+    eleven: { stability: 0.5, similarity: 0.8, style: 0.2, speakerBoost: true },
+    note: 'the mascot hosting, his own designed voice, cheeky and fun, talking '
+      + 'to the camera.',
   },
 };
 export const DEFAULT_VOICE = 'calm';

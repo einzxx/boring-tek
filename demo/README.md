@@ -10056,6 +10056,90 @@ sound on them. Two critique rounds, all 8, then five fix rounds, Einz's: the
 list layout, line 2 and the retime, two colour rounds, the Mixkit sound and
 the smaller mascot, the ending.
 
+## The sixty sixth clip, real or AI, the first of the series
+
+`demo/post66.mjs`. The first clip of the **real or AI** series: a real photo,
+the question, one second to answer, the reveal. A NASA Juno close up of
+Jupiter's swirling clouds. 11.70s, 60fps, out to
+`demo/out/post66-dark-1080x1920.mp4`, sheets and `review.md` in
+`demo/out/verify-post66/`. Two critique rounds, all 8 or more.
+
+### The series look
+
+post65's deep black with the very soft vignette and no dot grid. The photo
+fills most of the frame in a big rounded card with a thin white glow edge.
+Huge white Michroma words with the house deep glow: REAL OR AI? slams over
+the photo on frame 0, WILDER slams over it on line 3. **White and green only,
+no second colour, for the whole series**, Einz's call and noted in CLAUDE.md
+rule 9: green `#3dff6e` is the active caption word, the REAL button when it
+is stamped, the ring at the reveal and the one full screen flash. The mascot
+is the host, small in the lower right with the dark clips' white glow.
+
+The beats: REAL and AI buttons pop in under the card on their words, a ring
+timer drains round the card's own edge in exactly one second with a ticking
+clock and no voice, then REAL is stamped green, a two frame green flash, the
+title whips out and a slow zoom into the swirl runs to the end. NASA JUNO
+MISSION rises into the card on NASA. The reveal lands at 35% of the runtime.
+
+### The photo and its license
+
+`demo/assets/jupiter-juno.jpg`, ignored, never pushed, the clip stops if it
+is missing. **PIA21978, Jupiter's swirling cloud formations**, taken by
+JunoCam on 2018-02-07, from
+https://www.jpl.nasa.gov/images/pia21978-jupiters-swirling-cloud-formations/.
+The credit as published: Enhanced image by Kevin M. Gill (CC-BY) based on
+images provided courtesy of NASA/JPL-Caltech/SwRI/MSSS. **CC BY, not NC, not
+SA.** The clip shows the credit small at the bottom of the card the whole
+time: image NASA JPL Caltech SwRI MSSS, processing Kevin M. Gill, CC BY,
+cropped. "Cropped" because the license asks for changes to be said. The post
+caption carries the full credit line and the source page, since the page
+names no license version to link. The details are in
+`demo/assets/LICENSES.md`, ignored with the photo.
+
+Why not a public domain image: every vivid Juno close up on NASA's sites
+names an outside processor, and most of those carry a CC license. The images
+credited to NASA alone are early grey or pale frames. One of them, PIA21032,
+was tried and turned down as too grey for the question to work. CC BY-NC-SA
+images are out, the channel promotes a business.
+
+### His own voice
+
+The mascot speaks for himself, cheeky and fun, to the camera, in his own
+designed voice from `MASCOT_VOICE_ID` in `demo/.env`. The id is never in a
+tracked file. The narrator is for news stories only. Three lines on
+eleven_v4, three takes a line, sped up 1.16 with atempo, pitch kept. **Every
+take is heard back with elevenlabs speech to text and kept only if it gives
+the line back word for word**, so a tag read aloud or a contraction is out:
+line 2's t1 came back with a laugh in it and was dropped.
+
+The rig opt ins, both in `lib/aiafter.mjs`'s `readLines`, and earlier clips
+read exactly the same takes without them:
+
+- `voice: 'host'`: the new slot in `lib/voice.mjs`, a fourth elevenlabs id,
+  `MASCOT_VOICE_ID`, beside the narrator, the old mascot clone and the human.
+- `hear: true`: speech to text on every take, cached beside the take as
+  `<file>.stt.json`. `hear()` in `lib/voice.mjs`, the key redacted from any
+  error like every other elevenlabs path.
+
+### The sound
+
+Real Mixkit effects, as post65. Two new files in `demo/assets/sfx-mixkit/`,
+logged in its `LICENSES.md`: Fast wall clock ticking (1063), cut to exactly
+the one second countdown, and Correct answer fast notification (953).
+Mixkit has no stamp, so the stamp is that ding over the impact of a blow.
+A whoosh into a thud on the frame 0 slam, two pops for the buttons, a whoosh
+as the title whips out, a whoosh as the label rises, a swoosh and thud on
+WILDER, the glitch on its frames. A playful elevenlabs music bed at -27,
+ducked under the words and out for the countdown. -14 LUFS, -1.6 dBTP, 12 effects, 3 glitch frames, every effect at least 8.5dB over the music.
+
+### The ending, now the house default
+
+One glitch into THE BORING TEK after the last word, its sound on exactly the
+glitch frames, the card held 1.5s, the clip ends on it. No run back into
+frame 0, no glitch out. post65's exception, made the default in CLAUDE.md
+rules 10 and 11 on 2026-10-20, and the loop seam score in the critique loop
+is now the glitch sound landing on the glitch frames.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

@@ -6,6 +6,45 @@ names in here either.
 
 ## Status
 
+- **2026-10-20. post66 is final and pushed: real or AI, the first clip of
+  the real or AI series, 11.70s, voiced, ends on the 1.5s card.**
+  `demo/post66.mjs`, 60fps, out to `demo/out/post66-dark-1080x1920.mp4`,
+  sheets and `review.md` in `demo/out/verify-post66/`. Write up is **The
+  sixty sixth clip** in `demo/README.md`. Two critique rounds, all 8 or
+  more. -14 LUFS, -1.6 dBTP, 12 Mixkit effects, music bed at -27, 3 glitch
+  frames. 11.7s over the brief's 8 to 10 was Einz's ok.
+  - **The real or AI series:** a real photo in a big rounded card on post65's
+    black, REAL OR AI? slams on frame 0, REAL and AI buttons, a one second
+    ring timer round the card with a ticking clock and no voice, REAL stamped
+    green with a green flash, a slow zoom to the end. **White and green only,
+    no second colour, for the whole series** (CLAUDE.md rule 9 exception).
+  - **The mascot speaks with his own voice.** `MASCOT_VOICE_ID` in
+    `demo/.env`, a designed voice, cheeky and fun, to the camera; the
+    narrator is for news stories only. Never print the id. Rig opt ins in
+    `readLines`: `voice: 'host'` (the new slot in `lib/voice.mjs`) and
+    `hear: true` (speech to text on every take, a take that does not give
+    the line back word for word is out). Earlier clips read the same takes.
+  - **The photo:** PIA21978, Jupiter's swirling cloud formations, JunoCam
+    2018-02-07, jpl.nasa.gov/images/pia21978-jupiters-swirling-cloud-formations/,
+    enhanced by Kevin M. Gill, **CC BY**. On screen the whole time at the
+    bottom of the card: image NASA JPL Caltech SwRI MSSS, processing Kevin M.
+    Gill, CC BY, cropped. The post caption must carry the full credit and the
+    source page. `demo/assets/jupiter-juno.jpg`, ignored, with
+    `demo/assets/LICENSES.md`.
+  - **Vivid Juno close ups are almost never public domain.** Every colourful
+    one names an outside processor; NASA only credits are early grey frames.
+    Use CC BY, never CC BY-NC-SA (the channel promotes a business).
+  - **The ending is now the house default**, CLAUDE.md rules 10 and 11: one
+    glitch into THE BORING TEK, its sound on exactly its frames, the card
+    held 1.5s, no run back into frame 0. The critique's loop seam score is
+    now the glitch sound on the glitch frames.
+  - **Mixkit has no stamp sound.** The stamp is Correct answer fast
+    notification (953) over Impact of a blow. The tick is Fast wall clock
+    ticking (1063), cut to the second.
+  - **The gap guard wants 0.25s between lines**, and a bed regenerated for a
+    new length can bury a pop: the rig fails an effect under 6dB over the
+    music.
+
 - **2026-10-18. post65 is final and pushed: AI got a phone, 9.97s, voiced,
   ends on a 1.5s card.** `demo/post65.mjs`, 60fps, out to
   `demo/out/post65-dark-1080x1920.mp4`, sheets and `review.md` in

@@ -189,7 +189,7 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
 - Before any code, show Einz the beat sheet, each beat with its second and its
   sound, and wait for the ok.
 - Render one still per beat before the full render.
-- When the clip can loop, the last frame matches the first.
+- Clips end on THE BORING TEK card, see rules 10 and 11 below.
 - The hook reads in the first 1 second, not 2.
 
 ### Retention rules, from the post51 to post61 audit
@@ -223,21 +223,22 @@ Karaoke captions
 Colour
 9. One bright second colour per clip, as post60 used magenta, alongside green, plus
    one full screen colour flash at the payoff that flips straight back. Clips only:
-   the site keeps green as its single accent.
+   the site keeps green as its single accent. **Exception, the real or AI series
+   from post66:** white and green only, no second colour, the flash is green.
 
-Ending and loop
-10. No full end card. **Test, from 2026-10-15:** a short glitch flash of THE
-    BORING TEK, under 0.5s, after the last word. Compare the numbers against the
-    end card clips before making it permanent.
-11. The last frame matches frame 0, and the last line runs straight back into
-    the first.
+Ending
+10. **The default ending, from post65, Einz's call 2026-10-20:** after the last
+    word, one glitch into THE BORING TEK card, the glitch sound exactly on the
+    glitch frames. The card holds 1.5s and the clip ends on it.
+11. No run back into frame 0 and no glitch out of the card. The clip does not
+    loop.
 12. The brand lives inside the clip: the mascot, plus a small wordmark during the
     hook.
 
 Check
 13. The critique loop below carries four retention scores: hook reads in the first
-    second, longest dead stretch, captions readable on the 360px phone sheet, loop
-    seam invisible.
+    second, longest dead stretch, captions readable on the 360px phone sheet, the
+    glitch sound on exactly the glitch frames into the card.
 
 ### Camera, transitions, type and sound
 
@@ -278,7 +279,8 @@ Opt in helpers in `demo/lib/aiafter.mjs`. Earlier clips render the same without 
    hook in the first 1 second, readable at phone size, motion quality, something new
    every 1.5 to 3 seconds, composition, mascot rules followed, sound sync if there is
    sound. Plus the four retention scores: hook reads in the first second, longest
-   dead stretch, captions readable on the 360px phone sheet, loop seam invisible.
+   dead stretch, captions readable on the 360px phone sheet, the glitch sound on
+   exactly the glitch frames into the card.
 3. Write the scores and the 3 worst problems with timestamps to
    `demo/out/verify-postNN/review.md`. Fix them, re render, repeat until every score
    is 8 or more. Max 3 rounds.

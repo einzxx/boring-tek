@@ -85,7 +85,7 @@ import {
 } from './mascot.mjs';
 import { brandTokens } from './captions.mjs';
 import { EASE as K, bezier } from './motion.mjs';
-import { speak, VOICE_OUT, elevenReady } from './voice.mjs';
+import { speak, VOICE_OUT, elevenReady, elevenIdOf, hear } from './voice.mjs';
 import { SR, decode, writeWav, applyGain, limit, loudness, renderList, voiceEnvelope, mixdown, checkUnderVoice, describeMix, master } from './sfx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -425,22 +425,22 @@ function audioEdges(pcm) {
    the alignment as a word of its own, so it is dropped from the words and
    from the count */
 const isTag = w => /^\[[^\]]*\]$/.test(String(w).trim());
-async function oneTake(post, L, i, n, model = V.model) {
+async function oneTake(post, L, i, n, model = V.model, voice = V.voice, hearIt = false) {
   /* v3 keeps its old names so every cached take still matches */
   const tagOf = model === 'eleven_v3' ? 'v3' : model.replace(/^eleven_/, '');
   const want = L.text, name = 'post' + post + '-' + L.key + '-' + tagOf + 't' + n;
-  const cached = path.join(VOICE_OUT, name + '-' + V.voice + '.json');
+  const cached = path.join(VOICE_OUT, name + '-' + voice + '.json');
   let g = null;
   if (fs.existsSync(cached)) {
     const j = JSON.parse(fs.readFileSync(cached, 'utf8'));
-    if (j.text === want && j.provider === 'elevenlabs' && j.elevenId === 'narrator' && j.model === model && j.speed === (L.speed ?? V.speed) && fs.existsSync(j.file)) g = j;
+    if (j.text === want && j.provider === 'elevenlabs' && j.elevenId === elevenIdOf(voice) && j.model === model && j.speed === (L.speed ?? V.speed) && fs.existsSync(j.file)) g = j;
   }
   if (!g) {
     /* a line may ask for its own `speed`, site what we build's slower first line */
-    try { g = await speak(want, { voice: V.voice, name, speed: L.speed ?? V.speed, model, ...V.set }); }
+    try { g = await speak(want, { voice, name, speed: L.speed ?? V.speed, model, ...V.set }); }
     catch (e) { console.error('\nSTOPPED. elevenlabs failed on ' + name + ': ' + (e && e.message || e)); process.exit(1); }
   }
-  if (g.provider !== 'elevenlabs' || g.elevenId !== 'narrator' || g.model !== model) { console.error('\nSTOPPED. ' + name + ' came back from ' + g.provider + ' ' + g.model + '.'); process.exit(1); }
+  if (g.provider !== 'elevenlabs' || g.elevenId !== elevenIdOf(voice) || g.model !== model) { console.error('\nSTOPPED. ' + name + ' came back from ' + g.provider + ' ' + g.model + '.'); process.exit(1); }
   if (g.timing !== 'engine') { console.error('\nSTOPPED. ' + name + ' has estimated timings and the picture is cut to the read.'); process.exit(1); }
   /* `tempo`, optional, post55: the take sped up after it comes back, ffmpeg's
      atempo, pitch kept, and its word times with it. a line asks for it by
@@ -449,7 +449,7 @@ async function oneTake(post, L, i, n, model = V.model) {
   const k = L.tempo ?? 1;
   let file = g.file;
   if (k !== 1) {
-    file = path.join(VOICE_OUT, name + '-' + V.voice + '-at' + Math.round(k * 1000) + '.wav');
+    file = path.join(VOICE_OUT, name + '-' + voice + '-at' + Math.round(k * 1000) + '.wav');
     if (!fs.existsSync(file) || fs.statSync(file).mtimeMs < fs.statSync(g.file).mtimeMs) {
       const r = spawnSync(ffmpeg, ['-y', '-v', 'error', '-i', g.file, '-filter:a', 'atempo=' + k, '-ac', '1', '-ar', String(SR), file]);
       if (r.status !== 0) { console.error('\nSTOPPED. atempo failed on ' + name + ': ' + (r.stderr || '').toString().slice(0, 200)); process.exit(1); }
@@ -466,17 +466,26 @@ async function oneTake(post, L, i, n, model = V.model) {
   t.dur = +(edge.end - edge.start).toFixed(3);
   if (t.hole > 0.6) { t.ok = false; t.why.push('a ' + t.hole + 's hole'); }
   if (t.tail > 0.5) { t.ok = false; t.why.push('sound ' + t.tail + 's after the last word'); }
+  /* `hear`, optional, post66: speech to text on the take, which must give
+     back the words as written, so a tag read aloud or a contraction is out */
+  if (hearIt) {
+    t.heard = await hear(file);
+    if (letters(t.heard) !== letters(want.split(/\s+/).filter(x => !isTag(x)).join(' '))) { t.ok = false; t.why.push('heard "' + t.heard + '"'); }
+  }
   return t;
 }
 /* `opts.model`, optional, post51: another elevenlabs model, eleven_v4 for
-   the tags. v3 by default, so every earlier clip reads exactly as before */
+   the tags. v3 by default, so every earlier clip reads exactly as before.
+   `opts.voice` and `opts.hear`, optional, post66: another voice slot, the
+   host for the mascot's own voice, and a speech to text check on every take.
+   without them it is the narrator, unheard, as before */
 export async function readLines(post, LINES, tries = 3, opts = {}) {
-  const model = opts.model || V.model;
-  if (!elevenReady('narrator')) { console.error('\nSTOPPED. elevenlabs is not set up for the narrator in demo/.env.'); process.exit(1); }
+  const model = opts.model || V.model, voice = opts.voice || V.voice;
+  if (!elevenReady(elevenIdOf(voice))) { console.error('\nSTOPPED. elevenlabs is not set up for the ' + elevenIdOf(voice) + ' in demo/.env.'); process.exit(1); }
   const out = [];
   for (let i = 0; i < LINES.length; i++) {
     const all = [];
-    for (let n = 1; n <= tries; n++) all.push(await oneTake(post, LINES[i], i, n, model));
+    for (let n = 1; n <= tries; n++) all.push(await oneTake(post, LINES[i], i, n, model, voice, !!opts.hear));
     const good = all.filter(x => x.ok);
     if (!good.length) { console.error('\nSTOPPED. no usable take of line ' + (i + 1) + ': ' + all.map(x => x.why.join(', ')).join(' | ')); process.exit(1); }
     const mid = good.map(x => x.dur).sort((x, y) => x - y)[Math.floor((good.length - 1) / 2)];
