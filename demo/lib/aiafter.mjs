@@ -421,6 +421,19 @@ function audioEdges(pcm) {
   while (b > a && !loud(b)) b--;
   return { start: +(a * 0.005).toFixed(4), end: +((b + 1) * 0.005).toFixed(4) };
 }
+/* post67: speech to text writes numbers as digits, "$8,000" for eight
+   thousand dollars, so a heard take has its numbers spelled out before it is
+   held to the line. a line with no digits in what is heard compares as before */
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+function numWords(n) {
+  if (n < 20) return ONES[n];
+  if (n < 100) return TENS[Math.floor(n / 10)] + (n % 10 ? ' ' + ONES[n % 10] : '');
+  if (n < 1000) return ONES[Math.floor(n / 100)] + ' hundred' + (n % 100 ? ' ' + numWords(n % 100) : '');
+  for (const [k, w] of [[1e9, 'billion'], [1e6, 'million'], [1e3, 'thousand']]) if (n >= k) return numWords(Math.floor(n / k)) + ' ' + w + (n % k ? ' ' + numWords(n % k) : '');
+  return String(n);
+}
+const spelled = s => s.replace(/(\$)?(\d[\d,]*)/g, (_, cur, d) => numWords(+d.replace(/,/g, '')) + (cur ? ' dollars' : ''));
 /* post51: an audio tag like [curious] is acted, not read. it comes back in
    the alignment as a word of its own, so it is dropped from the words and
    from the count */
@@ -470,7 +483,7 @@ async function oneTake(post, L, i, n, model = V.model, voice = V.voice, hearIt =
      back the words as written, so a tag read aloud or a contraction is out */
   if (hearIt) {
     t.heard = await hear(file);
-    if (letters(t.heard) !== letters(want.split(/\s+/).filter(x => !isTag(x)).join(' '))) { t.ok = false; t.why.push('heard "' + t.heard + '"'); }
+    if (letters(spelled(t.heard)) !== letters(want.split(/\s+/).filter(x => !isTag(x)).join(' '))) { t.ok = false; t.why.push('heard "' + t.heard + '"'); }
   }
   return t;
 }
@@ -859,16 +872,18 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   const outside = r => r.l < SB.l - 0.5 || r.t < SB.t - 0.5 || r.r > SB.r + 0.5 || r.b > SB.b + 0.5;
   const box = r => [r.l, r.t, r.r, r.b].map(v => v.toFixed(1)).join(' / ');
 
-  /* the hook: everything on and whole at frame 0 */
+  /* the hook: everything on and whole at frame 0. `mascot.away`, optional,
+     post67's full screen template: he is off at frame 0 and pops in at any
+     size, so he is left out of the frame 0 checks. earlier clips render the same */
   await put(0, 0);
-  for (const sel of [...(SERIES ? ['#aa-title', '#aa-tag'] : []), '#m-card', ...(G.hook || [])]) {
+  for (const sel of [...(SERIES ? ['#aa-title', '#aa-tag'] : []), ...(M.away ? [] : ['#m-card']), ...(G.hook || [])]) {
     const r = await rect(sel);
     if (!r || r.o < 0.99) fails.push('frame 0: ' + sel + ' is not fully on (' + (r ? r.o.toFixed(2) : 'hidden') + ')');
   }
   const m0 = await rect('#m-card');
   /* through a camera at frame 0, post45 landscape: the whole stage drawn smaller */
   const drawn = M.size * (M.scale ?? 1) * ((G.camera && G.camera(0)) || { s: 1 }).s;
-  if (m0 && Math.abs(m0.w - drawn) > drawn * 0.06) fails.push('frame 0: he is ' + m0.w.toFixed(1) + ' wide, not ' + drawn);
+  if (!M.away && m0 && Math.abs(m0.w - drawn) > drawn * 0.06) fails.push('frame 0: he is ' + m0.w.toFixed(1) + ' wide, not ' + drawn);
   /* the title lockup and the tag stay apart, and he stays under the title */
   const t0 = await rect('#aa-title'), g0 = await rect('#aa-tag');
   if (t0 && g0 && g0.b > t0.t - 2) fails.push('the ep tag touches the title');

@@ -10140,6 +10140,201 @@ frame 0, no glitch out. post65's exception, made the default in CLAUDE.md
 rules 10 and 11 on 2026-10-20, and the loop seam score in the critique loop
 is now the glitch sound landing on the glitch frames.
 
+## The sixty seventh clip, the AI agent hacker
+
+`demo/post67.mjs`. The first clip on the full screen template. One hacker,
+a team of AI agents, a hundred companies targeted in five days, about eight
+thousand dollars for six hundred thousand credit cards, caught leaving his
+own servers open. 14.75s, 60fps, out to `demo/out/post67-dark-1080x1920.mp4`,
+sheets and `review.md` in `demo/out/verify-post67/`. Two critique rounds,
+all 8 or more, then two fix rounds, Einz's. -14 LUFS, -1.6 dBTP, 15
+Mixkit effects, no music, 3 glitch frames, all guards green.
+
+### The facts
+
+From Forbes, Thomas Brewster, 2026-09-22, A Chinese Hacker Used AI To
+Attack 100+ Companies, read through its Forbes Australia syndication: a
+Chinese speaking hacker, AI agents, as many as 100 organisations targeted,
+at least 30 sites accessed, five days, September 10 to 15, about 8,000
+dollars all in, at least 618,000 credit card records, found by Gambit
+Security because the attack servers were left open online. The clip says
+targeted, not broke into. A Reuters follow up on 2026-10-19 gives other
+numbers, over 1,200 sites tried and about 5,000 dollars; the clip keeps to
+Forbes.
+
+### The footage
+
+Four Pexels clips, ignored, never pushed, each logged in
+`demo/assets/LICENSES.md`: a masked hooded figure at code screens, a network
+switch in blue light, code screens in a red room, a hooded figure from
+behind. **The Pexels license forbids showing identifiable people in a bad
+light**, so a hacker story uses only masked, back view or empty shots; a
+clip of a recognisable man holding a bank card was turned down. Pexels needs
+no credit, so the clip carries none. 618,000 sits on the dark wall beside
+the hooded figure, a calm stretch, so it reads at a glance.
+
+### The read and the sound
+
+His own voice on eleven_v4, three takes a line at 1.16, every take heard
+back; line 1 on [excited]. Lines 2 and 3 were rewritten shorter by Einz in
+the second fix round. Pauses trimmed to 0.18s, `tighten: 0.18`. No music,
+the platforms add it: only real Mixkit effects, one sound a moment, and the
+glitch cut to the glitch frames into the card.
+
+## The full screen template
+
+`demo/lib/fullscreen.mjs`, from post67. A new format: real footage filling
+the whole phone screen, his voice over it, huge captions on top. One call
+makes a 10 to 15 second 1080x1920 clip on the same rig as post66, so the
+read, the render, the glitch into the card, the mix and every guard are
+the rig's own.
+
+### How to make one
+
+Put the footage in `demo/assets/`, ignored, never pushed, and log its source
+page and license in `demo/assets/LICENSES.md`. Then a `postNN.mjs` is one call:
+
+    import { fullscreen } from './lib/fullscreen.mjs';
+
+    await fullscreen({
+      post: 67,
+      footage: 'assets/booster-catch.mp4',
+      lines: [
+        '[excited] this rocket just caught itself.',
+        { text: '[amused] no landing legs. giant arms.', pause: 0.45 },
+        '[cheerful] boring is hard.',
+      ],
+      shots: [
+        { at: 0, src: 41.2 },
+        { at: 'giant', src: 12.0, focus: [0.5, 0.4] },
+        { at: 'boring', src: 63.5, speed: 0.7 },
+      ],
+      punches: [{ at: 'caught' }, { at: 'arms', by: 0.15 }],
+      big: [{ at: 0, text: 'CAUGHT' }, { at: 'arms', text: 'ARMS', green: true }],
+      payoff: 'giant',
+      mascot: { corner: 'tr', react: [{ at: 'caught', mood: 'squint' }, { at: 'boring', mood: 'happy' }] },
+    });
+
+Then, as every clip:
+
+    node postNN.mjs --takes     read the lines, print the words, stop
+    node postNN.mjs --stills    one still per beat, no render, no sound
+    DEMO_FPS=12 node postNN.mjs the preview
+    node postNN.mjs             60fps, then the critique loop
+
+**A time is seconds or a spoken word.** `'giant'` is the first time the read
+says it, `'giant#2'` the second, so everything moves with the takes.
+
+### The options
+
+- `lines`: the read, a string or `{ text, take, pause }`. His own voice,
+  `voice: 'host'`, eleven_v4, three takes a line, every take heard back with
+  speech to text, tempo 1.16. Line 1's first word lands at 0.2s, the lines
+  0.25s apart, and `pause` is a planned silence before a line.
+- `footage`: one file, or a named set, `{ hood: 'assets/a.mp4', rack:
+  'assets/b.mp4' }`, and each shot picks one with `clip`. The first is the
+  default.
+- `shots`: from `at` the footage plays from `src` seconds. The first is at 0
+  and should be the payoff image or the strangest frame, already moving
+  (rule 1). `speed` under 1 is slow motion, each frame blended into the next.
+  **No two shots may share source frames of one file**, post62's rule, and the run stops
+  if they do.
+- `focus: [x, y]`, 0 to 1, pins a shot's crop. Without it **the crop is
+  found**: ffmpeg reads the shot at 128px, grey, ten frames a second, every
+  pixel scores its edges plus three times its change since the last frame,
+  and the vertical window holding the most of it wins, with a small pull to
+  the middle. The centre is smoothed both ways in time and held to a slow
+  drift, so it follows the action and never jitters. The run prints each
+  shot's focus.
+- `punches`: a punch in, 12% by default, held to the end of its shot, with
+  an optional `focus` to punch toward.
+- `big`: a few big Michroma words, white or `green: true`, fitted to 380px
+  and 96px tall at most, slammed in on their word at 30% of the height,
+  out after `hold` (1.2s) or at the next one. At 0 one is mid slam on frame 0.
+- `payoff`: two green frames, a hit and a kick, and the music out for the
+  0.4s before it, the planned silence.
+- `mascot`: null for none, or a corner, `tl`, `tr`, `bl` or `br`, and
+  `react: [{ at, mood, for }]`. **He is small, the plain white head with
+  his white deep glow floating on the footage, no disc and no ring**, Einz's
+  call 2026-10-21. He pops in with a small overshoot for each reaction and
+  out after `for` (1.4s). Moods: happy (an arc under 0.6s),
+  squint, look (at the middle of the frame), neutral.
+- `pages`: optional `[[line, 'one to three words']]`. Without it the read is
+  split into pages of up to three words and 14 letters, broken at every
+  full stop and comma, lowercase but for words in capitals like AI.
+- `credit`: one or two short lines, small, at the bottom just over the app
+  zone, **only for footage whose license asks for a credit**. Pexels and
+  Mixkit do not, so their clips carry none. No dashes or colons.
+- `music`: **none by default**, Einz's call 2026-10-21: the clip gets its
+  music on the platforms. `{ prompt, level }` adds an elevenlabs bed only
+  when a clip wants one.
+- `tighten`: the longest pause kept inside a line, 0.3s by default, or
+  false. See The pause trim below.
+- `name`: another name for the outputs, a test that should not touch a post.
+
+### What it draws
+
+- **The footage fills the frame, no bars, no dot grid.** Each shot's frames
+  are cut once to jpegs at the clip's fps in `demo/out/postNN-src/` and cut
+  again only when the footage or the range moves. Every move is clamped to
+  keep the frame covered and a guard checks it on every shot. A slow 4% push
+  on every shot, a kick from 1.08 on every cut, and the first shot dropping
+  in from 1.2 on frame 0, so something big moves in the first 0.5s (rule 3).
+- **The captions**: Space Grotesk 500 at **92px. This template breaks rule
+  7's 72px cap, Einz's call on 2026-10-20**, so the words hold their own over
+  moving footage. White with a soft dark shadow and a faint dark band behind
+  them so they read on any picture, the word being said green `#3dff6e`, at
+  62% of the height, each page popping in over 0.15s. A wide page comes down
+  to 72px, never under. Word timing is the voice's own.
+- The small wordmark through the first 1.6s, rule 12.
+- **The ending, post65's**: one glitch into THE BORING TEK after the last
+  word, its sound cut to exactly the glitch frames, the card 1.5s, the end.
+
+### The sound
+
+The real Mixkit files in `demo/assets/sfx-mixkit/`, each trimmed to its first
+sound and its loudest 10ms put on the moment: a swoosh and a thud on frame 0,
+a fast whoosh on every cut, an arrow whoosh on every punch that is not a cut,
+a thud on every big word, a short bass hit on the payoff, a light pop when he
+pops in, the digital glitch cut to the glitch frames. One sound a moment: a
+big word on a cut lets the cut's whoosh carry it, and a punch on a cut, a
+big word or his pop stays quiet. No music bed by default. -14 LUFS, -1
+dBTP, the rig's guard on the effects under the voice. Count the effects
+against the five per ten seconds rule when planning the punches.
+
+### The pause trim
+
+eleven_v4 holds about 0.7s at every full stop, mostly a breath, which on a
+short clip is dead air. `tighten(T, max)` cuts each pause inside a line down
+to `max`, keeping half of it on each side, with a 5ms crossfade, and moves
+the word times with the cut. The pause between two words is the longest run
+under a gate between the start of the first and a little past the aligner's
+start of the second: -18dB after a full stop or a question mark, so the
+breath goes with the silence as an editor would, -40dB anywhere else, true
+silence only. A word's own sound, its onset and a fricative tail, is louder
+and bounds the run.
+
+**It once clipped words.** The first version took the first quiet 20ms after
+a word as the start of its pause, and the stop at the k in hacker is a quiet
+20ms, so the end of the word went. It also trusted the aligner's start for
+the next word, which can come 0.2s late. The longest run fixes both: a stop
+inside a word is far shorter than any pause. post67's trimmed takes were
+heard back with speech to text, word for word, before the render.
+
+### What it changed in the rig
+
+Two changes in `lib/aiafter.mjs`, and earlier clips render and read the same:
+
+- `mascot.away`, opt in: he may be off at frame 0 and drawn at any size, so
+  he is left out of the frame 0 checks. Only the guards read it. post66's
+  stills rendered on the old and the new rig differ only by the same render
+  noise two runs of the old rig show.
+- **The speech to text check spells numbers out.** It writes "$8,000" for
+  eight thousand dollars, so every clean take of a line with a number
+  failed. Digits in what is heard are now spelled, a `$` adding dollars,
+  before it is held to the line. A take heard with no digits compares as
+  before.
+
 ## The two voices — a second elevenlabs clone, and why it is a clone
 
 `lib/voice.mjs`, since 2026-09-11.

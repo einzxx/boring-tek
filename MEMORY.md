@@ -6,6 +6,51 @@ names in here either.
 
 ## Status
 
+- **2026-10-21. post67 is final and pushed: the AI agent hacker, 14.75s,
+  the first clip on the new full screen template.** `demo/post67.mjs`,
+  60fps, out to `demo/out/post67-dark-1080x1920.mp4`, sheets and
+  `review.md` in `demo/out/verify-post67/`. Write ups are **The sixty
+  seventh clip** and **The full screen template** in `demo/README.md`. Two
+  critique rounds all 8 or more, two fix rounds, Einz's. 14.75s over the
+  10 to 14 brief was Einz's ok. -14 LUFS, -1.6 dBTP, 15 Mixkit effects,
+  no music, 3 glitch frames, all guards green.
+  - **The full screen template, `demo/lib/fullscreen.mjs`:** real footage
+    over the whole phone screen from one file or a named set, a found or
+    pinned vertical crop per shot, never a bar, punch ins, big Michroma
+    words, karaoke captions, his own voice at 1.16 heard back, Mixkit
+    effects, post65's ending. **Its defaults, Einz's calls 2026-10-20 and
+    21:** captions 92px, a named exception to rule 7's 72px cap for this
+    template only, a wide page down to 72px never under; **no credit line**
+    unless the footage license asks for one (Pexels and Mixkit do not);
+    **the mascot with no disc or ring**, just his white head and white deep
+    glow floating in a corner, popping in per reaction; **no music bed**,
+    the platforms add music, a bed only by opt in; one sound a moment.
+  - **The facts:** Forbes, Thomas Brewster, 2026-09-22, read through
+    Forbes Australia. One Chinese speaking hacker, AI agents, as many as
+    100 organisations targeted, at least 30 sites accessed, five days, Sept
+    10 to 15, about 8,000 dollars all in, at least 618,000 card records,
+    found by Gambit Security because the attack servers were left open.
+    The clip says targeted. A later Reuters account (2026-10-19) has other
+    numbers; the clip keeps to Forbes.
+  - **The footage:** four Pexels clips in `demo/assets/`, ignored, logged
+    in its `LICENSES.md`. **Pexels forbids showing identifiable people in a
+    bad light**, so a hacker or thief story uses only masked, back view or
+    empty shots.
+  - **The pause trim, `tighten`:** eleven_v4 holds about 0.7s at every full
+    stop, mostly a breath. The template cuts each pause inside a line to
+    0.3s by default, 0.18s on post67. **The first version clipped words**:
+    a stop inside a word, the k in hacker, read as a pause's start, and the
+    aligner's next word start can come 0.2s late. Now the pause is the
+    longest run under a gate between two word starts, -18dB after a full
+    stop, -40dB else, and post67's trimmed takes were heard back word for
+    word.
+  - **Speech to text writes numbers as digits**, "$8,000": the hear check
+    in `lib/aiafter.mjs` now spells digits out before comparing. Rig opt in
+    `mascot.away` skips his frame 0 checks. Earlier clips render the same.
+  - **JAXA footage is out:** commercial use needs permission and cropping is
+    forbidden. **SpaceX's Flickr media has been CC BY-NC 2.0**, out like any
+    NC licence; not rechecked, check before any use.
+
 - **2026-10-20. post66 is final and pushed: real or AI, the first clip of
   the real or AI series, 11.70s, voiced, ends on the 1.5s card.**
   `demo/post66.mjs`, 60fps, out to `demo/out/post66-dark-1080x1920.mp4`,
