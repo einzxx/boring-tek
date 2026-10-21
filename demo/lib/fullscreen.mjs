@@ -140,6 +140,17 @@ function autoFocus(file, src, A, D) {
   }
   return pts.map(p => ({ s: f3(p.s), x: f3(p.x), y: f3(p.y) }));
 }
+/* the source second a shot shows at clip time u. a shot with no ramp is a
+   straight line; a ramped one is its speed curve summed in 1/1200s steps */
+function srcAt(S, u) {
+  const t = Math.min(Math.max(u, S.at), S.end ?? u);
+  if (!S.ramp) return S.src + S.speed * (t - S.at);
+  const v = x => S.ramp.reduce((sp, r) => (x < r.at ? sp : lerp(sp, r.to, smooth(span(x, r.at, r.at + r.over)))), S.speed);
+  const dt = 1 / 1200;
+  let s = S.src, x = S.at;
+  for (; x + dt <= t; x += dt) s += v(x + dt / 2) * dt;
+  return s + v((x + t) / 2) * (t - x);
+}
 const focusAt = (pts, s) => {
   if (s <= pts[0].s) return pts[0];
   for (let i = 1; i < pts.length; i++) if (s < pts[i].s) { const q = (s - pts[i - 1].s) / (pts[i].s - pts[i - 1].s); return { x: lerp(pts[i - 1].x, pts[i].x, q), y: lerp(pts[i - 1].y, pts[i].y, q) }; }
@@ -234,7 +245,7 @@ export function tighten(T, max) {
 const backOut = q => 1 + 2.70158 * (q - 1) ** 3 + 1.70158 * (q - 1) ** 2;
 
 /* ---------- the sound kit, real Mixkit files in demo/assets/sfx-mixkit ----------
-   [file, peak dB, run up before the hit] */
+   [file, peak dB, run up before the hit, and optional, its length in seconds] */
 const KIT = {
   swooshwhoosh: ['mixkit-3115-fast-transitions-swoosh.mp3', -17, 0.1],
   fastwhoosh: ['mixkit-1490-fast-whoosh-transition.mp3', -18, 0.3],
@@ -253,9 +264,9 @@ function highPass(src, hz) {
 }
 /* each file trimmed to its first sound, at most its run up before its loudest
    10ms, and that hit is what lands on the moment */
-function loadKit() {
+function loadKit(extra = {}) {
   const MK = path.join(DEMO, 'assets', 'sfx-mixkit'), PEAK = {};
-  for (const [k, [file, gain, runUp]] of Object.entries(KIT)) {
+  for (const [k, [file, gain, runUp, len]] of Object.entries({ ...KIT, ...extra })) {
     if (!fs.existsSync(path.join(MK, file))) stop('demo/assets/sfx-mixkit/' + file + ' is missing, see its LICENSES.md for the source.');
     const raw = Float32Array.from(decode(ffmpeg, path.join(MK, file)));
     let pk = 0; for (const v of raw) pk = Math.max(pk, Math.abs(v));
@@ -264,8 +275,10 @@ function loadKit() {
     const Wn = Math.round(0.01 * SR); let best = 0, at = onset;
     for (let i = 0; i + Wn < raw.length; i += Wn) { let e = 0; for (let j = i; j < i + Wn; j++) e += raw[j] * raw[j]; if (e > best) { best = e; at = i; } }
     const a = Math.max(onset, at - Math.round(runUp * SR));
-    const b = Float32Array.from(raw.subarray(a));
+    const b = Float32Array.from(raw.subarray(a, len ? a + Math.round(len * SR) : raw.length));
     const fi = Math.round(0.004 * SR); for (let i = 0; i < fi && i < b.length; i++) b[i] *= i / fi;
+    /* a file cut to a length fades out over its last 60ms */
+    if (len) { const fo = Math.round(0.06 * SR); for (let i = 0; i < fo && i < b.length; i++) b[b.length - 1 - i] *= i / fo; }
     PEAK[k] = Math.max(0, at - a) / SR;
     VOICES[k] = () => b; GAINS[k] = gain;
   }
@@ -283,20 +296,30 @@ function loadKit() {
                footage whose license asks for a credit. Pexels does not
    lines       the read: '[tag] text' or { text, take, pause }. `pause` is a
                planned silence before the line, the payoff's
-   shots       [{ at, clip, src, speed, focus, push }]: from `at` the footage `clip` plays
+   shots       [{ at, clip, src, speed, ramp, focus, push }]: from `at` the footage `clip` plays
                from `src` seconds. the first is at 0. `focus` [x, y] in 0..1
                pins the crop, else it is found. `speed` under 1 is slow motion,
-               blended frame to frame. no two shots may share source frames
+               blended frame to frame. `ramp` [{ at, to, over }] eases the speed
+               to `to` over `over` seconds, 0.15 by default, from `at`: a speed
+               ramp inside the shot. a ramp holds frames rather than blending
+               them, a blend of a fast move reads as two ghosts. no two shots may share source frames
    punches     [{ at, by, focus }]: a punch in, `by` 0.12 by default
    big         [{ at, text, hold, green }]: a big word slams in. at 0 it is
                mid slam on frame 0
    payoff      a time: the green flash, a hit, a bed if there is one out just before it
-   mascot      null, or { corner: 'tl' | 'tr' | 'bl' | 'br', react: [{ at, mood, for }] },
-               mood happy, squint, look or neutral
+   mascot      null, or { corner: 'tl' | 'tr' | 'bl' | 'br', react: [{ at, mood, for, quiet }] },
+               mood happy, squint, look or neutral. `quiet` pops him in with
+               no pop sound, for a moment that already has its own
    pages       optional [[line, 'one to three words']], else split from the read
    say         optional { '2028': 'twenty twenty eight' } for pages
    music       none by default. { prompt, level } only if a clip wants a bed
    tighten     the longest pause kept inside a line, 0.3s, or false
+   shake       optional [{ at, amp }]: a small camera shake on a hit, `amp` css px,
+               4 by default, gone in about 0.3s, inside the cover
+   hold        optional, seconds held after the last line before the glitch, 0
+   kit         optional { name: [file, peak dB, run up, length] }, more Mixkit
+               files from demo/assets/sfx-mixkit, logged in its LICENSES.md
+   sounds      optional [{ at, kind, from }]: a cue of the kit on a moment
    ========================================================================== */
 export async function fullscreen(C) {
   const NAME = C.name || 'post' + C.post;
@@ -336,7 +359,7 @@ export async function fullscreen(C) {
     throw new Error('no word "' + ref + '" in the read: ' + ALLW.map(q => q.word).join(' '));
   };
   /* the house ending: one glitch into THE BORING TEK, held 1.5s, the end */
-  const FL = { at: f3(LAST.end + 0.05), for: 1.5, card: true, out: false };
+  const FL = { at: f3(LAST.end + 0.05 + (C.hold ?? 0)), for: 1.5, card: true, out: false };
   const END = f3(FL.at + FL.for);
   const PAY = C.payoff != null ? when(C.payoff) : null;
 
@@ -352,17 +375,20 @@ export async function fullscreen(C) {
   const SHOTS = C.shots.map(s => {
     const clip = s.clip ?? Object.keys(FILES)[0];
     if (!MEDIA[clip]) throw new Error('no footage named ' + clip + ', only ' + Object.keys(FILES).join(', '));
-    return { ...s, clip, at: when(s.at), speed: s.speed ?? 1, push: s.push ?? 0.04 };
+    return { ...s, clip, at: when(s.at), speed: s.speed ?? 1, push: s.push ?? 0.04,
+      ramp: s.ramp ? s.ramp.map(r => ({ at: when(r.at), to: r.to, over: r.over ?? 0.15 })).sort((a, b) => a.at - b.at) : null };
   }).sort((a, b) => a.at - b.at);
   if (SHOTS[0].at !== 0) throw new Error('the first shot starts at 0');
   SHOTS.forEach((S, k) => {
     S.k = k; S.end = k + 1 < SHOTS.length ? SHOTS[k + 1].at : FL.at;
-    S.A = Math.max(0, S.src - 2 / FPS); S.D = f3(S.speed * (S.end - S.at) + 4 / FPS);
+    /* a shot with no ramp keeps the exact sum it always had */
+    S.len = S.ramp ? srcAt(S, S.end) - S.src : S.speed * (S.end - S.at);
+    S.A = Math.max(0, S.src - 2 / FPS); S.D = f3(S.len + 4 / FPS);
     const M = MEDIA[S.clip];
-    if (S.src + S.speed * (S.end - S.at) > M.secs + 1e-3) throw new Error('shot ' + (k + 1) + ' runs past the end of ' + S.clip + ', ' + M.secs.toFixed(2) + 's');
+    if (S.src + S.len > M.secs + 1e-3) throw new Error('shot ' + (k + 1) + ' runs past the end of ' + S.clip + ', ' + M.secs.toFixed(2) + 's');
   });
   /* Einz's rule from post62: no shot repeats, no replays of the same moment */
-  for (const a of SHOTS) for (const b of SHOTS) if (a.k < b.k && a.clip === b.clip && a.src < b.src + b.speed * (b.end - b.at) && b.src < a.src + a.speed * (a.end - a.at)) {
+  for (const a of SHOTS) for (const b of SHOTS) if (a.k < b.k && a.clip === b.clip && a.src < b.src + b.len && b.src < a.src + a.len) {
     throw new Error('shots ' + (a.k + 1) + ' and ' + (b.k + 1) + ' show the same source frames');
   }
   const DIR = path.join(DEMO, 'out', NAME + '-src');
@@ -371,11 +397,18 @@ export async function fullscreen(C) {
     const st = cutFrames(path.join(DIR, 's' + S.k + '-' + FPS), file, SRC, S.A, S.D);
     S.ew = st.ew; S.eh = st.eh; S.dir = path.join(DIR, 's' + S.k + '-' + FPS);
     S.count = fs.readdirSync(S.dir).filter(f => f.endsWith('.jpg')).length;
-    S.track = S.focus ? [{ s: S.src, x: S.focus[0], y: S.focus[1] }] : autoFocus(file, SRC, S.src, Math.max(0.2, S.speed * (S.end - S.at)));
-    const mid = focusAt(S.track, S.src + S.speed * (S.end - S.at) / 2);
-    console.log('  shot ' + (S.k + 1) + ' at ' + S.at.toFixed(2) + 's, ' + S.clip + ' from ' + S.src + 's' + (S.speed !== 1 ? ' at ' + S.speed : '') + ', ' + (S.focus ? 'pinned' : 'found') + ' focus ' + mid.x.toFixed(2) + ', ' + mid.y.toFixed(2));
+    S.track = S.focus ? [{ s: S.src, x: S.focus[0], y: S.focus[1] }] : autoFocus(file, SRC, S.src, Math.max(0.2, S.len));
+    const mid = focusAt(S.track, S.src + S.len / 2);
+    console.log('  shot ' + (S.k + 1) + ' at ' + S.at.toFixed(2) + 's, ' + S.clip + ' from ' + S.src + 's' + (S.speed !== 1 ? ' at ' + S.speed : '') + (S.ramp ? ', ramped' : '') + ', ' + (S.focus ? 'pinned' : 'found') + ' focus ' + mid.x.toFixed(2) + ', ' + mid.y.toFixed(2));
   }
   const PUNCH = (C.punches || []).map(p => ({ ...p, at: when(p.at), by: p.by ?? 0.12 }));
+  const SHAKE = (C.shake || []).map((p, i) => ({ at: p.at === 0 ? 0 : when(p.at), amp: p.amp ?? 4, i }));
+  /* the shake: a decaying wobble, 0.3s, two unrelated frequencies a hit */
+  const shakeAt = u => SHAKE.reduce((o, p) => {
+    if (u < p.at || u > p.at + 0.35) return o;
+    const e = p.amp * Math.exp(-(u - p.at) / 0.09);
+    return { x: o.x + e * Math.sin((u - p.at) * 88 + p.i * 1.7), y: o.y + e * Math.cos((u - p.at) * 71 + p.i * 2.3), e: o.e + e };
+  }, { x: 0, y: 0, e: 0 });
   const BIG = (C.big || []).map((b, i) => ({ ...b, id: 'bw' + i, at: b.at === 0 ? SLAM0 : when(b.at) })).sort((a, b) => a.at - b.at);
   BIG.forEach((b, i) => { b.out = f3(Math.min(b.at + (b.hold ?? 1.2), i + 1 < BIG.length ? BIG[i + 1].at : FL.at)); });
 
@@ -411,7 +444,8 @@ export async function fullscreen(C) {
     let k = 0;
     while (k + 1 < SHOTS.length && u >= SHOTS[k + 1].at) k++;
     const S = SHOTS[k];
-    const s = S.src + S.speed * (Math.min(Math.max(u, S.at), S.end) - S.at);
+    const s = srcAt(S, u);
+    const sk = shakeAt(u);
     let z = 1 + S.push * CURVE.dolly(span(u, S.at, S.end));
     z *= k === 0 ? lerp(1.2, 1, CURVE.out(span(u, SLAM0, SLAM0 + 0.45))) : lerp(1.08, 1, CURVE.out(span(u, S.at, S.at + 0.22)));
     let fo = focusAt(S.track, s);
@@ -422,6 +456,8 @@ export async function fullscreen(C) {
       if (p.focus) fo = { x: lerp(fo.x, p.focus[0], q), y: lerp(fo.y, p.focus[1], q) };
     }
     if (PAY != null) z *= 1 + 0.05 * hitPulse(u - PAY, 0.02, 0.12);
+    /* the shake zooms in just enough to keep its own wobble covered */
+    if (sk.e) z *= 1 + 2.2 * sk.e / W;
     z = Math.min(z, 1.45);
     /* cover, then the focus to the middle, then clamped so it stays covered */
     const k0 = Math.max(W / S.ew, H / S.eh) * z, dw = S.ew * k0, dh = S.eh * k0;
@@ -429,7 +465,8 @@ export async function fullscreen(C) {
     tx = Math.min(0, Math.max(W - dw, tx)); ty = Math.min(0, Math.max(H - dh, ty));
     /* the payoff kicks the frame, inside the cover */
     if (PAY != null && u >= PAY && u < PAY + 0.3) { const e = Math.exp(-(u - PAY) / 0.07); tx = Math.min(0, Math.max(W - dw, tx + 6 * e * Math.sin((u - PAY) * 90))); }
-    const p = (s - S.A) * FPS, n = S.speed === 1 ? Math.round(p) : Math.floor(p + 1e-6), bf = S.speed === 1 ? 0 : f3(p - n);
+    if (sk.e) { tx = Math.min(0, Math.max(W - dw, tx + sk.x)); ty = Math.min(0, Math.max(H - dh, ty + sk.y)); }
+    const p = (s - S.A) * FPS, n = S.speed === 1 || S.ramp ? Math.round(p) : Math.floor(p + 1e-6), bf = S.speed === 1 || S.ramp ? 0 : f3(p - n);
     return { k, n, bf, tr: 'translate(' + f2(tx) + 'px,' + f2(ty) + 'px) scale(' + (k0).toFixed(5) + ')' };
   }
   const jpg = (k, n) => {
@@ -563,7 +600,7 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
   const onGrid = (t, len) => { const n = Math.max(1, Math.round(len * FPS)); return { t0: Math.round(t * FPS) / FPS, n, secs: n / FPS }; };
   const GA = onGrid(FL.at - 0.05, 3 / 60);
   async function sound() {
-    const PEAK = loadKit();
+    const PEAK = loadKit(C.kit);
     const GR = (() => {
       const src = VOICES.mkGlitch(), fl = Math.round(SR / 60), lv = [];
       for (let a = 0; a + fl < src.length; a += Math.round(fl / 2)) { let e = 0; for (let i = a; i < a + fl; i++) e += src[i] * src[i]; lv.push({ off: a / SR, e }); }
@@ -589,7 +626,8 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
       ...PUNCH.filter(p => !near(p.at, [...SHOTS.slice(1).map(S => S.at), ...BIG.map(b => b.at), ...BUBW.map(([a]) => a)])).map(p => on(peakAt(p.at, p.at + 0.16, CURVE.cam), 'arrowwhoosh', 'the punch in at ' + p.at)),
       ...BIG.filter(b => b.at > 0.3 && !near(b.at, SHOTS.slice(1).map(S => S.at))).map(b => on(b.at + 0.03, 'thud', b.text + ' lands')),
       ...(PAY != null ? [on(PAY, 'basshit', 'the payoff')] : []),
-      ...BUBW.map(([a]) => on(a + 0.02, 'popLight', 'he pops in')),
+      ...BUBW.filter(([a]) => !REACT.some(r => r.quiet && Math.abs(r.at - 0.08 - a) < 1e-6)).map(([a]) => on(a + 0.02, 'popLight', 'he pops in')),
+      ...(C.sounds || []).map(c => on(when(c.at), c.kind, c.from || c.kind)),
       { t: GA.t0, kind: 'stutA', from: 'glitch burst into the wordmark, on its frames' },
     ].map(c => ({ ...c, t: +Math.max(0, c.t).toFixed(4) }));
     if (!C.music) return { sfx: { cues: CUES, level: -9, duck: 0.6 } };

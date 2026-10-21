@@ -6,6 +6,35 @@ names in here either.
 
 ## Status
 
+- **2026-10-22. post68 is final and pushed: made with AI, the first clip
+  of the made with AI format, 14.27s.** `demo/post68.mjs`, 60fps, out to
+  `demo/out/post68-dark-1080x1920.mp4`, sheets and `review.md` in
+  `demo/out/verify-post68/`. Write ups are **The sixty eighth clip** and
+  **The made with AI format** in `demo/README.md`. Two critique rounds all
+  8 or more, then his pop on the crash dropped, Einz's. -14 LUFS, -1.7
+  dBTP, 20 Mixkit effects (a sound on every cut and hit, the brief's, over
+  the house five a ten seconds), no music, 3 glitch frames, all guards green.
+  - **The made with AI format:** build the thing for real on a timer, say
+    only a true time rounded honestly, real footage of the result, the exact
+    prompt and the real file, then three steps.
+  - **The game is real:** `demo/games/head-flap/index.html`, one file, built
+    in 56.9s on a timer, from the first look at the mascot svg to a smoke
+    tested file. The clip says about a minute, and 57 SECONDS as the big word.
+  - **The footage is ours:** `node post68.mjs --capture` plays the game in
+    headless chrome with an autopilot, seven gaps then a crash, and records
+    the prompt being typed and the file scrolling, to `demo/assets/`, ignored.
+  - **Green and white only, no second colour,** a named exception to rule 9,
+    Einz's call: the game is green on black.
+  - **Template opt ins, Einz's ok:** `shake`, a `ramp` inside a shot (holds
+    frames, no blend, a blend of a fast move reads as two ghosts), `hold`
+    after the last line, `kit` and `sounds` for more Mixkit files, and
+    `quiet` on a mascot reaction, a pop with no pop sound. post67's
+    22 stills are pixel identical before and after. Its stills already
+    differ run to run at 76dB PSNR or better, so compare pixels, not bytes.
+  - **Mixkit:** Arcade retro game over (213) and Fast keyboard typing (1387),
+    in its `LICENSES.md`. On Mixkit's category pages each preview id comes
+    before its title in the markup. curl gets reset, PowerShell downloads.
+
 - **2026-10-21. post67 is final and pushed: the AI agent hacker, 14.75s,
   the first clip on the new full screen template.** `demo/post67.mjs`,
   60fps, out to `demo/out/post67-dark-1080x1920.mp4`, sheets and

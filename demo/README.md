@@ -10181,6 +10181,65 @@ the second fix round. Pauses trimmed to 0.18s, `tighten: 0.18`. No music,
 the platforms add it: only real Mixkit effects, one sound a moment, and the
 glitch cut to the glitch frames into the card.
 
+## The sixty eighth clip, made with AI
+
+`demo/post68.mjs`. The first made with AI clip: the result first, then how.
+**A real game, built by Claude Code in 56.9s on a timer**, from the first
+look at the mascot svg to a smoke tested file, so the voice says about a
+minute and the big word says 57 SECONDS. 14.27s, 60fps, out to
+`demo/out/post68-dark-1080x1920.mp4`, sheets and `review.md` in
+`demo/out/verify-post68/`. Two critique rounds, all 8 or more, on the
+12fps preview, then his pop on the crash dropped, Einz's. -14 LUFS, -1.7
+dBTP, 20 Mixkit effects, no music, 3 glitch frames, all guards green. **Green and white only, no second colour, a named exception
+to rule 9, Einz's call 2026-10-22: the game is green on black.**
+
+### The game
+
+`demo/games/head-flap/index.html`. One file, no libraries, tracked. His
+white head with its deep three layer glow and the two pill eyes of
+`assets/mascot.svg` (squinting on a flap, flat when he is out), glowing green
+`#3dff6e` bars on black, tap or space to fly, a score that pops, a game over
+screen with the best score. A fixed 60Hz step, so it plays the same at any
+frame rate; `?manual` hands the clock to a script, `window.headflap.tick()`.
+Open the file and play.
+
+### The footage, ours, captured
+
+`node post68.mjs --capture` writes three files to `demo/assets/`, ignored,
+regenerable: the game played in headless chrome at 60fps, 1080x1920, by an
+autopilot that flaps when he sinks under a point a little below the next
+gap's middle, seven gaps, then hands off, the crash at 12.62s and 2.5s of
+game over; the exact prompt typed at a `>` prompt, 110 characters a
+second; the real file scrolling top to bottom over 3.4s, dimmed, with a
+dark band behind the caption zone so the words over it read.
+
+### The read and the sound
+
+His own voice, four lines, every take heard back word for word, pauses
+trimmed to 0.18s. The crash lands on play: a speed ramp to 0.35, a shake, a
+thud and Mixkit's Arcade retro game over, his squint popping in quiet. The
+prompt shot has Mixkit's Fast keyboard typing under it, cut to 2.4s. No
+music. A sound on every cut and hit, as the brief asked, so 20 effects, over
+the house five a ten seconds on purpose.
+
+## The made with AI format
+
+From post68. An outcome showcase: something real, made with AI, shown
+working first, then how, in three steps.
+
+- **Build the thing for real and time it.** The clip may only say a time
+  that is true, rounded honestly. The timer starts before the first look at
+  anything for the build and stops at a tested, working file.
+- **Real footage only**: the result captured playing, the exact prompt
+  typed, the real file scrolling. Scripted inputs are fine, a faked result
+  is not.
+- Frame 0 is the result already working full screen, a huge MADE WITH AI.
+- Lines: the claim with the true time, here is how, step one, step two,
+  step three. A cut or punch every 0.8 to 1.2s, a shake on the hit words, a
+  speed ramp on the funny moment, a STEP word on each step.
+- On the full screen template, with `ramp`, `shake`, `hold`, `kit` and
+  `sounds`.
+
 ## The full screen template
 
 `demo/lib/fullscreen.mjs`, from post67. A new format: real footage filling
@@ -10271,6 +10330,25 @@ says it, `'giant#2'` the second, so everything moves with the takes.
 - `tighten`: the longest pause kept inside a line, 0.3s by default, or
   false. See The pause trim below.
 - `name`: another name for the outputs, a test that should not touch a post.
+
+From post68, opt ins, Einz's ok 2026-10-22. A clip without them renders as
+before: post67's 22 stills are pixel identical with and without them.
+
+- `ramp: [{ at, to, over }]` on a shot: the speed eases to `to` over
+  `over` (0.15s) from `at`, a speed ramp inside the shot. **A ramp holds
+  frames, it never blends them**: post68's first preview blended the crash
+  and showed two ghost heads.
+- `shake: [{ at, amp }]`: a small camera shake on a hit, `amp` css px (4),
+  gone in about 0.3s. It zooms in just enough to keep its own wobble covered.
+- `hold`: seconds held after the last line before the glitch, 0 by
+  default, so a picture that pays off after the last word has time to read.
+- `kit: { name: [file, peak dB, run up, length] }`: more Mixkit files from
+  `demo/assets/sfx-mixkit/`, each logged in its `LICENSES.md`. `length`
+  cuts a long file, with a 60ms fade out.
+- `sounds: [{ at, kind, from }]`: a kit cue on a moment, its loudest 10ms
+  on it.
+- `quiet: true` on a mascot reaction: he pops in with no pop sound, for a
+  moment that already has its own.
 
 ### What it draws
 
