@@ -17,8 +17,8 @@
 
      frame 0   the game mid run, MADE WITH AI mid slam, a shake
      l1        i made this game ...   punches on with and about, cut on minute
-                                      to the game later, 57 SECONDS, he pops in
-                                      happy, a punch on how
+                                      to the game later, 57 SECONDS, a punch
+                                      on how
      l2        step one ...           cut to the prompt typing, STEP 1, the keys,
                                       punches on Claude and type
      l3        step two ...           cut to the code scrolling, STEP 2, a punch
@@ -26,7 +26,7 @@
                                       flash, a shake
      l4        step three ...         cut to the game, STEP 3, a punch on open,
                                       the crash on play: a speed ramp to 0.35, a
-                                      shake, the game over sound, he squints
+                                      shake, the thud and the game over sound
      the game over held 0.9s, a punch in on it
      THE BORING TEK, one glitch in, a 1.5s card, the end
 
@@ -56,6 +56,12 @@ const PROMPT = 'build a small fun browser game in demo/games/head-flap/index.htm
   + 'tap or space to fly, a score counter, a game over screen.';
 
 const FPS = 60;
+/* where the text sits in the two text captures, css px of the 540x960 frame.
+   sized so it stays in the TikTok safe zone through the shot's push and
+   punches, up to about 1.19 on both, and handed to the
+   template as each shot's `keep`, which checks it on every frame */
+const PROMPT_BOX = [106, 170, 406, 580], CODE_BOX = [112, 196, 404, 566];
+const keep = b => [b[0] / 540, b[1] / 960, b[2] / 540, b[3] / 960];
 /* the game run: seed 7, seven gaps, then hands off for the crash, 2.5s of game over */
 const SEED = 7, GAPS = 7, AFTER = 2.5;
 
@@ -101,17 +107,31 @@ async function capture() {
     return page.screenshot({ type: 'jpeg', quality: 95 });
   });
 
-  /* 2. the prompt, typed out on a black terminal, 110 characters a second,
-     then held with the cursor blinking */
+  /* 2. the prompt, typed out on a black terminal, 110 characters a second
+     after a short lead of the bare cursor, then held with it blinking. the
+     block is wrapped to PROMPT_BOX's width and centred in its height on the
+     whole prompt, so it types down from a fixed top */
+  const [pl, pt, pr, pb] = PROMPT_BOX;
   await page.setContent(`<!doctype html><meta charset="utf-8"><style>
     html,body{margin:0;background:#050506;width:540px;height:960px;overflow:hidden}
-    #t{position:absolute;left:44px;right:44px;top:120px;font:500 25px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#f4f7f5;white-space:pre-wrap;word-break:break-word}
-    #d{position:absolute;left:44px;top:72px;font:500 20px ui-monospace,Menlo,Consolas,monospace;color:#3dff6e}
+    #w{position:absolute;left:${pl}px;width:${pr - pl}px}
+    #t{font:500 20px/1.45 ui-monospace,Menlo,Consolas,monospace;color:#f4f7f5;white-space:pre-wrap;word-break:break-word}
+    #d{font:500 18px/1 ui-monospace,Menlo,Consolas,monospace;color:#3dff6e;margin-bottom:12px}
     i{display:inline-block;width:.6em;height:1.1em;vertical-align:-.2em;background:#3dff6e}
-  </style><div id="d">~/boring-tek</div><div id="t"></div>`);
-  const RATE = 110, TYPE = Math.ceil(PROMPT.length / RATE * FPS), HOLD = Math.round(1.5 * FPS);
-  await record('post68-prompt', TYPE + HOLD, async f => {
-    const n = Math.min(PROMPT.length, Math.ceil((f + 1) * RATE / FPS));
+  </style><div id="w"><div id="d">~/boring-tek</div><div id="t"></div></div>`);
+  const box = await page.evaluate((txt, pt, pb) => {
+    const w = document.getElementById('w'), t = document.getElementById('t');
+    t.textContent = '> ' + txt; t.appendChild(document.createElement('i'));
+    w.style.top = ((pt + pb) / 2 - w.offsetHeight / 2) + 'px';
+    const r = w.getBoundingClientRect();
+    return [r.left, r.top, r.right, r.bottom];
+  }, PROMPT, pt, pb);
+  if (box[0] < pl - 0.5 || box[1] < pt - 0.5 || box[2] > pr + 0.5 || box[3] > pb + 0.5) throw new Error('the prompt does not fit PROMPT_BOX: ' + box.map(v => v.toFixed(1)).join(' / '));
+  console.log('  the prompt block ' + box.map(v => v.toFixed(0)).join(' / ') + ' css');
+  const RATE = 110, LEAD = Math.round(0.25 * FPS), TYPE = Math.ceil(PROMPT.length / RATE * FPS), HOLD = Math.round(1.5 * FPS);
+  await record('post68-prompt', LEAD + TYPE + HOLD, async f0 => {
+    const f = f0 - LEAD;
+    const n = f < 0 ? 0 : Math.min(PROMPT.length, Math.ceil((f + 1) * RATE / FPS));
     const on = f < TYPE || Math.floor((f - TYPE) / 30) % 2 === 0;
     await page.evaluate((txt, on) => {
       const t = document.getElementById('t'); t.textContent = '> ' + txt;
@@ -121,16 +141,18 @@ async function capture() {
   });
 
   /* 3. the real file, scrolling from the top to the bottom over 3.4s, easing in
-     so it ends fast. dimmed, and darker still behind the caption zone, so the
-     words over it read */
+     so it ends fast, in a window the size of CODE_BOX that fades out at its
+     top and bottom edges. the captions sit under it, on black */
   const src = fs.readFileSync(GAME, 'utf8').replace(/\r/g, '').split('\n');
+  const [cl, ct, cr, cb] = CODE_BOX, VIEW = cb - ct;
   await page.setContent(`<!doctype html><meta charset="utf-8"><style>
     html,body{margin:0;background:#050506;width:540px;height:960px;overflow:hidden}
-    #c{position:absolute;left:0;top:0;width:540px;font:400 15px/1.55 ui-monospace,Menlo,Consolas,monospace;color:#8f9792;will-change:transform}
-    #band{position:absolute;left:0;right:0;top:470px;height:260px;background:linear-gradient(rgba(5,5,6,0),rgba(5,5,6,.88) 30%,rgba(5,5,6,.88) 70%,rgba(5,5,6,0))}
-    .l{display:flex;padding-right:16px}.n{flex:0 0 46px;text-align:right;padding-right:14px;color:#3a3f3c}
-    .x{white-space:pre-wrap;word-break:break-all}.k{color:#2fb856}.s{color:#7c8c82}.m{color:#4a534e}
-  </style><div id="c"></div><div id="band"></div>`);
+    #v{position:absolute;left:${cl}px;top:${ct}px;width:${cr - cl}px;height:${VIEW}px;overflow:hidden;
+      -webkit-mask-image:linear-gradient(transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+    #c{position:absolute;left:0;top:0;width:100%;font:400 12px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#aab1ad;will-change:transform}
+    .l{display:flex}.n{flex:0 0 28px;text-align:right;padding-right:8px;color:#3a3f3c}
+    .x{flex:1;min-width:0;white-space:pre-wrap;word-break:break-all}.k{color:#3dff6e}.s{color:#8c9c92}.m{color:#545e58}
+  </style><div id="v"><div id="c"></div></div>`);
   await page.evaluate(lines => {
     const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
     const paint = s => /^\s*\/\//.test(s) ? '<span class="m">' + esc(s) + '</span>'
@@ -139,9 +161,9 @@ async function capture() {
     document.getElementById('c').innerHTML = lines.map((s, i) => `<div class="l"><span class="n">${i + 1}</span><span class="x">${paint(s)}</span></div>`).join('');
   }, src);
   const tall = await page.evaluate(() => document.getElementById('c').scrollHeight);
-  const SCROLL = Math.round(3.4 * FPS), TRAVEL = tall - 960 + 40;
+  const SCROLL = Math.round(3.4 * FPS), TRAVEL = tall - VIEW + 24;
   await record('post68-code', SCROLL, async f => {
-    const q = f / (SCROLL - 1), y = 40 - TRAVEL * (q * q * (3 - 2 * q) * 0.35 + q * q * 0.65);
+    const q = f / (SCROLL - 1), y = 24 - TRAVEL * (q * q * (3 - 2 * q) * 0.35 + q * q * 0.65);
     await page.evaluate(y => { document.getElementById('c').style.transform = `translateY(${y}px)`; }, y);
     return page.screenshot({ type: 'jpeg', quality: 95 });
   });
@@ -166,13 +188,13 @@ await fullscreen({
   shots: [
     { at: 0, clip: 'game', src: 4.0 },
     { at: 'minute', clip: 'game', src: 7.5 },
-    { at: 'step', clip: 'prompt', src: 0, focus: [0.5, 0.5] },
-    { at: 'step#2', clip: 'code', src: 0, focus: [0.5, 0.5] },
+    { at: 'step', clip: 'prompt', src: 0, focus: [0.5, 0.5], keep: keep(PROMPT_BOX) },
+    { at: 'step#2', clip: 'code', src: 0, focus: [0.5, 0.5], keep: keep(CODE_BOX) },
     /* the crash is at 12.62s in the capture: from 10.615s it lands on play,
        the speed easing down to 0.35 into the hit and back up 0.28s later */
     { at: 'step#3', clip: 'game', src: 10.615, ramp: [{ at: 'play', to: 0.35, over: 0.1 }, { at: 11.78, to: 1, over: 0.2 }] },
   ],
-  punches: [{ at: 'with' }, { at: 'about' }, { at: 'how' }, { at: 'claude', by: 0.07 }, { at: 'type', by: 0.07 }, { at: 'all' }, { at: 'open#2' }, { at: 12.2, by: 0.08 }],
+  punches: [{ at: 'with' }, { at: 'about' }, { at: 'how' }, { at: 'claude', by: 0.07 }, { at: 'type', by: 0.07 }, { at: 'all', by: 0.08 }, { at: 'open#2' }, { at: 12.2, by: 0.08 }],
   big: [
     { at: 0, text: 'MADE WITH AI' },
     { at: 'minute', text: '57 SECONDS', green: true },
@@ -194,5 +216,6 @@ await fullscreen({
     { at: 'play', kind: 'thud', from: 'he hits the bar' },
     { at: 'play', kind: 'gameover', from: 'the game over' },
   ],
-  mascot: { corner: 'tr', react: [{ at: 'minute', mood: 'happy', for: 0.9 }, { at: 'play', mood: 'squint', for: 1.2, quiet: true }] },
+  /* no floating mascot, Einz's call 2026-10-22: the game head is him in this clip */
+  mascot: null,
 });

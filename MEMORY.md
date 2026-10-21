@@ -11,9 +11,18 @@ names in here either.
   `demo/out/post68-dark-1080x1920.mp4`, sheets and `review.md` in
   `demo/out/verify-post68/`. Write ups are **The sixty eighth clip** and
   **The made with AI format** in `demo/README.md`. Two critique rounds all
-  8 or more, then his pop on the crash dropped, Einz's. -14 LUFS, -1.7
-  dBTP, 20 Mixkit effects (a sound on every cut and hit, the brief's, over
+  8 or more, then two fix rounds, Einz's: the TikTok safe zone, and **no
+  floating mascot, the game head is him in this clip**. -14 LUFS, -1.7
+  dBTP, 19 Mixkit effects (a sound on every cut and hit, the brief's, over
   the house five a ten seconds), no music, 3 glitch frames, all guards green.
+  - **The TikTok safe zone is the full screen template's default, Einz's
+    call 2026-10-22:** 140px left, 200 right, 220 top, the bottom 420 clear,
+    at 1080x1920. Footage fills the screen; words, the card and him stay in.
+    Captions at 66%, **over CLAUDE.md rule 8's 60 to 65%, which is not yet
+    updated, Einz to decide.** A guard checks every frame, `keep` boxes for
+    text inside footage. Before the fix post68 had 11 runs outside: every big
+    word in its slam, him, the wordmark, the prompt, the code, one card
+    frame. post67 changes if rendered again.
   - **The made with AI format:** build the thing for real on a timer, say
     only a true time rounded honestly, real footage of the result, the exact
     prompt and the real file, then three steps.

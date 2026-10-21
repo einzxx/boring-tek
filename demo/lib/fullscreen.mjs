@@ -11,6 +11,10 @@
      every move is clamped to keep the frame covered, so there are never bars.
      a slow push on every shot, punch ins on the words asked for, a kick on
      every cut, the first shot dropping in from 1.2 on frame 0.
+   - the TikTok safe zone: the footage fills the screen, but every word, the
+     card and him stay 140px from the left, 200 from the right, 220 from the
+     top and out of the bottom 420, checked on every frame, and text inside
+     the footage too where a shot marks it with `keep`.
    - huge karaoke captions over the footage, Space Grotesk 500 at 92px, white
      with a soft dark shadow so they read on any picture, the word being said
      green #3dff6e. one to three words a page off the real voice timestamps.
@@ -57,16 +61,25 @@ const stop = why => { console.error('\nSTOPPED. ' + why); process.exit(1); };
 const W = 540, H = 960;
 const BLACK = '#050506', GREEN = '#3dff6e', WHITE = '#ffffff';
 const TEMPO = 1.16, GAP = 0.25, SLAM0 = -0.12;
-/* captions at 62% of the height, rule 8, a page at most this wide */
+/* the TikTok safe zone, Einz's call 2026-10-22, the default from post68: in
+   1080x1920 px, 140 from the left, 200 from the right for the like and share
+   buttons, 220 from the top, the bottom 420 for the caption and username.
+   the footage fills the whole screen; every word, card and him stay inside,
+   and a guard checks every frame */
+const SAFE = { l: 140 / 2, t: 220 / 2, r: W - 200 / 2, b: H - 420 / 2 };
+/* captions at 66% of the height, Einz's call 2026-10-22 over rule 8's 60 to
+   65%, centred in the safe zone, a page at most this wide */
 /* 92px, 46 css: **this template breaks rule 7's 72px cap, Einz's call
    2026-10-20,** so the words read over moving footage. a wide page comes
    down to 72px, never under */
-const CAP_Y = 595, CAP_W = 420, CAP_PX = 46, CAP_MIN = 36;
-/* the corners for him, inside the 60px margin and over the app zone */
+const CAP_Y = Math.round(H * 0.66), CAP_W = SAFE.r - SAFE.l - 10, CAP_PX = 46, CAP_MIN = 36;
+/* a big word fits the safe zone at the top of its 1.2 slam */
+const BIG_W = Math.floor((SAFE.r - SAFE.l) / 1.2) - 4;
+/* the corners for him, inside the safe zone */
 const BUB_R = 44;
 const CORNERS = {
-  tl: { x: 60 + BUB_R + 6, y: 100 + BUB_R }, tr: { x: W - 60 - BUB_R - 6, y: 100 + BUB_R },
-  bl: { x: 60 + BUB_R + 6, y: 810 - 40 - BUB_R }, br: { x: W - 60 - BUB_R - 6, y: 810 - 40 - BUB_R },
+  tl: { x: SAFE.l + BUB_R + 6, y: SAFE.t + BUB_R + 6 }, tr: { x: SAFE.r - BUB_R - 6, y: SAFE.t + BUB_R + 6 },
+  bl: { x: SAFE.l + BUB_R + 6, y: SAFE.b - BUB_R - 6 }, br: { x: SAFE.r - BUB_R - 6, y: SAFE.b - BUB_R - 6 },
 };
 const SHADOW = '0 2px 3px rgba(0,0,0,.55),0 0 14px rgba(0,0,0,.55),0 0 34px rgba(0,0,0,.38)';
 
@@ -302,7 +315,9 @@ function loadKit(extra = {}) {
                blended frame to frame. `ramp` [{ at, to, over }] eases the speed
                to `to` over `over` seconds, 0.15 by default, from `at`: a speed
                ramp inside the shot. a ramp holds frames rather than blending
-               them, a blend of a fast move reads as two ghosts. no two shots may share source frames
+               them, a blend of a fast move reads as two ghosts. `keep`
+               [l, t, r, b], 0..1 of the source frame, marks text inside the
+               footage that has to stay in the safe zone through every move no two shots may share source frames
    punches     [{ at, by, focus }]: a punch in, `by` 0.12 by default
    big         [{ at, text, hold, green }]: a big word slams in. at 0 it is
                mid slam on frame 0
@@ -467,7 +482,7 @@ export async function fullscreen(C) {
     if (PAY != null && u >= PAY && u < PAY + 0.3) { const e = Math.exp(-(u - PAY) / 0.07); tx = Math.min(0, Math.max(W - dw, tx + 6 * e * Math.sin((u - PAY) * 90))); }
     if (sk.e) { tx = Math.min(0, Math.max(W - dw, tx + sk.x)); ty = Math.min(0, Math.max(H - dh, ty + sk.y)); }
     const p = (s - S.A) * FPS, n = S.speed === 1 || S.ramp ? Math.round(p) : Math.floor(p + 1e-6), bf = S.speed === 1 || S.ramp ? 0 : f3(p - n);
-    return { k, n, bf, tr: 'translate(' + f2(tx) + 'px,' + f2(ty) + 'px) scale(' + (k0).toFixed(5) + ')' };
+    return { k, n, bf, tx, ty, k0, tr: 'translate(' + f2(tx) + 'px,' + f2(ty) + 'px) scale(' + (k0).toFixed(5) + ')' };
   }
   const jpg = (k, n) => {
     const S = SHOTS[k], fn = path.join(S.dir, 'f' + String(Math.min(n, S.count - 1)).padStart(5, '0') + '.jpg');
@@ -529,18 +544,20 @@ html,body,.stage{background:${BLACK} !important}
 #ft img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 #fb{opacity:0}
 /* a soft dark band behind the captions, no bars */
-#shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 48%,rgba(0,0,0,.26) 62%,rgba(0,0,0,.1) 80%,rgba(0,0,0,.3))}
-#wmk{position:absolute;left:60px;right:60px;top:66px;text-align:center;font:400 11px/1 var(--display);letter-spacing:.34em;text-indent:.34em;color:${WHITE};text-shadow:${SHADOW};z-index:5}
-.bw{position:absolute;left:60px;right:60px;top:${f2(H * 0.3)}px;height:0;display:flex;justify-content:center;align-items:flex-start;opacity:0;z-index:5;will-change:transform,opacity,filter}
+#shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 52%,rgba(0,0,0,.26) 66%,rgba(0,0,0,.1) 82%,rgba(0,0,0,.3))}
+#wmk{position:absolute;left:${SAFE.l}px;right:${W - SAFE.r}px;top:${SAFE.t + 6}px;text-align:center;font:400 11px/1 var(--display);letter-spacing:.34em;text-indent:.34em;color:${WHITE};text-shadow:${SHADOW};z-index:5}
+.bw{position:absolute;left:${SAFE.l}px;right:${W - SAFE.r}px;top:${f2(H * 0.3)}px;height:0;display:flex;justify-content:center;align-items:flex-start;opacity:0;z-index:5;will-change:transform,opacity,filter}
 .bw b{display:block;transform:translateY(-50%);width:max-content;font:400 60px/1 var(--display);letter-spacing:.02em;color:${WHITE};white-space:nowrap;-webkit-text-stroke:2px ${WHITE};text-shadow:${SHADOW}}
 .bw.g b{color:${GREEN};-webkit-text-stroke:2px ${GREEN}}
 #mas-cut{transform-origin:${BUB.x}px ${BUB.y}px;${MC ? 'opacity:0' : 'display:none'}}
 .m-glow-mid{filter:blur(${f2(11 / MAS.scale)}px)}
 .m-glow-wide{filter:blur(${f2(30 / MAS.scale)}px)}
-#cap{position:absolute;left:60px;right:60px;top:${CAP_Y}px;height:0;display:flex;justify-content:center;align-items:flex-start;opacity:0;transform-origin:50% 0;z-index:9;will-change:transform,opacity}
+#cap{position:absolute;left:${SAFE.l}px;right:${W - SAFE.r}px;top:${CAP_Y}px;height:0;display:flex;justify-content:center;align-items:flex-start;opacity:0;transform-origin:50% 0;z-index:9;will-change:transform,opacity}
 #cap b{display:block;transform:translateY(-50%);font:500 ${CAP_PX}px/1 var(--read);color:${WHITE};white-space:nowrap;text-shadow:${SHADOW}}
-#cred{position:absolute;left:60px;right:60px;bottom:${150 + 8}px;text-align:center;font:400 9.5px/1.35 var(--read);letter-spacing:.02em;color:rgba(255,255,255,.86);text-shadow:0 0 4px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.8);z-index:9}
+#cred{position:absolute;left:${SAFE.l}px;right:${W - SAFE.r}px;bottom:${H - SAFE.b + 8}px;text-align:center;font:400 9.5px/1.35 var(--read);letter-spacing:.02em;color:rgba(255,255,255,.86);text-shadow:0 0 4px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.8);z-index:9}
 #flash{position:absolute;inset:0;background:${GREEN};opacity:0;z-index:20}
+/* the card centred in the safe zone, so the glitch into it stays inside too */
+#wm{left:${(SAFE.l + SAFE.r) / 2}px}
 `;
   const markup = `
 <div id="ft"><img id="fa" alt=""><img id="fb" alt=""></div>
@@ -643,6 +660,43 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
     return { sfx: { cues: CUES, level: -9, duck: 0.6 }, music: { pcm: b, level: C.music.level ?? -27, duck: 0.6, under: -14, fx: 6 } };
   }
 
+  /* ---------- the safe zone, on every frame ----------
+     every word, the card and him, measured on the page, and each shot's
+     `keep` box, the text inside the footage, through the shot's moves. a
+     frame outside is logged, and the runs are one fail at the end */
+  function safeChecks() {
+    const LOG = [], out = [];
+    const outside = r => r.l < SAFE.l - 0.5 || r.t < SAFE.t - 0.5 || r.r > SAFE.r + 0.5 || r.b > SAFE.b + 0.5;
+    const FR = Math.round(FL.at * FPS);
+    for (let fr = 0; fr < FR; fr++) {
+      const u = fr / FPS, sh = shotAt(u), S = SHOTS[sh.k];
+      if (!S.keep) continue;
+      const r = { l: sh.tx + S.keep[0] * S.ew * sh.k0, t: sh.ty + S.keep[1] * S.eh * sh.k0, r: sh.tx + S.keep[2] * S.ew * sh.k0, b: sh.ty + S.keep[3] * S.eh * sh.k0 };
+      if (outside(r)) LOG.push({ t: u, what: 'shot ' + (S.k + 1) + ' text in the footage', r });
+    }
+    const sels = ['#cap b', '#wmk', '#m-card', ...BIG.map(b => '#' + b.id + ' b'), ...(CREDIT.length ? ['#cred'] : [])];
+    for (let fr = 0; fr < FR; fr++) for (const sel of sels) {
+      out.push({ at: f3(fr / FPS), sel, test: r => { if (r && r.w && r.o >= 0.05 && outside(r)) LOG.push({ t: fr / FPS, what: sel, r }); return null; } });
+    }
+    for (let fr = FR; fr < Math.round(END * FPS); fr++) {
+      out.push({ at: f3(fr / FPS), sel: '#wm', test: r => { if (r && r.w && r.o >= 0.05 && outside(r)) LOG.push({ t: fr / FPS, what: 'the card', r }); return null; } });
+    }
+    out.push({ at: 0, sel: '#wmk', test: () => {
+      const runs = [];
+      for (const e of LOG.sort((a, b) => a.what.localeCompare(b.what) || a.t - b.t)) {
+        const p = runs[runs.length - 1];
+        const over = Math.max(SAFE.l - e.r.l, SAFE.t - e.r.t, e.r.r - SAFE.r, e.r.b - SAFE.b);
+        if (p && p.what === e.what && e.t - p.b < 1.5 / FPS) { p.b = e.t; p.n++; if (over > p.over) { p.over = over; p.r = e.r; } }
+        else runs.push({ what: e.what, a: e.t, b: e.t, n: 1, over, r: e.r });
+      }
+      const box = r => [r.l, r.t, r.r, r.b].map(v => (v * 2).toFixed(0)).join(' / ');
+      console.log('  safe zone, every frame at ' + FPS + 'fps: ' + (runs.length ? runs.length + ' runs outside' : 'all inside'));
+      for (const p of runs) console.log('    ' + p.what + ', ' + p.a.toFixed(2) + ' to ' + p.b.toFixed(2) + 's, ' + p.n + ' frames, at worst ' + (p.over * 2).toFixed(0) + 'px over, box ' + box(p.r) + ' in 1080x1920');
+      return runs.length ? 'the safe zone: ' + runs.length + ' runs outside, listed above' : null;
+    } });
+    return out;
+  }
+
   /* ---------- the beats, the stills, the run ---------- */
   const BEATS = [...SHOTS.slice(1).map(S => S.at), ...PUNCH.map(p => p.at), ...BIG.map(b => Math.max(0, b.at)), ...REACT.map(r => r.at), ...(PAY != null ? [PAY] : []), FL.at];
   const STILLS = [...new Set([0, 0.3, ...SHOTS.map(S => f3(S.at + 0.15)), ...PUNCH.map(p => f3(p.at + 0.2)), ...BIG.map(b => f3(Math.max(0.3, b.at + 0.3))),
@@ -666,7 +720,7 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
       css, markup, front, overlay, page, frame, face,
       prepare: (t, g) => ({ a: jpg(g.k, g.n), b: g.nb === null ? null : jpg(g.k, g.nb) }),
       ready: true,
-      data: { pages: PAGES.map(P => P.words.map(q => q.txt)), sizes: SHOTS.map(S => [S.ew, S.eh]), bigW: 380, capW: CAP_W, capPx: CAP_PX, capMin: CAP_MIN },
+      data: { pages: PAGES.map(P => P.words.map(q => q.txt)), sizes: SHOTS.map(S => [S.ew, S.eh]), bigW: BIG_W, capW: CAP_W, capPx: CAP_PX, capMin: CAP_MIN },
       sleep: [],
       beats: BEATS,
       checks: ['#cap b', '#wmk', ...BIG.map(b => '#' + b.id + ' b'), ...(CREDIT.length ? ['#cred'] : [])],
@@ -675,7 +729,8 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
       verify: [
         { at: 0, sel: '#fa', test: r => (r && r.l <= 0.5 && r.t <= 0.5 && r.r >= W - 0.5 && r.b >= H - 0.5 ? null : 'the footage does not cover the frame at 0: ' + JSON.stringify(r)) },
         ...SHOTS.map(S => ({ at: f3(Math.min(S.end - 0.02, S.at + 0.5)), sel: '#fa', test: r => (r && r.l <= 0.5 && r.t <= 0.5 && r.r >= W - 0.5 && r.b >= H - 0.5 ? null : 'shot ' + (S.k + 1) + ' leaves a bar: ' + JSON.stringify(r)) })),
-        ...PAGES.map(P => ({ at: f3(P.from + 0.2), sel: '#cap b', test: r => (r && (r.t + r.b) / 2 > H * 0.6 - 4 && (r.t + r.b) / 2 < H * 0.65 + 4 ? null : 'the caption "' + P.txt + '" leaves 60 to 65% of the height: ' + JSON.stringify(r)) })),
+        ...PAGES.map(P => ({ at: f3(P.from + 0.2), sel: '#cap b', test: r => (r && Math.abs((r.t + r.b) / 2 - CAP_Y) < 6 ? null : 'the caption "' + P.txt + '" leaves 66% of the height: ' + JSON.stringify(r)) })),
+        ...safeChecks(),
       ],
       log: [[0, 'frame 0, the footage drops in'], ...SHOTS.slice(1).map(S => [S.at, 'cut to shot ' + (S.k + 1)]), ...PUNCH.map(p => [p.at, 'punch in']),
         ...BIG.map(b => [Math.max(0, b.at), b.text]), ...REACT.map(r => [r.at, 'he pops in, ' + r.mood]), ...(PAY != null ? [[PAY, 'the payoff, the green flash']] : [])],

@@ -10189,9 +10189,12 @@ look at the mascot svg to a smoke tested file, so the voice says about a
 minute and the big word says 57 SECONDS. 14.27s, 60fps, out to
 `demo/out/post68-dark-1080x1920.mp4`, sheets and `review.md` in
 `demo/out/verify-post68/`. Two critique rounds, all 8 or more, on the
-12fps preview, then his pop on the crash dropped, Einz's. -14 LUFS, -1.7
-dBTP, 20 Mixkit effects, no music, 3 glitch frames, all guards green. **Green and white only, no second colour, a named exception
-to rule 9, Einz's call 2026-10-22: the game is green on black.**
+12fps preview. Then two fix rounds, Einz's: everything into the TikTok
+safe zone, and **no floating mascot, the game head is him in this clip**.
+-14 LUFS, -1.7 dBTP, 19 Mixkit effects, no music, 3 glitch frames, all
+guards green, every frame inside the safe zone. **Green and white only, no
+second colour, a named exception to rule 9, Einz's call 2026-10-22: the game
+is green on black.**
 
 ### The game
 
@@ -10209,18 +10212,22 @@ Open the file and play.
 regenerable: the game played in headless chrome at 60fps, 1080x1920, by an
 autopilot that flaps when he sinks under a point a little below the next
 gap's middle, seven gaps, then hands off, the crash at 12.62s and 2.5s of
-game over; the exact prompt typed at a `>` prompt, 110 characters a
-second; the real file scrolling top to bottom over 3.4s, dimmed, with a
-dark band behind the caption zone so the words over it read.
+game over; the exact prompt typed at a `>` prompt after 0.25s of bare
+cursor, 110 characters a second, 20px, wrapped to 300px and centred in the
+upper middle; the real file scrolling top to bottom over 3.4s, 12px, in a
+292px window with soft top and bottom edges, the captions under it on black.
+Both text boxes, `PROMPT_BOX` and `CODE_BOX`, are sized for the safe zone
+through the shot's push and punches, about 1.19, and handed to the template
+as each shot's `keep`; the capture stops if the prompt does not fit its box.
 
 ### The read and the sound
 
 His own voice, four lines, every take heard back word for word, pauses
 trimmed to 0.18s. The crash lands on play: a speed ramp to 0.35, a shake, a
-thud and Mixkit's Arcade retro game over, his squint popping in quiet. The
-prompt shot has Mixkit's Fast keyboard typing under it, cut to 2.4s. No
-music. A sound on every cut and hit, as the brief asked, so 20 effects, over
-the house five a ten seconds on purpose.
+thud and Mixkit's Arcade retro game over. The prompt shot has Mixkit's Fast
+keyboard typing under it, cut to 2.4s. No music. A sound on every cut and
+hit, as the brief asked, so 19 effects, over the house five a ten seconds on
+purpose.
 
 ## The made with AI format
 
@@ -10358,12 +10365,27 @@ before: post67's 22 stills are pixel identical with and without them.
   keep the frame covered and a guard checks it on every shot. A slow 4% push
   on every shot, a kick from 1.08 on every cut, and the first shot dropping
   in from 1.2 on frame 0, so something big moves in the first 0.5s (rule 3).
+- **The TikTok safe zone, the default from post68, Einz's call
+  2026-10-22.** In 1080x1920 px: 140 from the left, 200 from the right for
+  the like and share buttons, 220 from the top, and the bottom 420 clear for
+  the caption and username. The footage still fills the whole screen; every
+  word, the big words, the wordmark, the credit, the card and him stay
+  inside, the captions and big words centred on the safe zone, so a little
+  left of the screen's middle. A big word is fitted so even the top of its
+  1.2 slam fits. A shot's `keep: [l, t, r, b]`, 0 to 1 of the source frame,
+  marks text inside the footage, and it is held to the zone too, through
+  every push, punch and shake. **A guard checks every frame** at the run's
+  fps, on the page for the overlays and in node for the `keep` boxes, and
+  lists each run outside with its times and how far over. It runs on
+  `--stills` too, so a layout can be checked at 60fps before any render.
+  Earlier clips change if they are rendered again.
 - **The captions**: Space Grotesk 500 at **92px. This template breaks rule
   7's 72px cap, Einz's call on 2026-10-20**, so the words hold their own over
   moving footage. White with a soft dark shadow and a faint dark band behind
   them so they read on any picture, the word being said green `#3dff6e`, at
-  62% of the height, each page popping in over 0.15s. A wide page comes down
-  to 72px, never under. Word timing is the voice's own.
+  **66% of the height, Einz's call 2026-10-22**, each page popping in over
+  0.15s. A wide page comes down to 72px, never under. Word timing is the
+  voice's own.
 - The small wordmark through the first 1.6s, rule 12.
 - **The ending, post65's**: one glitch into THE BORING TEK after the last
   word, its sound cut to exactly the glitch frames, the card 1.5s, the end.
