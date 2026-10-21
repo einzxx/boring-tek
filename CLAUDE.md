@@ -180,8 +180,14 @@ House rules for every clip in `demo/`. They apply before Einz sees anything.
   camera. The id lives only in `demo/.env`, never in a tracked file or in chat.
   The narrator voice is only for news stories.
 - 9 to 15 seconds is the normal length. Longer only when Einz says so for that
-  clip. 120px safe margin on every edge. The
-  bottom 300px stays clear of anything important, for the TikTok and Shorts buttons.
+  clip.
+- **The TikTok safe zone, every clip, Einz's call 2026-10-22.** In 1080x1920 px:
+  140px from the left, 200px from the right for the like and share buttons,
+  220px from the top, and the bottom 420px clear for the caption and username.
+  Footage and full screen backgrounds may fill the whole frame. Every word,
+  caption, big word, card, graphic and the mascot stays inside the zone, and so
+  does any text inside the footage that has to be read. Check every frame
+  against it before Einz sees a preview.
 - On screen text has no dashes, apostrophes or quotes.
 
 ### Beat sheet, stills, loop
@@ -217,8 +223,10 @@ Karaoke captions
 7. One to three words per page. Space Grotesk 500, lowercase, 64 to 72px, white,
    the active word in the clip's accent. Each page pops in over 0.15s with a small
    overshoot.
-8. Captions sit at 60 to 65% of the height, never in the bottom 300px. Word timing
-   comes from the real voice timestamps, never an even split.
+8. Captions sit at 60 to 65% of the height, and at 66% on the full screen
+   template, `demo/lib/fullscreen.mjs`. Always inside the safe zone, never in the
+   bottom 420px. Word timing comes from the real voice timestamps, never an even
+   split.
 
 Colour
 9. One bright second colour per clip, as post60 used magenta, alongside green, plus
