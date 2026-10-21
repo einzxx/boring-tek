@@ -18,11 +18,20 @@ names in here either.
   - **The TikTok safe zone is the full screen template's default, Einz's
     call 2026-10-22:** 140px left, 200 right, 220 top, the bottom 420 clear,
     at 1080x1920. Footage fills the screen; words, the card and him stay in.
-    Captions at 66%, **over CLAUDE.md rule 8's 60 to 65%, which is not yet
-    updated, Einz to decide.** A guard checks every frame, `keep` boxes for
-    text inside footage. Before the fix post68 had 11 runs outside: every big
-    word in its slam, him, the wordmark, the prompt, the code, one card
-    frame. post67 changes if rendered again.
+    Captions at 66%. A guard checks every frame, `keep` boxes for text inside
+    footage. Before the fix post68 had 11 runs outside: every big word in its
+    slam, him, the wordmark, the prompt, the code, one card frame. post67
+    changes if rendered again.
+  - **Decided and in CLAUDE.md, Einz's call 2026-10-22:** rule 8 puts
+    captions at 66% on the full screen template (60 to 65% elsewhere), and
+    **the TikTok safe zone is a house rule for every clip**, in place of the
+    old 120px margin and bottom 300.
+  - **The rig's guard, `lib/aiafter.mjs`, opt in:** `safe: 'tiktok'` in
+    `runEpisode` holds the margin guard to the safe zone, the default for
+    new rig clips. A check only, nothing moves; without it the guard is the
+    old 120px and bottom 300, so old clips measure as before (post67 checked
+    both ways). The full screen template has its own every frame guard and
+    does not pass it yet.
   - **The made with AI format:** build the thing for real on a timer, say
     only a true time rounded honestly, real footage of the result, the exact
     prompt and the real file, then three steps.

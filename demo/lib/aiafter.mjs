@@ -47,6 +47,11 @@
        series: false,                   optional, a clip on this rig with no title and no ep tag
        mascot.scale: 0.8,               optional, drawn at 0.8 of the planned size, 1 by default
        stills: [t...],                  optional, one png per beat and a sheet, then stop, no render
+       safe: 'tiktok',                  optional, post68 on, the default for new clips: the margin guard
+                                        holds every check to the TikTok safe zone, CLAUDE.md, in
+                                        1080x1920 px 140 left, 200 right, 220 top, the bottom 420 clear,
+                                        instead of 120 a side and the bottom 300. a check only, the layout
+                                        does not move, so a clip without it is measured as before
        stage: { w, h, appZone, file, subTop },  optional, the website video: another stage in css px
                                         at the same device scale, 960x540 is 1920x1080. appZone is the
                                         bottom band kept clear, file the mp4's name in demo/out, subTop
@@ -868,7 +873,11 @@ Promise.all([document.fonts.load('400 40px Michroma'), document.fonts.load('500 
   const rect = sel => page.evaluate(s => window.__aa.rect(s), sel);
 
   const fails = [];
-  const SB = { l: MARGIN, t: MARGIN, r: VW - MARGIN, b: VH - APP_ZONE };
+  /* `safe: 'tiktok'`, post68 on: the house safe zone in place of the margins */
+  const SB = E.safe === 'tiktok'
+    ? { l: 140 / DSF, t: 220 / DSF, r: VW - 200 / DSF, b: VH - 420 / DSF }
+    : { l: MARGIN, t: MARGIN, r: VW - MARGIN, b: VH - APP_ZONE };
+  if (E.safe && E.safe !== 'tiktok') throw new Error('safe is "tiktok" or left out, not ' + JSON.stringify(E.safe));
   const outside = r => r.l < SB.l - 0.5 || r.t < SB.t - 0.5 || r.r > SB.r + 0.5 || r.b > SB.b + 0.5;
   const box = r => [r.l, r.t, r.r, r.b].map(v => v.toFixed(1)).join(' / ');
 
