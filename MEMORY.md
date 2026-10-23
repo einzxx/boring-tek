@@ -6,6 +6,24 @@ names in here either.
 
 ## Status
 
+- **2026-10-23. Storage clean up, 2.7 GB down to 1.4 GB.** Local only,
+  everything deleted was ignored, nothing tracked changed.
+  - **Deleted:** the final mp4s of post2 to post64 (posted), the verify
+    folders' frames and sheets, `frames-*`, `gif-post43-*` and the other
+    check folders, every `*-mix.wav` and `*.log`, the old json timings and
+    test renders, the downloaded footage in `demo/assets` (pexels, roadster,
+    post68 captures), old scratch folders, `post60-src` to `post69-src`, and
+    the untracked parts of `demo/hf` (the hyperframes trial is over).
+  - **Every `review.md` kept**, one in each of the 32 verify folders.
+  - **`demo/assets/unitree-h2x.mp4` stays:** post69 cuts its frames from it
+    into `out/post69-src`, so it is what lets post69 render again. Proved by
+    `node post69.mjs --stills` after the clean up.
+  - **Kept on purpose:** the promo, song and site renders (`promo1-*`,
+    `song1`, `site-*.mp4`), and the ElevenLabs music and sounds
+    (`music-post*`, `sfx-post60` to `sfx-post65`), which cost credits to
+    make again. Also the post65 to post69 finals, the voice cache, Mixkit,
+    `node_modules`, whisper, the mascot exports and `out/poses`.
+
 - **2026-10-23. post69 is final and pushed: the robot bodyguard.**
   `demo/post69.mjs`, a news reaction on Unitree's own H2-X promo,
   `demo/assets/unitree-h2x.mp4`, ignored, credited VIA UNITREE, 60fps,
