@@ -96,15 +96,23 @@ function probe(file) {
 /* each shot's frames cut once to jpegs at the clip's fps, named from 0 at its
    first source second, and cut again only when the footage or the range moves.
    no bigger than a 1.25 punch in at 1080x1920 needs */
-function cutFrames(dir, file, src, A, D) {
-  const s = Math.min(1, 1 / (Math.max(1080 / src.w, 1920 / src.h) * 1.25));
+/* `sharp`, opt in from post69: the frames at the footage's own size. the cap
+   above is upside down for footage under 4K, it cut 1080p to 864x486, so a
+   1080p shot was blown up four times. kept as it was for the clips before.
+   `rate`, opt in from post69: a ramp shot's frames motion interpolated by
+   ffmpeg's minterpolate to `rate` a source second, so its slow motion has a
+   new picture on every frame rather than held ones */
+function cutFrames(dir, file, src, A, D, o = {}) {
+  const s = o.sharp ? 1 : Math.min(1, 1 / (Math.max(1080 / src.w, 1920 / src.h) * 1.25));
   const ew = Math.round(src.w * s / 2) * 2, eh = Math.round(src.h * s / 2) * 2;
-  const stamp = { file: path.basename(file), mtime: fs.statSync(file).mtimeMs, A, D, fps: FPS, ew, eh };
+  const stamp = { file: path.basename(file), mtime: fs.statSync(file).mtimeMs, A, D, fps: FPS, ew, eh, ...(o.rate ? { fps: 0, interp: o.rate } : {}) };
   const sf = path.join(dir, 'stamp.json');
   if (fs.existsSync(sf) && JSON.stringify(JSON.parse(fs.readFileSync(sf, 'utf8'))) === JSON.stringify(stamp)) return stamp;
   fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
+  if (o.rate) console.log('  interpolating ' + D.toFixed(2) + 's of ' + path.basename(file) + ' from ' + A.toFixed(2) + 's to ' + o.rate + ' frames a second, once');
+  const rate = o.rate ? 'minterpolate=fps=' + o.rate + ':mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1' : 'fps=' + FPS;
   execFileSync(ffmpeg, ['-y', '-v', 'error', '-ss', String(A), '-i', file, '-t', String(D), '-an',
-    '-vf', 'fps=' + FPS + ',scale=' + ew + ':' + eh + ':flags=lanczos', '-q:v', '2', '-start_number', '0', path.join(dir, 'f%05d.jpg')]);
+    '-vf', rate + ',scale=' + ew + ':' + eh + ':flags=lanczos', '-q:v', '2', '-start_number', '0', path.join(dir, 'f%05d.jpg')]);
   fs.writeFileSync(sf, JSON.stringify(stamp));
   return stamp;
 }
@@ -335,6 +343,19 @@ function loadKit(extra = {}) {
    kit         optional { name: [file, peak dB, run up, length] }, more Mixkit
                files from demo/assets/sfx-mixkit, logged in its LICENSES.md
    sounds      optional [{ at, kind, from }]: a cue of the kit on a moment
+   sharp       optional, from post69: each shot's frames at the footage's own
+               size, see cutFrames. off, a clip renders as it always has
+   vision      optional, from post69: the ai vision overlay. each shot may
+               carry `marks` [{ label, keys, sub, subAt }], `keys`
+               [[source second, l, t, r, b], ...] in 0..1 of the source frame,
+               eased between, the mark shown from its first key to its last.
+               `sub` is a second green line typed in from `subAt`, a time
+   a shot's `zoom`, from post69: a base zoom under its push, to crop text
+               in the footage out. its `focus` may be keys [[source s, x, y], ...]
+   a big word's `lines`, from post69: two or three lines, each one fitted
+   a shot's `interp`, from post69: its ramp's frames motion interpolated by
+               minterpolate rather than held. only where it does not warp:
+               look at the frames, a fast limb tears
    ========================================================================== */
 export async function fullscreen(C) {
   const NAME = C.name || 'post' + C.post;
@@ -409,10 +430,16 @@ export async function fullscreen(C) {
   const DIR = path.join(DEMO, 'out', NAME + '-src');
   for (const S of SHOTS) {
     const { file, ...SRC } = MEDIA[S.clip];
-    const st = cutFrames(path.join(DIR, 's' + S.k + '-' + FPS), file, SRC, S.A, S.D);
-    S.ew = st.ew; S.eh = st.eh; S.dir = path.join(DIR, 's' + S.k + '-' + FPS);
+    /* `interp` on a ramp shot: its frames motion interpolated, enough of them
+       for a new picture on every 60fps frame at its slowest, cut once and
+       shared by the preview and the render */
+    const slow = S.ramp ? Math.min(1, ...S.ramp.map(r => r.to).filter(v => v > 0)) : 1;
+    S.rate = S.interp && slow < 1 ? Math.ceil(60 / slow / 10) * 10 : FPS;
+    const sd = path.join(DIR, 's' + S.k + '-' + (S.rate !== FPS ? 'i' + S.rate : FPS));
+    const st = cutFrames(sd, file, SRC, S.A, S.D, { sharp: C.sharp, ...(S.rate !== FPS ? { rate: S.rate } : {}) });
+    S.ew = st.ew; S.eh = st.eh; S.dir = sd;
     S.count = fs.readdirSync(S.dir).filter(f => f.endsWith('.jpg')).length;
-    S.track = S.focus ? [{ s: S.src, x: S.focus[0], y: S.focus[1] }] : autoFocus(file, SRC, S.src, Math.max(0.2, S.len));
+    S.track = S.focus ? (Array.isArray(S.focus[0]) ? S.focus.map(([s, x, y]) => ({ s, x, y })) : [{ s: S.src, x: S.focus[0], y: S.focus[1] }]) : autoFocus(file, SRC, S.src, Math.max(0.2, S.len));
     const mid = focusAt(S.track, S.src + S.len / 2);
     console.log('  shot ' + (S.k + 1) + ' at ' + S.at.toFixed(2) + 's, ' + S.clip + ' from ' + S.src + 's' + (S.speed !== 1 ? ' at ' + S.speed : '') + (S.ramp ? ', ramped' : '') + ', ' + (S.focus ? 'pinned' : 'found') + ' focus ' + mid.x.toFixed(2) + ', ' + mid.y.toFixed(2));
   }
@@ -424,7 +451,8 @@ export async function fullscreen(C) {
     const e = p.amp * Math.exp(-(u - p.at) / 0.09);
     return { x: o.x + e * Math.sin((u - p.at) * 88 + p.i * 1.7), y: o.y + e * Math.cos((u - p.at) * 71 + p.i * 2.3), e: o.e + e };
   }, { x: 0, y: 0, e: 0 });
-  const BIG = (C.big || []).map((b, i) => ({ ...b, id: 'bw' + i, at: b.at === 0 ? SLAM0 : when(b.at) })).sort((a, b) => a.at - b.at);
+  /* a big word may be `lines`, two or three lines, each fitted to the margins */
+  const BIG = (C.big || []).map((b, i) => ({ ...b, ...(b.lines ? { text: b.lines.join(' ') } : {}), id: 'bw' + i, at: b.at === 0 ? SLAM0 : when(b.at) })).sort((a, b) => a.at - b.at);
   BIG.forEach((b, i) => { b.out = f3(Math.min(b.at + (b.hold ?? 1.2), i + 1 < BIG.length ? BIG[i + 1].at : FL.at)); });
 
   /* ---------- him, optional, small in a corner, popping in for each reaction ---------- */
@@ -454,6 +482,58 @@ export async function fullscreen(C) {
   /* ---------- the captions ---------- */
   const PAGES = timePages(TAKES, C.pages || autoPages(TAKES), C.say);
 
+  /* ---------- the vision overlay, opt in from post69 ----------
+     thin white corner brackets on the robot and the key objects, a small mono
+     label beside each, a soft green scan line once a shot. each shot's
+     `marks` are keyed by hand off the source frames, so they track through
+     the crop, the push, the punches and the shake. every bracket and label is
+     held inside the safe zone */
+  const VIS = !!C.vision, VN = 3;
+  const MARKS = SHOTS.map(S => (S.marks || []).map(m => ({ ...m, keys: [...m.keys].sort((a, b) => a[0] - b[0]),
+    subAt: m.sub ? (m.subAt != null ? when(m.subAt) : S.at) : null })));
+  if (!VIS && MARKS.some(ms => ms.length)) throw new Error('marks need vision: true');
+  if (MARKS.some(ms => ms.length > VN)) throw new Error('vision: at most ' + VN + ' marks a shot');
+  const boxAt = (keys, s) => {
+    if (s <= keys[0][0]) return keys[0].slice(1);
+    for (let i = 1; i < keys.length; i++) if (s < keys[i][0]) {
+      const q = smooth((s - keys[i - 1][0]) / (keys[i][0] - keys[i - 1][0]));
+      return keys[i].slice(1).map((v, j) => lerp(keys[i - 1][j + 1], v, q));
+    }
+    return keys[keys.length - 1].slice(1);
+  };
+  /* a label's width: mono at 0.6em an advance plus its 0.22em spacing, the dot, a little over */
+  const LBL = 20, SUBPX = 16, labW = (t, px) => t.length * px * 0.86 + (px === LBL ? 12 : 2);
+  function vision(u, sh, S, X) {
+    const Sh = SHOTS[sh.k], ms = MARKS[sh.k], s = srcAt(Sh, u), live = u < FL.at;
+    for (let i = 0; i < VN; i++) {
+      const m = ms[i];
+      const on = m && live && s >= m.keys[0][0] - 0.06 && s <= m.keys[m.keys.length - 1][0] + 0.06;
+      if (!on) { S.push(['vb' + i, 'opacity', 0], ['vl' + i, 'opacity', 0]); continue; }
+      const [l, t, r, b] = boxAt(m.keys, s);
+      /* locks on: in from 12% wider over 0.16s, one after another */
+      const a0 = Sh.at + 0.05 + i * 0.07, q = span(u, a0, a0 + 0.16), g = lerp(1.12, 1, CURVE.out(q));
+      const cx = sh.tx + (l + r) / 2 * Sh.ew * sh.k0, cy = sh.ty + (t + b) / 2 * Sh.eh * sh.k0;
+      const hw = (r - l) / 2 * Sh.ew * sh.k0 * g, hh = (b - t) / 2 * Sh.eh * sh.k0 * g;
+      const L = Math.max(cx - hw, SAFE.l + 1), T = Math.max(cy - hh, SAFE.t + 1), R = Math.min(cx + hw, SAFE.r - 1), B = Math.min(cy + hh, SAFE.b - 1);
+      if (R - L < 24 || B - T < 24) { S.push(['vb' + i, 'opacity', 0], ['vl' + i, 'opacity', 0]); continue; }
+      S.push(['vb' + i, 'opacity', f3(smooth(q))], ['vb' + i, 'left', f2(L) + 'px'], ['vb' + i, 'top', f2(T) + 'px'], ['vb' + i, 'width', f2(R - L) + 'px'], ['vb' + i, 'height', f2(B - T) + 'px']);
+      /* the label above the top left corner, or inside it when there is no room */
+      const subOn = m.sub && u >= m.subAt;
+      const sub = subOn ? m.sub.slice(0, Math.ceil(m.sub.length * span(u, m.subAt, m.subAt + 0.4))) : '';
+      const lh = LBL + (subOn ? SUBPX + 3 : 0), lw = Math.max(labW(m.label, LBL), subOn ? labW(m.sub, SUBPX) : 0);
+      /* the wordmark holds the top of the safe zone through the hook */
+      const top = SAFE.t + 1 + (u < 1.7 ? 26 : 0);
+      let lx = L, ly = T - 6 - lh;
+      if (ly < top) { lx = L + 8; ly = Math.max(T + 8, top); }
+      lx = Math.min(Math.max(lx, SAFE.l + 1), SAFE.r - 1 - lw);
+      S.push(['vl' + i, 'opacity', f3(smooth(span(u, a0 + 0.08, a0 + 0.2)))], ['vl' + i, 'transform', 'translate(' + f2(lx) + 'px,' + f2(ly) + 'px)']);
+      X.push(['vt' + i, m.label], ['vs' + i, sub]);
+    }
+    /* the scan line, once a shot, down the safe zone in 0.55s */
+    const q = span(u, Sh.at + 0.02, Sh.at + 0.57);
+    S.push(['scan', 'opacity', live && q > 0 && q < 1 ? f3(0.8 * Math.sin(Math.PI * q)) : 0], ['scan', 'transform', 'translateY(' + f2(lerp(SAFE.t + 27, SAFE.b - 1, smooth(q))) + 'px)']);
+  }
+
   /* ---------- the picture, a frame of it ---------- */
   function shotAt(u) {
     let k = 0;
@@ -461,7 +541,7 @@ export async function fullscreen(C) {
     const S = SHOTS[k];
     const s = srcAt(S, u);
     const sk = shakeAt(u);
-    let z = 1 + S.push * CURVE.dolly(span(u, S.at, S.end));
+    let z = (S.zoom ?? 1) + S.push * CURVE.dolly(span(u, S.at, S.end));
     z *= k === 0 ? lerp(1.2, 1, CURVE.out(span(u, SLAM0, SLAM0 + 0.45))) : lerp(1.08, 1, CURVE.out(span(u, S.at, S.at + 0.22)));
     let fo = focusAt(S.track, s);
     for (const p of PUNCH) {
@@ -481,7 +561,7 @@ export async function fullscreen(C) {
     /* the payoff kicks the frame, inside the cover */
     if (PAY != null && u >= PAY && u < PAY + 0.3) { const e = Math.exp(-(u - PAY) / 0.07); tx = Math.min(0, Math.max(W - dw, tx + 6 * e * Math.sin((u - PAY) * 90))); }
     if (sk.e) { tx = Math.min(0, Math.max(W - dw, tx + sk.x)); ty = Math.min(0, Math.max(H - dh, ty + sk.y)); }
-    const p = (s - S.A) * FPS, n = S.speed === 1 || S.ramp ? Math.round(p) : Math.floor(p + 1e-6), bf = S.speed === 1 || S.ramp ? 0 : f3(p - n);
+    const p = (s - S.A) * S.rate, n = S.speed === 1 || S.ramp ? Math.round(p) : Math.floor(p + 1e-6), bf = S.speed === 1 || S.ramp ? 0 : f3(p - n);
     return { k, n, bf, tx, ty, k0, tr: 'translate(' + f2(tx) + 'px,' + f2(ty) + 'px) scale(' + (k0).toFixed(5) + ')' };
   }
   const jpg = (k, n) => {
@@ -496,6 +576,7 @@ export async function fullscreen(C) {
     const sh = shotAt(u);
     S.push(['fa', 'transform', sh.tr], ['fb', 'transform', sh.tr], ['fb', 'opacity', sh.bf > 0.02 ? sh.bf : 0]);
     X.push(['shot', sh.k]);
+    if (VIS) vision(u, sh, S, X);
 
     /* the small wordmark through the hook */
     S.push(['wmk', 'opacity', f3(1 - smooth(span(u, 1.5, 1.7)))]);
@@ -549,6 +630,8 @@ html,body,.stage{background:${BLACK} !important}
 .bw{position:absolute;left:${SAFE.l}px;right:${W - SAFE.r}px;top:${f2(H * 0.3)}px;height:0;display:flex;justify-content:center;align-items:flex-start;opacity:0;z-index:5;will-change:transform,opacity,filter}
 .bw b{display:block;transform:translateY(-50%);width:max-content;font:400 60px/1 var(--display);letter-spacing:.02em;color:${WHITE};white-space:nowrap;-webkit-text-stroke:2px ${WHITE};text-shadow:${SHADOW}}
 .bw.g b{color:${GREEN};-webkit-text-stroke:2px ${GREEN}}
+.bw b i{display:block;width:max-content;margin:0 auto;font-style:normal;line-height:.96}
+.bw b i+i{margin-top:.14em}
 #mas-cut{transform-origin:${BUB.x}px ${BUB.y}px;${MC ? 'opacity:0' : 'display:none'}}
 .m-glow-mid{filter:blur(${f2(11 / MAS.scale)}px)}
 .m-glow-wide{filter:blur(${f2(30 / MAS.scale)}px)}
@@ -556,14 +639,24 @@ html,body,.stage{background:${BLACK} !important}
 #cap b{display:block;transform:translateY(-50%);font:500 ${CAP_PX}px/1 var(--read);color:${WHITE};white-space:nowrap;text-shadow:${SHADOW}}
 #cred{position:absolute;left:${SAFE.l}px;right:${W - SAFE.r}px;bottom:${H - SAFE.b + 8}px;text-align:center;font:400 9.5px/1.35 var(--read);letter-spacing:.02em;color:rgba(255,255,255,.86);text-shadow:0 0 4px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.8);z-index:9}
 #flash{position:absolute;inset:0;background:${GREEN};opacity:0;z-index:20}
-/* the card centred in the safe zone, so the glitch into it stays inside too */
+${VIS ? `.vb{position:absolute;left:0;top:0;width:0;height:0;opacity:0;z-index:4;pointer-events:none}
+.vb i{position:absolute;width:18px;height:18px;border:0 solid rgba(255,255,255,.95);filter:drop-shadow(0 0 1.5px rgba(0,0,0,.6))}
+.vb .a{left:0;top:0;border-left-width:1.5px;border-top-width:1.5px}.vb .b{right:0;top:0;border-right-width:1.5px;border-top-width:1.5px}
+.vb .c{left:0;bottom:0;border-left-width:1.5px;border-bottom-width:1.5px}.vb .d{right:0;bottom:0;border-right-width:1.5px;border-bottom-width:1.5px}
+.vl{position:absolute;left:0;top:0;opacity:0;z-index:4;font:500 ${LBL}px/1 var(--mono);letter-spacing:.22em;color:${WHITE};white-space:nowrap;text-shadow:0 0 3px rgba(0,0,0,.85),0 0 9px rgba(0,0,0,.45)}
+.vl span{display:block}.vl span::before{content:'';display:inline-block;width:5px;height:5px;background:${GREEN};margin-right:6px;vertical-align:1px}
+.vl em{display:block;font-style:normal;font-size:${SUBPX}px;line-height:1;margin-top:3px;color:${GREEN}}
+#scan{position:absolute;left:${SAFE.l}px;width:${SAFE.r - SAFE.l}px;top:0;height:1px;opacity:0;z-index:4;background:${GREEN};-webkit-mask-image:linear-gradient(90deg,transparent,#000 20%,#000 80%,transparent)}
+#scan::before{content:'';position:absolute;left:0;right:0;bottom:1px;height:26px;background:linear-gradient(rgba(61,255,110,0),rgba(61,255,110,.08))}
+` : ''}/* the card centred in the safe zone, so the glitch into it stays inside too */
 #wm{left:${(SAFE.l + SAFE.r) / 2}px}
 `;
   const markup = `
 <div id="ft"><img id="fa" alt=""><img id="fb" alt=""></div>
 <div id="shade"></div>
 <div id="wmk">${WMKW}</div>
-${BIG.map(b => `<div class="bw${b.green ? ' g' : ''}" id="${b.id}"><b>${b.text}</b></div>`).join('\n')}
+${BIG.map(b => `<div class="bw${b.green ? ' g' : ''}" id="${b.id}"><b>${b.lines ? b.lines.map(l => '<i>' + l + '</i>').join('') : b.text}</b></div>`).join('\n')}
+${VIS ? Array.from({ length: VN }, (_, i) => `<div class="vb" id="vb${i}"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div><div class="vl" id="vl${i}"><span id="vt${i}"></span><em id="vs${i}"></em></div>`).join('\n') + '\n<div id="scan"></div>' : ''}
 `;
   const front = `<div id="cap"><b><span id="cw0"></span> <span id="cw1"></span> <span id="cw2"></span></b></div>
 ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
@@ -580,6 +673,11 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
         b.style.fontSize = '100px';
         b.style.fontSize = Math.min(96, 100 * D.bigW / b.getBoundingClientRect().width).toFixed(2) + 'px';
       }
+      /* a two line big word, post69 on: each line as wide as the margins */
+      for (const l of document.querySelectorAll('.bw b > i')) {
+        l.style.fontSize = '100px';
+        l.style.fontSize = Math.min(150, 100 * D.bigW / l.getBoundingClientRect().width).toFixed(2) + 'px';
+      }
     };
     window.__gag = {
       apply(o) {
@@ -593,6 +691,7 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
         for (const [id, v] of o.X) {
           if (last[id + '$'] === v) continue;
           last[id + '$'] = v;
+          if (id[0] === 'v') { $(id).textContent = v; continue; }
           if (id === 'shot') { const [w, h] = D.sizes[v]; for (const im of [fa, fb]) { im.style.width = w + 'px'; im.style.height = h + 'px'; } continue; }
           const ws = v < 0 ? [] : D.pages[v];
           for (let j = 0; j < 3; j++) { $('cw' + j).textContent = ws[j] || ''; $('cw' + j).style.display = ws[j] ? 'inline' : 'none'; }
@@ -674,7 +773,8 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
       const r = { l: sh.tx + S.keep[0] * S.ew * sh.k0, t: sh.ty + S.keep[1] * S.eh * sh.k0, r: sh.tx + S.keep[2] * S.ew * sh.k0, b: sh.ty + S.keep[3] * S.eh * sh.k0 };
       if (outside(r)) LOG.push({ t: u, what: 'shot ' + (S.k + 1) + ' text in the footage', r });
     }
-    const sels = ['#cap b', '#wmk', '#m-card', ...BIG.map(b => '#' + b.id + ' b'), ...(CREDIT.length ? ['#cred'] : [])];
+    const sels = ['#cap b', '#wmk', '#m-card', ...BIG.map(b => '#' + b.id + ' b'), ...(CREDIT.length ? ['#cred'] : []),
+      ...(VIS ? [...Array.from({ length: VN }, (_, i) => ['#vb' + i, '#vl' + i]).flat(), '#scan'] : [])];
     for (let fr = 0; fr < FR; fr++) for (const sel of sels) {
       out.push({ at: f3(fr / FPS), sel, test: r => { if (r && r.w && r.o >= 0.05 && outside(r)) LOG.push({ t: fr / FPS, what: sel, r }); return null; } });
     }
@@ -725,7 +825,7 @@ ${CREDIT.length ? '<div id="cred">' + CREDIT.join('<br>') + '</div>' : ''}`;
       beats: BEATS,
       checks: ['#cap b', '#wmk', ...BIG.map(b => '#' + b.id + ' b'), ...(CREDIT.length ? ['#cred'] : [])],
       hook: ['#ft', '#wmk', ...BIG.filter(b => b.at <= 0).map(b => '#' + b.id)],
-      copy: [WMKW, ...BIG.map(b => b.text), ...CREDIT, ...PAGES.map(P => P.txt)],
+      copy: [WMKW, ...BIG.map(b => b.text), ...CREDIT, ...PAGES.map(P => P.txt), ...MARKS.flat().flatMap(m => [m.label, ...(m.sub ? [m.sub] : [])])],
       verify: [
         { at: 0, sel: '#fa', test: r => (r && r.l <= 0.5 && r.t <= 0.5 && r.r >= W - 0.5 && r.b >= H - 0.5 ? null : 'the footage does not cover the frame at 0: ' + JSON.stringify(r)) },
         ...SHOTS.map(S => ({ at: f3(Math.min(S.end - 0.02, S.at + 0.5)), sel: '#fa', test: r => (r && r.l <= 0.5 && r.t <= 0.5 && r.r >= W - 0.5 && r.b >= H - 0.5 ? null : 'shot ' + (S.k + 1) + ' leaves a bar: ' + JSON.stringify(r)) })),

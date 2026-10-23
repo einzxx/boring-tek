@@ -6,6 +6,35 @@ names in here either.
 
 ## Status
 
+- **2026-10-23. post69 is final and pushed: the robot bodyguard.**
+  `demo/post69.mjs`, a news reaction on Unitree's own H2-X promo,
+  `demo/assets/unitree-h2x.mp4`, ignored, credited VIA UNITREE, 60fps,
+  12.32s, -14 LUFS, 25 Mixkit effects, every frame in the safe zone. Three critique rounds on the 12fps preview, all 8 or more, in
+  `demo/out/verify-post69/review.md`; Einz's ok, then the vision labels 20%
+  up (20px, the sub 16px), nothing else. No music.
+  - **The facts source:** Unitree's promo itself and the brief's facts, only
+    those: released October 21 2026, sold as a guardian robot, the four
+    actions, Unitree did not say if autonomous or choreographed. No numbers.
+  - **Einz's calls:** no PERSON label, the lift victim and the pedestrian
+    are props by Unitree's own caption. No mascot, the robot is the star.
+    AUTONOMY UNKNOWN under ROBOT on line 3.
+  - **The vision opt in, `lib/fullscreen.mjs`, `vision: true`:** thin white
+    corner brackets, a small mono label with a green dot, a soft green scan
+    line once a shot, all held in the safe zone and guarded. Each shot's
+    `marks` are keys in source fractions. **Box the head, not the body:** a
+    body box in a vertical crop clamps to the screen edges and reads as a
+    frame border. post69 finds the head from the cyan visor; it fails where
+    the scene has blue (the lift dummy) or gold light (night shots).
+  - **More opt ins:** `sharp` (frames at the footage's own size; the old
+    cap cut 1080p to 864x486, kept for old clips), a shot's `interp`
+    (minterpolate on a ramp), `zoom` (crops burnt in captions out), keyed
+    `focus`, a big word's `lines`. post67 and post68 stills: 39 of 44
+    pixel identical, the rest differ the same way run to run.
+  - **minterpolate tears fast limbs** (the knife kick: blocks, a ghost
+    hand), so the kick holds frames. Clean on the slow car lift, which is
+    interpolated to 140 frames a source second.
+  - **Mixkit:** Factory metal hard hit (2980), in its `LICENSES.md`.
+
 - **2026-10-22. post68 is final and pushed: made with AI, the first clip
   of the made with AI format, 14.27s.** `demo/post68.mjs`, 60fps, out to
   `demo/out/post68-dark-1080x1920.mp4`, sheets and `review.md` in

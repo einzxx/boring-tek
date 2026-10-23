@@ -10229,6 +10229,70 @@ keyboard typing under it, cut to 2.4s. No music. A sound on every cut and
 hit, as the brief asked, so 19 effects, over the house five a ten seconds on
 purpose.
 
+## The sixty ninth clip, the robot bodyguard
+
+`demo/post69.mjs`. A news reaction on the full screen template, the first
+with its vision overlay. Unitree's H2-X disarms a knife, smashes a car door,
+lifts a car and pulls a pedestrian back, and nobody knows if it did that by
+itself. 12.32s, 60fps, out to `demo/out/post69-dark-1080x1920.mp4`,
+sheets and `review.md` in `demo/out/verify-post69/`. Three critique rounds
+on the 12fps preview, all 8 or more, then Einz's one change, the vision
+labels 20% up. -14 LUFS, -1.7 dBTP, 25 Mixkit effects, no music, 3 glitch
+frames, every frame inside the safe zone at 60fps, all guards green. White
+and green only.
+
+### The facts
+
+From Unitree's own promo video and the brief, and only these: Unitree, from
+China, released a promo video on October 21 2026 of its H2-X humanoid
+robot, sold as a guardian robot. It shows the robot disarming a man with a
+knife, smashing a car door, lifting a car to free a trapped person and
+pulling a pedestrian away from a car. Unitree did not say if the actions
+were done by the robot on its own or choreographed. No numbers and no
+claims beyond that. **The trapped person and the pedestrian are props**,
+Unitree's own caption says so, so neither gets a PERSON label, Einz's call.
+
+### The footage
+
+Unitree's promo, `demo/assets/unitree-h2x.mp4`, 1080p at 50fps, ignored,
+never pushed, its sound dropped, credited small as VIA UNITREE. Ten shots,
+no two sharing source frames, a cut every 0.8 to 1.2s. Frame 0 is the hood
+slam mid dive under ROBOT BODYGUARD, the dust landing at 0.3s; the door
+smash was the first pick, but its frame 0 cropped to a blurred thigh. The lift, the pull back and the
+gold lit shot sit at a 1.08 zoom to crop out Unitree's burnt in "for
+reference only" caption. Unitree's end card, from 54.4s, is never used.
+
+### The vision overlay
+
+`vision: true`, see the template's options. Thin white corner brackets, a
+mono label with a small green dot, ROBOT, KNIFE or CAR, a soft green scan
+line once a shot, and AUTONOMY UNKNOWN typed in green under ROBOT on
+nobody. **The box is on the head, not the body**: a body box in a 9:16 crop
+of 16:9 footage clamps to the safe zone edges and reads as a frame border.
+The visor glows cyan, so `head()` in the post file finds it: the cyan pixels
+at 480x270, ten frames a second, a frame with under ten skipped. It fails
+where the scene has blue in it (the dummy in the lift) or gold light (the
+night shots), so those three are keyed by hand off gridded stills. Labels at
+20px, the sub at 16px, Einz's 20% up from the preview.
+
+### The slow motion
+
+**minterpolate tears fast limbs.** The disarm kick, interpolated, broke the
+leg into blocks and left a ghost hand, so that ramp holds frames, to 0.35.
+The car lift is slow and clean, so it is interpolated, `interp: true`, to
+140 frames a source second, a new picture on every frame at 0.45. The pull
+back freezes on traffic, the payoff, the green flash and a hit, and holds
+into the cut.
+
+### The read and the sound
+
+His own voice on eleven_v4, three lines at 1.16, every take heard back word
+for word, a 0.45s planned silence out of the freeze. No mascot on screen,
+Einz's call: the robot is the star, the wordmark and the card carry the
+brand. No music. Real Mixkit effects on every cut and hit, so 25, over the
+house five a ten seconds as the brief asked; Mixkit's Factory metal hard
+hit, 2980, on the hood and the door dents, logged in `LICENSES.md`.
+
 ## The made with AI format
 
 From post68. An outcome showcase: something real, made with AI, shown
@@ -10356,6 +10420,33 @@ before: post67's 22 stills are pixel identical with and without them.
   on it.
 - `quiet: true` on a mascot reaction: he pops in with no pop sound, for a
   moment that already has its own.
+
+From post69, opt ins, Einz's ok 2026-10-23. post67's and post68's stills
+on the new template: 39 of 44 pixel identical, the other five differing by
+the same browser noise two runs of the new template show, 72dB and up.
+
+- `vision: true`: the ai vision overlay. Each shot may carry `marks: [{
+  label, keys, sub, subAt }]`, at most three, `keys` `[[source second, l, t,
+  r, b], ...]` in 0 to 1 of the source frame, eased between, shown from the
+  first key to the last. Thin white corner brackets that lock on from 12%
+  wider over 0.16s, a 20px mono label with a green dot above the box (inside
+  it when there is no room), `sub` a 16px green line typed in from `subAt`,
+  and a 1px green scan line down the safe zone once a shot. Every bracket
+  and label is clamped to the safe zone and checked by the guard; a box
+  under 24px is hidden. Marks without `vision` stop the run.
+- `sharp: true`: **a fix, opt in.** The frame cap was upside down for
+  footage under 4K: it cut 1080p to 864x486, so a 1080p shot was blown up
+  four times on screen. `sharp` cuts the frames at the footage's own size.
+  Off, a clip renders as it always has, post68 included.
+- `interp: true` on a ramp shot: its frames motion interpolated by ffmpeg's
+  minterpolate (mci, aobmc, bidir) to enough frames a source second for a
+  new picture on every 60fps frame at its slowest. **Look at the frames
+  first: a fast limb tears.**
+- `zoom` on a shot: a base zoom under its push, to crop burnt in text out.
+- `focus: [[source second, x, y], ...]`: keyed focus, eased between, for a
+  crop the finder would hand to the wrong subject.
+- `lines: ['ROBOT', 'BODYGUARD']` on a big word: two or three lines, each
+  fitted to the margins on its own.
 
 ### What it draws
 
