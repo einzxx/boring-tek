@@ -6,6 +6,31 @@ names in here either.
 
 ## Status
 
+- **2026-10-23. The 14 day plan and the scout, Einz's calls, in CLAUDE.md
+  under Motion.** No clip made.
+  - **The 14 day plan:** one format every day for 14 days, from the first
+    clip after 2026-10-23. The mascot answers one crazy question about AI or
+    tech per clip, 15 to 25 seconds (over rule 4's 9 to 15, these 14 only),
+    our own animation, real facts. After day 14, keep the style of the top 3
+    clips by Einz's numbers and drop the rest.
+  - **Scout, before every clip:** new motion, video and caption skills from
+    the last 7 days (prompt-motion.com, GitHub, the skills directories), 3
+    lines max; one AI or tech story today with real footage or a strong
+    question; which past clip style the new one copies, from the numbers Einz
+    pastes, and why. Read only, nothing installed without asking.
+  - **huashu-motion installed for Claude Code at user level, outside this
+    repo.** MIT, v0.3.1, commit 52467f9, read in full first. The clone is in
+    `~/.claude/skill-src/huashu-motion`, linked into `~/.claude/skills/`, so
+    its `bin/om` runs the local CLI and never the `npx --yes` fallback. No
+    npm dependencies, no keys. Network only on explicit commands (`om grab`,
+    `om samples build`, the first `om voice`); its 30 day version check is
+    set to `off`. Tested on macOS only by its author; on this machine
+    `om doctor` passes (Node 24, ffmpeg, Chrome). macOS `say` voices and
+    `samples build` (bsdtar) are the parts that need care on Windows. Its
+    films end on a "Made with huashu-motion" signature: off
+    (`data-om-signature="off"`) if one of ours is ever built with it. Not
+    used by any clip yet.
+
 - **2026-10-23. Storage clean up, 2.7 GB down to 1.4 GB.** Local only,
   everything deleted was ignored, nothing tracked changed.
   - **Deleted:** the final mp4s of post2 to post64 (posted), the verify

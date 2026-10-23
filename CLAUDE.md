@@ -162,6 +162,28 @@ state or makes a decision.
 
 House rules for every clip in `demo/`. They apply before Einz sees anything.
 
+### Scout, before every clip
+
+Runs before the beat sheet. Read only.
+
+1. Check for new motion, video and caption skills from the last 7 days on
+   prompt-motion.com, GitHub and the skills directories. List anything worth
+   testing in 3 lines max.
+2. Check today's AI and tech news for one story with real footage or a strong
+   question.
+3. Read the latest numbers Einz pastes from the chat, and say which past clip
+   style the new clip copies and why.
+4. Never install anything from the scout without asking.
+
+### The 14 day plan, Einz's call 2026-10-23
+
+- One format every day for 14 days, from the first clip after 2026-10-23.
+- The mascot answers one crazy question about AI or tech per clip.
+- 15 to 25 seconds, over the 9 to 15 of rule 4, for these 14 clips only.
+- Our own animation, real facts, every fact sourced.
+- After day 14, keep the style of the top 3 clips by Einz's numbers and drop
+  the rest.
+
 ### Banned looks
 
 - Centered title on a gradient, everything just fading in, corner labels, frame
