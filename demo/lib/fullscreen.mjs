@@ -218,8 +218,9 @@ function timePages(TAKES, txt, say = {}) {
    down to `max` seconds, its middle taken out with a 5ms crossfade, half of
    `max` kept on each side. after a
    full stop the breath goes too, see below. words are never touched, and
-   their times move with the cut */
-export function tighten(T, max) {
+   their times move with the cut. `opt.comma`, optional, post70: the gate in dB
+   after a comma, so the breath there goes too. without it -40, as before */
+export function tighten(T, max, opt = {}) {
   const pcm = T.pcm, H = Math.round(0.005 * SR);
   let peak = 0; for (const v of pcm) peak = Math.max(peak, Math.abs(v));
   const lvl = k => { let m = 0; for (let j = k * H; j < Math.min((k + 1) * H, pcm.length); j++) m = Math.max(m, Math.abs(pcm[j])); return m; };
@@ -233,7 +234,8 @@ export function tighten(T, max) {
        silence, as an editor would; a word's own sound, its onset and a
        fricative tail, is louder and bounds the run. else it is -40dB, true
        silence. a stop inside a word is far shorter than any pause */
-    const gate = peak * Math.pow(10, (/[.?!]$/.test(T.words[i].word.trim()) ? -18 : -40) / 20);
+    const wd = T.words[i].word.trim();
+    const gate = peak * Math.pow(10, (/[.?!]$/.test(wd) ? -18 : /,$/.test(wd) && opt.comma ? opt.comma : -40) / 20);
     let best = [0, 0], run = null;
     for (let k = a; k <= b; k++) {
       if (lvl(k) <= gate) { if (!run) run = [k, k]; run[1] = k + 1; if (run[1] - run[0] > best[1] - best[0]) best = [...run]; } else run = null;

@@ -10293,6 +10293,79 @@ brand. No music. Real Mixkit effects on every cut and hit, so 25, over the
 house five a ten seconds as the brief asked; Mixkit's Factory metal hard
 hit, 2980, on the hood and the door dents, logged in `LICENSES.md`.
 
+## The seventieth clip, how much water does one AI answer drink
+
+`demo/post70.mjs`. Clip 1 of the 14 day plan: the mascot answers one crazy
+question about AI or tech, our own animation, real facts. A glass that
+fills drop by drop, numbers that slam in, him leaning on the glass. 24.93s,
+60fps, out to `demo/out/post70-dark-1080x1920.mp4`, sheets and `review.md`
+in `demo/out/verify-post70/`. Three critique rounds on the 12fps preview,
+all 8 or more, then Einz's one change, a clear gap between him and the
+glass. -14.2 LUFS, -1.7 dBTP, 33 Mixkit effects, no music, 3 glitch frames,
+every frame inside the safe zone, all guards green.
+
+### The facts
+
+Read at the sources on 2026-10-23, and the clip says only what they say.
+
+- **UC Riverside**, Li, Yang, Islam and Ren, "Making AI Less Thirsty",
+  arXiv 2304.03271. The current version, v5 of 26 March 2025, says GPT-3
+  needs a 500ml bottle of water for roughly 10 to 50 medium length
+  responses, depending on when and where it is deployed, cooling water
+  plus the water behind the electricity, and calls it conservative. v1, 6
+  April 2023, said 20 to 50 questions and answers for ChatGPT. The clip
+  uses v5's ten to fifty and tags it STUDY 2023, UC RIVERSIDE.
+- **Google**, Cloud blog, 21 August 2025: the median Gemini Apps text prompt
+  "consumes 0.26 milliliters (or about five drops) of water". Text prompts
+  only, Google's own measure of its own model.
+- **Sam Altman**, OpenAI's boss, "The Gentle Singularity", June 2025 (the
+  post shows no date, the press has 10 or 11 June): the average ChatGPT
+  query "uses about 0.000085 gallons of water; roughly one fifteenth of a
+  teaspoon". No method published.
+
+The sources measure different models in different years, so the clip shows
+all three and says only "different models, different years, different
+math". It makes no claim about why they differ.
+
+### The read
+
+His own voice, eight lines, eleven_v4, every take heard back word for word.
+**Tempo 1.28, not the house 1.16, Einz's ok after the preview:** at 1.16 the
+eight approved lines run about 27s with the rig's 0.25s minimum between
+lines, over the plan's 25. The pauses are tightened to 0.25s by the full
+screen template's `tighten`, which takes a new opt in, `comma`, a gate in dB
+after a comma so the breath there goes too; post70 passes -18. Without it
+every earlier clip tightens as before. A 0.5s planned stop before five
+drops.
+
+### The energy
+
+huashu-motion's rhythm rules. A hook in the first second (the glass mid
+punch in from 1.25, a drop falling), a climb in steps, the burst at about a
+third (six cuts on the words of line 3, a bubble and a gulp a cut, hard
+0.25s eases), the stop, then the payoff as a slow 1.6s glide down to five
+drops counted at the bottom, the slow move against the hard ones. The green
+flash on five. Water blue is the clip's second colour.
+
+**The gap, Einz's change:** him and the glass were 1 to 2px apart. He sits
+against the right edge of the safe zone in his squint tilt and his grow on
+line 8, so the glass world moved left instead: 12px, the burst's tilts to
+1 degree with no side offsets (any tilt swings a corner of the glass out of
+the left edge), and the glass back for line 8 at 0.95. Measured on every
+preview frame, white pixels only, then checked by eye.
+
+`om qa` on the 60fps final flags a flat opening. Its motion is a frame to
+frame difference, so at 60fps every value is about a quarter of the 12fps
+preview's, where the same opening passed. Left as approved.
+
+### The sound
+
+Real Mixkit effects only, no music. Five water sounds downloaded for this
+clip and logged in `LICENSES.md`: Bathroom sink water drip 1879, Water
+bubble 1317, Liquid bubble 3000, Water drop splashes in cave 3179, Pouring
+water in a glass 2826. A quiet pour under line 2's slow fill, the pour under
+the burst, a plop or splash on every gulp, five drips for the five drops.
+
 ## The made with AI format
 
 From post68. An outcome showcase: something real, made with AI, shown

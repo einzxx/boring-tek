@@ -6,6 +6,37 @@ names in here either.
 
 ## Status
 
+- **2026-10-24. post70 is final and pushed: how much water does one AI
+  answer drink, clip 1 of the 14 day plan.** `demo/post70.mjs`, our own
+  animation, a glass filling drop by drop, him leaning on it. 24.93s, 60fps,
+  -14.2 LUFS, -1.7 dBTP, 33 Mixkit effects, no music, 3 glitch frames, every
+  frame in the safe zone. Three critique rounds all 8 or more in
+  `demo/out/verify-post70/review.md`, then Einz's one change. Write up is
+  **The seventieth clip** in `demo/README.md`.
+  - **The facts sources, read 2026-10-23:** UC Riverside, Li, Yang, Islam,
+    Ren, "Making AI Less Thirsty", arXiv 2304.03271, v5 of 26 Mar 2025: a
+    500ml bottle for roughly 10 to 50 GPT-3 responses (v1, 6 Apr 2023, said
+    20 to 50 for ChatGPT). Google Cloud blog, 21 Aug 2025: 0.26 ml, about
+    five drops, per median Gemini Apps text prompt. Sam Altman, The Gentle
+    Singularity, June 2025: about 0.000085 gallons, one fifteenth of a
+    teaspoon, per average ChatGPT query, no method. Different models and
+    years; the clip says only that, never why.
+  - **Tempo 1.28, not the house 1.16, Einz's ok:** at 1.16 the eight
+    approved lines ran about 27s with the rig's 0.25s minimum between lines,
+    over the plan's 25. `tighten` in `lib/fullscreen.mjs` gained an opt in
+    `comma` gate; earlier clips tighten as before.
+  - **Einz's change, a clear gap between him and the glass.** He is already
+    against the safe zone's right edge in his squint tilt and his line 8
+    grow, so Einz chose to move the glass: 12px left, burst tilts down to 1
+    degree with no side offsets (any tilt swings a glass corner out of the
+    left edge), back at 0.95 for line 8. A CSS tilt grows the box on one
+    side whichever way it turns.
+  - **om qa reads a 60fps file as flat**: its motion is frame to frame, a
+    quarter of the 12fps values. Judge the energy on the preview.
+  - **Mixkit:** five water sounds, 1879, 1317, 3000, 3179, 2826, in its
+    `LICENSES.md`. The asset host resets connections; plain retries inside
+    the sandbox get through.
+
 - **2026-10-23. The 14 day plan and the scout, Einz's calls, in CLAUDE.md
   under Motion.** No clip made.
   - **The 14 day plan:** one format every day for 14 days, from the first
